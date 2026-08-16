@@ -144,7 +144,7 @@ t_good = time.ticks_ms()
 ax, ay, az = 0.0, 0.0, 9.81      # ค่าล่าสุดที่อ่านได้จริง ไม่ใช่ศูนย์ที่แกล้งทำเป็นค่า
 heading = 0.0
 pct, volts = 0.0, 0.0
-print("s08 dashboard started - 32 widgets - cadence 200 ms")
+print("s08 dashboard started - 64 widgets - cadence 200 ms")
 # ---------- ท่าที่ 6: ลูปหลัก 200 ms ----------
 try:
     while True:

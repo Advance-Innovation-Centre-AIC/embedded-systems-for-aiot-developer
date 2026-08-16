@@ -20,7 +20,7 @@ import time
 # ตัวเลขของสนาม เขียนไว้บนสุดเป็นค่าคงที่ จะได้ไม่ต้องจำ
 AREA_W = 792
 AREA_H = 398
-MAX_WIDGETS = 32
+MAX_WIDGETS = 64
 RESERVED_X = 690       # เลยจุดนี้ไปทางขวา รวมกับ y ข้างล่าง คือเขตห้ามวาง
 RESERVED_Y = 340
 COLS = 5
