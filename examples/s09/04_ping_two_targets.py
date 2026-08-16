@@ -21,9 +21,9 @@ INTERNET_IP = "8.8.8.8"      # Google Public DNS ตอบ ping และอย�
 TIMEOUT_MS = 1500
 ROUNDS = 20
 CHART_MAX_MS = 60            # แกนตั้งของกราฟ ถ้าไม่กำหนดเองมันตั้ง 0-100 ให้
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x30A46C, 0xF5A623, 0xE5484D, 0x4A9EFF
 
 lcd.clear()
 lcd.console("<h2>คาบ 9 - ยิงสองปลายทาง</h2>")
@@ -32,28 +32,28 @@ ui.screen()
 time.sleep_ms(200)
 ui.Label("คาบ 9 - ping เกตเวย์ กับ อินเทอร์เน็ต", x=20, y=12,
          color=COL_TEXT, value=24)
-ui.Panel(x=20, y=48, w=650, h=92, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("เกตเวย์ ms", x=40, y=58, color=COL_DIM, value=16)
-seg_gw = ui.Seg7(text="--", x=40, y=78, w=120, h=52, color=COL_OK)
-ui.Label("อินเทอร์เน็ต ms", x=190, y=58, color=COL_DIM, value=16)
-seg_net = ui.Seg7(text="--", x=190, y=78, w=120, h=52, color=COL_INFO)
-ui.Label("หายไป gw / net", x=350, y=58, color=COL_DIM, value=16)
-l_lost = ui.Label("0 / 0", x=350, y=84, color=COL_TEXT, value=24)
-ui.Label("รอบ", x=530, y=58, color=COL_DIM, value=16)
-l_round = ui.Label("0/" + str(ROUNDS), x=530, y=84, color=COL_TEXT, value=24)
+ui.Panel(x=20, y=48, w=652, h=92, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("เกตเวย์ ms", x=40, y=60, color=COL_DIM, value=16)
+seg_gw = ui.Seg7(text="--", x=576, y=80, w=120, h=52, color=COL_OK)
+ui.Label("อินเทอร์เน็ต ms", x=192, y=60, color=COL_DIM, value=16)
+seg_net = ui.Seg7(text="--", x=576, y=140, w=120, h=52, color=COL_INFO)
+ui.Label("หายไป gw / net", x=352, y=60, color=COL_DIM, value=16)
+l_lost = ui.Label("0 / 0", x=352, y=84, color=COL_TEXT, value=24)
+ui.Label("รอบ", x=532, y=60, color=COL_DIM, value=16)
+l_round = ui.Label("0/" + str(ROUNDS), x=532, y=84, color=COL_TEXT, value=24)
 # min/max คือช่วงของแกนตั้ง ping ในบ้านอยู่หลักหน่วยถึงหลักสิบ ถ้าปล่อยเป็น 0-100
 # เส้นจะแบนติดขอบล่างจนอ่านความต่างไม่ออก
-ch = ui.Chart(x=20, y=152, w=650, h=150, color=COL_CARD, min=0, max=CHART_MAX_MS)
+ch = ui.Chart(x=20, y=200, w=652, h=152, color=COL_CARD, min=0, max=CHART_MAX_MS)
 s_gw = ch.add_series(COL_OK)
 s_net = ch.add_series(COL_INFO)
 # แยกสองป้ายให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยหนึ่งตัวกิน 3 ไบต์
-ui.Label("เขียว = เกตเวย์", x=20, y=308, color=COL_DIM, value=16)
-ui.Label("ฟ้า = อินเทอร์เน็ต (ms ต่อรอบ)", x=180, y=308, color=COL_DIM,
+ui.Label("เขียว = เกตเวย์", x=20, y=360, color=COL_DIM, value=16)
+ui.Label("ฟ้า = อินเทอร์เน็ต (ms ต่อรอบ)", x=180, y=360, color=COL_DIM,
          value=16)
 
 # ป้ายสรุปเกิดก่อน connect() เพราะ connect() บล็อก จอต้องพูดก่อนจะเงียบ
 l_verdict = ui.Label("กำลังต่อ " + WIFI_SSID + " ... จอจะนิ่งไปครู่หนึ่ง",
-                     x=20, y=336, color=COL_WARN, value=18)
+                     x=520, y=360, color=COL_WARN, value=20)
 ui.poll()
 
 lcd.print("กำลังต่อ", WIFI_SSID, "- อาจรอนาน")

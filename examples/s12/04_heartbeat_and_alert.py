@@ -24,9 +24,11 @@ ALERT_GAP_MS = 4000      # เตือนซ้ำเรื่องเดิ�
 LOOP_MS = 300
 CHART_MAX = 220          # กราฟรับจำนวนเต็ม จึงคูณสิบก่อนใส่ (0.0-22.0 -> 0-220)
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
+COL_OK, COL_BAD = 0x30A46C, 0xE5484D
 
 STATE_COLOR = {"OK": COL_OK, "ALERT": COL_BAD}
 
@@ -36,36 +38,43 @@ SERIES = (2.0, 3.0, 16.0, 17.0, 16.5, 18.0, 4.0, 3.0, 2.0,
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("คาบ 12 - heartbeat กับ alert", x=20, y=10, color=COL_TEXT, value=24)
+# ผังจอ: การ์ดใบเดียวห้าช่อง เพราะสิ่งที่ต้องอ่านคือความสัมพันธ์ของตัวเลขห้าตัว
+# วางคนละการ์ดแล้วตาจะเทียบไม่ติด - แล้วกราฟหนึ่งช่อง และสองบรรทัดล่าง
+ui.Label("คาบ 12 - heartbeat กับ alert", x=24, y=8, color=COL_TEXT, value=24)
+ui.Panel(x=24, y=56, w=744, h=168, color=COL_CARD, min=COL_CARD, max=12,
+         value=1)
 
-ui.Label("สถานะ", x=38, y=54, color=COL_DIM, value=16)
-l_state = ui.Label("OK", x=38, y=76, color=COL_OK, value=28)
+ui.Label("สถานะ", x=40, y=72, color=COL_DIM, value=16)
+l_state = ui.Label("OK", x=40, y=104, color=COL_OK, value=28)
 
-ui.Label("ค่าตอนนี้", x=180, y=54, color=COL_DIM, value=16)
-seg_val = ui.Seg7("0.0", x=180, y=78, w=140, h=40, color=COL_INFO)
+ui.Label("ค่าตอนนี้", x=184, y=72, color=COL_DIM, value=16)
+seg_val = ui.Seg7("0.0", x=184, y=104, w=128, h=56, color=COL_ACCENT)
 
 # ตัวนับสามตัววางเรียงกัน เพราะสิ่งที่ต้องเทียบคืออัตราส่วนของมัน ไม่ใช่ค่าเดี่ยว ๆ
-ui.Label("beat", x=350, y=54, color=COL_DIM, value=16)
-seg_beat = ui.Seg7("0", x=350, y=78, w=60, h=40, color=COL_OK)
+# ทั้งสามใช้สีข้อความปกติ ของเดิมทาเขียว/แดง/ส้มตามชนิดของใบ ซึ่งทำให้จอ
+# ประกาศว่า "มีเรื่อง" ตั้งแต่วินาทีแรกทั้งที่ตัวเลขยังเป็นศูนย์ (S7.7.3)
+ui.Label("beat", x=328, y=72, color=COL_DIM, value=16)
+seg_beat = ui.Seg7("0", x=328, y=104, w=112, h=56, color=COL_TEXT)
 
-ui.Label("alert", x=440, y=54, color=COL_DIM, value=16)
-seg_alert = ui.Seg7("0", x=440, y=78, w=60, h=40, color=COL_BAD)
+ui.Label("alert", x=472, y=72, color=COL_DIM, value=16)
+seg_alert = ui.Seg7("0", x=472, y=104, w=112, h=56, color=COL_TEXT)
 
-ui.Label("กลั้นไว้", x=530, y=54, color=COL_DIM, value=16)
-seg_sup = ui.Seg7("0", x=530, y=78, w=60, h=40, color=COL_WARN)
+ui.Label("กลั้นไว้", x=616, y=72, color=COL_DIM, value=16)
+seg_sup = ui.Seg7("0", x=616, y=104, w=112, h=56, color=COL_TEXT)
 
-ui.Label("ถึง heartbeat ใบถัดไป", x=38, y=138, color=COL_DIM, value=14)
-bar_beat = ui.Bar(x=230, y=140, w=420, h=18, min=0, max=100, value=0)
+ui.Label("ถึง heartbeat ใบถัดไป", x=40, y=172, color=COL_DIM, value=16)
+bar_beat = ui.Bar(x=288, y=168, w=456, h=32, min=0, max=100, value=0)
 
-ch = ui.Chart(x=20, y=184, w=650, h=138, color=COL_CARD, min=0, max=CHART_MAX)
-s_val = ch.add_series(COL_INFO)
+ch = ui.Chart(x=24, y=240, w=744, h=88, color=COL_CARD, min=0, max=CHART_MAX)
+s_val = ch.add_series(COL_ACCENT)
 s_lim = ch.add_series(COL_BAD)
 
-# ข้อสังเกตยืนพื้นเป็นป้ายของตัวเอง เพราะ l_foot ถูกเขียนทับด้วยสรุปตอนจบ
-# และแยกเป็นสองใบ ให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยตัวละ 3 ไบต์
-ui.Label("beat เดินตามนาฬิกา", x=20, y=334, color=COL_DIM, value=16)
-ui.Label("alert เดินตามเหตุการณ์", x=220, y=334, color=COL_DIM, value=16)
-l_foot = ui.Label("", x=20, y=358, color=COL_DIM, value=16)
+# ข้อสังเกตยืนพื้นสองใบอยู่บรรทัดบน ส่วน l_foot เริ่มด้วยป้ายกำกับเส้นในกราฟ
+# แล้วถูกเขียนทับด้วยสรุปตอนจบ - ทั้งคู่กว้างพอ ๆ กัน จึงไม่ยื่นไปทับใคร
+ui.Label("beat เดินตามนาฬิกา", x=24, y=336, color=COL_DIM, value=16)
+ui.Label("alert เดินตามเหตุการณ์", x=256, y=336, color=COL_DIM, value=16)
+l_foot = ui.Label("เส้นแดงคือเกณฑ์ ALERT", x=24, y=368, color=COL_DIM,
+                  value=16)
 ui.poll()
 
 lcd.clear()

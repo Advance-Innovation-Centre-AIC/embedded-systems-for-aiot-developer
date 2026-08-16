@@ -30,9 +30,9 @@ import time
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 WATCH_ROUNDS = 14
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 # สามคีย์ที่เฟิร์มแวร์วัดจริงและเปลี่ยนค่าตามสถานการณ์
 # อีกสองคีย์ (ssid, rssi) เป็นค่าคงที่ในซอร์ส จึงไม่อยู่ในรายการนี้
@@ -45,28 +45,28 @@ ui.screen()
 time.sleep_ms(200)
 ui.Label("คาบ 9 - อ่านสถานะครั้งเดียวต่อรอบ", x=20, y=12, color=COL_TEXT,
          value=24)
-ui.Panel(x=20, y=48, w=650, h=160, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=48, w=652, h=160, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
 # หนึ่ง Label ต่อหนึ่งคีย์ สร้างครั้งเดียวแล้วเปลี่ยนแต่ข้อความ
 # ถ้าสร้าง Label ใหม่ทุกรอบ โควตา 32 ตัวจะหมดภายในไม่กี่วินาที
 rows = []
 for i in range(len(KEYS)):
-    rows.append(ui.Label(KEYS[i] + " = -", x=40, y=62 + i * 34,
+    rows.append(ui.Label(KEYS[i] + " = -", x=40, y=64 + i * 34,
                          color=COL_TEXT, value=20))
 
 # คำเตือนสองบรรทัด แยกกันเพราะรวมแล้วเกินเพดาน 126 ไบต์ ไทยกินตัวละ 3 ไบต์
-ui.Label("คีย์ ssid กับ rssi ยังไม่มีใครวัด", x=380, y=62, color=COL_DIM,
+ui.Label("คีย์ ssid กับ rssi ยังไม่มีใครวัด", x=380, y=64, color=COL_DIM,
          value=16)
 ui.Label("ซอร์สเขียนค่าไว้ตรง ๆ เป็น \"\" กับ 0", x=380, y=88, color=COL_DIM,
          value=16)
 # ประโยคนี้ยาว 103 ไบต์ ยังอยู่ใต้เพดาน 126 ของตัวสร้าง จึงเป็นป้ายเดียวได้
 # ครึ่งหลังคือคำตอบว่าชื่อวงมาจากไหน ห้ามตัดทิ้งเพื่อความสั้น
-ui.Label("ชื่อวงที่ต่อ = สตริงที่เราส่งเข้า connect()", x=380, y=114,
+ui.Label("ชื่อวงที่ต่อ = สตริงที่เราส่งเข้า connect()", x=316, y=116,
          color=COL_DIM, value=16)
 l_ssid = ui.Label("-", x=380, y=140, color=COL_OK, value=20)
-l_phase = ui.Label("รอบที่ 1 - ก่อนต่อ", x=20, y=216, color=COL_DIM, value=18)
+l_phase = ui.Label("รอบที่ 1 - ก่อนต่อ", x=20, y=216, color=COL_DIM, value=20)
 # ตัวสร้างกับ .text() รับได้เท่ากันคือ 126 ไบต์ ประโยคเต็มจึงวางที่ไหนก็ได้
-l_same = ui.Label("-", x=20, y=248, color=COL_DIM, value=18)
+l_same = ui.Label("-", x=20, y=248, color=COL_DIM, value=20)
 l_same.text("ทุกค่าบนจอมาจากการอ่านครั้งเดียวกัน")
 ui.poll()
 

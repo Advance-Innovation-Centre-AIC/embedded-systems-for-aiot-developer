@@ -17,30 +17,36 @@ import wifi
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("ต่อ WiFi ครั้งแรกของคาบนี้", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=136, color=COL_CARD, min=COL_DIM, max=12, value=1)
+# ผังจอเดินบนกริด 8 ขอบนอก 24 - หัวเรื่องหนึ่งบรรทัด การ์ดผลการต่อหนึ่งใบ
+# แล้วสามบรรทัดเล่าลำดับเหตุการณ์ ทั้งหมดจบก่อน y=340 ซึ่งเป็นที่ของปุ่ม Console
+ui.Label("ต่อ WiFi ครั้งแรกของคาบนี้", x=24, y=8, color=COL_TEXT, value=24)
+ui.Panel(x=24, y=56, w=744, h=128, color=COL_CARD, min=COL_CARD, max=12,
+         value=1)
 
-ui.Label("สถานะ", x=40, y=62, color=COL_DIM, value=16)
-state = ui.Label("กำลังจะเริ่มต่อ", x=40, y=86, color=COL_WARN, value=20)
+# สามช่องในการ์ดวางห่างกันพอให้ป้ายที่ยาวขึ้นตอนรันไม่ไปทับช่องข้าง ๆ
+# ช่องสถานะยาวสุดคือ "ต่อสำเร็จ - <ชื่อวง>" ซึ่งกินราว 300 px ที่ตัวอักษร 24
+ui.Label("สถานะ", x=40, y=72, color=COL_DIM, value=16)
+state = ui.Label("กำลังจะเริ่มต่อ", x=40, y=104, color=COL_WARN, value=20)
 
-ui.Label("เวลาที่ใช้ (ms)", x=40, y=124, color=COL_DIM, value=16)
-seg = ui.Seg7(text="----", x=180, y=118, w=150, h=48, color=COL_WARN)
+ui.Label("เวลาที่ใช้ (ms)", x=376, y=72, color=COL_DIM, value=16)
+seg = ui.Seg7(text="----", x=376, y=104, w=144, h=64, color=COL_WARN)
 
-ui.Label("IP ที่ได้", x=360, y=124, color=COL_DIM, value=16)
-ip_lbl = ui.Label("-", x=360, y=148, color=COL_TEXT, value=24)
+ui.Label("IP ที่ได้", x=560, y=72, color=COL_DIM, value=16)
+ip_lbl = ui.Label("-", x=560, y=104, color=COL_TEXT, value=24)
 
-step_lbl = ui.Label("ป้ายนี้ขึ้นก่อน แล้วจอจะนิ่ง", x=20, y=210, color=COL_TEXT,
+step_lbl = ui.Label("ป้ายนี้ขึ้นก่อน แล้วจอจะนิ่ง", x=24, y=208, color=COL_TEXT,
                     value=20)
-conn_lbl = ui.Label("ยังไม่ได้ถาม is_connected()", x=20, y=248, color=COL_DIM,
+conn_lbl = ui.Label("ยังไม่ได้ถาม is_connected()", x=24, y=256, color=COL_DIM,
                     value=20)
-note = ui.Label("ครั้งแรกอาจรอนาน อย่าเพิ่งกดรีเซ็ต", x=20, y=286,
+note = ui.Label("ครั้งแรกอาจรอนาน อย่ากดรีเซ็ต", x=24, y=304,
                 color=COL_DIM, value=20)
 
 # เคาะให้ป้ายทั้งหมดขึ้นจอจริง ๆ ก่อนเข้าบรรทัดที่บล็อก

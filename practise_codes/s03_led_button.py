@@ -57,64 +57,68 @@ stable = False         # ค่าปุ่มที่ผ่านการก�
 # --- แผงควบคุมบนจอ สร้างครั้งเดียวก่อนเข้าลูป ---
 # สร้างก่อนลูปเสมอ ไม่ใช่สร้างในลูป เพราะจอมีที่ให้ widget ได้ 64 ตัวเท่านั้น
 # และการสร้างซ้ำทุกรอบคือการยิง IPC ทิ้งเปล่า ๆ 200 ครั้งต่อวินาที
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD, COL_OK, COL_RUN = 0x142240, 0x00E676, 0x4FC3F7
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD, COL_OK, COL_RUN = 0x171B22, 0x30A46C, 0x4A9EFF
 UI_MS = 100            # จอถูกอัปเดตทุก 100 ms ไม่ใช่ทุกรอบลูป
 
+# ผังหน้าจอ: แถบหัวเรื่อง y=8..45 · การ์ดแถวบน y=52..196 · การ์ดแถวล่าง y=212..372
+# ขอบนอก 24 ระยะระหว่างการ์ด 16 ระยะในการ์ด 16 - ทุกค่าอยู่บนกริด 4
 ui.screen()
 time.sleep_ms(200)
-ui.Label("แผงคุมไฟวิ่ง - คาบ 3", x=16, y=6, color=COL_TEXT, value=20)
+ui.Label("แผงคุมไฟวิ่ง - คาบ 3", x=24, y=8, color=COL_TEXT, value=28)
+# บรรทัดสถานะอยู่บนแถบหัวเรื่อง ตำแหน่งคงที่ทั้งรอบ คนอ่านจึงรู้ว่าต้องมองที่ไหน
+lbl_status = ui.Label("ไฟวิ่งกำลังเดิน", x=360, y=12, color=COL_DIM, value=20)
 
 # การ์ดซ้ายบน: ไฟบนจอสามดวง สะท้อนสิ่งที่โปรแกรม "สั่ง" ไม่ใช่สิ่งที่ขา "อ่านได้"
-ui.Panel(x=16, y=34, w=380, h=140, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ไฟบนบอร์ดสามดวง", x=32, y=42, color=COL_DIM, value=16)
+# ชื่อดวงวางไว้ข้างหลอดแทนที่จะวางใต้หลอด เพื่อคืนความสูงหนึ่งบรรทัดให้คำอธิบายท้ายการ์ด
+ui.Panel(x=24, y=52, w=440, h=144, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ไฟบนบอร์ดสามดวง", x=40, y=68, color=COL_DIM, value=16)
 led_ui = []
 for i in range(NUM_LEDS):
-    led_ui.append(ui.Led(x=40 + i * 72, y=72, w=42, h=42, color=COL_OK, value=0))
-ui.Label("ดวง 1", x=40, y=122, color=COL_DIM, value=14)
-ui.Label("ดวง 2", x=112, y=122, color=COL_DIM, value=14)
-ui.Label("ดวง 3", x=184, y=122, color=COL_DIM, value=14)
-ui.Label("จอสะท้อนสิ่งที่สั่ง", x=250, y=76, color=COL_DIM, value=14)
-ui.Label("ไม่ใช่สิ่งที่ขาอ่านกลับ", x=250, y=98, color=COL_DIM, value=14)
+    led_ui.append(ui.Led(x=40 + i * 128, y=104, w=48, h=48, color=COL_OK, value=0))
+ui.Label("ดวง 1", x=104, y=112, color=COL_DIM, value=16)
+ui.Label("ดวง 2", x=232, y=112, color=COL_DIM, value=16)
+ui.Label("ดวง 3", x=360, y=112, color=COL_DIM, value=16)
+ui.Label("จอสะท้อนคำสั่ง ไม่ใช่ค่าที่ขาอ่าน", x=40, y=160, color=COL_DIM, value=16)
 
 # การ์ดขวาบน: สถานะปุ่มจริง กับตัวนับที่อ่านง่ายจากอีกฝั่งห้อง
-ui.Panel(x=406, y=34, w=370, h=140, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ปุ่ม SW2 บนบอร์ด", x=422, y=42, color=COL_DIM, value=16)
-led_btn = ui.Led(x=430, y=72, w=42, h=42, color=COL_RUN, value=0)
-ui.Label("กำลังกด", x=482, y=84, color=COL_DIM, value=18)
-ui.Label("นับได้ (ครั้ง)", x=600, y=42, color=COL_DIM, value=14)
-seg_count = ui.Seg7("0", x=600, y=68, w=150, h=60, color=COL_TEXT)
+ui.Panel(x=480, y=52, w=288, h=144, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ปุ่ม SW2 บนบอร์ด", x=496, y=68, color=COL_DIM, value=16)
+led_btn = ui.Led(x=496, y=104, w=48, h=48, color=COL_RUN, value=0)
+ui.Label("กำลังกด", x=496, y=156, color=COL_DIM, value=16)
+# ป้ายอยู่เหนือตัวเลขของตัวเอง ไม่ใช่คนละมุมการ์ด - ค่ากับชื่อของค่าต้องอ่านเป็นก้อนเดียว
+ui.Label("นับได้ (ครั้ง)", x=596, y=100, color=COL_DIM, value=16)
+seg_count = ui.Seg7("0", x=640, y=132, w=88, h=56, color=COL_TEXT)
 
 # การ์ดซ้ายล่าง: ปุ่มเปิดกับปุ่มปิดแยกกันคนละปุ่ม ตามกฎของแผงควบคุมจริง
-ui.Panel(x=16, y=186, w=380, h=104, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("คำสั่งไฟวิ่ง", x=32, y=194, color=COL_DIM, value=16)
-btn_run = ui.Button("เดินไฟวิ่ง", x=32, y=222, w=168, h=56, color=0x1B5E20, value=18)
-btn_stop = ui.Button("หยุดไฟวิ่ง", x=212, y=222, w=168, h=56, color=0x37474F, value=18)
+# ปุ่มสูง 88 px และเว้นห่างกัน 32 px ตามระยะนิ้วจริง ไม่ใช่ตามที่ตาว่าพอ
+ui.Panel(x=24, y=212, w=440, h=160, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("คำสั่งไฟวิ่ง", x=40, y=228, color=COL_DIM, value=16)
+btn_run = ui.Button("เดินไฟวิ่ง", x=40, y=268, w=176, h=88, color=0x30A46C, value=20)
+btn_stop = ui.Button("หยุดไฟวิ่ง", x=248, y=268, w=176, h=88, color=0x171B22, value=20)
 
 # การ์ดขวาล่าง: เวลาที่เหลือ พร้อมพิสัยของมัน ตัวเลขลอย ๆ ไม่บอกว่าเหลือมากหรือน้อย
-ui.Panel(x=406, y=186, w=370, h=104, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("เวลาที่เหลือของรอบนี้", x=422, y=194, color=COL_DIM, value=14)
-lbl_left = ui.Label("30 วิ", x=640, y=190, color=COL_TEXT, value=20)
-bar_left = ui.Bar(x=422, y=222, w=260, h=12, color=COL_RUN,
+ui.Panel(x=480, y=212, w=288, h=160, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("เวลาที่เหลือของรอบนี้", x=496, y=228, color=COL_DIM, value=16)
+lbl_left = ui.Label("30 วิ", x=496, y=264, color=COL_TEXT, value=24)
+bar_left = ui.Bar(x=496, y=308, w=192, h=16, color=COL_RUN,
                   min=0, max=RUN_MS // 1000, value=RUN_MS // 1000)
-sc_left = ui.Scale(x=422, y=236, w=260, h=44, color=COL_TEXT,
+sc_left = ui.Scale(x=496, y=324, w=192, h=40, color=COL_TEXT,
                    min=0, max=RUN_MS // 1000)
 sc_left.ticks(16, 5)
 
-# แถบล่าง: บรรทัดสถานะตอนปกติ และกล่องยืนยันที่ซ่อนไว้ก่อน
-# กล่องยืนยันสร้างพร้อมหน้าจอแล้วซ่อนไว้ ไม่ใช่สร้างตอนกด - handle มีจำกัด
+# กล่องยืนยันที่ซ่อนไว้ก่อน สร้างพร้อมหน้าจอ ไม่ใช่สร้างตอนกด - handle มีจำกัด
 # และการสร้างของตอนคนกำลังรอคำตอบ คือการเพิ่มความหน่วงในจังหวะที่แย่ที่สุด
-lbl_status = ui.Label("ไฟวิ่งกำลังเดิน", x=32, y=306, color=COL_DIM, value=18)
 # ข้อความของ MsgBox เดินทางไปกับ CREATE ซึ่งพาได้ 95 ไบต์ ภาษาไทยตัวละ 3 ไบต์
 # แปลว่าหัวเรื่องบวกเนื้อความรวมกันได้ราว 31 ตัวอักษร ยาวกว่านั้นถูกตัดเงียบ ๆ
 box = ui.MsgBox("ยืนยันหยุด\nไฟสามดวงจะดับทันที",
-                x=16, y=290, w=548, h=100, color=COL_CARD)
+                x=48, y=96, w=496, h=160, color=COL_CARD)
 box.hide()
 # ปุ่มสองปุ่มนี้คือคำตอบของกล่อง - ปุ่มในตัว MsgBox เองยังไม่ส่งเหตุการณ์กลับมา
 # ให้ Python เห็น (เฟิร์มแวร์ผูก callback ไว้กับ ui.Button เท่านั้น) ถ้าวางปุ่มตาย
 # ไว้บนจอ คนกดจะสรุปว่าเครื่องแฮงก์ จึงใช้ ui.Button จริงสองปุ่มแทน
-btn_yes = ui.Button("ยืนยัน", x=580, y=298, w=104, h=42, color=0x37474F, value=16)
-btn_no = ui.Button("ยกเลิก", x=580, y=346, w=104, h=42, color=0x37474F, value=16)
+btn_yes = ui.Button("ยืนยัน", x=568, y=96, w=152, h=88, color=0x171B22, value=20)
+btn_no = ui.Button("ยกเลิก", x=568, y=216, w=152, h=88, color=0x171B22, value=20)
 btn_yes.hide()
 btn_no.hide()
 ui.poll()

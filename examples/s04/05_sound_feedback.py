@@ -19,12 +19,12 @@ import time
 
 RUN_MS = 30000
 
-COL_TEXT = 0xFFFFFF
-COL_DIM = 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK = 0x00E676
-COL_INFO = 0x40C4FF
-COL_BAD = 0xFF5252
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC S7.13
+COL_TEXT = 0xE8EAED      # ข้อความหลัก
+COL_DIM = 0x9AA3AF       # ข้อความรอง หน่วย เชิงอรรถ
+COL_CARD = 0x171B22      # พื้นการ์ด
+COL_ACCENT = 0x4A9EFF    # สิ่งที่โต้ตอบได้ และค่าที่กำลังเปลี่ยน
+COL_BAD = 0xE5484D       # ผิดปกติจริง - บนจอนี้คือ "บอร์ดไม่มีชิปเสียง"
 
 # บอร์ดที่ไม่มีชิปเสียงจะไม่มีสองฟังก์ชันนี้เลย เช็กก่อนใช้ ดีกว่าปล่อยให้
 # AttributeError โผล่กลางคาบตอนนักเรียนกดปุ่ม
@@ -38,28 +38,28 @@ NOTE_NAME = {60: "C4", 64: "E4", 67: "G4", 72: "C5"}
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("เสียงตอบรับ - ให้จอเป็นพยานแทนหู", x=20, y=12, color=COL_TEXT, value=24)
+ui.Label("เสียงตอบรับ - ให้จอเป็นพยานแทนหู", x=24, y=8, color=COL_TEXT, value=24)
 
-ui.Panel(x=20, y=50, w=650, h=110, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=24, y=48, w=656, h=112, color=COL_CARD, min=COL_DIM, max=12, value=1)
 ui.Label("เล่นเสียงไปแล้ว (ครั้ง)", x=40, y=60, color=COL_DIM, value=16)
 
 # Seg7 รับข้อความ ไม่ใช่ตัวเลข str() จึงต้องมีทุกครั้ง
-seg = ui.Seg7(text="0", x=40, y=90, w=140, h=48, color=COL_OK)
+seg = ui.Seg7(text="0", x=40, y=88, w=144, h=48, color=COL_ACCENT)
 
-ui.Label("เสียงล่าสุดที่สั่งไป", x=280, y=60, color=COL_DIM, value=16)
-last = ui.Label("ยังไม่มี", x=280, y=88, color=COL_INFO, value=24)
+ui.Label("เสียงล่าสุดที่สั่งไป", x=360, y=60, color=COL_DIM, value=16)
+last = ui.Label("ยังไม่มี", x=360, y=88, color=COL_TEXT, value=24)
 
-b_ok = ui.Button("ยืนยัน", x=20, y=178, w=200, h=80, color=0x2E7D32)
-b_no = ui.Button("ปฏิเสธ", x=240, y=178, w=200, h=80, color=0xC62828)
-b_note = ui.Button("ไล่โน้ต", x=460, y=178, w=200, h=80, color=0x1565C0)
+b_ok = ui.Button("ยืนยัน", x=24, y=176, w=216, h=88, color=COL_ACCENT)
+b_no = ui.Button("ปฏิเสธ", x=256, y=176, w=216, h=88, color=COL_ACCENT)
+b_note = ui.Button("ไล่โน้ต", x=488, y=176, w=216, h=88, color=COL_ACCENT)
 
 id_ok = b_ok.id()
 id_no = b_no.id()
 id_note = b_note.id()
 
-status = ui.Label("แตะปุ่มแล้วฟัง พร้อมกับมองตัวนับ", x=20, y=278,
+status = ui.Label("แตะปุ่มแล้วฟัง พร้อมกับมองตัวนับ", x=24, y=280,
                   color=COL_DIM, value=20)
-ui.Label("ui.tone รับโน้ต MIDI 0-127 - 60=C4 - 69=A4", x=20, y=330,
+ui.Label("ui.tone รับโน้ต MIDI 0-127 - 60=C4 - 69=A4", x=24, y=328,
          color=COL_DIM, value=16)
 
 if not HAS_SOUND:

@@ -38,10 +38,10 @@ SEND_EVERY_MS = 5000     # จังหวะการส่ง
 LOOP_MS = 100            # จังหวะของลูป ต้องสั้นกว่ามาก
 ROUNDS = 600             # 600 รอบ x 100 ms = ราวหนึ่งนาที
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_TRACK = 0x27364F         # สีรางของ ui.Bar - ตัวแท่งที่วิ่งเป็นสีของธีมเสมอ
-COL_OK, COL_INFO = 0x00E676, 0x40C4FF
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22          # และใช้เป็นสีรางของ ui.Bar ด้วย แท่งที่วิ่งเป็นสีธีม
+COL_OK, COL_INFO = 0x30A46C, 0x4A9EFF
 
 btn = gpio.button(0)         # SW1 - ใช้แทนคำสั่งที่วิ่งเข้ามาระหว่างรอ
 
@@ -50,22 +50,29 @@ time.sleep_ms(200)
 
 # หัวเรื่องเต็มยาว 110 ไบต์ ยังอยู่ใต้เพดาน 126 ของตัวสร้าง Label จึงเป็นใบเดียว
 # ครึ่งหลังคือครึ่งที่สำคัญกว่า ห้ามตัดทิ้งเพื่อให้สั้นลง
-ui.Label("ส่งทุก 5 วินาที แต่ยังรับคำสั่งได้ทุก 100 ms", x=20, y=12,
+#
+# ผังจอเป็นสองการ์ดวางซ้อนกันเป็นแถบ ขอบนอก 24 ระยะระหว่างการ์ด 16 ระยะใน 16
+# ก่อนแก้ Seg7 สูง 88 เริ่มที่ y=96 จึงยาวถึง 184 ล้นก้นการ์ดใบบน (จบที่ 152)
+# ไปโผล่ในเขตการ์ดใบล่างที่สร้างทีหลัง แล้วถูกใบล่างทาทับหายไปทั้งสองตัว
+# ตอนนี้การ์ดใบบนสูงพอให้ Seg7 อยู่ในตัวเอง และใบล่างจบที่ y=320 พ้นปุ่ม Console
+ui.Label("ส่งทุก 5 วินาที แต่ยังรับคำสั่งได้ทุก 100 ms", x=24, y=8,
          color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("รอบลูป (ทุก 100 ms)", x=40, y=66, color=COL_DIM, value=16)
-seg_loops = ui.Seg7(text="0", x=40, y=96, w=230, h=86, color=COL_INFO)
-ui.Label("ส่งแล้ว (ทุก 5 วินาที)", x=380, y=66, color=COL_DIM, value=16)
-seg_sent = ui.Seg7(text="0", x=380, y=96, w=230, h=86, color=COL_OK)
+ui.Panel(x=24, y=48, w=744, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("รอบลูป (ทุก 100 ms)", x=40, y=64, color=COL_DIM, value=20)
+# h ของ Seg7 คือขนาดกล่อง ไม่ใช่ขนาดตัวเลข ตัวเลขถูกตรึงที่ 28 px ตาม §S7.13
+# กล่อง 88 จึงเหลือที่ว่างในตัวเองสามสิบกว่าพิกเซล ซึ่งอ่านออกมาเหมือนของวาดไม่ขึ้น
+seg_loops = ui.Seg7(text="0", x=40, y=96, w=232, h=64, color=COL_INFO)
+ui.Label("ส่งแล้ว (ทุก 5 วินาที)", x=400, y=64, color=COL_DIM, value=20)
+seg_sent = ui.Seg7(text="0", x=400, y=96, w=232, h=64, color=COL_OK)
 
-ui.Panel(x=20, y=168, w=650, h=118, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("เวลาที่ผ่านไปตั้งแต่ใบล่าสุด", x=36, y=180, color=COL_DIM, value=16)
-bar = ui.Bar(x=36, y=208, w=618, h=24, min=0, max=SEND_EVERY_MS, value=0,
-             color=COL_TRACK)
-l_recv = ui.Label("กด SW1 ระหว่างรอ - รับได้: 0 ครั้ง", x=36, y=248,
-                  color=COL_TEXT, value=18)
-note = ui.Label("ลูปทุก 100 ms  ส่งทุก 5000 ms  ไม่มี sleep ยาว", x=20, y=310,
-                color=COL_OK, value=18)
+ui.Panel(x=24, y=192, w=744, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("เวลาที่ผ่านไปตั้งแต่ใบล่าสุด", x=40, y=208, color=COL_DIM, value=20)
+bar = ui.Bar(x=40, y=244, w=712, h=24, min=0, max=SEND_EVERY_MS, value=0,
+             color=COL_CARD)
+l_recv = ui.Label("กด SW1 ระหว่างรอ - รับได้: 0 ครั้ง", x=40, y=280,
+                  color=COL_TEXT, value=20)
+note = ui.Label("ลูปทุก 100 ms  ส่งทุก 5000 ms  ไม่มี sleep ยาว", x=24, y=336,
+                color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

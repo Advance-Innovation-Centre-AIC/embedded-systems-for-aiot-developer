@@ -23,9 +23,9 @@ import ui
 SEND_MS = 5000
 ROUNDS = 160
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_BAD, COL_INFO = 0x00E676, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_BAD, COL_INFO = 0x30A46C, 0xE5484D, 0x4A9EFF
 
 ui.screen()
 time.sleep_ms(200)
@@ -33,21 +33,21 @@ time.sleep_ms(200)
 ui.Label("ค่าจริง ส่งแบบเข้ารหัส", x=20, y=12, color=COL_TEXT, value=24)
 
 ui.Panel(x=20, y=52, w=740, h=64, color=COL_CARD, min=COL_DIM, max=12, value=1)
-led_tls = ui.Led(x=44, y=68, w=36, h=36, color=COL_OK, value=0)
-lbl_tls = ui.Label("ยังไม่ได้ต่อ", x=100, y=72, color=COL_DIM, value=22)
+led_tls = ui.Led(x=44, y=68, w=48, h=48, color=COL_OK, value=0)
+lbl_tls = ui.Label("ยังไม่ได้ต่อ", x=100, y=72, color=COL_DIM, value=24)
 
-ui.Panel(x=20, y=130, w=360, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("อุณหภูมิที่วัดได้", x=36, y=142, color=COL_DIM, value=16)
-seg_now = ui.Seg7(text="--", x=36, y=170, w=200, h=48, color=COL_INFO)
+ui.Panel(x=20, y=132, w=360, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("อุณหภูมิที่วัดได้", x=36, y=144, color=COL_DIM, value=20)
+seg_now = ui.Seg7(text="--", x=36, y=172, w=200, h=48, color=COL_INFO)
 
-ui.Panel(x=400, y=130, w=360, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ส่งสำเร็จ (ครั้ง)", x=416, y=142, color=COL_DIM, value=16)
-seg_sent = ui.Seg7(text="0", x=416, y=170, w=160, h=48, color=COL_OK)
+ui.Panel(x=400, y=132, w=360, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ส่งสำเร็จ (ครั้ง)", x=416, y=144, color=COL_DIM, value=20)
+seg_sent = ui.Seg7(text="0", x=416, y=172, w=160, h=48, color=COL_OK)
 
-ui.Label("อีกกี่วินาทีถึงส่งครั้งต่อไป", x=20, y=248, color=COL_DIM, value=16)
-bar_next = ui.Bar(x=20, y=272, w=740, h=22, color=COL_INFO, min=0, max=SEND_MS, value=0)
+ui.Label("อีกกี่วินาทีถึงส่งครั้งต่อไป", x=20, y=248, color=COL_DIM, value=20)
+bar_next = ui.Bar(x=20, y=272, w=740, h=24, color=COL_INFO, min=0, max=SEND_MS, value=0)
 note = ui.Label("เข้ารหัสกันคนกลางอ่าน ไม่ได้กันค่าผิด",
-                x=20, y=308, color=COL_DIM, value=18)
+                x=20, y=308, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

@@ -16,12 +16,12 @@ import ui
 import lcd
 import time
 
-COL_TEXT = 0xFFFFFF
-COL_DIM = 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK = 0x00E676
-COL_WARN = 0xFFA726
-COL_BAD = 0xFF5252
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC S7.13
+COL_TEXT = 0xE8EAED      # ข้อความหลัก และค่าที่ยังไม่เกินเกณฑ์
+COL_DIM = 0x9AA3AF       # ข้อความรอง หน่วย เชิงอรรถ
+COL_CARD = 0x171B22      # พื้นการ์ด พื้นกราฟ
+COL_ACCENT = 0x4A9EFF    # เส้นกราฟค่าเดียว
+COL_BAD = 0xE5484D       # เกินเกณฑ์ - ใช้กับเรื่องนี้เรื่องเดียวทั้งจอ
 
 WARN_AT = 60            # เส้นเกณฑ์ที่ทำให้สีเปลี่ยน หน่วยเดียวกับค่าที่ไต่
 STEP_MS = 40            # หน่วงต่อก้าว ต้องมี ไม่งั้นเฟรมหายเงียบ ๆ
@@ -29,29 +29,35 @@ STEP_MS = 40            # หน่วงต่อก้าว ต้องม�
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("Seg7 รับข้อความเท่านั้น", x=20, y=12, color=COL_TEXT, value=24)
+ui.Label("Seg7 รับข้อความเท่านั้น", x=24, y=8, color=COL_TEXT, value=24)
 
-ui.Panel(x=20, y=50, w=650, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=24, y=56, w=744, h=136, color=COL_CARD, min=COL_CARD, max=12,
+         value=1)
 
 # Seg7 ตั้งต้นด้วยข้อความ "0.0" ไปเลย จะได้เห็นรูปแบบที่ตั้งใจตั้งแต่แรก
 # ถ้าไม่ใส่ text= มันจะขึ้น "0000" ซึ่งเป็นค่าตั้งต้นของ widget ชนิดนี้
-ui.Label("Seg7 - ใช้ text()", x=40, y=60, color=COL_DIM, value=16)
-seg = ui.Seg7(text="0.0", x=40, y=88, w=240, h=48, color=COL_OK)
+ui.Label("Seg7 - ใช้ text()", x=40, y=72, color=COL_DIM, value=16)
+seg = ui.Seg7(text="0.0", x=40, y=104, w=240, h=72, color=COL_TEXT)
 
 # Bar รับค่าด้วย .value() ตามที่ชื่อบอก min กับ max กำหนดช่วงของมัน
-ui.Label("Bar - ใช้ value()", x=330, y=60, color=COL_DIM, value=16)
-bar = ui.Bar(x=330, y=90, w=320, h=26, min=0, max=100, value=0)
+# วางให้กึ่งกลางแนวตั้งตรงกับ Seg7 ตาจึงอ่านว่าทั้งสองพูดถึงค่าเดียวกัน
+ui.Label("Bar - ใช้ value()", x=336, y=72, color=COL_DIM, value=16)
+bar = ui.Bar(x=336, y=120, w=400, h=40, color=COL_ACCENT, min=0, max=100,
+             value=0)
 
 # Label ที่สร้างด้วยข้อความว่าง LVGL จะเติมคำว่า "Label" ให้เอง
 # แล้วคำนั้นค้างบนจอจนกว่าจะมีการเขียนทับครั้งแรก จึงต้องตั้งข้อความตั้งต้นเสมอ
-proof = ui.Label("ยังไม่ได้พิสูจน์อะไร", x=40, y=134, color=COL_WARN, value=14)
+# บรรทัดนี้เป็นหลักฐานของบทเรียน ไม่ใช่คำเตือนของอุปกรณ์ จึงใช้สีข้อความหลัก
+# ไม่ใช่สีส้ม - สีส้มบนจอนี้ต้องว่างไว้ ไม่งั้นจะแย่งความหมายกับเกณฑ์ 60
+proof = ui.Label("ยังไม่ได้พิสูจน์อะไร", x=24, y=208, color=COL_TEXT, value=16)
 
 # กราฟคือมุมมองที่สาม ค่าเดียวกันแต่เห็น "แนวโน้ม" ที่ตัวเลขตัวเดียวไม่บอก
 # สีของ Chart คือสีของ series ที่ 0 ซึ่งเราไม่ได้ใช้ จึงเพิ่ม series ของเราเอง
-chart = ui.Chart(x=20, y=184, w=650, h=140, color=COL_CARD, min=0, max=100)
-s_ramp = chart.add_series(COL_OK)
+# เส้นค่าเดียวใช้สีเน้นเสมอ ไม่ใช่เขียว - เขียวแปลว่า "ปกติ" อย่างเดียว
+chart = ui.Chart(x=24, y=240, w=744, h=96, color=COL_CARD, min=0, max=100)
+s_ramp = chart.add_series(COL_ACCENT)
 
-status = ui.Label("กำลังไต่ค่า 0 ถึง 100", x=20, y=334, color=COL_DIM, value=18)
+status = ui.Label("กำลังไต่ค่า 0 ถึง 100", x=24, y=352, color=COL_DIM, value=20)
 
 lcd.print("Seg7 ใช้ text() - Bar ใช้ value() - Chart ใช้ set_next()")
 
@@ -82,7 +88,7 @@ while v10 <= 1000:
     if whole >= WARN_AT:
         seg.color(COL_BAD)
     else:
-        seg.color(COL_OK)
+        seg.color(COL_TEXT)
 
     v10 = v10 + 5
 
@@ -91,7 +97,7 @@ while v10 <= 1000:
     time.sleep_ms(STEP_MS)
 
 seg.text("DONE")     # Seg7 แสดงตัวอักษรบางตัวได้ด้วย ไม่ได้จำกัดแค่ตัวเลข
-seg.color(COL_OK)
+seg.color(COL_TEXT)
 status.text("จบแล้ว - Seg7 ขึ้น DONE ได้ เพราะมันรับข้อความ")
 proof.text("จำไว้: Seg7 ใช้ text() เท่านั้น")
 ui.poll()

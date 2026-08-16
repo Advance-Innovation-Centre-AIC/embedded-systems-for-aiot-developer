@@ -15,8 +15,8 @@ import time
 # แก้สองบรรทัดนี้ให้ตรงกับเครือข่ายที่ผู้สอนแจก
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 lcd.clear()
 lcd.console("<h2>คาบ 9 - ต่อ WiFi</h2>")
@@ -30,17 +30,17 @@ ui.Label("คาบ 9 - ต่อ WiFi แล้วบอกก่อนรอ",
 l_state = ui.Label("กำลังต่อ " + WIFI_SSID + " ... จอจะนิ่งไปครู่หนึ่ง",
                    x=40, y=68, color=COL_WARN, value=20)
 ui.Label("เวลาที่ใช้ (ms)", x=40, y=104, color=COL_DIM, value=16)
-seg = ui.Seg7(text="----", x=40, y=126, w=180, h=60, color=COL_WARN)
+seg = ui.Seg7(text="----", x=40, y=128, w=180, h=60, color=COL_WARN)
 ui.Label("IP ที่ได้", x=260, y=104, color=COL_DIM, value=16)
-l_ip = ui.Label("-", x=260, y=130, color=COL_TEXT, value=24)
+l_ip = ui.Label("-", x=260, y=132, color=COL_TEXT, value=24)
 
 # ลำดับสามขั้นนี้คือทั้งบทเรียน วางไว้บนจอให้อ่านได้ตลอดเวลาที่รัน
 ui.Label("1) ป้าย \"กำลังต่อ\" ขึ้นจอ แล้ว ui.poll()", x=40, y=228,
-         color=COL_TEXT, value=18)
-ui.Label("2) wifi.connect() บล็อก จอนิ่งตลอดช่วงนี้", x=40, y=258,
-         color=COL_TEXT, value=18)
-ui.Label("3) กลับมาแล้วจึงเขียนผลลงจอ", x=40, y=288, color=COL_TEXT, value=18)
-l_note = ui.Label("ป้ายต้องขึ้นก่อนบรรทัดที่บล็อก", x=20, y=330, color=COL_DIM,
+         color=COL_TEXT, value=20)
+ui.Label("2) wifi.connect() บล็อก จอนิ่งตลอดช่วงนี้", x=40, y=260,
+         color=COL_TEXT, value=20)
+ui.Label("3) กลับมาแล้วจึงเขียนผลลงจอ", x=40, y=288, color=COL_TEXT, value=20)
+l_note = ui.Label("ป้ายต้องขึ้นก่อนบรรทัดที่บล็อก", x=20, y=332, color=COL_DIM,
                   value=16)
 ui.poll()
 

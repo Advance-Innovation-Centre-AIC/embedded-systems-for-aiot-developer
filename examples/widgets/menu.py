@@ -14,8 +14,13 @@
 #     (CM55 รับเฉพาะแฮนเดิลชนิดหน้าเท่านั้น อย่างอื่นเงียบสนิท)
 #   - เมนูว่างเปล่าตั้งแต่แรก = ไม่ได้สร้างหน้าไหนเลย
 #
-# กับดักที่ต้องรู้: เมนู "ไม่ส่ง event" เลยสักตัว ทั้งตัวเมนูและแถว
-#   การแตะแถวถูกจัดการจบภายใน LVGL โปรแกรมจึงไม่มีทางรู้ว่าคนเปิดหน้าไหนอยู่
+# กับดักที่ต้องรู้: การเดินหน้าเมนูยังจบภายใน LVGL เหมือนเดิม ตัวเมนูไม่ส่ง
+#   value_changed บอกว่าเปิดหน้าไหนอยู่ แต่ "แถว" เป็น widget ที่มีแฮนเดิลของ
+#   ตัวเอง จึงขอ pressed ได้ด้วย row.listen("pressed") แล้วโปรแกรมจะรู้ว่าคน
+#   แตะแถวไหนไป ซึ่งพอสำหรับบันทึกเส้นทางหรือโหลดข้อมูลของหน้านั้นล่วงหน้า
+#
+#   เดิมบรรทัดนี้เขียนว่า "เมนูไม่ส่ง event เลยสักตัว ทั้งตัวเมนูและแถว"
+#   ครึ่งหลังไม่จริงอีกแล้วตั้งแต่ 15 ส.ค. 2026
 #
 # รันจบเองใน 20 วินาที ไม่ต้องต่อเน็ต ไม่ต้องมีเซนเซอร์
 
@@ -45,6 +50,11 @@ row_about = sec.row("เกี่ยวกับเครื่อง")
 row_net.opens(page_net)
 row_about.opens(page_about)
 
+# แถวมีแฮนเดิลของตัวเอง จึงขอ event ได้เหมือน widget อื่น
+row_net.listen("pressed")
+row_about.listen("pressed")
+ROW_NAME = {row_net.id(): "เครือข่าย", row_about.id(): "เกี่ยวกับเครื่อง"}
+
 sec_net = page_net.section()
 sec_net.row("วง AIoT-Class")
 sec_net.row("ต่ออัตโนมัติ")
@@ -54,14 +64,16 @@ sec_about.row("รุ่น Eva Kit EPC2")
 
 ui.Label("แตะแถวเข้าหน้าลูก", x=496, y=112, color=COL_TEXT, value=24)
 ui.Label("กดลูกศรที่หัวเพื่อกลับ", x=496, y=160, color=COL_DIM, value=20)
-ui.Label("เมนูไม่ส่ง event กลับมาเลย", x=24, y=344, color=COL_DIM, value=20)
+ui.Label("แถวที่แตะจะรายงานกลับมา", x=24, y=344, color=COL_DIM, value=20)
 
-events = 0
+taps = 0
 for _ in range(100):
-    for _ev in ui.poll():
-        events += 1
+    for ev in ui.poll():
+        if ev["type"] == "pressed" and ev["handle"] in ROW_NAME:
+            taps += 1
+            print("ui.Menu: แตะแถว", ROW_NAME[ev["handle"]])
     time.sleep_ms(200)
 
-# ต้องเป็นศูนย์ ต่อให้เดินเข้าออกทุกหน้าจนครบ
-print("ui.Menu: event ที่ได้รับตลอดการรัน =", events, "(ควรเป็น 0)")
-print(".add_page() -> .section() -> .row() -> .opens()")
+# มากกว่าศูนย์ถ้าแตะแถวที่ .listen() ไว้ - ตัวเมนูเองยังเงียบตามเดิม
+print("ui.Menu: การแตะแถวที่จับได้ =", taps)
+print(".add_page() -> .section() -> .row() -> .opens() -> .listen()")

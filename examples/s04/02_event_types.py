@@ -10,22 +10,34 @@ import lcd
 import time
 import ui
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_OK, COL_WARN, COL_INFO = 0x00E676, 0xFFA726, 0x40C4FF
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
+COL_OK, COL_WARN = 0x30A46C, 0xF5A623
 
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("ใครส่งเหตุการณ์ชนิดไหน", x=20, y=12, color=COL_TEXT, value=24)
-lbl_pos = ui.Label("1 / 4  Button", x=520, y=16, color=COL_OK, value=20)
+ui.Label("ใครส่งเหตุการณ์ชนิดไหน", x=24, y=8, color=COL_TEXT, value=28)
+# ตัวนับขั้นไม่ใช่สถานะ จึงเป็นสีข้อความรอง ไม่ใช่เขียว
+lbl_pos = ui.Label("1 / 4  Button", x=600, y=16, color=COL_DIM, value=20)
 
-# ของจริงสี่ตัวที่ส่งเหตุการณ์ต่างชนิดกัน วางเรียงกันให้เทียบง่าย
-btn = ui.Button("Button", x=36, y=58, w=130, h=64, color=0x1E88E5, value=16)
-# ui.Switch ไม่มีข้อความในตัวเอง ต่างจาก Button และ Checkbox จึงต้องมีป้ายกำกับ
-ui.Label("Switch", x=190, y=56, color=COL_DIM, value=14)
-sw = ui.Switch(x=190, y=78)
-cb = ui.Checkbox("Checkbox", x=290, y=82, color=COL_TEXT)
-sld = ui.Slider(x=440, y=84, w=210, min=0, max=100, value=30)
+# ของจริงสี่ตัวที่ส่งเหตุการณ์ต่างชนิดกัน วางเรียงเป็นแถวเดียวให้เทียบง่าย
+# ป้ายชื่อชนิดอยู่เหนือทุกตัว ไม่ใช่เฉพาะ Switch เพราะคำสั่งบนจออ้างชื่อชนิด
+# ผู้เรียนจึงต้องหาเจอว่าตัวไหนคือตัวไหนโดยไม่ต้องเดา
+ui.Label("Button", x=24, y=56, color=COL_DIM, value=20)
+ui.Label("Switch", x=216, y=56, color=COL_DIM, value=20)
+ui.Label("Checkbox", x=368, y=56, color=COL_DIM, value=20)
+ui.Label("Slider", x=576, y=56, color=COL_DIM, value=20)
+
+# ทั้งสี่สูง 88 ตามขั้นต่ำของเป้าสัมผัส และเว้นห่างกัน 32 ทุกช่อง
+# 24 + 160 + 32 + 120 + 32 + 176 + 32 + 192 = 768 พอดีขอบขวา
+btn = ui.Button("แตะฉัน", x=24, y=96, w=160, h=88, color=COL_ACCENT, value=24)
+sw = ui.Switch(x=216, y=96, w=120, h=88, color=COL_ACCENT)
+cb = ui.Checkbox("ติ๊กฉัน", x=368, y=96, w=176, h=88, color=COL_TEXT)
+sld = ui.Slider(x=576, y=96, w=192, h=24, color=COL_ACCENT, min=0, max=100,
+                value=30)
 
 # เก็บ handle คู่กับชื่อที่คนอ่านเข้าใจ เขียนเป็น dict เพราะเรากำลังจะค้นจาก
 # handle ซึ่ง dict ทำได้ในก้าวเดียว
@@ -47,18 +59,18 @@ STEPS = [
      "แถบเลื่อนส่ง value_changed และส่งถี่มากระหว่างที่นิ้วยังลากอยู่"),
 ]
 
-ask = ui.Label("แตะ Button แล้วต้องได้ clicked", x=20, y=154, color=COL_INFO,
-               value=22)
-why = ui.Label("ปุ่มส่ง clicked ค่า value เป็น 1 เสมอ", x=20, y=190,
-               color=COL_DIM, value=16)
-last = ui.Label("ยังไม่มีเหตุการณ์เข้ามา", x=20, y=214, color=COL_DIM, value=16)
+ask = ui.Label("แตะ Button แล้วต้องได้ clicked", x=24, y=192, color=COL_ACCENT,
+               value=24)
+why = ui.Label("ปุ่มส่ง clicked ค่า value เป็น 1 เสมอ", x=24, y=232,
+               color=COL_DIM, value=20)
+last = ui.Label("ยังไม่มีเหตุการณ์เข้ามา", x=24, y=264, color=COL_DIM, value=20)
 
 # สี่ขั้นเดินวนกลับมาที่ขั้นแรกเอง จึงไม่ต้องมีปุ่มย้อน
-# เว้นมุมขวาล่างไว้ให้ปุ่ม Console ของหน้า Playground
-btn_next = ui.Button("เดินหน้า", x=20, y=250, w=180, h=64, color=0x1E88E5,
-                     value=20)
-btn_home = ui.Button("เริ่มใหม่", x=216, y=250, w=160, h=64, color=0x6A1B9A,
-                     value=20)
+# แถวปุ่มอยู่ล่างสุด y+h = 392 จึงต้องจบก่อน x=690 ที่เป็นที่ของปุ่ม Console
+btn_next = ui.Button("เดินหน้า", x=24, y=304, w=200, h=88, color=COL_ACCENT,
+                     value=24)
+btn_home = ui.Button("เริ่มใหม่", x=256, y=304, w=200, h=88, color=COL_CARD,
+                     value=24)
 
 ID_NEXT, ID_HOME = btn_next.id(), btn_home.id()
 
@@ -78,7 +90,7 @@ def show():
     want_id, who, want_type, reason = STEPS[step]
     lbl_pos.text(str(step + 1) + " / " + str(len(STEPS)) + "  " + who)
     ask.text("แตะ " + who + " แล้วต้องได้ " + want_type)
-    ask.color(COL_INFO)
+    ask.color(COL_ACCENT)
     why.text(reason)
 
 

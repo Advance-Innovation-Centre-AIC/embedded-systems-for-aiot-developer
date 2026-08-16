@@ -28,10 +28,10 @@ DEVICE_ID = "eva-team03"
 TOPIC_ECHO = "bento/eva-team03/echo"
 N = 10
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_TRACK = 0x27364F         # สีรางของ ui.Bar - ตัวแท่งที่วิ่งเป็นสีของธีมเสมอ
-COL_OK, COL_BAD, COL_INFO = 0x00E676, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_TRACK = 0x171B22         # สีรางของ ui.Bar - ตัวแท่งที่วิ่งเป็นสีของธีมเสมอ
+COL_OK, COL_BAD, COL_INFO = 0x30A46C, 0xE5484D, 0x4A9EFF
 
 ui.screen()
 time.sleep_ms(200)
@@ -39,23 +39,23 @@ time.sleep_ms(200)
 ui.Label("ที่บอกว่าส่ง กับ ที่กลับมาจริง", x=20, y=12, color=COL_TEXT, value=24)
 
 # ฝั่งซ้าย: ตัวเลขที่โปรแกรมของเราอ้าง
-ui.Panel(x=20, y=52, w=325, h=150, color=COL_CARD, min=COL_INFO, max=12, value=1)
+ui.Panel(x=20, y=52, w=328, h=152, color=COL_CARD, min=COL_INFO, max=12, value=1)
 ui.Label("publish() บอกว่าสำเร็จ", x=36, y=64, color=COL_DIM, value=16)
-seg_claim = ui.Seg7(text="0", x=36, y=94, w=180, h=76, color=COL_INFO)
-bar_claim = ui.Bar(x=36, y=178, w=290, h=20, min=0, max=N, value=0, color=COL_TRACK)
+seg_claim = ui.Seg7(text="0", x=36, y=96, w=180, h=76, color=COL_INFO)
+bar_claim = ui.Bar(x=36, y=180, w=292, h=20, min=0, max=N, value=0, color=COL_TRACK)
 
 # ฝั่งขวา: ตัวเลขที่วัดได้จริง
-ui.Panel(x=355, y=52, w=315, h=150, color=COL_CARD, min=COL_OK, max=12, value=1)
-ui.Label("เดินทางกลับมาถึงเรา", x=371, y=64, color=COL_DIM, value=16)
-seg_seen = ui.Seg7(text="0", x=371, y=94, w=180, h=76, color=COL_OK)
-bar_seen = ui.Bar(x=371, y=178, w=285, h=20, min=0, max=N, value=0, color=COL_TRACK)
+ui.Panel(x=356, y=52, w=316, h=152, color=COL_CARD, min=COL_OK, max=12, value=1)
+ui.Label("เดินทางกลับมาถึงเรา", x=372, y=64, color=COL_DIM, value=16)
+seg_seen = ui.Seg7(text="0", x=372, y=96, w=180, h=76, color=COL_OK)
+bar_seen = ui.Bar(x=372, y=180, w=288, h=20, min=0, max=N, value=0, color=COL_TRACK)
 
 l_diff = ui.Label("ต่างกัน 0 ใบ", x=20, y=220, color=COL_DIM, value=28)
-l_note = ui.Label("กำลังต่อเน็ต...", x=20, y=266, color=COL_DIM, value=18)
+l_note = ui.Label("กำลังต่อเน็ต...", x=20, y=268, color=COL_DIM, value=20)
 # แยกสองป้ายให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยหนึ่งตัวกิน 3 ไบต์
-l_end = ui.Label("หลักฐานว่าถึงจริง", x=20, y=302, color=COL_DIM, value=18)
-ui.Label("ต้องนับที่ปลายทาง ไม่ใช่ต้นทาง", x=200, y=302, color=COL_DIM,
-         value=18)
+l_end = ui.Label("หลักฐานว่าถึงจริง", x=20, y=304, color=COL_DIM, value=20)
+ui.Label("ต้องนับที่ปลายทาง ไม่ใช่ต้นทาง", x=216, y=304, color=COL_DIM,
+         value=20)
 ui.poll()
 
 lcd.clear()

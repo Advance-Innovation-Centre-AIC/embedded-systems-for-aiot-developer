@@ -33,36 +33,42 @@ lcd.console("<h2>ทัวร์โมดูล sensors</h2>")
 lcd.print("บอร์ดนี้เป็น Eva Kit:", IS_EVA)
 
 ui.screen()
-ui.Label("sensors: ใครตอบ ใครปฏิเสธ", x=12, y=8, value=20)
+ui.Label("sensors: ใครตอบ ใครปฏิเสธ", x=24, y=24, value=24)
 
 NAMES = ("snapshot()", "read_all()", "auto_status()", "auto_rate(200)",
          "init()", "scan()", "push()", "live_push()", "auto()")
+
+# เก้าแถวเรียงชิดกันเป็นตารางเดียว ระยะบรรทัด 22 คือความสูงของตัวอักษร 16 พอดี
+# คอลัมน์นี้กว้างถึง x=440 คำตัดสินที่ยาวกว่านั้นจะไปทับคอลัมน์ขวา จึงต้องสั้น
+# ประโยคเต็มของแต่ละข้ออยู่ในคอนโซล ซึ่งไม่มีเพดานความกว้าง
 rows = []
 for i in range(9):
-    rows.append(ui.Label(NAMES[i] + "  ...", x=12, y=42 + i * 26, value=18,
+    rows.append(ui.Label(NAMES[i] + "  ...", x=24, y=64 + i * 22, value=16,
                          color=0x9AA3AF))
 
-lbl_keys = ui.Label("คีย์ที่ snapshot คืนมา: ...", x=330, y=42, value=18,
-                    color=0x00BFFF)
-lbl_same = ui.Label("read_all เท่ากับ snapshot: ...", x=330, y=70, value=18,
-                    color=0x00BFFF)
-lbl_auto = ui.Label("auto_status: ...", x=330, y=98, value=18, color=0x00BFFF)
+# คอลัมน์ขวา: หลักฐานสามบรรทัด แล้วปุ่มสองตัว
+lbl_keys = ui.Label("คีย์ที่ snapshot คืนมา: ...", x=456, y=64, value=16,
+                    color=0x4A9EFF)
+lbl_same = ui.Label("read_all = snapshot: ...", x=456, y=88, value=16,
+                    color=0x4A9EFF)
+lbl_auto = ui.Label("auto_status: ...", x=456, y=112, value=16, color=0x4A9EFF)
 
-ui.Panel(x=12, y=282, w=670, h=52)
-ui.Label("แถวส้มไม่ใช่ความผิดพลาดของเรา", x=24, y=290, value=18,
-         color=0xFFC107)
-ui.Label("ปฏิเสธเสียงดัง ดีกว่าบอร์ดค้างเงียบ ๆ", x=24, y=310, value=18,
-         color=0xFFC107)
-
-btn_again = ui.Button("ทดสอบอีกครั้ง", x=12, y=344, w=210, h=50,
-                      color=0x1E88E5, value=20)
-btn_exit = ui.Button("ออก", x=234, y=344, w=140, h=50, color=0x546E7A,
+btn_again = ui.Button("ทดสอบอีกครั้ง", x=456, y=152, w=232, h=88,
+                      color=0x4A9EFF, value=20)
+btn_exit = ui.Button("ออก", x=456, y=272, w=232, h=88, color=0x9AA3AF,
                      value=20)
+
+# การ์ดใจความสำคัญอยู่ใต้ตาราง Panel ต้องมาก่อนสองบรรทัดที่วางบนมันเสมอ
+ui.Panel(x=24, y=276, w=408, h=88)
+ui.Label("แถวส้มไม่ใช่ความผิดพลาดของเรา", x=40, y=296, value=16,
+         color=0xF5A623)
+ui.Label("ปฏิเสธเสียงดัง ดีกว่าบอร์ดค้างเงียบ", x=40, y=320, value=16,
+         color=0xF5A623)
 id_again = btn_again.id()
 id_exit = btn_exit.id()
 
-OK_COLOR = 0x50D890
-NO_COLOR = 0xFF9800
+OK_COLOR = 0x30A46C
+NO_COLOR = 0xF5A623
 
 
 def verdict(i, ok, note):
@@ -78,7 +84,13 @@ def run_tour():
     try:
         snap = sensors.snapshot()
         verdict(0, True, "OK " + str(len(snap)) + " กลุ่ม")
-        lbl_keys.text("คีย์ที่ snapshot คืนมา: " + ",".join(sorted(snap)))
+        # จำนวนคีย์ขึ้นกับบอร์ด รายการเต็มจึงยาวเกินคอลัมน์ได้เสมอ
+        # ป้ายที่ยาวเกินไม่ error มันวิ่งเลยขอบจอไปเฉย ๆ จึงต้องตัดเองพร้อมจุดสามจุด
+        # ให้เห็นว่าถูกตัด แล้วส่งรายการเต็มออกคอนโซลซึ่งไม่มีเพดานความกว้าง
+        keys = ",".join(sorted(snap))
+        lbl_keys.text("คีย์: " + (keys[:24] + "..." if len(keys) > 24
+                                  else keys))
+        lcd.print("คีย์ที่ snapshot คืนมาครบชุด:", keys)
     except OSError:
         verdict(0, False, "OSError - คอร์จอยังไม่ตอบ")
     except AttributeError:
@@ -91,7 +103,7 @@ def run_tour():
         verdict(1, True, "OK " + str(len(all_d)) + " กลุ่ม")
         if snap is not None:
             same = sorted(all_d) == sorted(snap)
-            lbl_same.text("read_all เท่ากับ snapshot: " + str(same))
+            lbl_same.text("read_all = snapshot: " + str(same))
     except OSError:
         verdict(1, False, "OSError")
 
@@ -102,7 +114,7 @@ def run_tour():
     try:
         st = sensors.auto_status()
         verdict(2, True, "OK running=" + str(st["running"]))
-        lbl_auto.text("auto_status: rate " + str(st["rate_ms"]) + " ms, push "
+        lbl_auto.text("auto_status: " + str(st["rate_ms"]) + " ms, push "
                       + str(st["push_count"]))
     except OSError:
         verdict(2, False, "OSError")
@@ -129,7 +141,10 @@ def run_tour():
         sensors.scan()
         verdict(5, True, "ผ่าน (ไม่ใช่ Eva Kit)")
     except OSError:
-        verdict(5, False, "OSError - การไล่สแกน 112 แอดเดรสคือทางลัดสู่บัสพัง")
+        # ประโยคเต็มยาวเกินคอลัมน์ จึงเหลือใจความไว้บนจอ แล้วส่งฉบับเต็มออกคอนโซล
+        verdict(5, False, "OSError - ไล่สแกนทั้งบัสคือทางลัดพัง")
+        lcd.print("scan() ไล่ที่อยู่ 112 ตัวบนบัสที่คอร์จอถืออยู่ "
+                  "ซึ่งเป็นทางลัดที่สุดไปสู่บัสที่พัง")
 
     if IS_EVA:
         # เรียกเฉพาะบน Eva Kit ที่รู้แน่ว่ามันจะปฏิเสธทันที

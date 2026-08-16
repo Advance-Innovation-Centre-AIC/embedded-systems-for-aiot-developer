@@ -26,8 +26,8 @@ STILL_MS = 1500    # หลังกระแทกต้องนิ่งน�
 IDLE, FELL, HIT = 0, 1, 2
 Y_MAX = 400        # แกน Y ของกราฟ = ขนาดความเร่ง x10 จึงกิน 0 ถึง 40 m/s^2
 
-ON = 0x00E676      # สีของขั้นที่เครื่องเชื่อแล้ว
-OFF = 0x666666     # สีของขั้นที่ยังไม่ถึง
+COL_ON = 0x30A46C      # สีของขั้นที่เครื่องเชื่อแล้ว
+COL_OFF = 0x9AA3AF     # สีของขั้นที่ยังไม่ถึง
 
 
 def magnitude():
@@ -45,34 +45,34 @@ lcd.print("ตกอิสระ <", FREE_FALL, "| กระแทก >", IMPACT
 
 # ---- หน้าจอ ------------------------------------------------------------------
 ui.screen()
-ui.Label("ตรวจการล้ม - ลำดับสามขั้น", x=12, y=6, value=24)
-ch = ui.Chart(x=12, y=40, w=470, h=232, min=0, max=Y_MAX)
+ui.Label("ตรวจการล้ม - ลำดับสามขั้น", x=12, y=8, value=24)
+ch = ui.Chart(x=12, y=40, w=472, h=232, min=0, max=Y_MAX)
 s_mag = 0                          # ซีรีส์ 0 เกิดพร้อมกราฟ สีฟ้าเริ่มต้น
 s_ff = ch.add_series(0xFFC107)
 s_hit = ch.add_series(0xFF5555)
-ui.Label("ฟ้า = ขนาดความเร่ง", x=496, y=42, value=16, color=0x00BFFF)
-ui.Label("เหลือง = เกณฑ์ตกอิสระ", x=496, y=64, value=16, color=0xFFC107)
-ui.Label("แดง = เกณฑ์กระแทก", x=496, y=86, value=16, color=0xFF5555)
+ui.Label("ฟ้า = ขนาดความเร่ง", x=496, y=44, value=16, color=0x4A9EFF)
+ui.Label("เหลือง = เกณฑ์ตกอิสระ", x=496, y=80, value=16, color=0xF5A623)
+ui.Label("แดง = เกณฑ์กระแทก", x=496, y=116, value=16, color=0xE5484D)
 
 steps_ui = [
-    ui.Label("1 ตกอิสระ", x=504, y=122, value=20, color=OFF),
-    ui.Label("2 กระแทก", x=504, y=152, value=20, color=OFF),
-    ui.Label("3 นิ่ง", x=504, y=182, value=20, color=OFF),
+    ui.Label("1 ตกอิสระ", x=692, y=124, value=20, color=COL_OFF),
+    ui.Label("2 กระแทก", x=504, y=152, value=20, color=COL_OFF),
+    ui.Label("3 นิ่ง", x=504, y=184, value=20, color=COL_OFF),
 ]
 
-ui.Label("แจ้งเตือน", x=496, y=238, value=16)
-seg = ui.Seg7(x=600, y=232, w=90, h=36)
+ui.Label("แจ้งเตือน", x=496, y=240, value=16)
+seg = ui.Seg7(x=600, y=232, w=92, h=36)
 
 # สองป้ายแทนหนึ่งก้อน - ui.Label ตัดที่ 126 ไบต์ และไทยตัวละ 3 ไบต์
-ui.Label("ตรวจแค่แรงกระแทกอย่างเดียว", x=24, y=294, value=20, color=0xFFC107)
+ui.Label("ตรวจแค่แรงกระแทกอย่างเดียว", x=24, y=296, value=20, color=0xF5A623)
 ui.Label("เตือนผิดทุกครั้งที่วางของลงโต๊ะ", x=24, y=324, value=20,
-         color=0xFFC107)
+         color=0xF5A623)
 
 
 def light(upto):
     # ขั้นที่ 0 คือยังไม่เกิดอะไร ขั้นที่ 1-3 คือเชื่อไปแล้วกี่ขั้น
     for i, w in enumerate(steps_ui):
-        w.color(ON if i < upto else OFF)
+        w.color(COL_ON if i < upto else COL_OFF)
 
 
 HOLD_MS = 2000     # แจ้งเตือนแล้วค้างสามขั้นไว้เท่านี้ ให้คนหน้าจอทันเห็น

@@ -26,9 +26,9 @@ import sensors
 import time
 import ui
 
-COL_ROLL = 0xFF5252
-COL_PITCH = 0x4CAF50
-COL_GRAY = 0xA0B4CC
+COL_ROLL = 0xE5484D
+COL_PITCH = 0x30A46C
+COL_GRAY = 0x4A9EFF
 
 lcd.clear()
 lcd.console("<h2>dsp.tilt() คืออะไรกันแน่</h2>")
@@ -43,43 +43,45 @@ except OSError:
     lcd.print("คอร์จอยังไม่ตอบรอบแรก จะลองใหม่ในลูป")
 
 ui.screen()
-ui.Label("dsp.tilt() = atan2 สองบรรทัด", x=12, y=8, value=20)
+ui.Label("dsp.tilt() = atan2 สองบรรทัด", x=24, y=24, value=24)
 
-# คอลัมน์ซ้าย: ค่าดิบสามแกน หน่วย m/s2 - วางราบแล้ว az ควรราว +9.8
-ui.Label("ความเร่ง (m/s2)", x=12, y=44, value=18, color=COL_GRAY)
-lbl_ax = ui.Label("ax  ----", x=12, y=70, value=20)
-lbl_ay = ui.Label("ay  ----", x=12, y=98, value=20)
-lbl_az = ui.Label("az  ----", x=12, y=126, value=20)
-lbl_mag = ui.Label("|a| ----", x=12, y=154, value=20, color=COL_GRAY)
+# สามคอลัมน์เรียงจากซ้าย: ค่าดิบ - คำตอบเฟิร์มแวร์ - คำตอบที่เราคำนวณเอง
+# หัวคอลัมน์ใช้ 16 เพราะเป็นป้ายกำกับ ส่วนตัวเลขใช้ 20 เพราะเป็นค่าที่ต้องอ่าน
+ui.Label("ความเร่ง (m/s2)", x=24, y=64, value=16, color=COL_GRAY)
+lbl_ax = ui.Label("ax  ----", x=24, y=92, value=20)
+lbl_ay = ui.Label("ay  ----", x=24, y=120, value=20)
+lbl_az = ui.Label("az  ----", x=24, y=148, value=20)
+lbl_mag = ui.Label("|a| ----", x=24, y=176, value=20, color=COL_GRAY)
 
 # คอลัมน์กลาง: คำตอบของเฟิร์มแวร์
-ui.Label("dsp.tilt()", x=250, y=44, value=18, color=COL_GRAY)
-lbl_roll = ui.Label("roll   ----", x=250, y=70, value=20, color=COL_ROLL)
-lbl_pitch = ui.Label("pitch  ----", x=250, y=98, value=20, color=COL_PITCH)
+ui.Label("dsp.tilt()", x=224, y=64, value=16, color=COL_GRAY)
+lbl_roll = ui.Label("roll   ----", x=224, y=92, value=20, color=COL_ROLL)
+lbl_pitch = ui.Label("pitch  ----", x=224, y=120, value=20, color=COL_PITCH)
 
 # คอลัมน์ขวา: สูตรเดียวกันที่เราเขียนเอง ถ้าสองคอลัมน์นี้ไม่ตรงกัน แปลว่าเราเข้าใจผิด
-ui.Label("คำนวณเองด้วย atan2", x=470, y=44, value=18, color=COL_GRAY)
-lbl_roll2 = ui.Label("roll   ----", x=470, y=70, value=20, color=COL_ROLL)
-lbl_pitch2 = ui.Label("pitch  ----", x=470, y=98, value=20, color=COL_PITCH)
-lbl_diff = ui.Label("ต่างกัน ----", x=470, y=126, value=18, color=COL_GRAY)
+ui.Label("คำนวณเองด้วย atan2", x=456, y=64, value=16, color=COL_GRAY)
+lbl_roll2 = ui.Label("roll   ----", x=456, y=92, value=20, color=COL_ROLL)
+lbl_pitch2 = ui.Label("pitch  ----", x=456, y=120, value=20, color=COL_PITCH)
+lbl_diff = ui.Label("ต่างกัน ----", x=456, y=148, value=20, color=COL_GRAY)
+
+# ปุ่มออกไปอยู่มุมขวาบน ซึ่งเป็นช่องว่างขนาด 88x88 ช่องเดียวที่จอนี้เหลืออยู่
+btn_exit = ui.Button("ออก", x=672, y=64, w=88, h=88, color=0x9AA3AF, value=20)
 
 # กราฟสองเส้น ให้เห็นว่าสองแกนแยกกันจริงตอนเอียงทีละทาง
-ch = ui.Chart(x=12, y=190, w=460, h=140, min=-90, max=90, color=COL_ROLL)
+ch = ui.Chart(x=24, y=216, w=440, h=120, min=-90, max=90, color=COL_ROLL)
 s_roll = 0                       # ซีรีส์ 0 มาพร้อมกราฟ สีมาจาก color= ข้างบน
 s_pitch = ch.add_series(COL_PITCH)
-ui.Label("กราฟ: แดง roll / เขียว pitch", x=12, y=336, value=16, color=COL_GRAY)
+ui.Label("กราฟ: แดง roll / เขียว pitch", x=24, y=344, value=16, color=COL_GRAY)
 
 # แถวกับดัก: ค่าชุดเดียวกัน อ่านผิดลำดับ แล้วดูว่ามันหน้าตาน่าเชื่อแค่ไหน
-ui.Panel(x=484, y=190, w=198, h=140)
-ui.Label("ถ้าแกะสลับลำดับ", x=496, y=198, value=18, color=0xFFC107)
-lbl_bad1 = ui.Label("pitch อ่านเป็น ----", x=496, y=228, value=18,
-                    color=0xFFC107)
-lbl_bad2 = ui.Label("roll อ่านเป็น ----", x=496, y=258, value=18,
-                    color=0xFFC107)
-ui.Label("ไม่มี error ให้เห็นเลย", x=496, y=292, value=18, color=0xFF5252)
-
-btn_exit = ui.Button("ออก", x=496, y=340, w=140, h=50, color=0x546E7A,
-                     value=20)
+# การ์ดจบที่ y=340 พอดี ต่ำกว่านั้นคือมุมที่ปุ่มคอนโซลจองไว้
+ui.Panel(x=480, y=216, w=288, h=124)
+ui.Label("ถ้าแกะสลับลำดับ", x=496, y=232, value=16, color=0xF5A623)
+lbl_bad1 = ui.Label("pitch อ่านเป็น ----", x=496, y=260, value=20,
+                    color=0xF5A623)
+lbl_bad2 = ui.Label("roll อ่านเป็น ----", x=496, y=292, value=20,
+                    color=0xF5A623)
+ui.Label("ไม่มี error ให้เห็นเลย", x=480, y=344, value=16, color=0xE5484D)
 id_exit = btn_exit.id()
 
 R2D = 180.0 / math.pi

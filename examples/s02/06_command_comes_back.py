@@ -30,38 +30,45 @@ TOPIC_CMD = "bento/eva-team03/cmd"
 LISTEN_MS = 60000    # เปิดฟังนานเท่าไร
 POLL_MS = 100        # ถามกล่องรับถี่แค่ไหน ยิ่งห่างยิ่งเสี่ยงข้อความทับกัน
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 n_leds = gpio.num_leds()
 
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("รับคำสั่งจากที่ไกล", x=20, y=12, color=COL_TEXT, value=24)
-status = ui.Label("กำลังจะเริ่ม", x=20, y=48, color=COL_DIM, value=18)
+# ผังจอ: หัวเรื่องกับบรรทัดสถานะอยู่แถวบนสุด การ์ดสายหนึ่งใบ แล้วสองแถวของคำสั่ง
+# บรรทัดสถานะยาวได้ถึงราว 420 px จึงเริ่มที่ x=344 หลังหัวเรื่องขนาด 28 จบพอดี
+ui.Label("รับคำสั่งจากที่ไกล", x=24, y=8, color=COL_TEXT, value=24)
+status = ui.Label("กำลังจะเริ่ม", x=344, y=16, color=COL_DIM, value=20)
 
-ui.Panel(x=20, y=78, w=650, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("สถานะสาย", x=36, y=88, color=COL_DIM, value=16)
-link_lbl = ui.Label("ยังไม่ได้ต่อ", x=36, y=112, color=COL_WARN, value=24)
+ui.Panel(x=24, y=56, w=744, h=120, color=COL_CARD, min=COL_CARD, max=12,
+         value=1)
+ui.Label("สถานะสาย", x=40, y=72, color=COL_DIM, value=16)
+link_lbl = ui.Label("ยังไม่ได้ต่อ", x=40, y=104, color=COL_WARN, value=24)
 
-ui.Label("ได้รับแล้ว (ใบ)", x=380, y=88, color=COL_DIM, value=16)
-seg = ui.Seg7(text="0", x=380, y=110, w=150, h=56, color=COL_INFO)
+ui.Label("ได้รับแล้ว (ใบ)", x=520, y=72, color=COL_DIM, value=16)
+seg = ui.Seg7(text="0", x=520, y=104, w=144, h=56, color=COL_ACCENT)
 
-ui.Label("คำสั่งล่าสุดที่ได้รับ", x=20, y=190, color=COL_DIM, value=16)
-last_lbl = ui.Label("ยังไม่มีคำสั่งเข้ามา", x=20, y=216, color=COL_DIM,
+ui.Label("คำสั่งล่าสุดที่ได้รับ", x=24, y=192, color=COL_DIM, value=16)
+last_lbl = ui.Label("ยังไม่มีคำสั่งเข้ามา", x=24, y=224, color=COL_DIM,
                     value=24)
 
 # ไอคอนตอบกลับด้วยภาพ คนที่ยืนไกลจากจอก็ดูออกว่าบอร์ดได้ยินคำสั่งแล้ว
-img = ui.Image("smiley", x=560, y=190, w=48, h=48, color=COL_DIM)
+# ขยายเป็น 64 เพราะไอคอน 48 อ่านไม่ออกจากระยะยืน และมันคือสัญญาณหลักของจอนี้
+img = ui.Image("smiley", x=560, y=192, w=64, h=64, color=COL_DIM)
 
-ui.Label("หัวข้อที่ฟังอยู่", x=20, y=262, color=COL_DIM, value=16)
-topic_lbl = ui.Label("ยังไม่ได้ subscribe", x=20, y=288, color=COL_DIM,
-                     value=18)
+# ป้ายหัวข้อวางเรียงแนวนอนกับค่าของมัน เพื่อเหลือแถวล่างไว้ให้บรรทัดสถานะสองใบ
+ui.Label("หัวข้อที่ฟังอยู่", x=24, y=272, color=COL_DIM, value=16)
+topic_lbl = ui.Label("ยังไม่ได้ subscribe", x=224, y=272, color=COL_DIM,
+                     value=20)
 
-note = ui.Label("กำลังเริ่ม", x=20, y=330, color=COL_DIM, value=18)
-ui.Label("คำสั่งที่รู้จัก beep / led / say", x=20, y=366, color=COL_DIM,
+note = ui.Label("กำลังเริ่ม", x=24, y=312, color=COL_DIM, value=20)
+ui.Label("คำสั่งที่รู้จัก beep / led / say", x=24, y=352, color=COL_DIM,
          value=16)
 ui.poll()
 
@@ -209,10 +216,10 @@ while True:
             # ข้อความจากคนอื่นยาวแค่ไหนก็ได้ ป้ายพาไปได้ 126 ไบต์ ไทยตัวละ 3 ไบต์
             # ตัดให้สั้นก่อนเสมอ ไม่ใช่หวังว่าคนส่งจะพิมพ์สั้น
             text = str(cmd.get("text", ""))[:24]
-            last_lbl.color(COL_INFO)
+            last_lbl.color(COL_ACCENT)
             last_lbl.text(text if text != "" else "say ที่ไม่มีข้อความ")
             img.icon("flag")
-            img.color(COL_INFO)
+            img.color(COL_ACCENT)
             lcd.print("<span class=info>ใบที่", got, "-> say", text, "</span>")
 
         elif action != "":

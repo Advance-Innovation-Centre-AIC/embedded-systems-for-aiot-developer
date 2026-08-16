@@ -40,17 +40,17 @@ N = 6                # ส่งกี่ใบถ้าต่อติด
 # หกคีย์ที่อยากเห็นบนจอ คลังค่าตั้งจริงมีมากกว่านี้อีกหลายสิบ
 SHOW = ("device_id", "broker", "port", "tls_mode", "qos", "keepalive")
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x30A46C, 0xF5A623, 0xE5484D, 0x4A9EFF
 
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("คลังค่าตั้งที่บอร์ดจำเอง", x=20, y=12, color=COL_TEXT, value=24)
-status = ui.Label("กำลังอ่านคลังค่าตั้ง", x=20, y=48, color=COL_DIM, value=18)
+status = ui.Label("กำลังอ่านคลังค่าตั้ง", x=20, y=48, color=COL_DIM, value=20)
 
-ui.Panel(x=20, y=78, w=650, h=120, color=COL_CARD, min=COL_DIM, max=12,
+ui.Panel(x=20, y=80, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
 ui.Label("tesaiot.config()", x=36, y=88, color=COL_INFO, value=16)
 
@@ -58,19 +58,19 @@ ui.Label("tesaiot.config()", x=36, y=88, color=COL_INFO, value=16)
 # ห้ามสร้าง Label ด้วยข้อความว่าง LVGL จะเติมคำว่า "Label" ให้เอง แล้วมันจะค้าง
 cells = []
 for i in range(3):
-    cells.append(ui.Label("รออ่าน", x=36, y=114 + i * 28, color=COL_TEXT,
-                          value=18))
+    cells.append(ui.Label("รออ่าน", x=36, y=116 + i * 28, color=COL_TEXT,
+                          value=20))
 for i in range(3):
-    cells.append(ui.Label("รออ่าน", x=360, y=114 + i * 28, color=COL_TEXT,
-                          value=18))
+    cells.append(ui.Label("รออ่าน", x=360, y=116 + i * 28, color=COL_TEXT,
+                          value=20))
 
-ui.Label("สถานะการต่อ", x=20, y=210, color=COL_DIM, value=16)
+ui.Label("สถานะการต่อ", x=20, y=212, color=COL_DIM, value=16)
 conn_lbl = ui.Label("ยังไม่ได้สั่งต่อ", x=20, y=236, color=COL_DIM, value=24)
 
-ui.Label("รอมาแล้ว (ms)", x=380, y=210, color=COL_DIM, value=16)
-seg = ui.Seg7(text="0", x=380, y=232, w=150, h=52, color=COL_INFO)
+ui.Label("รอมาแล้ว (ms)", x=380, y=212, color=COL_DIM, value=16)
+seg = ui.Seg7(text="0", x=532, y=232, w=152, h=52, color=COL_INFO)
 
-note = ui.Label("กำลังเริ่ม", x=20, y=298, color=COL_DIM, value=18)
+note = ui.Label("กำลังเริ่ม", x=20, y=300, color=COL_DIM, value=20)
 warn = ui.Label("ครึ่ง OPTIGA ของโมดูลนี้ปิดอยู่บนบอร์ดชุดนี้", x=20, y=332,
                 color=COL_WARN, value=16)
 ui.Label("ตั้งครั้งเดียว อยู่บนแฟลช ถอดไฟแล้วยังอยู่", x=20, y=364,

@@ -20,9 +20,9 @@ DEBOUNCE_MS = 40
 POLL_MS = 5
 RUN_MS = 20000
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_INFO = 0x00E676, 0xFFA726, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_INFO = 0x30A46C, 0xF5A623, 0x4A9EFF
 
 lcd.clear()
 lcd.console("<h2>ปุ่มเดียว ไฟสามดวง</h2>")
@@ -39,11 +39,11 @@ ui.screen()
 time.sleep_ms(200)
 
 ui.Label("ปุ่มเดียว ไฟสามดวง", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=124, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=52, w=652, h=124, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
 ui.Label("ดัชนีที่ติดอยู่", x=40, y=64, color=COL_DIM, value=16)
 seg = ui.Seg7(text="-", x=40, y=92, w=64, h=44, color=COL_DIM)
-l_name = ui.Label("ยังไม่มีดวงไหนติด", x=110, y=96, color=COL_DIM, value=24)
+l_name = ui.Label("ยังไม่มีดวงไหนติด", x=112, y=96, color=COL_DIM, value=24)
 
 rows = []
 for i in range(N):
@@ -53,15 +53,15 @@ for i in range(N):
 ui.Label("กดปุ่ม SW2 บนบอร์ด (โค้ดเรียก " + btn.name() + ") เพื่อเลื่อนดวงถัดไป",
          x=20, y=192, color=COL_DIM, value=16)
 # แยกเป็นสองใบทั้งสองก้อน - ui.Label ตัดที่ 126 ไบต์ ไทยหนึ่งตัวกิน 3 ไบต์
-ui.Label("current = (current + 1) % N", x=20, y=218, color=COL_DIM, value=16)
-ui.Label("ทำให้ดวงสุดท้ายวนกลับดวงแรกเอง", x=270, y=218, color=COL_DIM,
+ui.Label("current = (current + 1) % N", x=20, y=220, color=COL_DIM, value=16)
+ui.Label("ทำให้ดวงสุดท้ายวนกลับดวงแรกเอง", x=328, y=220, color=COL_DIM,
          value=16)
 ui.Label("ทุกอย่างบนจอนี้อ่านจาก current", x=20, y=252, color=COL_WARN,
          value=16)
-ui.Label("ไม่มีบรรทัดไหนถามหลอดเลย", x=290, y=252, color=COL_WARN, value=16)
+ui.Label("ไม่มีบรรทัดไหนถามหลอดเลย", x=360, y=252, color=COL_WARN, value=16)
 
 st = ui.Label("กดปุ่มเพื่อเลื่อนไปดวงถัดไป", x=20, y=336,
-              color=COL_INFO, value=18)
+              color=COL_INFO, value=20)
 
 # ตัวแปรนี้คือความจริงของโปรแกรม ไม่ใช่ฮาร์ดแวร์
 # -1 แปลว่า "ยังไม่มีดวงไหนติด" ซึ่งเป็นสถานะที่เราเพิ่งสั่งไปเมื่อกี้จริง ๆ

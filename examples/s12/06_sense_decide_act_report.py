@@ -26,10 +26,10 @@ OFF_BELOW = 26.5       # ต้องตกต่ำกว่านี้จึ�
 REPORT_MS = 3000
 ROUNDS = 160
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_ON, COL_OFF = 0x00E676, 0x9AA0A6
-COL_WARN = 0xFFC83D
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ON, COL_OFF = 0x30A46C, 0x9AA3AF
+COL_WARN = 0xF5A623
 
 ui.screen()
 time.sleep_ms(200)
@@ -37,28 +37,28 @@ time.sleep_ms(200)
 ui.Label("วัด -> ตัดสิน -> สั่ง -> รายงาน", x=20, y=12, color=COL_TEXT, value=24)
 
 # แถวสี่ขั้น - ป้ายที่สว่างคือขั้นที่กำลังทำอยู่จริงในรอบนี้
-ui.Panel(x=20, y=52, w=650, h=64, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=52, w=652, h=64, color=COL_CARD, min=COL_DIM, max=12, value=1)
 st = []
 NAMES = ("1 วัด", "2 ตัดสิน", "3 สั่ง", "4 รายงาน")
 for i in range(4):
     st.append(ui.Label(NAMES[i], x=40 + i * 160, y=72, color=COL_DIM, value=20))
 
-ui.Panel(x=20, y=128, w=330, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("อุณหภูมิ", x=36, y=140, color=COL_DIM, value=16)
-seg = ui.Seg7(text="--", x=36, y=166, w=200, h=46, color=0x40C4FF)
+ui.Panel(x=20, y=128, w=332, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("อุณหภูมิ", x=36, y=140, color=COL_DIM, value=20)
+seg = ui.Seg7(text="--", x=36, y=168, w=200, h=48, color=0x4A9EFF)
 
-ui.Panel(x=366, y=128, w=304, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("สถานะพัดลม", x=382, y=140, color=COL_DIM, value=16)
-lbl_act = ui.Label("ปิด", x=382, y=168, color=COL_OFF, value=28)
+ui.Panel(x=368, y=128, w=304, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("สถานะพัดลม", x=384, y=140, color=COL_DIM, value=20)
+lbl_act = ui.Label("ปิด", x=384, y=168, color=COL_OFF, value=28)
 
-ch = ui.Chart(x=20, y=238, w=548, h=118, min=20, max=35)
+ch = ui.Chart(x=20, y=240, w=548, h=120, min=20, max=35)
 s_temp = 0
-ui.Label("เส้นบน = เกณฑ์เปิด", x=580, y=246, color=COL_WARN, value=16)
+ui.Label("เส้นบน = เกณฑ์เปิด", x=580, y=248, color=COL_WARN, value=20)
 s_on = ch.add_series(COL_WARN)
-ui.Label("เส้นล่าง = เกณฑ์ปิด", x=580, y=272, color=COL_DIM, value=16)
+ui.Label("เส้นล่าง = เกณฑ์ปิด", x=580, y=272, color=COL_DIM, value=20)
 s_off = ch.add_series(COL_DIM)
 
-sent_lbl = ui.Label("ยังไม่ได้รายงาน", x=20, y=364, color=COL_DIM, value=18)
+sent_lbl = ui.Label("ยังไม่ได้รายงาน", x=20, y=364, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

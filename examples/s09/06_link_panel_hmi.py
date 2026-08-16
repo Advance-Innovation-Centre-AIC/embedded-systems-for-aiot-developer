@@ -30,23 +30,23 @@ PING_TIMEOUT_MS = 1500     # สั้นพอที่จอจะไม่ค
 GOOD_MS = 60               # เร็วกว่านี้ถือว่าดี
 SLOW_MS = 200              # ช้ากว่านี้ถือว่าต้องดู
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 # สร้าง widget ให้ครบก่อนเข้าลูป การสร้างกลางลูปทั้งกินเวลาและกินโควตา 32 ตัว
 # พื้นที่วาดได้จริงกว้าง 792 สูง 398 - มุมขวาล่างราว x>690 y>340 มีปุ่ม Console ทับอยู่
 ui.screen()
 time.sleep_ms(200)
-ui.Panel(x=40, y=30, w=700, h=300, color=0x142240, min=COL_DIM, max=12, value=1)
+ui.Panel(x=40, y=32, w=700, h=300, color=0x171B22, min=COL_DIM, max=12, value=1)
 ui.Label("LINK STATUS", x=60, y=44, color=COL_DIM, value=20)
 l_ssid = ui.Label("SSID: -", x=60, y=88, color=COL_TEXT, value=20)
 l_ip = ui.Label("IP: -", x=60, y=132, color=COL_TEXT, value=20)
 l_ping = ui.Label("ping 8.8.8.8: -", x=60, y=176, color=COL_TEXT, value=20)
-bar = ui.Bar(x=60, y=214, w=620, h=22, min=0, max=PING_TIMEOUT_MS, value=0,
+bar = ui.Bar(x=60, y=216, w=620, h=24, min=0, max=PING_TIMEOUT_MS, value=0,
              color=COL_DIM)
-ui.Label("แถบยาว = ตอบช้า - เต็มราง = ไม่ตอบเลย", x=60, y=242, color=COL_DIM,
+ui.Label("แถบยาว = ตอบช้า - เต็มราง = ไม่ตอบเลย", x=60, y=244, color=COL_DIM,
          value=16)
-l_note = ui.Label("กำลังต่อ...", x=60, y=276, color=COL_DIM, value=18)
+l_note = ui.Label("กำลังต่อ...", x=60, y=276, color=COL_DIM, value=20)
 ui.poll()
 
 # ป้าย "กำลังต่อ..." ขึ้นก่อนบรรทัดนี้แล้ว เพราะระหว่าง connect() จอจะไม่อัปเดตเลย

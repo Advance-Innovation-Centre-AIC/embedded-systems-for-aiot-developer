@@ -27,8 +27,8 @@ LOW, HIGH = 10, 90      # สองระดับที่เอามาเท
 HOLD_MS = 700           # ค้างแต่ละระดับนานเท่าไร
 ROUNDS = 3              # สลับสองระดับกี่รอบ
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_OK, COL_WARN, COL_INFO = 0x00E676, 0xFFA726, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_OK, COL_WARN, COL_INFO = 0x30A46C, 0xF5A623, 0x4A9EFF
 
 led = gpio.led(LED)
 led.off()
@@ -37,12 +37,12 @@ ui.screen()
 time.sleep_ms(200)
 
 ui.Label("หรี่ไฟให้ค้างนานพอจะมองเห็น", x=20, y=12, color=COL_TEXT, value=24)
-seg = ui.Seg7(text="0", x=20, y=58, w=150, h=64, color=COL_WARN)
-ui.Label("% ที่สั่งค้างอยู่", x=190, y=84, color=COL_DIM, value=18)
-what = ui.Label("กำลังจะเริ่ม", x=20, y=142, color=COL_INFO, value=20)
-back = ui.Label("ยังไม่ได้อ่าน duty()", x=20, y=182, color=COL_DIM, value=18)
+seg = ui.Seg7(text="0", x=20, y=60, w=152, h=64, color=COL_WARN)
+ui.Label("% ที่สั่งค้างอยู่", x=192, y=84, color=COL_DIM, value=20)
+what = ui.Label("กำลังจะเริ่ม", x=20, y=144, color=COL_INFO, value=20)
+back = ui.Label("ยังไม่ได้อ่าน duty()", x=20, y=184, color=COL_DIM, value=20)
 note = ui.Label("มองหลอด " + led.name() + " บนบอร์ด ไม่ใช่มองแต่จอ", x=20,
-                y=232, color=COL_DIM, value=18)
+                y=232, color=COL_DIM, value=20)
 
 lcd.clear()
 lcd.console("<h2>หรี่ไฟให้ค้างนานพอจะมองเห็น</h2>")

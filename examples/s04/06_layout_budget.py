@@ -33,21 +33,21 @@ LEFT = 20
 TOP = 48
 RUN_MS = 15000
 
-COL_TEXT = 0xFFFFFF
-COL_DIM = 0xA0B4CC
-COL_OK = 0x00E676
-COL_WARN = 0xFFA726
+COL_TEXT = 0x4A9EFF
+COL_DIM = 0x9AA3AF
+COL_OK = 0x30A46C
+COL_WARN = 0xF5A623
 
 ui.screen()
 time.sleep_ms(200)
 
 # นับเองตั้งแต่ตัวแรก การรู้ว่าใช้ไปกี่ตัวก่อนสร้าง ดีกว่ามาเจอ RuntimeError ทีหลัง
 ui.Label("งบประมาณของหน้าจอ", x=20, y=8, color=COL_TEXT, value=24)
-ui.Label("โควตา widget ต่อหนึ่งหน้า", x=430, y=6, color=COL_DIM, value=14)
-counter = ui.Label("ใช้ไป 4 / 32", x=430, y=26, color=COL_OK, value=16)
+ui.Label("โควตา widget ต่อหนึ่งหน้า", x=432, y=8, color=COL_DIM, value=16)
+counter = ui.Label("ใช้ไป 4 / 32", x=432, y=44, color=COL_OK, value=16)
 
 # Bar ทำให้ "งบประมาณ" กลายเป็นปริมาณที่ตามองเห็น ไม่ใช่แค่ตัวเลขในหัว
-bar = ui.Bar(x=580, y=30, w=190, h=16, min=0, max=MAX_WIDGETS, value=4)
+bar = ui.Bar(x=580, y=32, w=192, h=16, min=0, max=MAX_WIDGETS, value=4)
 used = 4               # สี่ตัวข้างบนนี้คือของที่เราสร้างไปแล้ว
 
 
@@ -81,23 +81,23 @@ for r in range(ROWS):
         if used >= MAX_WIDGETS - RESERVE_FOR_TEXT:
             break
         ui.Button(str(r) + "," + str(c), x=x, y=y,
-                  w=CELL_W, h=CELL_H, color=0x37474F, value=14)
+                  w=CELL_W, h=CELL_H, color=0x171B22, value=14)
         spend(used + 1)
 
 # Label ที่สร้างด้วยข้อความว่าง LVGL จะเติมคำว่า "Label" ให้เอง
 # แล้วคำนั้นค้างบนจอจนกว่าจะมีการเขียนทับครั้งแรก จึงต้องตั้งข้อความตั้งต้นเสมอ
-summary = ui.Label("ยังไม่ได้เทียบกับ ui.list()", x=20, y=282,
-                   color=COL_TEXT, value=18)
+summary = ui.Label("ยังไม่ได้เทียบกับ ui.list()", x=20, y=284,
+                   color=COL_TEXT, value=20)
 probe = ui.Label("ยังไม่ได้ตรวจเขตห้ามวาง", x=20, y=308, color=COL_WARN,
-                 value=14)
-ceiling = ui.Label("ยังไม่ได้ลองชนเพดาน", x=20, y=330, color=COL_DIM,
-                   value=14)
+                 value=16)
+ceiling = ui.Label("ยังไม่ได้ลองชนเพดาน", x=20, y=332, color=COL_DIM,
+                   value=16)
 spend(used + 3)
 
 # ลองชนเพดานจริง ๆ หนึ่งครั้ง ให้เห็นว่ามันไม่ได้เตือนล่วงหน้า แต่โยน RuntimeError
 if used >= MAX_WIDGETS:
     try:
-        extra = ui.Button("33", x=20, y=356, w=60, h=28, color=0xFF5252)
+        extra = ui.Button("33", x=284, y=308, w=88, h=88, color=0xE5484D)
         extra.delete()
         over = "ตัวที่ 33 สร้างได้ - แปลว่านับพลาด"
     except RuntimeError:

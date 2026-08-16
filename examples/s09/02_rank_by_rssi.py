@@ -15,8 +15,8 @@ import ui
 import time
 
 TOP_N = 5                      # แถวบนจอถูกจำกัดด้วยพื้นที่ ไม่ใช่ด้วยจำนวนวง
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 
 def percent_of(rssi):
@@ -58,7 +58,7 @@ ui.Label("คาบ 9 - เรียงวงตามความแรง", x=
 ui.Label("อันดับ - ชื่อวง - dBm - คำตัดสิน", x=20, y=48, color=COL_DIM, value=16)
 
 # ป้ายนี้ต้องเกิดก่อน scan() เพราะระหว่างสแกนจอจะไม่ขยับเลย
-note = ui.Label("กำลังสแกน... รอสักครู่", x=20, y=316, color=COL_WARN, value=18)
+note = ui.Label("กำลังสแกน... รอสักครู่", x=20, y=316, color=COL_WARN, value=20)
 ui.poll()
 
 nets = wifi.scan()
@@ -82,7 +82,7 @@ for i in range(shown):
     # เพราะ .color() ของ Bar ทาที่ "ราง" ไม่ใช่ส่วนที่เติม ถ้าดูแต่แท่งจะอ่านสลับได้
     ui.Label("{}. {}  {} dBm  {}".format(i + 1, ssid[:16], rssi, verdict_of(rssi)),
              x=20, y=y, color=col, value=16)
-    ui.Bar(x=20, y=y + 22, w=640, h=14, min=0, max=100, value=pct, color=col)
+    ui.Bar(x=20, y=y + 22, w=640, h=16, min=0, max=100, value=pct, color=col)
     ui.poll()
 
     lcd.print("{}. {} {} dBm {}%".format(i + 1, ssid[:18], rssi, pct))

@@ -23,27 +23,27 @@ MQTT_PASS = "<รหัสผ่าน MQTT ของทีม>"
 TOPIC = "bento/eva-team03/telemetry"
 N = 10
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_TRACK = 0x27364F         # สีรางของ ui.Bar - ตัวแท่งที่วิ่งเป็นสีของธีมเสมอ
-COL_OK, COL_BAD, COL_INFO = 0x00E676, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_TRACK = 0x171B22         # สีรางของ ui.Bar - ตัวแท่งที่วิ่งเป็นสีของธีมเสมอ
+COL_OK, COL_BAD, COL_INFO = 0x30A46C, 0xE5484D, 0x4A9EFF
 
 # วางจอให้ครบก่อนเริ่มต่อ ป้ายที่ยังไม่ถึงคิวเป็นสีเทา คนดูจึงรู้ว่าเหลืออีกกี่ขั้น
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("บันไดสามขั้นก่อนส่งได้", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
-st_wifi = ui.Label("1) WiFi        รอ...", x=36, y=66, color=COL_DIM, value=20)
+ui.Panel(x=20, y=52, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
+st_wifi = ui.Label("1) WiFi        รอ...", x=36, y=68, color=COL_DIM, value=20)
 st_broker = ui.Label("2) broker      รอ...", x=36, y=100, color=COL_DIM, value=20)
-st_pub = ui.Label("3) publish     รอ...", x=36, y=134, color=COL_DIM, value=20)
+st_pub = ui.Label("3) publish     รอ...", x=36, y=136, color=COL_DIM, value=20)
 
-ui.Panel(x=20, y=184, w=650, h=140, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=184, w=652, h=140, color=COL_CARD, min=COL_DIM, max=12, value=1)
 ui.Label("ส่งไปแล้วกี่ใบ", x=36, y=196, color=COL_DIM, value=16)
-seg = ui.Seg7(text="0", x=36, y=222, w=180, h=76, color=COL_INFO)
+seg = ui.Seg7(text="0", x=36, y=224, w=180, h=76, color=COL_INFO)
 ui.Label("ความคืบหน้าของ 10 ใบ", x=240, y=212, color=COL_DIM, value=16)
-bar = ui.Bar(x=240, y=244, w=410, h=24, min=0, max=N, value=0, color=COL_TRACK)
-note = ui.Label("กำลังเริ่ม...", x=20, y=336, color=COL_DIM, value=18)
+bar = ui.Bar(x=240, y=244, w=412, h=24, min=0, max=N, value=0, color=COL_TRACK)
+note = ui.Label("กำลังเริ่ม...", x=20, y=336, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

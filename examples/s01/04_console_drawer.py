@@ -15,9 +15,9 @@ import lcd
 import time
 import ui
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 # รายการที่จะตรวจ เก็บเป็น list ของ tuple สองช่อง (ชื่อรายการ, ผลที่ได้)
 # เขียนข้อมูลไว้ก้อนเดียวข้างบน แล้วให้ลูปข้างล่างเป็นคนแสดงผล
@@ -35,13 +35,13 @@ ui.screen()
 time.sleep_ms(200)
 
 ui.Label("รายงานตรวจสอบบอร์ด", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=110, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=52, w=652, h=112, color=COL_CARD, min=COL_DIM, max=12, value=1)
 ui.Label("ผ่านแล้ว", x=40, y=64, color=COL_DIM, value=16)
 
 # Seg7 รับข้อความ ไม่ใช่ตัวเลข จึงเขียน "0/4" ตรง ๆ ได้เลย
 # ถ้าเผลอเรียก seg.value(0) จะไม่มีอะไรเกิดขึ้น และไม่มี error ให้จับด้วย
-seg = ui.Seg7(text="0/" + str(TOTAL), x=40, y=94, w=160, h=48, color=COL_OK)
-bar = ui.Bar(x=220, y=104, w=430, h=24, min=0, max=TOTAL, value=0)
+seg = ui.Seg7(text="0/" + str(TOTAL), x=40, y=96, w=160, h=48, color=COL_OK)
+bar = ui.Bar(x=220, y=104, w=432, h=24, min=0, max=TOTAL, value=0)
 
 # สองป้ายสรุปนี้สร้างไว้ตั้งแต่ตอนนี้ แล้วเดี๋ยวค่อยเขียนทับตอนรู้ผล
 # ถ้าไปสร้างข้างใน if/else ทีหลัง จะได้ป้ายคนละใบวางที่พิกัดเดียวกันสองใบ

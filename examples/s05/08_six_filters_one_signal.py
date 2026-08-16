@@ -67,36 +67,38 @@ lcd.print("ขอ Median window=4 ได้จริง:", repr(dsp.Median(windo
 
 # ---- หน้าจอ ------------------------------------------------------------------
 ui.screen()
-ui.Label("dsp: ตัวกรองหกตัว ท่าเดียวกันหมด", x=12, y=8, value=20)
+ui.Label("dsp: ตัวกรองหกตัว ท่าเดียวกันหมด", x=24, y=24, value=24)
 
-ch = ui.Chart(x=12, y=40, w=468, h=200, min=0, max=110, color=0x9AA3AF)
+ch = ui.Chart(x=24, y=68, w=448, h=160, min=0, max=110, color=0x9AA3AF)
 s_raw = 0                              # ซีรีส์ 0 เกิดมาพร้อมกราฟ สีมาจาก color= ข้างบน
-s_sel = ch.add_series(0xFF5555)        # เส้นของตัวกรองที่เลือกอยู่ สีคงที่ตลอด
+s_sel = ch.add_series(0xE5484D)        # เส้นของตัวกรองที่เลือกอยู่ สีคงที่ตลอด
 
-ui.Label("เทา = ค่าดิบ", x=12, y=246, value=16, color=0x9AA3AF)
-lbl_sel = ui.Label("กำลังวาด: EMA a=0.2", x=180, y=246, value=16,
-                   color=0xFF5555)
+ui.Label("เทา = ค่าดิบ", x=24, y=240, value=16, color=0x9AA3AF)
+lbl_sel = ui.Label("กำลังวาด: EMA a=0.2", x=136, y=240, value=16,
+                   color=0xE5484D)
 # สีของเส้นเปลี่ยนกลางคันไม่ได้ ป้ายนี้จึงเป็นตัวบอกว่าเส้นแดงคือตัวไหนอยู่
 
 # คอลัมน์ขวา: .value() ของทั้งหกตัวพร้อมกัน นี่คือเหตุผลที่ .value() มีอยู่
 # มันขอค่าล่าสุดซ้ำได้โดยไม่ต้องป้อนตัวอย่างใหม่เข้าไป
-ui.Label("value() ของทั้งหกตัว", x=496, y=40, value=16)
+ui.Label("value() ของทั้งหกตัว", x=488, y=68, value=16)
 rows = []
 for i in range(6):
-    rows.append(ui.Label(NAMES[i] + "  ----", x=496, y=66 + i * 28, value=16,
+    rows.append(ui.Label(NAMES[i] + "  ----", x=488, y=100 + i * 24, value=16,
                          color=COLORS[i]))
 
-ui.Panel(x=12, y=274, w=670, h=52)
-ui.Label("HPF อ่านคนละเรื่องกับอีกห้าตัว", x=24, y=282, value=18,
-         color=0xFFC107)
-ui.Label("มันเก็บส่วนที่เปลี่ยนเร็ว ไม่ใช่ระดับ", x=24, y=302, value=18,
-         color=0xFFC107)
+# การ์ดเตือนเรื่อง HPF วางใต้คอลัมน์ขวา จบที่ y=340 พอดี ต่ำกว่านั้นคือมุมที่
+# ปุ่มคอนโซลจองไว้ Panel ต้องมาก่อนสามบรรทัดที่วางบนมัน ไม่งั้นมันทาทับจนหาย
+ui.Panel(x=488, y=252, w=280, h=88)
+ui.Label("HPF คนละเรื่องกับอีกห้าตัว", x=504, y=260, value=16, color=0xF5A623)
+ui.Label("เก็บส่วนที่เปลี่ยนเร็ว", x=504, y=284, value=16, color=0xF5A623)
+ui.Label("ไม่ใช่ระดับของสัญญาณ", x=504, y=308, value=16, color=0xF5A623)
 
-btn_next = ui.Button("ตัวถัดไป >", x=12, y=336, w=180, h=52, color=0x1E88E5,
+# ปุ่มสามตัวอยู่ใต้กราฟ กว้างพอดีคอลัมน์ซ้าย จึงไม่ไปชนการ์ด HPF ทางขวา
+btn_next = ui.Button("ตัวถัดไป >", x=24, y=280, w=128, h=88, color=0x4A9EFF,
                      value=20)
-btn_reset = ui.Button("reset ทั้งหมด", x=204, y=336, w=200, h=52,
-                      color=0x6A1B9A, value=20)
-btn_exit = ui.Button("ออก", x=416, y=336, w=140, h=52, color=0x546E7A,
+btn_reset = ui.Button("reset ทั้งหมด", x=184, y=280, w=160, h=88,
+                      color=0x4A9EFF, value=20)
+btn_exit = ui.Button("ออก", x=376, y=280, w=88, h=88, color=0x9AA3AF,
                      value=20)
 id_next = btn_next.id()
 id_reset = btn_reset.id()

@@ -23,39 +23,50 @@ BACKOFF_MAX_MS = 60000      # เพดาน หนึ่งนาที ไม
 SCHEDULE_N = 7              # จำนวนครั้งที่เอามาวาดให้ดูเป็นตัวอย่าง
 LOOP_MS = 200
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("คาบ 12 - ถอยห่างเพิ่มขึ้น แล้วรีเซ็ต", x=20, y=10, color=COL_TEXT,
-         value=24)
-ui.Panel(x=20, y=46, w=650, h=126, color=COL_CARD, min=COL_DIM, max=12, value=1)
+# ผังจอ: การ์ดสถานะสายหนึ่งใบ กราฟตารางนัดหมายหนึ่งช่อง แล้วสองบรรทัดล่าง
+# หัวเรื่องย่อจาก "ถอยห่างเพิ่มขึ้น แล้วรีเซ็ต" เพราะของเดิมยาว 94 ไบต์
+# ซึ่งเฉียดเพดาน 95 ไบต์ที่ตัวสร้าง ui.Label ตัดทิ้งเงียบ ๆ
+ui.Label("คาบ 12 - ถอยห่างแล้วรีเซ็ต", x=24, y=8, color=COL_TEXT, value=28)
+ui.Panel(x=24, y=56, w=744, h=168, color=COL_CARD, min=COL_CARD, max=12,
+         value=1)
 
-ui.Label("สายตอนนี้", x=38, y=54, color=COL_DIM, value=16)
-l_link = ui.Label("กำลังต่อ", x=38, y=76, color=COL_WARN, value=28)
+ui.Label("สายตอนนี้", x=40, y=72, color=COL_DIM, value=20)
+l_link = ui.Label("กำลังต่อ", x=40, y=104, color=COL_WARN, value=28)
 
-ui.Label("ครั้งถัดไปรออีก (ms)", x=250, y=54, color=COL_DIM, value=16)
-seg_backoff = ui.Seg7(str(BACKOFF_START_MS), x=250, y=78, w=160, h=44, color=COL_INFO)
+ui.Label("ครั้งถัดไปรออีก (ms)", x=264, y=72, color=COL_DIM, value=20)
+seg_backoff = ui.Seg7(str(BACKOFF_START_MS), x=264, y=104, w=192, h=56,
+                      color=COL_ACCENT)
 
-ui.Label("ลองมาแล้ว (ครั้ง)", x=470, y=54, color=COL_DIM, value=16)
-seg_try = ui.Seg7("0", x=470, y=78, w=110, h=44, color=COL_WARN)
+# จำนวนครั้งที่ลองคือตัวนับ ไม่ใช่สถานะ จึงไม่ทาสีเฝ้าระวัง - ของเดิมเป็นสีส้ม
+# ซึ่งทำให้ตาอ่านว่า "มีเรื่อง" ตลอดเวลา แม้ตอนที่สายดีและตัวเลขเป็นศูนย์
+ui.Label("ลองมาแล้ว (ครั้ง)", x=528, y=72, color=COL_DIM, value=20)
+seg_try = ui.Seg7("0", x=528, y=104, w=120, h=56, color=COL_TEXT)
 
-ui.Label("นับถอยหลังถึงเวลานัด", x=38, y=138, color=COL_DIM, value=14)
-bar_wait = ui.Bar(x=230, y=140, w=420, h=18, min=0, max=100, value=0)
+ui.Label("นับถอยหลังถึงเวลานัด", x=40, y=172, color=COL_DIM, value=20)
+bar_wait = ui.Bar(x=288, y=168, w=456, h=32, min=0, max=100, value=0)
 
 # ตารางนัดหมายวาดเป็นขั้นบันได ให้เห็นด้วยตาว่าคูณสองแล้วชนเพดานตรงไหน
 # แต่ละครั้งวาดซ้ำหลายจุดเพื่อให้ขั้นกว้างพออ่านออกบนจอ 4.3 นิ้ว
-ch = ui.Chart(x=20, y=184, w=650, h=138, color=COL_CARD,
+# เส้นเดียวบนกราฟใช้สีเน้นเสมอ ไม่ใช่สีส้ม - ตารางนัดหมายไม่ใช่การเตือน
+ch = ui.Chart(x=24, y=240, w=744, h=88, color=COL_CARD,
               min=0, max=BACKOFF_MAX_MS // 1000 + 10)
-s_sched = ch.add_series(COL_WARN)
+s_sched = ch.add_series(COL_ACCENT)
 
-# สองป้ายในบรรทัดเดียว ให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยตัวละ 3 ไบต์
-l_foot = ui.Label("กราฟคือสิ่งที่จะเกิดตอนสายหลุด", x=20, y=334,
-                  color=COL_DIM, value=16)
-ui.Label("ไม่ใช่สิ่งที่กำลังเกิด", x=310, y=334, color=COL_DIM, value=16)
+# สองป้ายในบรรทัดเดียว ให้อยู่ในเพดาน 95 ไบต์ของตัวสร้าง - ไทยตัวละ 3 ไบต์
+l_foot = ui.Label("กราฟคือสิ่งที่จะเกิดตอนสายหลุด", x=24, y=336,
+                  color=COL_DIM, value=20)
+ui.Label("ไม่ใช่สิ่งที่กำลังเกิด", x=384, y=336, color=COL_DIM, value=20)
+ui.Label("กราฟ = ระยะห่างที่นัดไว้ (วินาที)", x=24, y=368, color=COL_DIM,
+         value=20)
 ui.poll()
 
 lcd.clear()

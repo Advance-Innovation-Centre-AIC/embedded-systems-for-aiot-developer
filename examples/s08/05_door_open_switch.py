@@ -46,22 +46,22 @@ def magnitude():
 
 
 ui.screen()
-ui.Label("สวิตช์ประตูแบบแม่เหล็ก", x=12, y=6, value=24)
-ch = ui.Chart(x=12, y=40, w=470, h=200, min=0, max=Y_MAX)
+ui.Label("สวิตช์ประตูแบบแม่เหล็ก", x=12, y=8, value=24)
+ch = ui.Chart(x=12, y=40, w=472, h=200, min=0, max=Y_MAX)
 s_dev = 0
 s_close = ch.add_series(0xFF5555)
 s_open = ch.add_series(0xFFC83D)
 
-ui.Label("ฟ้า = เบี่ยงจากเส้นฐาน", x=496, y=44, value=16, color=0x00BFFF)
-ui.Label("แดง = เกณฑ์ปิด 45", x=496, y=68, value=16, color=0xFF5555)
-ui.Label("เหลือง = เกณฑ์เปิด 25", x=496, y=92, value=16, color=0xFFC83D)
+ui.Label("ฟ้า = เบี่ยงจากเส้นฐาน", x=496, y=44, value=16, color=0x4A9EFF)
+ui.Label("แดง = เกณฑ์ปิด 45", x=496, y=68, value=16, color=0xE5484D)
+ui.Label("เหลือง = เกณฑ์เปิด 25", x=496, y=92, value=16, color=0xF5A623)
 ui.Label("เบี่ยงตอนนี้ (หน่วยบอร์ด)", x=496, y=124, value=16)
-seg = ui.Seg7(x=496, y=146, w=180, h=44)
+seg = ui.Seg7(x=496, y=148, w=180, h=44)
 bar = ui.Bar(x=496, y=200, w=180, h=16, min=0, max=Y_MAX)
-ui.Label("แถบ = เบี่ยง 0-60", x=496, y=222, value=14)
+ui.Label("แถบ = เบี่ยง 0-60", x=496, y=224, value=16)
 
-st = ui.Label("ประตูเปิด", x=24, y=262, value=28, color=0x55DD55)
-sub = ui.Label("กำลังเก็บเส้นฐาน...", x=24, y=300, value=18)
+st = ui.Label("ประตูเปิด", x=24, y=264, value=28, color=0x30A46C)
+sub = ui.Label("กำลังเก็บเส้นฐาน...", x=24, y=300, value=20)
 ui.poll()
 
 lcd.clear()

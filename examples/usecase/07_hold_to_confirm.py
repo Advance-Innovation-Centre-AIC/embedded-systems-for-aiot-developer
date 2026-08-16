@@ -38,27 +38,33 @@ lcd.console("<h2>กดค้าง 3 วินาทีเพื่อยืน
 lcd.print("ปล่อยมือก่อนครบ = ยกเลิก ไม่มีผล")
 
 ui.screen()
-ui.Label("กดค้างเพื่อยืนยัน", x=12, y=6, value=24)
-ch = ui.Chart(x=12, y=44, w=360, h=200, min=-5, max=105, color=0x00BFFF)
-s_goal = ch.add_series(0xFF5555)
-ui.Label("เส้นฟ้า = เปอร์เซ็นต์ที่ค้างอยู่", x=12, y=250, value=16,
-         color=0x00BFFF)
-ui.Label("เส้นแดง = เส้นครบ 100%", x=12, y=274, value=16, color=0xFF5555)
+# ผังจอสองคอลัมน์ ขอบนอก 24 - ซ้ายคือกราฟ คำอธิบายเส้น และการ์ดคำตัดสิน
+# ขวาคือหน้าปัด ตัวเลขเปอร์เซ็นต์ และเงื่อนไขสองบรรทัด
+#
+# ก่อนแก้ การ์ดคำตัดสินที่ x=392 y=252 ถูกสร้าง "หลัง" ป้ายเงื่อนไขและแถบ
+# ที่นั่งอยู่ในกรอบเดียวกัน จึงทาทับทั้งสองหายไปจากจอ ส่วนป้าย vd เองอยู่ที่
+# y=320 ซึ่งเลยก้นการ์ดของตัวเอง และไปนั่งทับมุมของปุ่ม Console พอดี
+ui.Label("กดค้างเพื่อยืนยัน", x=24, y=8, value=24)
+ch = ui.Chart(x=24, y=48, w=440, h=176, min=-5, max=105, color=0x4A9EFF)
+s_goal = ch.add_series(0xE5484D)
+ui.Label("เส้นฟ้า = เปอร์เซ็นต์ที่ค้างอยู่", x=24, y=236, value=20,
+         color=0x4A9EFF)
+ui.Label("เส้นแดง = เส้นครบ 100%", x=24, y=264, value=20, color=0xE5484D)
 
-ui.Label("ต้องกดค้างครบ 3.0 วินาที", x=390, y=44, value=16)
-ui.Label("ปล่อยก่อนครบ = ยกเลิก", x=390, y=68, value=16)
-ui.Label("หน้าปัดความคืบหน้า", x=598, y=12, value=16)
-arc = ui.Arc(x=598, y=40, w=170, h=170, min=0, max=100, value=0)
-seg = ui.Seg7(x=390, y=104, w=120, h=40)
+# การ์ดคำตัดสิน สร้างก่อนสองบรรทัดที่อยู่ในนั้นเสมอ LVGL วาดตามลำดับการสร้าง
+ui.Panel(x=24, y=300, w=440, h=76, color=0x171B22, min=0x171B22, value=2)
+vd = ui.Label("รอการกด", x=40, y=308, value=24, color=0x9AA3AF)
+sub = ui.Label("กดค้างที่ปุ่ม SW1 บนบอร์ด", x=40, y=344, value=20)
+
+ui.Label("หน้าปัดความคืบหน้า", x=496, y=8, value=20)
+arc = ui.Arc(x=548, y=40, w=160, h=160, min=0, max=100, value=0)
+seg = ui.Seg7(x=496, y=216, w=120, h=48)
 seg.text("0")      # Seg7 รับ "ข้อความ" ถ้าไม่ตั้งค่า มันจะค้างที่ 0000
-ui.Label("%", x=518, y=112, value=20)
+ui.Label("%", x=624, y=228, value=20)
 
-ui.Label("ความคืบหน้า", x=390, y=196, value=16)
-bar = ui.Bar(x=390, y=222, w=380, h=18, min=0, max=100, value=0)
-
-ui.Panel(x=390, y=252, w=390, h=72, color=0x1A1A2E, min=0x3F4247, value=2)
-vd = ui.Label("รอการกด", x=406, y=262, value=28, color=0x8899AA)
-sub = ui.Label("กดค้างที่ปุ่ม SW1 บนบอร์ด", x=406, y=298, value=16)
+# สองบรรทัดนี้จบที่ y=331 จึงพ้นมุมของปุ่ม Console (x>=690 และ y>=340)
+ui.Label("ต้องกดค้างครบ 3.0 วินาที", x=496, y=276, value=20)
+ui.Label("ปล่อยก่อนครบ = ยกเลิก", x=496, y=304, value=20)
 ui.poll()
 
 # เส้นเป้าหมายเติมให้เต็มก่อน เส้นฟ้าจะได้มีอะไรให้เทียบตั้งแต่จุดแรก
@@ -83,18 +89,17 @@ for _ in range(8000):
             down_at = now
             fired = False
             vd.text("กำลังค้าง...")
-            vd.color(0xFFC107)
+            vd.color(0xF5A623)
         else:
             if not fired:
                 lcd.print("ยกเลิก - ปล่อยที่", shown, "%")
                 vd.text("ยกเลิก")
-                vd.color(0x8899AA)
+                vd.color(0x9AA3AF)
                 sub.text("ปล่อยที่ " + str(shown) + "% - ไม่มีผลใด ๆ")
             prog.off()
             shown = -1
             pct = 0
             arc.value(0)
-            bar.value(0)
             seg.text("0")
         prev = v
 
@@ -102,7 +107,6 @@ for _ in range(8000):
         held = time.ticks_diff(now, down_at)
         pct = min(100, held * 100 // HOLD_MS)
         arc.value(int(pct))
-        bar.value(int(pct))
         seg.text(str(pct))
         if pct // 10 != shown // 10:
             lcd.print("ค้างอยู่", pct, "%")
@@ -111,7 +115,7 @@ for _ in range(8000):
             fired = True
             prog.off()
             vd.text("ยืนยันแล้ว")
-            vd.color(0x33DD77)
+            vd.color(0x30A46C)
             sub.text("คำสั่งถูกดำเนินการเรียบร้อย")
             for _ in range(6):
                 done.toggle()

@@ -28,13 +28,15 @@ import time
 import ui
 
 COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
-COL_CARD = 0x142240
+COL_CARD = 0x171B22
 
 ui.screen()
 time.sleep_ms(200)
 
 # ---------- Tabview: value = ความสูงของแถบแท็บเป็นพิกเซล ----------
-tabs = ui.Tabview(x=0, y=0, w=792, h=398, value=44)
+# สูง 336 ไม่ใช่ 398 - มุมขวาล่างเป็นปุ่มคอนโซลที่จองไว้ (690,340)
+# Tabview เต็มจอจะทับมันเสมอ แล้วผู้เรียนกดเปิดคอนโซลไม่ได้ทั้งคาบ
+tabs = ui.Tabview(x=0, y=0, w=792, h=336, value=44)
 
 # .add_tab() คืนแฮนเดิลของ "หน้า" ในแท็บนั้น ไม่ใช่แฮนเดิลของตัวแท็บ
 tab_win = tabs.add_tab("หน้าต่าง")
@@ -53,16 +55,16 @@ ui.Label("รอข้อมูลชุดแรก", x=16, y=80, color=COL_DIM
 
 # ---------- แท็บ 2: DotMatrix + Spinner + Image ----------
 # DotMatrix วาดจุดเป็นตาราง cols/rows คือจำนวนจุด ไม่ใช่พิกเซล
-dots = ui.DotMatrix(x=24, y=24, w=176, h=176, color=0x7454F5,
+dots = ui.DotMatrix(x=24, y=24, w=176, h=176, color=0x4A9EFF,
                     cols=8, rows=8, parent=tab_dots)
 # Spinner หมุนเอง ไม่ต้องสั่ง ไม่มีค่าให้อ่าน
-ui.Spinner(x=250, y=54, w=80, h=80, parent=tab_dots)
-ui.Label("กำลังอ่านเซนเซอร์", x=232, y=146, color=COL_DIM, value=18,
+ui.Spinner(x=252, y=56, w=80, h=80, parent=tab_dots)
+ui.Label("กำลังอ่านเซนเซอร์", x=232, y=148, color=COL_DIM, value=20,
          parent=tab_dots)
 # Image รับไอคอนที่คอมไพล์มากับเฟิร์มแวร์ ผ่าน .icon()
 pic = ui.Image(x=420, y=44, w=96, h=96, parent=tab_dots)
 pic.icon(0)
-ui.Label("ui.Image + .icon(0)", x=396, y=150, color=COL_DIM, value=18,
+ui.Label("ui.Image + .icon(0)", x=396, y=152, color=COL_DIM, value=20,
          parent=tab_dots)
 
 # ---------- แท็บ 3: Tileview ----------
@@ -70,9 +72,9 @@ ui.Label("ui.Image + .icon(0)", x=396, y=150, color=COL_DIM, value=18,
 tiles = ui.Tileview(x=16, y=12, w=740, h=280, parent=tab_tile)
 t0 = tiles.add_tile(0, 0)
 t1 = tiles.add_tile(0, 1)
-ui.Label("ปัดขึ้นเพื่อดูหน้าถัดไป", x=24, y=110, color=COL_TEXT, value=24,
+ui.Label("ปัดขึ้นเพื่อดูหน้าถัดไป", x=24, y=112, color=COL_TEXT, value=24,
          parent=t0)
-ui.Label("นี่คือไทล์ที่สอง", x=24, y=110, color=COL_TEXT, value=24, parent=t1)
+ui.Label("นี่คือไทล์ที่สอง", x=24, y=112, color=COL_TEXT, value=24, parent=t1)
 
 # ---------- ลูปเหตุการณ์ ----------
 # กฎข้อ 1 ของโมดูล ui: เรียก ui.poll() ทุกรอบ แม้จะไม่ได้ใช้ค่าที่ได้

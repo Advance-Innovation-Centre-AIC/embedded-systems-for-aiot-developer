@@ -28,9 +28,9 @@ import time
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 DOWN_SECONDS = 6
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 lcd.clear()
 lcd.console("<h2>คาบ 9 - สั่งให้เน็ตหลุด แล้วดูว่าอะไรเปลี่ยน</h2>")
@@ -38,16 +38,16 @@ lcd.console("<h2>คาบ 9 - สั่งให้เน็ตหลุด แ
 ui.screen()
 time.sleep_ms(200)
 ui.Label("สั่งตัดเน็ตเอง แล้วต่อกลับ", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=150, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=52, w=652, h=152, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
-l_conn = ui.Label("is_connected() = -", x=40, y=66, color=COL_TEXT, value=20)
+l_conn = ui.Label("is_connected() = -", x=40, y=68, color=COL_TEXT, value=20)
 l_ip = ui.Label("ip() = -", x=40, y=100, color=COL_TEXT, value=20)
-l_mode = ui.Label("status()['mode'] = -", x=40, y=134, color=COL_TEXT, value=20)
+l_mode = ui.Label("status()['mode'] = -", x=40, y=136, color=COL_TEXT, value=20)
 # บรรทัดนี้คือหัวใจของไฟล์ ปล่อยให้มันโกหกให้เห็นกับตา
 l_trap = ui.Label("if wifi.ip(): -> -", x=40, y=168, color=COL_WARN, value=20)
 
-ui.Panel(x=20, y=216, w=650, h=110, color=COL_CARD, min=COL_DIM, max=12, value=1)
-l_phase = ui.Label("กำลังเริ่ม", x=40, y=230, color=COL_DIM, value=20)
+ui.Panel(x=20, y=216, w=652, h=112, color=COL_CARD, min=COL_DIM, max=12, value=1)
+l_phase = ui.Label("กำลังเริ่ม", x=40, y=232, color=COL_DIM, value=20)
 l_note = ui.Label("-", x=40, y=264, color=COL_DIM, value=16)
 l_note2 = ui.Label("-", x=40, y=292, color=COL_DIM, value=16)
 ui.Label("สี่บรรทัดบนอ่านจากจังหวะเดียวกันเสมอ", x=20, y=340,

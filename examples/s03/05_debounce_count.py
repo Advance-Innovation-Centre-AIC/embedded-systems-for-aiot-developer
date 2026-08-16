@@ -15,8 +15,8 @@ DEBOUNCE_MS = 40     # ต้องนิ่งนานเท่านี้ก
 POLL_MS = 5          # ถามปุ่มถี่แค่ไหน
 RUN_MS = 20000
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_OK, COL_WARN, COL_INFO = 0x00E676, 0xFFA726, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_OK, COL_WARN, COL_INFO = 0x30A46C, 0xF5A623, 0x4A9EFF
 
 lcd.clear()
 lcd.console("<h2>นับดิบ เทียบ นับกันเด้ง</h2>")
@@ -38,12 +38,12 @@ l_diff = ui.Label("ส้ม = ดิบ | เขียว = กันเด้�
                   value=20)
 
 # ค่าคงที่เขียนไว้บนจอ ไม่ใช่ในคอมเมนต์ เพราะคนที่กำลังกดปุ่มอยู่ไม่ได้เปิดโค้ดดูไปด้วย
-cfg = ui.Label("DEBOUNCE_MS กับ POLL_MS", x=20, y=186, color=COL_DIM,
+cfg = ui.Label("DEBOUNCE_MS กับ POLL_MS", x=20, y=188, color=COL_DIM,
                value=16)
 cfg.text("DEBOUNCE_MS = " + str(DEBOUNCE_MS) + " ms | POLL_MS = " +
          str(POLL_MS) + " ms")
 
-st = ui.Label("กดช้า ๆ สิบครั้ง", x=20, y=226, color=COL_INFO, value=18)
+st = ui.Label("กดช้า ๆ สิบครั้ง", x=20, y=228, color=COL_INFO, value=20)
 st.text("กดช้า ๆ สิบครั้ง แล้วกดรัว ๆ อีกสิบครั้ง")
 
 raw_count = 0        # นับทุกครั้งที่เห็นขอบขาลง โดยไม่กรองอะไรเลย

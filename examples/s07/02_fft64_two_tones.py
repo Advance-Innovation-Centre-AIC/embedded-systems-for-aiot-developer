@@ -3,7 +3,7 @@
 #
 # ไฟล์นี้สอน: FFT คือการมองสัญญาณเดียวกันในมุม "มีความถี่อะไรผสมอยู่บ้าง"
 #             บอร์ดนี้ไม่มี FFT มาให้ ไม่มี ulab จึงเขียนเอง ได้จริงในสามสิบบรรทัด
-# ดูที่จอ   : กราฟบนคือสัญญาณในโดเมนเวลา ตารางไฟข้างล่างคือสเปกตรัมของมัน
+# ดูที่จอ   : กราฟซ้ายคือสัญญาณในโดเมนเวลา ตารางไฟตรงกลางคือสเปกตรัมของมัน
 #             ขั้นแรกใส่โทนเดียวได้แท่งเดียว ขั้นที่สามใส่สองโทนได้สองแท่ง
 #             และแท่งที่สองเตี้ยกว่าครึ่งหนึ่งพอดี เพราะเราใส่ขนาดครึ่งเดียวจริง ๆ
 # กับดัก    : bin ไม่ใช่ Hz ต้องคูณด้วย fs/N เอง และครึ่งบนของสเปกตรัมเป็นเงา
@@ -19,6 +19,13 @@ FS = 64.0                       # Hz สมมติว่าเก็บได�
 COLS = 16                       # ตารางไฟกว้างสุด 16 ดอก จึงวาดได้ 16 bin แรก
 ROWS = 8                        # ความสูงของแท่ง หยาบเป็น 8 ขั้น
 PLAY_MS = 1600
+
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+# จอนี้ไม่มีสถานะปกติ/ผิดปกติให้รายงาน จึงไม่มีเขียว ส้ม แดง อยู่เลยสักจุด
+COL_TEXT = 0xE8EAED
+COL_DIM = 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
 
 # หนึ่งขั้นคือ (ชื่อ, ((รอบต่อหน้าต่าง, ขนาด), ...), ใส่ noise หรือไม่)
 SIGNALS = (("โทนเดียว 3 รอบ", ((3, 1.0),), False),
@@ -93,31 +100,47 @@ def spectrum_bytes(heights):
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("FFT 64 จุด เขียนเอง", x=12, y=8, value=20)
-lbl_pos = ui.Label("1 / 5", x=470, y=8, value=20, color=0x50D890)
-lbl_sig = ui.Label("กำลังเริ่ม", x=12, y=34, value=16, color=0xFFD24A)
-ch_t = ui.Chart(x=12, y=54, w=670, h=58, min=-200, max=200)
-# w กับ h คือกล่องพิกเซล ส่วน cols กับ rows คือจำนวนดอก กว้าง 240 กับ 16 คอลัมน์
-# ได้ดอกละ 15 px ซึ่งเกือบจัตุรัสพอดีกับ 126/8 และสำคัญกว่านั้นคือมันจบที่ x=252
-# เหลือคอลัมน์ขวาให้ Seg7 กับป้าย ไม่ถูกตารางไฟวาดทับ
-dots = ui.DotMatrix(x=12, y=118, w=240, h=126, cols=COLS, rows=ROWS)
+# ผังจอเดินบนกริด 8 ขอบนอก 24 - หัวเรื่องหนึ่งบรรทัด แถวคำอธิบายสัญญาณ
+# แถวภาพสองมุมมอง (เวลา กับ ความถี่) แถวปุ่มสี่ปุ่ม และแถบสรุปล่างสุด
+ui.Label("FFT 64 จุด เขียนเอง", x=24, y=8, color=COL_TEXT, value=28)
+lbl_pos = ui.Label("1 / 5", x=696, y=8, color=COL_DIM, value=24)
+lbl_sig = ui.Label("กำลังเริ่ม", x=24, y=56, color=COL_TEXT, value=24)
+# ป้ายโหมดเล่นรวดอยู่แถวเดียวกับชื่อสัญญาณ เพราะแถบล่างสุดถูกจองให้ผลของ FFT
+lbl_hint = ui.Label("กดเดินหน้าเพื่อเปลี่ยนสัญญาณ", x=424, y=56, color=COL_DIM,
+                    value=20)
 
-ui.Label("bin ยอดสูงสุด", x=270, y=120, value=14)
-seg_bin = ui.Seg7(x=270, y=138, w=140, h=40)
-ui.Label("คิดเป็นความถี่ (Hz)", x=430, y=120, value=14)
-seg_hz = ui.Seg7(x=430, y=138, w=140, h=40)
-lbl_res = ui.Label("ความละเอียดต่อ bin = fs/N", x=270, y=186, value=16)
-lbl_note = ui.Label("กดเดินหน้าเพื่อเปลี่ยนสัญญาณ", x=270, y=212, value=16)
+ui.Label("สัญญาณตามเวลา", x=24, y=96, color=COL_DIM, value=20)
+ui.Label("สเปกตรัม 16 bin", x=312, y=96, color=COL_DIM, value=20)
+ui.Label("bin สูงสุด", x=520, y=96, color=COL_DIM, value=20)
+ui.Label("คิดเป็น Hz", x=648, y=96, color=COL_DIM, value=20)
 
-btn_prev = ui.Button("< ย้อน", x=20, y=250, w=140, h=64, color=0x546E7A, value=20)
-btn_next = ui.Button("เดินหน้า >", x=176, y=250, w=160, h=64, color=0x1E88E5, value=20)
-btn_play = ui.Button(">> เล่นรวด", x=352, y=250, w=160, h=64, color=0x2E7D32, value=20)
-btn_home = ui.Button("เริ่มใหม่", x=528, y=250, w=140, h=64, color=0x6A1B9A, value=20)
+# เส้นเดียวบนกราฟนี้คือสัญญาณที่เราใส่เข้าไป จึงเป็นสีเน้นของจอ
+ch_t = ui.Chart(x=24, y=128, w=272, h=104, color=COL_CARD, min=-200, max=200)
+s_time = ch_t.add_series(COL_ACCENT)
+# w กับ h คือกล่องพิกเซล ส่วน cols กับ rows คือจำนวนดอก 192/16 ได้ดอกละ 12 px
+# และ 104/8 ได้ 13 เฟิร์มแวร์เลือกค่าน้อยกว่าเป็นระยะพิทช์ ดอกจึงเป็นจัตุรัส
+dots = ui.DotMatrix(x=312, y=128, w=192, h=104, cols=COLS, rows=ROWS)
+
+# Seg7 ใช้ฟอนต์ตายตัว 28 ของมันเอง ขนาดตัวเลขคุมด้วย h ไม่ใช่ value
+seg_bin = ui.Seg7(x=520, y=128, w=112, h=48, color=COL_ACCENT)
+seg_hz = ui.Seg7(x=648, y=128, w=112, h=48, color=COL_ACCENT)
+lbl_res = ui.Label("1 bin = fs/N Hz", x=520, y=184, color=COL_DIM, value=20)
+
+# แถวปุ่ม h=88 ตามเกณฑ์เป้าสัมผัส เว้นระหว่างปุ่ม 32 และจบที่ y=336
+# ปุ่มขวาสุดล้ำเข้าคอลัมน์ x>690 ได้ เพราะมันจบก่อน y=340 ที่ปุ่ม Console เริ่ม
+btn_prev = ui.Button("< ย้อน", x=24, y=248, w=168, h=88, color=COL_CARD,
+                     value=24)
+btn_next = ui.Button("เดินหน้า >", x=224, y=248, w=168, h=88, color=COL_ACCENT,
+                     value=24)
+btn_play = ui.Button(">> เล่นรวด", x=424, y=248, w=168, h=88, color=COL_ACCENT,
+                     value=24)
+btn_home = ui.Button("เริ่มใหม่", x=624, y=248, w=144, h=88, color=COL_CARD,
+                     value=24)
 ID_PREV, ID_NEXT = btn_prev.id(), btn_next.id()
 ID_PLAY, ID_HOME = btn_play.id(), btn_home.id()
 
-lbl_hint = ui.Label("กดเดินหน้าเพื่อเปลี่ยนสัญญาณ", x=20, y=322, value=16,
-                    color=0x90A4AE)
+lbl_note = ui.Label("กดเดินหน้าเพื่อเปลี่ยนสัญญาณ", x=24, y=352, color=COL_DIM,
+                    value=20)
 
 stages = 0                      # นับชั้นด้วยการเลื่อนบิต ไม่พึ่ง log ของ float
 while (1 << stages) < N:
@@ -140,7 +163,7 @@ def show():
     # ป้อนครบ 50 จุด หน้าต่างของ Chart กว้าง 50 พอดี ภาพเดิมจึงถูกแทนที่หมด
     # FFT ข้างล่างยังใช้ครบทั้ง 64 ตัวอย่าง ไม่ได้ตัดข้อมูลทิ้ง
     for n in range(50):
-        ch_t.set_next(0, int(sig[n] * 100.0))
+        ch_t.set_next(s_time, int(sig[n] * 100.0))
 
     re = list(sig)
     im = [0.0] * N
@@ -166,7 +189,8 @@ def show():
     lbl_sig.text("ใส่เข้าไป: " + name)
     seg_bin.text(str(peak_bin))
     seg_hz.text(str(int(peak_bin * FS / N)))
-    lbl_res.text("ความละเอียดต่อ bin = fs/N = %.3f Hz" % (FS / N))
+    # ป้ายสั้นลงเพราะคอลัมน์ขวากว้าง 248 ประโยคเต็มยังอยู่ครบใน print() ข้างล่าง
+    lbl_res.text("1 bin = %.3f Hz" % (FS / N))
     if peak_bin >= COLS:
         lbl_note.text("ยอดอยู่ที่ bin %d ซึ่งเกิน %d คอลัมน์ที่ตารางวาดได้"
                       % (peak_bin, COLS))

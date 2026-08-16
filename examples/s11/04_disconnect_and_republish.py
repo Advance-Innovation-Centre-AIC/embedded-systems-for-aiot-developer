@@ -23,23 +23,23 @@ MQTT_PASS = "<รหัสผ่าน MQTT ของทีม>"
 BROKER = "mqtt.tesaiot.dev"
 WAIT_MS = 30000
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 ui.screen()
 time.sleep_ms(200)
 ui.Label("ปิดงานให้เรียบร้อย แล้วเปิดใหม่", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=190, color=COL_CARD, min=COL_DIM, max=12, value=1)
-s1 = ui.Label("1) WiFi + ตั้งตัวตน    รอ...", x=40, y=66, color=COL_DIM, value=20)
+ui.Panel(x=20, y=52, w=652, h=192, color=COL_CARD, min=COL_DIM, max=12, value=1)
+s1 = ui.Label("1) WiFi + ตั้งตัวตน    รอ...", x=40, y=68, color=COL_DIM, value=20)
 s2 = ui.Label("2) connect + รอจริง    รอ...", x=40, y=100, color=COL_DIM, value=20)
-s3 = ui.Label("3) publish รอบแรก      รอ...", x=40, y=134, color=COL_DIM, value=20)
+s3 = ui.Label("3) publish รอบแรก      รอ...", x=40, y=136, color=COL_DIM, value=20)
 s4 = ui.Label("4) disconnect()        รอ...", x=40, y=168, color=COL_DIM, value=20)
-s5 = ui.Label("5) ต่อกลับ + ส่งอีกใบ  รอ...", x=40, y=202, color=COL_DIM, value=20)
+s5 = ui.Label("5) ต่อกลับ + ส่งอีกใบ  รอ...", x=40, y=204, color=COL_DIM, value=20)
 
-ui.Panel(x=20, y=256, w=650, h=70, color=COL_CARD, min=COL_DIM, max=12, value=1)
-note = ui.Label("กำลังเริ่ม", x=40, y=272, color=COL_DIM, value=18)
-note2 = ui.Label("-", x=40, y=298, color=COL_DIM, value=16)
+ui.Panel(x=20, y=256, w=652, h=72, color=COL_CARD, min=COL_DIM, max=12, value=1)
+note = ui.Label("กำลังเริ่ม", x=40, y=272, color=COL_DIM, value=20)
+note2 = ui.Label("-", x=40, y=300, color=COL_DIM, value=16)
 ui.Label("tesaiot.publish รับ payload ก่อน topic", x=20, y=340, color=COL_DIM,
          value=16)
 ui.poll()

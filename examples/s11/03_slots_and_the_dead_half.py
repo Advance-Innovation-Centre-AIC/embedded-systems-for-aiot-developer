@@ -15,9 +15,9 @@ import lcd
 import ui
 import time
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x30A46C, 0xF5A623, 0xE5484D, 0x4A9EFF
 
 ui.screen()
 time.sleep_ms(200)
@@ -25,19 +25,19 @@ ui.Label("เก้าตัวที่ตอบ กับ สิบหกต�
          value=24)
 
 # --- ครึ่งบน: slots() ซึ่งตอบทันทีเพราะไม่ได้ถามชิป ---
-ui.Panel(x=20, y=52, w=650, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("slots() คืนกี่ช่อง", x=40, y=62, color=COL_DIM, value=16)
-seg = ui.Seg7(text="0", x=40, y=84, w=150, h=60, color=COL_INFO)
+ui.Panel(x=20, y=52, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("slots() คืนกี่ช่อง", x=40, y=64, color=COL_DIM, value=16)
+seg = ui.Seg7(text="0", x=248, y=84, w=152, h=60, color=COL_INFO)
 l_fast = ui.Label("-", x=40, y=148, color=COL_OK, value=16)
-l_s1 = ui.Label("-", x=214, y=84, color=COL_TEXT, value=16)
-l_s2 = ui.Label("-", x=214, y=110, color=COL_TEXT, value=16)
-l_s3 = ui.Label("-", x=214, y=136, color=COL_TEXT, value=16)
+l_s1 = ui.Label("-", x=408, y=84, color=COL_TEXT, value=16)
+l_s2 = ui.Label("-", x=216, y=112, color=COL_TEXT, value=16)
+l_s3 = ui.Label("-", x=216, y=136, color=COL_TEXT, value=16)
 
 # --- ครึ่งล่าง: สองตัวจากกลุ่มที่ตายแล้ว พร้อมเวลาที่เสียไป ---
-ui.Panel(x=20, y=186, w=650, h=140, color=COL_CARD, min=COL_DIM, max=12, value=1)
-l_d1 = ui.Label("license_verify()  รอ...", x=40, y=200, color=COL_DIM, value=18)
-l_d2 = ui.Label("device_id()       รอ...", x=40, y=232, color=COL_DIM, value=18)
-l_d3 = ui.Label("รวมเวลาที่เสียไป  -", x=40, y=264, color=COL_DIM, value=18)
+ui.Panel(x=20, y=188, w=652, h=140, color=COL_CARD, min=COL_DIM, max=12, value=1)
+l_d1 = ui.Label("license_verify()  รอ...", x=40, y=200, color=COL_DIM, value=20)
+l_d2 = ui.Label("device_id()       รอ...", x=40, y=232, color=COL_DIM, value=20)
+l_d3 = ui.Label("รวมเวลาที่เสียไป  -", x=40, y=264, color=COL_DIM, value=20)
 l_verdict = ui.Label("-", x=40, y=296, color=COL_DIM, value=16)
 ui.Label("ชิปมีจริง แต่ต้องเข้าทางโมดูล optiga", x=20, y=340,
          color=COL_DIM, value=16)

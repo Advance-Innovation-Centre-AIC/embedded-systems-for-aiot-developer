@@ -19,9 +19,12 @@ TICK_MS = 200        # คาบของลูป ตามท่าที่ 2
 WARN_AT = 60         # เกินเท่านี้ถือว่าเริ่มสูง
 ALARM_AT = 85        # เกินเท่านี้ถือว่าต้องรีบดู
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+# สีสถานะสามตัวล่างใช้กับสถานะเท่านั้น ห้ามหยิบมาแต่งจอ
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 # ระดับสามชั้น เก็บชื่อ สี และคลาสของ span ไว้ด้วยกัน
 # คลาสของ span คือระดับความสำคัญ ไม่ใช่สีที่ชอบ ตามที่ไฟล์ 02 อธิบายไว้
@@ -57,25 +60,29 @@ def reading_at(ms):
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("จอสถานะ - จอบอกตอนนี้ ลิ้นชักบอกที่ผ่านมา", x=20, y=12,
-         color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=124, color=COL_CARD, min=COL_DIM, max=12, value=1)
+# ผังจอเดินบนกริด 8 ขอบนอก 24 - หัวเรื่องหนึ่งบรรทัด การ์ดค่าปัจจุบันหนึ่งใบ
+# กราฟหนึ่งช่อง และแถบสรุปล่างสุด ทั้งหมดจบก่อน x=690 y=340 ซึ่งเป็นที่ของปุ่ม Console
+ui.Label("จอสถานะ - จอกับลิ้นชักคนละงาน", x=24, y=8, color=COL_TEXT, value=24)
+ui.Panel(x=24, y=56, w=744, h=144, color=COL_CARD, min=COL_CARD, max=12,
+         value=1)
 
-ui.Label("ค่าล่าสุด", x=40, y=62, color=COL_DIM, value=16)
-seg = ui.Seg7(text="0", x=40, y=86, w=170, h=64, color=COL_OK)
+ui.Label("ค่าล่าสุด", x=40, y=72, color=COL_DIM, value=16)
+seg = ui.Seg7(text="0", x=40, y=104, w=192, h=80, color=COL_OK)
 
-ui.Label("ระดับตอนนี้", x=250, y=62, color=COL_DIM, value=16)
-level_lbl = ui.Label("ปกติ", x=250, y=88, color=COL_OK, value=28)
-bar = ui.Bar(x=250, y=132, w=390, h=24, min=0, max=100, value=0)
+ui.Label("ระดับตอนนี้", x=264, y=72, color=COL_DIM, value=16)
+level_lbl = ui.Label("ปกติ", x=264, y=104, color=COL_OK, value=28)
+bar = ui.Bar(x=264, y=152, w=488, h=32, min=0, max=100, value=0)
 
-ui.Label("ประวัติอยู่ในลิ้นชัก Console", x=20, y=192, color=COL_DIM, value=20)
-chart = ui.Chart(x=20, y=224, w=650, h=110, color=COL_CARD, min=0, max=100)
-s_value = chart.add_series(COL_OK)
+ui.Label("ประวัติอยู่ในลิ้นชัก Console", x=24, y=208, color=COL_DIM, value=20)
+chart = ui.Chart(x=24, y=240, w=744, h=96, color=COL_CARD, min=0, max=100)
+# เส้นกราฟใช้สีเน้น ไม่ใช่สีเขียว - เขียวสงวนไว้บอกว่า "ปกติ" เท่านั้น
+# ถ้าเอาเขียวมาลากเส้น ตาจะอ่านว่าทุกอย่างปกติแม้ตอนที่ค่าขึ้นถึงระดับต้องรีบดู
+s_value = chart.add_series(COL_ACCENT)
 
-clock_lbl = ui.Label("เวลาเดินไป 0 ms", x=20, y=342, color=COL_DIM, value=16)
-change_lbl = ui.Label("ยังไม่เปลี่ยนระดับ", x=200, y=342, color=COL_DIM,
+clock_lbl = ui.Label("เวลาเดินไป 0 ms", x=24, y=352, color=COL_DIM, value=16)
+change_lbl = ui.Label("ยังไม่เปลี่ยนระดับ", x=256, y=352, color=COL_DIM,
                       value=16)
-rounds_lbl = ui.Label("รอบที่ 0", x=440, y=342, color=COL_DIM, value=16)
+rounds_lbl = ui.Label("รอบที่ 0", x=576, y=352, color=COL_DIM, value=16)
 ui.poll()
 
 lcd.clear()
@@ -117,8 +124,9 @@ while True:
         last_level = lv
         lcd.print("<span class=" + cls + ">" + str(elapsed) + " ms  " +
                   name + "  ค่า " + str(value) + "</span>")
+        # ตัวนับไม่ใช่สถานะ จึงไม่ทาสีตามระดับ - ถ้าทา ตาจะอ่านว่า
+        # "ตัวเลขนี้ปกติ" ทั้งที่มันแค่บอกว่าเปลี่ยนมาแล้วกี่ครั้ง
         change_lbl.text("เปลี่ยนระดับไปแล้ว " + str(changes) + " ครั้ง")
-        change_lbl.color(color)
 
     ui.poll()
 

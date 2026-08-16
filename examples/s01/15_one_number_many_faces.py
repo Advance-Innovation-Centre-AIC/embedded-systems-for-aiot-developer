@@ -2,15 +2,20 @@
 #
 # ไฟล์นี้ไม่มีเซนเซอร์ ไม่มีเน็ต มีแต่ตัวเลขหนึ่งตัวที่เดินขึ้นลงเอง
 # ของใหม่ทั้งหมดคือชนิดของ widget ที่ยังไม่เคยเจอในไฟล์ก่อนหน้า
-# Slider Switch Checkbox Spinner Dropdown Image Compass และเสียงจาก ui.tone
+# Slider Switch Checkbox Spinner Image Compass และเสียงจาก ui.tone
+#
+# ที่จอนี้ไม่มี: Dropdown เพราะมันไม่ได้เล่าค่า มันเป็นรายการให้เลือกเฉย ๆ
+#   จอนี้เต็มแล้วด้วยของที่ขยับตามตัวเลข ตัวที่ไม่ขยับจึงถูกยกไปไว้ที่
+#   examples/s04/08_dropdown_textarea.py ซึ่งเป็นคาบของมันจริง ๆ
 #
 # ไฟล์นี้สอน: ค่าเดียวกันเล่าได้หลายแบบ และแต่ละแบบตอบคำถามคนละข้อ
 #             วงแหวนตอบว่า "เต็มแค่ไหน" ตัวเลขตอบว่า "เท่าไรพอดี"
 #             กราฟตอบว่า "ที่ผ่านมาเป็นยังไง" ไฟติดดับตอบว่า "ถึงเกณฑ์หรือยัง"
-# ดูที่จอ   : ทุกชิ้นขยับพร้อมกันจากตัวเลขตัวเดียว แตะปุ่มล่างซ้ายเพื่อฟังเสียง
+# ดูที่จอ   : ทุกชิ้นขยับพร้อมกันจากตัวเลขตัวเดียว แตะปุ่มแถวล่างเพื่อฟังเสียง
 #             และบรรทัด ui.list() บอกว่าตอนนี้จอมี widget อยู่กี่ตัว จากเพดาน 32
 # กับดัก    : Seg7 รับเฉพาะข้อความ seg.value(50) เงียบสนิทและไม่มี error ให้จับ
-#             ส่วน Slider Arc Bar Switch Checkbox รับเฉพาะ .value() ไม่รับ .text()
+#             ส่วน Slider Arc Bar Switch รับเฉพาะ .value() ไม่รับ .text()
+#             Checkbox รับทั้งสองอย่าง และต้องใช้ .text() ถ้าข้อความเป็นภาษาไทย
 #             ชนิดไหนรับอะไร ไม่มีทางรู้จากการรันแล้วดูว่ามี error ไหม เพราะไม่มี
 
 import lcd
@@ -22,9 +27,9 @@ TICK_MS = 120        # คาบของลูป
 STEP = 4             # ตัวเลขขยับทีละเท่าไร
 HI, LO = 70, 30      # เกณฑ์บนกับล่าง ใช้จุดไฟติดดับกับเล่นเสียง
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_INFO = 0x00E676, 0xFFA726, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_INFO = 0x30A46C, 0xF5A623, 0x4A9EFF
 
 # ชื่อไอคอนที่เฟิร์มแวร์มีให้ใช้ ใส่ชื่อที่ไม่มีตอนสร้างจะได้ RuntimeError ทันที
 # แต่ถ้าใส่ชื่อผิดทีหลังผ่าน .icon() จะเงียบสนิท ไม่มีอะไรเกิดขึ้นและไม่มี error
@@ -33,56 +38,60 @@ ICON_UP, ICON_DOWN = "arrow_up", "arrow_down"
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("ตัวเลขตัวเดียว หลายวิธีเล่า", x=20, y=12, color=COL_TEXT, value=24)
-status = ui.Label("กำลังจะเริ่มเดิน", x=20, y=48, color=COL_DIM, value=18)
+ui.Label("ตัวเลขตัวเดียว หลายวิธีเล่า", x=24, y=24, color=COL_TEXT, value=24)
+status = ui.Label("กำลังจะเริ่มเดิน", x=456, y=32, color=COL_DIM, value=20)
 
 # Panel เป็นพื้นหลังของการ์ด ของอื่นวางทับมันได้โดยตั้งใจ
 # ลำดับสำคัญ ต้องสร้าง Panel ก่อนของที่จะวางบนมัน ไม่งั้นมันจะไปบังของที่มีอยู่
-ui.Panel(x=14, y=72, w=764, h=136, color=COL_CARD, min=COL_DIM, max=12,
+# การ์ดใบนี้กว้าง 744 เว้นขอบใน 16 ทุกด้าน ของข้างในจึงอยู่ในช่วง 40 ถึง 752
+ui.Panel(x=24, y=72, w=744, h=160, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
 
 # Arc กับ Compass ถ้าไม่ใส่ w จะได้ 150x150 มาเลย ซึ่งใหญ่เกินกว่าจะวางสองชิ้น
 # และ Compass ใช้ w เป็นเส้นผ่านศูนย์กลาง ส่วน h มันไม่สนใจ วงกลมเสมอ
-arc = ui.Arc(x=20, y=78, w=120, h=120, min=0, max=100, value=0)
+arc = ui.Arc(x=40, y=88, w=88, h=88, min=0, max=100, value=0)
 arc.color(COL_OK)
-comp = ui.Compass(x=160, y=78, w=120, h=120)
+comp = ui.Compass(x=144, y=88, w=88, h=88)
 comp.color(COL_INFO)
 
-seg = ui.Seg7(text="0", x=300, y=100, w=150, h=64, color=COL_OK)
-bar = ui.Bar(x=300, y=178, w=150, h=22, min=0, max=100, value=0)
+seg = ui.Seg7(text="0", x=248, y=88, w=152, h=64, color=COL_OK)
+bar = ui.Bar(x=248, y=160, w=152, h=16, min=0, max=100, value=0)
 bar.color(COL_OK)
 
-sld = ui.Slider(x=470, y=90, w=200, h=20, min=0, max=100, value=0)
-sw = ui.Switch(x=470, y=130, w=60, h=30)
-chk = ui.Checkbox("เกินเกณฑ์บน", x=560, y=130, w=140, h=30, color=COL_TEXT)
+# รางเลื่อนหนา 24 แล้วจัดกลางแถบ ไม่ใช่ 88 - นิ้วจับที่หัวเลื่อน ไม่ได้จับที่
+# ความหนาของราง รางที่หนา 88 กินพื้นที่เท่าการ์ดใบหนึ่งโดยไม่ได้กดง่ายขึ้นเลย
+sld = ui.Slider(x=416, y=120, w=192, h=24, min=0, max=100, value=0)
 
 # Spinner ไม่มีค่าให้ตั้ง มันหมุนของมันเองตลอด งานเดียวของมันคือบอกว่า "ยังทำอยู่"
-spin = ui.Spinner(x=720, y=90, w=60, h=60)
+spin = ui.Spinner(x=624, y=100, w=64, h=64)
 
 # Image รับชื่อไอคอนเป็นข้อความตอนสร้าง แล้วเปลี่ยนทีหลังด้วย .icon()
-img = ui.Image(ICON_UP, x=720, y=170, w=48, h=48, color=COL_OK)
+img = ui.Image(ICON_UP, x=704, y=104, w=48, h=48, color=COL_OK)
 
-ui.Label("Arc", x=20, y=206, color=COL_DIM, value=16)
-ui.Label("Compass", x=160, y=206, color=COL_DIM, value=16)
-ui.Label("Seg7 กับ Bar", x=300, y=206, color=COL_DIM, value=16)
-ui.Label("Slider Switch Checkbox", x=470, y=170, color=COL_DIM, value=16)
-ui.Label("Spinner กับ Image", x=640, y=224, color=COL_DIM, value=16)
+ui.Label("Arc", x=40, y=184, color=COL_DIM, value=16)
+ui.Label("Compass", x=144, y=184, color=COL_DIM, value=16)
+ui.Label("Seg7 กับ Bar", x=248, y=184, color=COL_DIM, value=16)
+ui.Label("Slider", x=416, y=184, color=COL_DIM, value=16)
+ui.Label("Spinner", x=608, y=184, color=COL_DIM, value=16)
+ui.Label("Image", x=696, y=184, color=COL_DIM, value=16)
 
-chart = ui.Chart(x=20, y=236, w=430, h=110, color=COL_INFO, min=0, max=100)
+# แถวล่างอยู่นอกการ์ด เป็นของที่ต้องแตะได้ จึงสูง 88 และห่างกันอย่างน้อย 32
+chart = ui.Chart(x=24, y=248, w=264, h=88, color=COL_INFO, min=0, max=100)
+btn = ui.Button("แตะฟังเสียง", x=320, y=248, w=152, h=88, color=COL_CARD,
+                value=20)
+sw = ui.Switch(x=504, y=248, w=88, h=88)
 
-# Dropdown รับรายการตัวเลือกเป็นข้อความก้อนเดียว คั่นแต่ละตัวด้วย \n
-# ส่วน value= ของมันคือขนาดตัวอักษร ไม่ใช่ตัวเลือกที่เลือกไว้ ตั้งไม่ได้จากตรงนี้
-ui.Label("Dropdown มี 16 ชนิด", x=470, y=224, color=COL_DIM, value=16)
-dd = ui.Dropdown("Label\nButton\nSlider\nSwitch\nCheckbox\nArc\nBar\nSpinner",
-                 x=470, y=252, w=200, h=44, value=16)
+# กับดักที่เห็นได้จากภาพอย่างเดียว: ข้อความไทยที่ใส่ตอนสร้าง Checkbox จะออกมา
+# เป็นกล่องเปล่าเรียงกัน เพราะทางสร้างของมันไม่ได้เลือกฟอนต์ไทยให้ ต่างจาก
+# Button ที่เลือกให้ ทางแก้คือสร้างด้วย ASCII ไว้ก่อน แล้วส่งข้อความไทยตาม
+# ด้วย .text() ซึ่งเป็นคนละเส้นทางและเลือกฟอนต์ไทยให้ถูกต้อง
+chk = ui.Checkbox("over HI", x=624, y=248, w=144, h=88, color=COL_TEXT)
+chk.text("เกินเกณฑ์บน")
 
-count_lbl = ui.Label("ยังไม่ได้นับ widget", x=470, y=310, color=COL_DIM,
-                     value=18)
-ui.Label("Chart", x=20, y=352, color=COL_DIM, value=16)
-btn = ui.Button("แตะฟังเสียง", x=200, y=352, w=150, h=36, color=COL_CARD,
-                value=18)
-note = ui.Label("อีกสองชนิดอยู่ไฟล์ 14", x=380, y=356, color=COL_DIM,
-                value=16)
+ui.Label("Chart", x=24, y=344, color=COL_DIM, value=16)
+count_lbl = ui.Label("ยังไม่ได้นับ widget", x=112, y=344, color=COL_DIM,
+                     value=16)
+ui.Label("Switch Checkbox", x=504, y=344, color=COL_DIM, value=16)
 ui.poll()
 
 lcd.clear()
@@ -170,9 +179,11 @@ while True:
             ui.sfx(ui.SFX_UI_SELECT)
             lcd.print("<span class=ok>แตะปุ่มครั้งที่", taps, "</span>")
 
+    # ข้อความบรรทัดนี้อยู่มุมขวาบน มีที่ให้ราว 30 ตัวอักษร ยาวกว่านั้นจะล้นขอบจอ
+    # ไปโดยไม่มีใครเตือน ป้ายที่ล้นไม่ได้ error มันแค่หายไปครึ่งหนึ่ง
     status.color(COL_WARN if high else COL_DIM)
-    status.text("ค่า " + str(value) + " | ข้ามเกณฑ์ " + str(beeps) +
-                " ครั้ง | แตะปุ่ม " + str(taps))
+    status.text("ค่า " + str(value) + " | ข้าม " + str(beeps) +
+                " | แตะ " + str(taps))
 
     work = time.ticks_diff(time.ticks_ms(), t_work)
     left = TICK_MS - work
@@ -181,9 +192,13 @@ while True:
 
 # จบแล้วปล่อยค่าสุดท้ายค้างไว้ ไม่ล้างจอ คนดูจะได้อ่านทัน
 status.color(COL_DIM)
-status.text("จบแล้ว - ข้ามเกณฑ์ " + str(beeps) + " ครั้ง แตะปุ่ม " + str(taps))
-note.text("Spinner ยังหมุนอยู่ เพราะมันไม่เคยรู้ว่างานจบ")
+status.text("จบแล้ว | ข้าม " + str(beeps) + " | แตะ " + str(taps))
 ui.poll()
+
+# ประโยคยาว ๆ ไม่ควรอยู่บนแผงจอที่มีที่ว่างจำกัด มันไปอยู่ในคอนโซลซึ่งมีฟอนต์
+# ครบและกว้างไม่จำกัด ส่วนแผงจอเก็บไว้ให้ค่าที่ต้องอ่านเร็ว
+lcd.print("Spinner ยังหมุนอยู่ เพราะมันไม่เคยรู้ว่างานจบ")
+lcd.print("อีกสองชนิดอยู่ไฟล์ 14 ส่วน Dropdown อยู่ examples/s04/08")
 
 lcd.console("<span class=muted>------------------------</span>")
 lcd.print("<span class=ok>ข้ามเกณฑ์", beeps, "ครั้ง | แตะปุ่ม", taps,

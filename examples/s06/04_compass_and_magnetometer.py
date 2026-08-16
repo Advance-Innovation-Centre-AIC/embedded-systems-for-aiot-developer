@@ -4,9 +4,10 @@
 # ไฟล์นี้สอน: sensors.bmm350 มีห้าคำสั่ง magnetic() heading() chip_id()
 #             cal_reset() cal_status() - ทั้งห้าใช้ได้บน Eva Kit
 #             และ dsp.compass() คือฟังก์ชันคนละตัวกับ bmm350.heading()
-# ดูที่จอ   : ซ้ายคือสามแกนสนามแม่เหล็กและขนาดรวม กลางคือ heading() ของไดรเวอร์
-#             เทียบกับ dsp.compass() ซึ่ง "ไม่เท่ากัน" และนั่นถูกต้องแล้ว
-#             ขวาคือสถานะการสอบเทียบ กับกล่องเหลืองที่บอกข้อบกพร่องที่ยังค้างอยู่
+# ดูที่จอ   : แถวบนเป็นสามคอลัมน์ ซ้ายคือสามแกนสนามแม่เหล็กและขนาดรวม
+#             กลางคือ heading() ของไดรเวอร์เทียบกับ dsp.compass() ซึ่ง
+#             "ไม่เท่ากัน" และนั่นถูกต้องแล้ว ขวาคือสถานะการสอบเทียบ
+#             แถวล่างซ้ายคือการ์ดที่บอกข้อบกพร่องที่ยังค้างอยู่ ล่างขวาคือปุ่ม
 # กับดัก    : (1) dsp.compass(mx, my, mz) รับสามค่า แต่ทิ้ง mz ทั้งดุ้น
 #                 ในซอร์สเขียนไว้ว่า reserved for tilt compensation - แปลว่ามันยัง
 #                 ไม่ได้ชดเชยการเอียง เอียงบอร์ดเมื่อไร ทิศที่ได้เพี้ยนทันที
@@ -31,9 +32,15 @@ import sensors
 import time
 import ui
 
-COL_DRV = 0x00BFFF     # ฟ้า = heading() ของไดรเวอร์
-COL_DSP = 0xB388FF     # ม่วง = dsp.compass()
-COL_GRAY = 0xA0B4CC
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+# สองทิศไม่ได้แยกกันด้วยสี แต่แยกด้วยชื่อฟังก์ชันที่เขียนอยู่ในบรรทัดเดียวกัน
+# แปลงเป็นขาวดำแล้วยังอ่านออกทั้งคู่ ตาม §S7.7.1
+COL_TEXT = 0xE8EAED
+COL_DIM = 0x9AA3AF
+COL_ACCENT = 0x4A9EFF
+COL_WARN = 0xF5A623
+COL_BAD = 0xE5484D
+COL_OK = 0x30A46C
 
 # สนามแม่เหล็กโลกในตำราอยู่ในช่วงนี้ ใช้เป็นไม้บรรทัดเทียบบนจอ
 EARTH_MIN = 25.0
@@ -51,41 +58,44 @@ except OSError:
     lcd.print("อ่าน chip_id ไม่ได้ - ตรวจว่าบอร์ดมี BMM350 จริงไหม")
 
 ui.screen()
-ui.Label("BMM350: ทิศถูก ขนาดยังไม่มีข้อสรุป", x=12, y=8, value=20)
+# ผังจอเป็นสามแถบ ขอบนอก 24 ทุกด้าน - หัวเรื่องหนึ่งบรรทัด แล้วสามคอลัมน์ค่าอ่าน
+# แล้วแถบล่างที่มีการ์ดข้อบกพร่องอยู่ซ้าย และแถวปุ่มอยู่ขวา
+# แถวปุ่มจบที่ y=320 จึงพ้นมุมของปุ่ม Console (x>=690 และ y>=340) ทั้งสองปุ่ม
+ui.Label("BMM350: ทิศถูก ขนาดยังไม่มีข้อสรุป", x=24, y=8, value=24,
+         color=COL_TEXT)
 
-ui.Label("สนามแม่เหล็ก", x=12, y=42, value=18, color=COL_GRAY)
-lbl_mx = ui.Label("mx  ----", x=12, y=68, value=20)
-lbl_my = ui.Label("my  ----", x=12, y=94, value=20)
-lbl_mz = ui.Label("mz  ----", x=12, y=120, value=20)
-lbl_mag = ui.Label("|m| ----", x=12, y=146, value=20, color=0xFFC107)
+ui.Label("สนามแม่เหล็ก", x=24, y=44, value=20, color=COL_DIM)
+lbl_mx = ui.Label("mx  ----", x=24, y=72, value=20, color=COL_TEXT)
+lbl_my = ui.Label("my  ----", x=24, y=100, value=20, color=COL_TEXT)
+lbl_mz = ui.Label("mz  ----", x=24, y=128, value=20, color=COL_TEXT)
+lbl_mag = ui.Label("|m| ----", x=24, y=156, value=20, color=COL_WARN)
 
-ui.Label("ทิศ (องศา)", x=250, y=42, value=18, color=COL_GRAY)
-lbl_drv = ui.Label("heading()  ----", x=250, y=68, value=20, color=COL_DRV)
-lbl_dsp = ui.Label("compass()  ----", x=250, y=94, value=20, color=COL_DSP)
-lbl_gap = ui.Label("ต่างกัน ----", x=250, y=120, value=18, color=COL_GRAY)
-ui.Label("ต่างกันเพราะคนละสูตร", x=250, y=146, value=16, color=COL_GRAY)
+ui.Label("ทิศ (องศา)", x=264, y=44, value=20, color=COL_DIM)
+lbl_drv = ui.Label("heading()  ----", x=264, y=72, value=20, color=COL_TEXT)
+lbl_dsp = ui.Label("compass()  ----", x=264, y=100, value=20, color=COL_TEXT)
+lbl_gap = ui.Label("ต่างกัน ----", x=264, y=128, value=20, color=COL_TEXT)
+ui.Label("คนละสูตร จึงคนละคำตอบ", x=264, y=156, value=20, color=COL_DIM)
 
-ui.Label("การสอบเทียบ", x=500, y=42, value=18, color=COL_GRAY)
-lbl_valid = ui.Label("valid  ----", x=500, y=68, value=20)
-lbl_offx = ui.Label("off_x  ----", x=500, y=94, value=18, color=COL_GRAY)
-lbl_offy = ui.Label("off_y  ----", x=500, y=120, value=18, color=COL_GRAY)
+ui.Label("การสอบเทียบ", x=504, y=44, value=20, color=COL_DIM)
+lbl_valid = ui.Label("valid  ----", x=504, y=72, value=20, color=COL_TEXT)
+lbl_offx = ui.Label("off_x  ----", x=504, y=100, value=20, color=COL_DIM)
+lbl_offy = ui.Label("off_y  ----", x=504, y=128, value=20, color=COL_DIM)
 
-# กล่องเหลือง: บอกข้อบกพร่องที่ยังค้าง ไม่ใช่ซ่อนมันไว้ใต้พรม
-ui.Panel(x=12, y=180, w=670, h=76)
-ui.Label("สนามแม่เหล็กโลกจริงอยู่ที่ 25-65 uT", x=24, y=186, value=18,
-         color=0xFFC107)
-lbl_claim = ui.Label("บอร์ดรายงาน ---- นอกช่วงนั้นมาก", x=24, y=208,
-                     value=18, color=0xFFC107)
-ui.Label("ทิศถูก แต่ขนาดกับหน่วยยังไม่มีข้อสรุป", x=24, y=230, value=18,
-         color=0xFF5252)
+# การ์ดข้อบกพร่อง: บอกสิ่งที่ยังค้าง ไม่ใช่ซ่อนมันไว้ใต้พรม
+# สามบรรทัดในการ์ดชิดขอบซ้ายเดียวกันที่ x=40 คือขอบการ์ด 24 บวกระยะใน 16
+ui.Panel(x=24, y=192, w=456, h=128)
+ui.Label("สนามแม่เหล็กโลกจริงอยู่ที่ 25-65 uT", x=40, y=212, value=20,
+         color=COL_WARN)
+lbl_claim = ui.Label("บอร์ดรายงาน ---- นอกช่วงนั้นมาก", x=40, y=248,
+                     value=20, color=COL_WARN)
+ui.Label("ทิศถูก แต่ขนาดกับหน่วยยังไม่มีข้อสรุป", x=40, y=284, value=20,
+         color=COL_BAD)
 
-ch = ui.Chart(x=12, y=280, w=470, h=104, min=0, max=360, color=COL_DRV)
-s_drv = 0
-s_dsp = ch.add_series(COL_DSP)
-
-btn_cal = ui.Button("cal_reset แล้วหมุน 360", x=496, y=282, w=186, h=48,
-                    color=0x6A1B9A, value=18)
-btn_exit = ui.Button("ออก", x=496, y=336, w=186, h=48, color=0x546E7A,
+# ปุ่มสองใบเรียงข้างกัน กว้าง 116 สูง 88 เว้นกัน 32 ตาม §S7.13.11-12
+ui.Label("cal_reset แล้วหมุน 360", x=504, y=192, value=20, color=COL_DIM)
+btn_cal = ui.Button("ล้างค่า", x=504, y=232, w=116, h=88,
+                    color=COL_ACCENT, value=20)
+btn_exit = ui.Button("ออก", x=652, y=232, w=116, h=88, color=COL_DIM,
                      value=20)
 id_cal = btn_cal.id()
 id_exit = btn_exit.id()
@@ -130,7 +140,7 @@ while running:
             note = "สูงกว่าช่วงของโลก"
         else:
             note = "อยู่ในช่วงของโลกพอดี"
-        lbl_claim.text("บอร์ดรายงาน {:.0f} - {}".format(mag, note))
+        lbl_claim.text("รายงาน {:.0f} - {}".format(mag, note))
 
         # cal_status() คืน dict สามช่อง valid / offset_x / offset_y
         # ค่า valid เปลี่ยนเป็น True ได้เองโดยเราไม่ได้สั่ง เพราะงานเบื้องหลัง
@@ -138,12 +148,9 @@ while running:
         # และช่วงกว้างเกิน 15 หน่วยทั้งสองแกน จึงจะถือว่าใช้ได้
         cal = sensors.bmm350.cal_status()
         lbl_valid.text("valid  " + str(cal["valid"]))
-        lbl_valid.color(0x50D890 if cal["valid"] else 0xFF9800)
+        lbl_valid.color(COL_OK if cal["valid"] else COL_WARN)
         lbl_offx.text("off_x  {:+8.2f}".format(cal["offset_x"]))
         lbl_offy.text("off_y  {:+8.2f}".format(cal["offset_y"]))
-
-        ch.set_next(s_drv, int(h_drv))
-        ch.set_next(s_dsp, int(h_dsp))
 
     for ev in ui.poll():
         h = ev['handle']

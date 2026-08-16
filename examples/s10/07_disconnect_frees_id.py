@@ -22,23 +22,23 @@ BROKER = "192.168.1.50"          # IP ของเครื่องที่ร
 DEVICE_ID = "eva-team03"         # ใช้ตัวเดียวกันทั้งสองรอบ นั่นคือประเด็นของไฟล์นี้
 TOPIC = "bento/eva-team03/telemetry"
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_BAD, COL_WARN = 0x00E676, 0xFF5252, 0xFFA726
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_BAD, COL_WARN = 0x30A46C, 0xE5484D, 0xF5A623
 
 ui.screen()
 time.sleep_ms(200)
 ui.Label("บอกลาให้ถูกวิธี แล้วกลับมาใหม่", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=190, color=COL_CARD, min=COL_DIM, max=12, value=1)
-st1 = ui.Label("1) ต่อรอบแรก           รอ...", x=36, y=66, color=COL_DIM, value=20)
+ui.Panel(x=20, y=52, w=652, h=192, color=COL_CARD, min=COL_DIM, max=12, value=1)
+st1 = ui.Label("1) ต่อรอบแรก           รอ...", x=36, y=68, color=COL_DIM, value=20)
 st2 = ui.Label("2) ส่งหนึ่งใบ          รอ...", x=36, y=100, color=COL_DIM, value=20)
-st3 = ui.Label("3) disconnect()        รอ...", x=36, y=134, color=COL_DIM, value=20)
+st3 = ui.Label("3) disconnect()        รอ...", x=36, y=136, color=COL_DIM, value=20)
 st4 = ui.Label("4) ต่อกลับชื่อเดิม     รอ...", x=36, y=168, color=COL_DIM, value=20)
-st5 = ui.Label("5) publish หลังตัด     รอ...", x=36, y=202, color=COL_DIM, value=20)
+st5 = ui.Label("5) publish หลังตัด     รอ...", x=36, y=204, color=COL_DIM, value=20)
 
-ui.Panel(x=20, y=256, w=650, h=70, color=COL_CARD, min=COL_DIM, max=12, value=1)
-note = ui.Label("กำลังเริ่ม", x=36, y=272, color=COL_DIM, value=18)
-note2 = ui.Label("-", x=36, y=298, color=COL_DIM, value=16)
+ui.Panel(x=20, y=256, w=652, h=72, color=COL_CARD, min=COL_DIM, max=12, value=1)
+note = ui.Label("กำลังเริ่ม", x=36, y=272, color=COL_DIM, value=20)
+note2 = ui.Label("-", x=36, y=300, color=COL_DIM, value=16)
 ui.Label("client_id เดิมถูกใช้ซ้ำทั้งสองรอบโดยตั้งใจ", x=20, y=340,
          color=COL_DIM, value=16)
 ui.poll()

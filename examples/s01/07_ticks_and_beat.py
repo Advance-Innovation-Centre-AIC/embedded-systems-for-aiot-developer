@@ -18,30 +18,30 @@ ROUNDS = 40          # เดินทั้งหมดกี่รอบ
 SWITCH_AT = 20       # เปลี่ยนจากท่าที่ 1 เป็นท่าที่ 2 ตอนรอบที่เท่าไร
 CHART_MAX = 400      # เพดานแกนตั้งของกราฟ เป็น ms
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN = 0x00E676, 0xFFA726
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN = 0x30A46C, 0xF5A623
 
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("จังหวะของลูป กับนาฬิกาที่ไม่รอใคร", x=20, y=12, color=COL_TEXT,
          value=24)
-ui.Panel(x=20, y=52, w=650, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=52, w=652, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
-ui.Label("รอบที่", x=40, y=62, color=COL_DIM, value=16)
-seg_round = ui.Seg7(text="0", x=40, y=86, w=110, h=54, color=COL_OK)
+ui.Label("รอบที่", x=40, y=64, color=COL_DIM, value=16)
+seg_round = ui.Seg7(text="0", x=40, y=88, w=112, h=56, color=COL_OK)
 
-ui.Label("คาบจริงรอบนี้ (ms)", x=190, y=62, color=COL_DIM, value=16)
-seg_period = ui.Seg7(text="0", x=190, y=86, w=150, h=54, color=COL_OK)
+ui.Label("คาบจริงรอบนี้ (ms)", x=192, y=64, color=COL_DIM, value=16)
+seg_period = ui.Seg7(text="0", x=192, y=88, w=152, h=56, color=COL_OK)
 
-ui.Label("ช้าสะสม (ms)", x=400, y=62, color=COL_DIM, value=16)
-seg_drift = ui.Seg7(text="0", x=400, y=86, w=150, h=54, color=COL_WARN)
+ui.Label("ช้าสะสม (ms)", x=400, y=64, color=COL_DIM, value=16)
+seg_drift = ui.Seg7(text="0", x=400, y=88, w=152, h=56, color=COL_WARN)
 
 # กราฟมีไว้เป็นเครื่องมือวัดของบทเรียนนี้ ไม่ได้มีไว้อวดว่าวาดกราฟได้
 # ตัวเลขคาบเดียว ๆ บอกไม่ได้ว่ามันคงที่หรือไม่ ต้องเห็นทั้งแถวถึงจะตอบได้
 # Chart รับเฉพาะจำนวนเต็ม และช่วงแกนตั้งกำหนดตอนสร้าง เปลี่ยนทีหลังไม่ได้
-chart = ui.Chart(x=20, y=162, w=650, h=140, color=COL_CARD, min=0, max=CHART_MAX)
+chart = ui.Chart(x=20, y=164, w=652, h=140, color=COL_CARD, min=0, max=CHART_MAX)
 
 # Chart เกิดมาพร้อมเส้นที่ 0 อยู่แล้ว add_series() จึงคืนเลข 1 เป็นเส้นแรกที่เราเพิ่ม
 # เก็บเลขที่มันคืนมาไว้ในตัวแปร อย่าเดาเอง
@@ -49,11 +49,11 @@ s_real = chart.add_series(COL_OK)
 s_target = chart.add_series(COL_WARN)
 
 ui.Label("เส้นเขียว = คาบจริงที่วัดได้", x=20, y=308, color=COL_DIM, value=16)
-ui.Label("เส้นส้ม = คาบที่ขอไว้", x=290, y=308, color=COL_DIM, value=16)
+ui.Label("เส้นส้ม = คาบที่ขอไว้", x=336, y=308, color=COL_DIM, value=16)
 
 phase_lbl = ui.Label("ท่าที่ 1 - สั่ง sleep เท่าเดิมทุกรอบ", x=20, y=336,
                      color=COL_WARN, value=20)
-note_lbl = ui.Label("ยังไม่เริ่มจับเวลา", x=20, y=366, color=COL_DIM, value=16)
+note_lbl = ui.Label("ยังไม่เริ่มจับเวลา", x=20, y=368, color=COL_DIM, value=16)
 ui.poll()
 
 lcd.clear()

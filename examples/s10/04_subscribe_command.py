@@ -23,28 +23,28 @@ TOPIC_CMD = "bento/eva-team03/command"
 NOTE_A4 = 69                # ui.tone รับ "โน้ต MIDI" 0-127 ไม่ใช่ความถี่เป็นเฮิรตซ์
 LOOP_MS = 100
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_BAD, COL_INFO = 0x00E676, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_BAD, COL_INFO = 0x30A46C, 0xE5484D, 0x4A9EFF
 
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("รอคำสั่งจากข้างนอก", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=130, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("topic ที่เฝ้าอยู่", x=36, y=62, color=COL_DIM, value=16)
-l_topic = ui.Label(TOPIC_CMD, x=36, y=86, color=COL_INFO, value=20)
-ui.Label("คำสั่งล่าสุดที่ได้รับ", x=36, y=122, color=COL_DIM, value=16)
-l_last = ui.Label("- ยังไม่มี -", x=36, y=146, color=COL_TEXT, value=20)
+ui.Panel(x=20, y=52, w=652, h=132, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("topic ที่เฝ้าอยู่", x=36, y=64, color=COL_DIM, value=16)
+l_topic = ui.Label(TOPIC_CMD, x=36, y=88, color=COL_INFO, value=20)
+ui.Label("คำสั่งล่าสุดที่ได้รับ", x=36, y=124, color=COL_DIM, value=16)
+l_last = ui.Label("- ยังไม่มี -", x=36, y=148, color=COL_TEXT, value=20)
 
-ui.Panel(x=20, y=194, w=650, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=196, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
 ui.Label("ทำตามคำสั่งไปแล้วกี่ครั้ง", x=36, y=204, color=COL_DIM, value=16)
 seg = ui.Seg7(text="0", x=36, y=228, w=180, h=76, color=COL_OK)
-ui.Label('ส่ง {"cmd":"beep"} หรือ {"cmd":"count"}', x=240, y=234,
-         color=COL_DIM, value=18)
-ui.Label("มาที่ topic ข้างบน จาก MQTT Explorer", x=240, y=262,
-         color=COL_DIM, value=18)
-alive = ui.Label("กำลังต่อเน็ต...", x=20, y=336, color=COL_DIM, value=18)
+ui.Label('ส่ง {"cmd":"beep"} หรือ {"cmd":"count"}', x=240, y=236,
+         color=COL_DIM, value=20)
+ui.Label("มาที่ topic ข้างบน จาก MQTT Explorer", x=240, y=264,
+         color=COL_DIM, value=20)
+alive = ui.Label("กำลังต่อเน็ต...", x=20, y=336, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

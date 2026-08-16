@@ -17,9 +17,11 @@ CONFIRM_N = 3           # ต้องเห็นระดับใหม่ต
 LOOP_MS = 250           # 3 รอบ x 250 ms = ช้าไป 0.75 วินาที ซึ่งรับได้
 CHART_MAX = 320         # กราฟรับจำนวนเต็ม จึงคูณสิบก่อนใส่ (0.0-32.0 -> 0-320)
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
+COL_OK, COL_BAD = 0x30A46C, 0xE5484D
 
 STATE_COLOR = {"OK": COL_OK, "ALERT": COL_BAD}
 
@@ -36,33 +38,41 @@ def level_of(value):
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("คาบ 12 - ยืนยันกี่รอบถึงจะเชื่อ", x=20, y=10, color=COL_TEXT, value=24)
+# ผังจอ: การ์ดใบเดียวสามช่อง - สองช่องซ้ายคือสองกฎที่เทียบกัน ช่องขวาคือค่าดิบ
+# แล้วกราฟหนึ่งช่อง และสองบรรทัดล่างสุดที่จบก่อน x=690 (ที่ของปุ่ม Console)
+ui.Label("คาบ 12 - ยืนยันกี่รอบถึงจะเชื่อ", x=24, y=8, color=COL_TEXT, value=24)
+ui.Panel(x=24, y=56, w=744, h=168, color=COL_CARD, min=COL_CARD, max=12,
+         value=1)
 
 # สองฝั่งวางเทียบกัน ระยะห่างเท่ากัน สีเดียวกัน ต่างกันแค่กฎที่ใช้ตัดสิน
-ui.Label("เชื่อทันที", x=38, y=54, color=COL_DIM, value=16)
-l_naive = ui.Label("OK", x=38, y=76, color=COL_OK, value=28)
-ui.Label("เปลี่ยนแล้ว", x=38, y=118, color=COL_DIM, value=14)
-seg_naive = ui.Seg7("0", x=130, y=112, w=70, h=44, color=COL_BAD)
+ui.Label("เชื่อทันที", x=40, y=72, color=COL_DIM, value=16)
+l_naive = ui.Label("OK", x=40, y=104, color=COL_OK, value=28)
+ui.Label("เปลี่ยนแล้ว", x=40, y=160, color=COL_DIM, value=16)
+# ตัวนับสองตัวนี้เคยเป็นแดงกับเขียว ทั้งที่มันคือ "จำนวนครั้ง" ไม่ใช่สถานะ
+# สีสถานะที่เอามาแต่งตัวเลขทำให้ตาอ่านว่าฝั่งหนึ่งผิดฝั่งหนึ่งถูกตลอดเวลา
+# ทั้งที่บทเรียนคือให้เทียบตัวเลขกันเอง จึงใช้สีข้อความปกติทั้งคู่ (S7.7.2)
+seg_naive = ui.Seg7("0", x=176, y=152, w=88, h=56, color=COL_TEXT)
 
-ui.Label("ยืนยัน 3 รอบ", x=240, y=54, color=COL_DIM, value=16)
-l_conf = ui.Label("OK", x=240, y=76, color=COL_OK, value=28)
-ui.Label("เปลี่ยนแล้ว", x=240, y=118, color=COL_DIM, value=14)
-seg_conf = ui.Seg7("0", x=336, y=112, w=70, h=44, color=COL_OK)
+ui.Label("ยืนยัน 3 รอบ", x=288, y=72, color=COL_DIM, value=16)
+l_conf = ui.Label("OK", x=288, y=104, color=COL_OK, value=28)
+ui.Label("เปลี่ยนแล้ว", x=288, y=160, color=COL_DIM, value=16)
+seg_conf = ui.Seg7("0", x=424, y=152, w=88, h=56, color=COL_TEXT)
 
-ui.Label("ค่าตอนนี้", x=460, y=54, color=COL_DIM, value=16)
-seg_val = ui.Seg7("0.0", x=460, y=76, w=180, h=40, color=COL_INFO)
-ui.Label("streak", x=460, y=118, color=COL_DIM, value=14)
-bar_streak = ui.Bar(x=530, y=122, w=120, h=18, min=0, max=CONFIRM_N, value=0)
+ui.Label("ค่าตอนนี้", x=536, y=72, color=COL_DIM, value=16)
+seg_val = ui.Seg7("0.0", x=536, y=104, w=192, h=48, color=COL_ACCENT)
+ui.Label("streak", x=536, y=160, color=COL_DIM, value=16)
+bar_streak = ui.Bar(x=616, y=156, w=128, h=32, min=0, max=CONFIRM_N, value=0)
 
-ch = ui.Chart(x=20, y=184, w=650, h=138, color=COL_CARD, min=0, max=CHART_MAX)
-s_val = ch.add_series(COL_INFO)
+ch = ui.Chart(x=24, y=240, w=744, h=88, color=COL_CARD, min=0, max=CHART_MAX)
+s_val = ch.add_series(COL_ACCENT)
 s_lim = ch.add_series(COL_BAD)
 
-# ข้อสังเกตยืนพื้นเป็นป้ายของตัวเอง เพราะ l_foot ถูกเขียนทับด้วยสรุปตอนจบ
-# แยกสองใบเพราะประโยคนี้ยาว 159 ไบต์ ซึ่งเกินเพดาน 126 ไบต์ของ ui.Label
-ui.Label("ดูจังหวะที่ป้ายสองใบไม่ตรงกัน", x=20, y=334, color=COL_DIM, value=16)
-ui.Label("นั่นคือสายที่ไม่ต้องโทร", x=290, y=334, color=COL_DIM, value=16)
-l_foot = ui.Label("กำลังเดินค่าจำลอง", x=20, y=358, color=COL_DIM, value=16)
+# ป้ายกำกับเส้น - เส้นเกณฑ์แบนอยู่ที่ค่าคงที่ ป้ายจึงชี้เส้นได้แม้ภาพเป็นขาวดำ
+ui.Label("เส้นฟ้า = ค่าที่วัดได้", x=24, y=336, color=COL_ACCENT, value=16)
+ui.Label("เส้นแดง = เกณฑ์ ALERT", x=288, y=336, color=COL_BAD, value=16)
+# ข้อสังเกตยืนพื้นอยู่ในตัว l_foot เอง แล้วถูกเขียนทับด้วยสรุปตอนจบ
+l_foot = ui.Label("ดูจังหวะที่ป้ายสองใบไม่ตรงกัน", x=24, y=368, color=COL_DIM,
+                  value=16)
 ui.poll()
 
 lcd.clear()
@@ -118,8 +128,10 @@ for i in range(len(SERIES)):
     ui.poll()
     time.sleep_ms(LOOP_MS)
 
-l_foot.text("ทันที {} ครั้ง - ยืนยัน {} ครั้ง - ส่วนต่างคือสายที่ไม่ต้องโทร".format(
-    naive_changes, changes))
+# เขียนทับด้วยข้อความที่กว้างพอ ๆ กับของเดิม ป้ายที่ยาวขึ้นตอนจบจะยื่นไปทับ
+# ของข้าง ๆ ทั้งที่ตอนสร้างวางไว้ห่างดีแล้ว - ส่วนต่างคือคำตอบของทั้งไฟล์
+l_foot.text("ทันที {} ครั้ง - ยืนยัน {} ครั้ง - ต่างกัน {} สาย".format(
+    naive_changes, changes, naive_changes - changes))
 l_foot.color(COL_TEXT)
 
 lcd.print("<span class=error>เชื่อทันที เปลี่ยน {} ครั้ง</span>".format(naive_changes))

@@ -43,9 +43,9 @@ ALERT_GAP_MS = 15000              # เตือนซ้ำได้เร็�
 RETRY_MS = 10000                  # เน็ตหลุดแล้วลองต่อใหม่ทุก 10 วินาที
 LOOP_MS = 200                     # จังหวะลูป เร็วกว่านี้เฟรมจะหายเงียบ ๆ
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD, COL_OK, COL_WARN, COL_BAD, COL_RUN = (0x142240, 0x00E676, 0xFFC83D,
-                                                0xFF5252, 0x4FC3F7)
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD, COL_OK, COL_WARN, COL_BAD, COL_RUN = (0x171B22, 0x30A46C, 0xF5A623,
+                                                0xE5484D, 0x4A9EFF)
 
 # สถานะที่ส่งขึ้น broker เป็นอังกฤษเพื่อให้ฝั่งรับเขียนเงื่อนไขง่าย ส่วนที่ขึ้นจอเป็นไทย
 # และบอก "แล้วต้องทำอะไร" ไม่ใช่บอกแค่ชื่อสถานะ คนหน้างานต้องการประโยคหลัง
@@ -111,69 +111,82 @@ def on_state_change(old, new, value):
 # และมุมขวาล่างเฟิร์มแวร์ถือไว้ให้ปุ่ม Console ห้ามวางของที่ต้องกดไว้ตรงนั้น
 ui.screen()
 time.sleep_ms(200)
-ui.Label("จอเฝ้าระวัง - " + DEVICE_ID, x=16, y=8, color=COL_TEXT, value=20)
+ui.Label("จอเฝ้าระวัง - " + DEVICE_ID, x=24, y=8, color=COL_TEXT, value=20)
 
-# การ์ดซ้ายบน: ค่าที่วัดได้ พร้อมพิสัยของมัน
-ui.Panel(x=8, y=44, w=470, h=184, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ค่าที่วัดได้ เทียบกับเกณฑ์", x=22, y=52, color=COL_DIM, value=16)
-lbl_value = ui.Label("--", x=22, y=76, color=COL_TEXT, value=30)
-lbl_quality = ui.Label("รอค่าแรก", x=250, y=86, color=COL_DIM, value=16)
+# การ์ดซ้ายบน: ค่าที่วัดได้ พร้อมพิสัยของมัน - ตัวเลขลอย ๆ ไม่บอกว่าสูงไหม
+# การ์ดต้องถูกสร้างก่อนของที่วางบนมันเสมอ LVGL วาดตามลำดับการสร้าง การ์ดที่มาทีหลัง
+# จะทาทับของที่สร้างไว้ก่อนจนหายไปทั้งใบ โดยไม่มี error สักบรรทัด
+#
+# ลำดับขนาดตัวอักษรบนหน้านี้มีสามชั้น ค่าหลักที่ต้องอ่านปราดเดียวใช้ 28
+# ประโยคที่คนหน้างานต้องอ่านใช้ 20 ส่วนป้ายหัวการ์ด หน่วย และเชิงอรรถใช้ 16
+# ถ้าทุกอย่างขนาดเดียวกันหมด จะไม่มีอะไรเด่น ซึ่งอ่านยากพอกับตัวอักษรที่เล็กเกินไป
+ui.Panel(x=24, y=48, w=464, h=184, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ค่าที่วัดได้ เทียบกับเกณฑ์", x=40, y=56, color=COL_DIM, value=16)
+lbl_value = ui.Label("--", x=40, y=88, color=COL_TEXT, value=28)
+lbl_quality = ui.Label("รอค่าแรก", x=248, y=96, color=COL_DIM, value=16)
 # แถบค่าวางไว้ "เหนือ" ไม้บรรทัด เพราะ ui.Scale ไม่มีเข็มและไม่รับ .value()
-# มันคือไม้บรรทัด ตัวที่ขยับคือ ui.Bar ที่เราวางทับลงไปเอง
-bar_value = ui.Bar(x=22, y=134, w=440, h=14, color=COL_RUN,
+# มันคือไม้บรรทัด ตัวที่ขยับคือ ui.Bar ที่เราวางไว้ชิดขอบบนของมัน
+bar_value = ui.Bar(x=40, y=136, w=432, h=16, color=COL_RUN,
                    min=0, max=SCALE_MAX, value=0)
-sc_value = ui.Scale(x=22, y=150, w=440, h=48, color=COL_TEXT, min=0, max=SCALE_MAX)
+sc_value = ui.Scale(x=40, y=156, w=432, h=48, color=COL_TEXT, min=0, max=SCALE_MAX)
 sc_value.ticks(10, 3)
 # ป้ายเกณฑ์ประกอบจากค่าคงที่ข้างบน ไม่ใช่พิมพ์เลขซ้ำ - ทีมที่แก้ CONFIG แล้วลืมแก้ป้าย
 # จะได้จอที่บอกเกณฑ์ผิด ซึ่งอันตรายกว่าจอที่ไม่บอกเกณฑ์เลย
 ui.Label("เฝ้าระวัง " + str(WARN_LIMIT) + " - ผิดปกติ " + str(LIMIT) + " " + UNIT,
-         x=22, y=200, color=COL_DIM, value=14)
+         x=40, y=208, color=COL_DIM, value=16)
 
 # การ์ดซ้ายล่าง: สถานะที่ตัดสินแล้ว เป็นไฟสามดวง ติดทีละดวงเสมอ
-ui.Panel(x=8, y=236, w=470, h=154, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("สถานะที่ตัดสินแล้ว", x=22, y=244, color=COL_DIM, value=16)
-led_ok = ui.Led(x=26, y=274, w=34, h=34, color=COL_OK, value=1)
-ui.Label("ปกติ", x=68, y=282, color=COL_DIM, value=16)
-led_warn = ui.Led(x=160, y=274, w=34, h=34, color=COL_WARN, value=0)
-ui.Label("เฝ้าระวัง", x=202, y=282, color=COL_DIM, value=16)
-led_bad = ui.Led(x=320, y=274, w=34, h=34, color=COL_BAD, value=0)
-ui.Label("ผิดปกติ", x=362, y=282, color=COL_DIM, value=16)
-lbl_state = ui.Label("เริ่มทำงาน", x=22, y=322, color=COL_TEXT, value=18)
-# ป้าย "ค้างรอรับทราบ" แยกเป็นบรรทัดของตัวเอง ไม่ต่อท้ายป้ายสถานะ เพราะข้อความไทย
+# แผงที่ติดพร้อมกันหลายดวงคือแผงที่อ่านไม่ออก
+ui.Panel(x=24, y=240, w=464, h=152, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("สถานะที่ตัดสินแล้ว", x=40, y=248, color=COL_DIM, value=16)
+# ป้าย "รอคนรับทราบ" แยกเป็นป้ายของตัวเอง ไม่ต่อท้ายป้ายสถานะ เพราะข้อความไทย
 # ที่ยาวขึ้นอีกสิบตัวอักษรจะวิ่งไปใต้ปุ่มข้าง ๆ แล้วอ่านไม่ออก ทั้งที่ตอนออกแบบยังพอดี
-lbl_latch = ui.Label("รอคนรับทราบ", x=22, y=352, color=COL_WARN, value=16)
+# และมันอยู่เหนือปุ่มที่ใช้ปลดล็อกพอดี คนที่เห็นป้ายจึงเห็นทางแก้ในสายตาเดียวกัน
+lbl_latch = ui.Label("รอคนรับทราบ", x=336, y=244, color=COL_WARN, value=20)
 lbl_latch.hide()
-btn_ack = ui.Button("รับทราบ", x=300, y=324, w=160, h=52, color=0x37474F, value=18)
+led_ok = ui.Led(x=40, y=276, w=48, h=48, color=COL_OK, value=1)
+led_warn = ui.Led(x=144, y=276, w=48, h=48, color=COL_WARN, value=0)
+led_bad = ui.Led(x=248, y=276, w=48, h=48, color=COL_BAD, value=0)
+# ป้ายอยู่ใต้ไฟของตัวเอง ไม่ใช่ข้าง ๆ - สามดวงเรียงกันแบบมีคำต่อท้ายทีละดวง
+# กินความกว้างเกินการ์ด แล้วดวงสุดท้ายจะหลุดออกไปนอกใบ
+ui.Label("ปกติ", x=40, y=328, color=COL_DIM, value=16)
+ui.Label("เฝ้าระวัง", x=144, y=328, color=COL_DIM, value=16)
+ui.Label("ผิดปกติ", x=248, y=328, color=COL_DIM, value=16)
+lbl_state = ui.Label("เริ่มทำงาน", x=40, y=356, color=COL_TEXT, value=20)
+btn_ack = ui.Button("รับทราบ", x=368, y=276, w=104, h=88, color=0x171B22, value=20)
 
 # การ์ดขวา: ของจริงที่เราสั่งได้ กับสถานะการส่งข้อมูล
-ui.Panel(x=486, y=44, w=298, h=346, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ไฟเตือนหน้างาน", x=498, y=52, color=COL_DIM, value=16)
+ui.Panel(x=504, y=48, w=264, h=344, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ไฟเตือนหน้างาน", x=520, y=56, color=COL_DIM, value=16)
 # ui.Led สั่ง .value(0) แล้ว "หรี่" ไม่ใช่ "หาย" - ไฟแผงควบคุมที่หายไปตอนดับ
 # แย่กว่าไฟที่หรี่ลง เพราะคนดูแยกไม่ออกว่าดับหรือจอเสีย
-led_beacon = ui.Led(x=498, y=80, w=32, h=32, color=COL_BAD, value=0)
+led_beacon = ui.Led(x=520, y=88, w=48, h=48, color=COL_BAD, value=0)
 # ป้ายข้างไฟบอกสถานะเป็นคำด้วย ไม่ใช่ปล่อยให้สีกับความสว่างเล่าคนเดียว
 # ภาพขาวดำหรือคนตาบอดสีต้องอ่านหน้าจอนี้ออกเท่ากัน
-lbl_beacon_state = ui.Label("ไฟดับอยู่", x=540, y=84, color=COL_DIM, value=16)
+lbl_beacon_state = ui.Label("ไฟดับอยู่", x=576, y=100, color=COL_DIM, value=20)
+lbl_beacon = ui.Label("สั่งปิดต้องยืนยันก่อน", x=520, y=144, color=COL_DIM, value=16)
 # ปุ่มเปิดกับปุ่มปิดแยกกันคนละปุ่ม ห้ามใช้ปุ่มเดียวสลับไปมา เพราะปุ่มสลับบอกไม่ได้ว่า
 # ตอนนี้อยู่สถานะไหน คนกดจึงต้องเดา และเดาผิดได้เสมอ
-btn_on = ui.Button("เปิดไฟเตือน", x=498, y=124, w=184, h=46, color=0x1B5E20, value=18)
-btn_off = ui.Button("ปิดไฟเตือน", x=498, y=178, w=184, h=46, color=0x37474F, value=18)
-lbl_beacon = ui.Label("สั่งปิดต้องยืนยันก่อน", x=498, y=234, color=COL_DIM, value=14)
-lbl_net = ui.Label("net: starting", x=498, y=262, color=COL_DIM, value=14)
-lbl_sent = ui.Label("ส่งแล้ว 0 ใบ", x=498, y=290, color=COL_DIM, value=14)
+# ทั้งคู่จบที่ y=264 เพราะมุมขวาล่างตั้งแต่ x=690 y=340 เป็นของปุ่ม Console
+btn_on = ui.Button("เปิดไฟ", x=520, y=176, w=96, h=88, color=0x30A46C, value=20)
+btn_off = ui.Button("ปิดไฟ", x=648, y=176, w=96, h=88, color=0x171B22, value=20)
+lbl_net = ui.Label("net: starting", x=520, y=296, color=COL_DIM, value=20)
+lbl_sent = ui.Label("ส่งแล้ว 0 ใบ", x=520, y=336, color=COL_DIM, value=16)
 
 # กล่องยืนยันสร้างพร้อมหน้าจอแล้วซ่อนไว้ ไม่ใช่สร้างตอนกด - แฮนเดิลมีจำกัด และการ
 # สร้างของตอนคนกำลังรอคำตอบ คือการเพิ่มความหน่วงในจังหวะที่แย่ที่สุด
 # ข้อความของ MsgBox เดินทางไปกับ CREATE ซึ่งพาได้ 95 ไบต์ ภาษาไทยตัวละ 3 ไบต์
 # แปลว่าหัวเรื่องบวกเนื้อความรวมกันได้ราว 31 ตัวอักษร ยาวกว่านั้นถูกตัดเงียบ ๆ
-box = ui.MsgBox("ปิดไฟเตือน\nไฟหน้างานจะดับทันที", x=490, y=256, w=290, h=76,
+# และคำยืนยันต้องบอก "สิ่งที่จะเกิด" ไม่ใช่ถามว่า "ยืนยันไหม" ซึ่งไม่ได้ให้ข้อมูลอะไรเลย
+# กล่องวางกลางจอ ไม่ใช่มุมใดมุมหนึ่ง เพราะตอนมันโผล่ มันคือสิ่งเดียวที่ต้องอ่าน
+box = ui.MsgBox("ปิดไฟเตือน\nไฟหน้างานจะดับทันที", x=112, y=96, w=568, h=136,
                 color=COL_CARD)
 box.hide()
 # ปุ่มสองปุ่มนี้คือคำตอบของกล่อง - ปุ่มในตัว MsgBox เองยังไม่ส่งเหตุการณ์กลับมาให้
 # Python เห็น (เฟิร์มแวร์ผูก callback ไว้กับ ui.Button เท่านั้น) ถ้าวางปุ่มตายไว้บนจอ
 # คนกดจะสรุปว่าเครื่องแฮงก์ จึงใช้ ui.Button จริงสองปุ่มแทน
-btn_yes = ui.Button("ยืนยัน", x=498, y=336, w=90, h=50, color=0x37474F, value=16)
-btn_no = ui.Button("ยกเลิก", x=592, y=336, w=90, h=50, color=0x37474F, value=16)
+btn_yes = ui.Button("ยืนยัน", x=144, y=248, w=200, h=88, color=0x171B22, value=20)
+btn_no = ui.Button("ยกเลิก", x=376, y=248, w=200, h=88, color=0x171B22, value=20)
 btn_yes.hide()
 btn_no.hide()
 ui.poll()

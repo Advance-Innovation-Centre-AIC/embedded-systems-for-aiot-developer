@@ -21,24 +21,24 @@ DEVICE_ID = "eva-team03"
 API_KEY = "<api key ของทีม>"
 BROKER = "mqtt.tesaiot.dev"
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 ui.screen()
 time.sleep_ms(200)
 ui.Label("ล้างค่าตั้ง กับ ย้อนค่าตั้ง", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=150, color=COL_CARD, min=COL_DIM, max=12, value=1)
-l_step = ui.Label("จังหวะที่ 1 - อ่านของเดิม", x=40, y=66, color=COL_WARN,
+ui.Panel(x=20, y=52, w=652, h=152, color=COL_CARD, min=COL_DIM, max=12, value=1)
+l_step = ui.Label("จังหวะที่ 1 - อ่านของเดิม", x=40, y=68, color=COL_WARN,
                   value=20)
-l_a = ui.Label("1) ก่อนแตะอะไร      -", x=40, y=100, color=COL_DIM, value=18)
-l_b = ui.Label("2) หลัง reset()     -", x=40, y=132, color=COL_DIM, value=18)
-l_c = ui.Label("3) หลังตั้งใหม่     -", x=40, y=164, color=COL_DIM, value=18)
+l_a = ui.Label("1) ก่อนแตะอะไร      -", x=40, y=100, color=COL_DIM, value=20)
+l_b = ui.Label("2) หลัง reset()     -", x=40, y=132, color=COL_DIM, value=20)
+l_c = ui.Label("3) หลังตั้งใหม่     -", x=40, y=164, color=COL_DIM, value=20)
 
-ui.Panel(x=20, y=216, w=650, h=110, color=COL_CARD, min=COL_DIM, max=12, value=1)
-l_n1 = ui.Label("-", x=40, y=230, color=COL_DIM, value=18)
-l_n2 = ui.Label("-", x=40, y=262, color=COL_DIM, value=16)
-l_n3 = ui.Label("-", x=40, y=290, color=COL_DIM, value=16)
+ui.Panel(x=20, y=216, w=652, h=112, color=COL_CARD, min=COL_DIM, max=12, value=1)
+l_n1 = ui.Label("-", x=40, y=232, color=COL_DIM, value=20)
+l_n2 = ui.Label("-", x=40, y=264, color=COL_DIM, value=16)
+l_n3 = ui.Label("-", x=40, y=292, color=COL_DIM, value=16)
 ui.Label("reset ล้างของจริง - reload แค่ย้อนกลับ", x=20, y=340, color=COL_DIM,
          value=16)
 ui.poll()

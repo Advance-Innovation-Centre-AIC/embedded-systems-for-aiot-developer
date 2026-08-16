@@ -26,31 +26,31 @@ RING_MS = 625      # ความจุของคิวเสียง เอ�
 SLOW_MS = 300      # ถ่วงลูปเท่านี้ตอนกดปุ่มขวา ให้เห็นคิวโตชัด ๆ
 
 ui.screen()
-ui.Label("รูปคลื่นดิบ สามค่า และคิวเสียง", x=12, y=6, value=24)
+ui.Label("รูปคลื่นดิบ สามค่า และคิวเสียง", x=12, y=8, value=24)
 
 # แกน Y กว้างพอสำหรับเสียงพูด ค่าที่ดังกว่านี้จะถูกหนีบก่อนป้อน ไม่ปล่อยให้ชนขอบเงียบ ๆ
-ch = ui.Chart(x=12, y=44, w=470, h=170, min=-8000, max=8000)
+ch = ui.Chart(x=12, y=44, w=472, h=172, min=-8000, max=8000)
 
 ui.Label("rms peak dc จากครั้งเดียว", x=500, y=48, value=16,
-         color=0xA0B4CC)
-lbl_rms = ui.Label("rms 0", x=500, y=74, value=20, color=0x00BFFF)
-lbl_peak = ui.Label("peak 0", x=500, y=106, value=20, color=0xFFC83D)
-lbl_dc = ui.Label("dc 0", x=500, y=138, value=20, color=0x9AA0A6)
+         color=0x9AA3AF)
+lbl_rms = ui.Label("rms 0", x=500, y=76, value=20, color=0x4A9EFF)
+lbl_peak = ui.Label("peak 0", x=500, y=108, value=20, color=0xF5A623)
+lbl_dc = ui.Label("dc 0", x=500, y=140, value=20, color=0x9AA3AF)
 
-ui.Label("คิวค้างอยู่กี่ ms (เต็มที่ 625)", x=500, y=172, value=16,
-         color=0xA0B4CC)
-bar_lag = ui.Bar(x=500, y=196, w=250, h=18, min=0, max=RING_MS)
-lbl_lag = ui.Label("lag 0 ms", x=500, y=218, value=20, color=0x55DD55)
+ui.Label("คิวค้างอยู่กี่ ms (เต็มที่ 625)", x=448, y=224, value=16,
+         color=0x9AA3AF)
+bar_lag = ui.Bar(x=500, y=196, w=252, h=20, min=0, max=RING_MS)
+lbl_lag = ui.Label("lag 0 ms", x=500, y=260, value=20, color=0x30A46C)
 
-btn_fresh = ui.Button("fresh = True", x=12, y=236, w=220, h=52,
-                      color=0x2E7D32, value=20)
-btn_slow = ui.Button("ลูปปกติ", x=248, y=236, w=220, h=52,
-                     color=0x546E7A, value=20)
+btn_fresh = ui.Button("fresh = True", x=12, y=236, w=220, h=88,
+                      color=0x30A46C, value=20)
+btn_slow = ui.Button("ลูปปกติ", x=248, y=260, w=220, h=88,
+                     color=0x9AA3AF, value=20)
 ID_FRESH, ID_SLOW = btn_fresh.id(), btn_slow.id()
 
-lbl_state = ui.Label("กำลังเปิดไมค์", x=12, y=300, value=20)
-lbl_hint = ui.Label("fresh ปิดเมื่อไร คิวจะไต่ขึ้นจนเต็ม 625", x=12, y=336,
-                    value=16, color=0x90A4AE)
+lbl_state = ui.Label("กำลังเปิดไมค์", x=476, y=300, value=20)
+lbl_hint = ui.Label("fresh ปิดเมื่อไร คิวจะไต่ขึ้นจนเต็ม 625", x=12, y=356,
+                    value=16, color=0x9AA3AF)
 ui.poll()
 
 lcd.clear()

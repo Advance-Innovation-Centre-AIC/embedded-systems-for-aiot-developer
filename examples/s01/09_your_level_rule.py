@@ -19,9 +19,9 @@ import lcd
 import time
 import ui
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_BAD = 0x00E676, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_BAD = 0x30A46C, 0xE5484D
 
 # ชุดค่าที่ใช้ตรวจกฎ เลือกไว้ให้ครบทั้งสามระดับ และมีค่าที่อยู่ตรงเส้นพอดีด้วย
 # ค่าตรงเส้นคือจุดที่กฎผิดกันบ่อยที่สุด เพราะ >= กับ > ต่างกันแค่ตัวเดียว
@@ -54,28 +54,28 @@ time.sleep_ms(200)
 
 ui.Label("เขียนกฎตัดระดับเอง แล้วให้บอร์ดตรวจให้", x=20, y=12,
          color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=52, w=652, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
-ui.Label("ผ่านแล้ว", x=40, y=62, color=COL_DIM, value=16)
-seg_ok = ui.Seg7(text="0", x=40, y=86, w=150, h=52, color=COL_OK)
+ui.Label("ผ่านแล้ว", x=40, y=64, color=COL_DIM, value=16)
+seg_ok = ui.Seg7(text="0", x=40, y=88, w=152, h=52, color=COL_OK)
 
-ui.Label("ยังไม่ผ่าน", x=230, y=62, color=COL_DIM, value=16)
-seg_bad = ui.Seg7(text="0", x=230, y=86, w=150, h=52, color=COL_BAD)
+ui.Label("ยังไม่ผ่าน", x=232, y=64, color=COL_DIM, value=16)
+seg_bad = ui.Seg7(text="0", x=232, y=88, w=152, h=52, color=COL_BAD)
 
-bar = ui.Bar(x=410, y=98, w=230, h=26, min=0, max=len(CASES), value=0)
+bar = ui.Bar(x=412, y=100, w=232, h=28, min=0, max=len(CASES), value=0)
 
 # หกแถวสร้างไว้ครบตั้งแต่ตอนนี้ แล้วเดี๋ยวเขียนทับด้วยผลตรวจ
 # ห้ามสร้าง Label ด้วยข้อความว่าง LVGL จะเติมคำว่า "Label" ให้เอง แล้วมันจะค้าง
-row1 = ui.Label("รอตรวจ", x=20, y=170, color=COL_DIM, value=20)
-row2 = ui.Label("รอตรวจ", x=20, y=198, color=COL_DIM, value=20)
-row3 = ui.Label("รอตรวจ", x=20, y=226, color=COL_DIM, value=20)
-row4 = ui.Label("รอตรวจ", x=20, y=254, color=COL_DIM, value=20)
-row5 = ui.Label("รอตรวจ", x=20, y=282, color=COL_DIM, value=20)
-row6 = ui.Label("รอตรวจ", x=20, y=310, color=COL_DIM, value=20)
+row1 = ui.Label("รอตรวจ", x=20, y=172, color=COL_DIM, value=20)
+row2 = ui.Label("รอตรวจ", x=20, y=200, color=COL_DIM, value=20)
+row3 = ui.Label("รอตรวจ", x=20, y=228, color=COL_DIM, value=20)
+row4 = ui.Label("รอตรวจ", x=20, y=256, color=COL_DIM, value=20)
+row5 = ui.Label("รอตรวจ", x=20, y=284, color=COL_DIM, value=20)
+row6 = ui.Label("รอตรวจ", x=20, y=312, color=COL_DIM, value=20)
 rows = (row1, row2, row3, row4, row5, row6)
 
-result_lbl = ui.Label("ยังไม่ได้ตรวจ", x=20, y=346, color=COL_DIM, value=20)
-ui.Label("แก้แล้วรันใหม่ได้เรื่อย ๆ", x=300, y=350, color=COL_DIM, value=16)
+result_lbl = ui.Label("ยังไม่ได้ตรวจ", x=20, y=348, color=COL_DIM, value=20)
+ui.Label("แก้แล้วรันใหม่ได้เรื่อย ๆ", x=300, y=352, color=COL_DIM, value=16)
 ui.poll()
 
 lcd.clear()

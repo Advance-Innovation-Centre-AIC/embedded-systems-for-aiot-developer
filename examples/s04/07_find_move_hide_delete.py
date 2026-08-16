@@ -20,12 +20,12 @@ import time
 
 RUN_MS = 30000
 
-COL_TEXT = 0xFFFFFF
-COL_DIM = 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK = 0x00E676
-COL_WARN = 0xFFA726
-COL_INFO = 0x40C4FF
+COL_TEXT = 0x4A9EFF
+COL_DIM = 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK = 0x30A46C
+COL_WARN = 0xF5A623
+COL_INFO = 0x4A9EFF
 
 # ตำแหน่งสองจุดที่เป้าหมายจะสลับไปมา และสองขนาดที่จะสลับกัน
 POS_A = (430, 90)
@@ -38,23 +38,23 @@ time.sleep_ms(200)
 
 ui.Label("ตามหา ย้าย ซ่อน แล้วลบ", x=20, y=12, color=COL_TEXT, value=24)
 
-ui.Panel(x=20, y=52, w=380, h=250, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=52, w=380, h=252, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
-b_move = ui.Button("ย้ายที่", x=40, y=70, w=170, h=64, color=0x1565C0, value=20)
-b_size = ui.Button("ย่อ ขยาย", x=40, y=146, w=170, h=64, color=0x2E7D32,
+b_move = ui.Button("ย้ายที่", x=40, y=72, w=172, h=88, color=0x4A9EFF, value=20)
+b_size = ui.Button("ย่อ ขยาย", x=220, y=148, w=172, h=88, color=0x30A46C,
                    value=20)
-b_hide = ui.Button("ซ่อน แสดง", x=40, y=222, w=170, h=64, color=0x6A1B9A,
+b_hide = ui.Button("ซ่อน แสดง", x=40, y=224, w=172, h=88, color=0x4A9EFF,
                    value=20)
 
 # เป้าหมายที่ปุ่มทั้งสามใบจะไปสั่ง สร้างครั้งเดียวแล้วไม่แตะตัวแปรนี้อีกเลย
 # ทุกคำสั่งข้างล่างจะไปหามันผ่าน ui.get() เพื่อพิสูจน์ว่าเลขอย่างเดียวก็พอ
 target = ui.Button("เป้าหมาย", x=POS_A[0], y=POS_A[1],
-                   w=SIZE_A[0], h=SIZE_A[1], color=0xEF6C00, value=20)
+                   w=SIZE_A[0], h=SIZE_A[1], color=0xF5A623, value=20)
 TARGET_ID = target.id()
 
-status = ui.Label("ยังไม่ได้สั่งอะไร", x=430, y=262, color=COL_INFO, value=20)
-census = ui.Label("ยังไม่ได้นับ", x=430, y=296, color=COL_DIM, value=16)
-ui.Label("ui.list() ใช้คีย์ id ส่วน poll ใช้ handle", x=20, y=330,
+status = ui.Label("ยังไม่ได้สั่งอะไร", x=432, y=264, color=COL_INFO, value=20)
+census = ui.Label("ยังไม่ได้นับ", x=432, y=296, color=COL_DIM, value=16)
+ui.Label("ui.list() ใช้คีย์ id ส่วน poll ใช้ handle", x=168, y=332,
          color=COL_WARN, value=16)
 
 ID_MOVE = b_move.id()
@@ -101,18 +101,22 @@ except ValueError:
     lcd.print("<span class=ok>id 31 ยังว่าง - ValueError เช่นกัน</span>")
 
 # ------------------------------------------------------------------
-# หลักฐานชิ้นที่ 3 - .text() แบบไม่ใส่อาร์กิวเมนต์ยังอ่านกลับไม่ได้
+# หลักฐานชิ้นที่ 3 - .text() แบบไม่ใส่อาร์กิวเมนต์ "อ่านกลับได้แล้ว"
+#
+# บรรทัดเหล่านี้เคยเขียนว่าอ่านกลับไม่ได้ และต้องจำไว้ฝั่งเราเอง ซึ่งจริงจนถึง
+# 15 ส.ค. 2026 เฟิร์มแวร์ได้ opcode GET_TEXT (0x6B) เมื่อ 16 ส.ค. modui.c จึง
+# คืนสตริงจริงออกมา ไม่ใช่ None อีกแล้ว
 # ------------------------------------------------------------------
 lcd.print("target.text() แบบอ่าน คืน " + str(target.text()))
-lcd.print("อยากรู้ว่าจอเขียนอะไร ต้องจำไว้ฝั่งเราเอง")
+lcd.print("จอบอกได้เองแล้วว่าเขียนอะไรอยู่ ไม่ต้องจำฝั่งเรา")
 
 # ------------------------------------------------------------------
 # หลักฐานชิ้นที่ 4 - .delete() คืนโควตาจริง ส่วน .hide() ไม่คืน
 # สร้างของใช้แล้วทิ้งหนึ่งตัว นับก่อน-หลัง แล้วลบทิ้ง
 # ------------------------------------------------------------------
 before = census_text()
-throwaway = ui.Button("ชั่วคราว", x=20, y=356, w=140, h=34, color=0x546E7A,
-                      value=14)
+throwaway = ui.Button("ชั่วคราว", x=20, y=308, w=140, h=88, color=0x4A9EFF,
+                      value=20)
 mid = len(ui.list())
 throwaway.delete()
 time.sleep_ms(120)          # ให้ CM55 ลบเสร็จก่อนไปนับใหม่

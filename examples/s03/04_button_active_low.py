@@ -15,9 +15,9 @@ import ui
 RUN_MS = 15000
 POLL_MS = 100
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_INFO = 0x00E676, 0xFFA726, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_INFO = 0x30A46C, 0xF5A623, 0x4A9EFF
 
 btn = gpio.button(0)
 
@@ -27,22 +27,22 @@ time.sleep_ms(200)
 ui.Label("ปุ่ม active-low", x=20, y=12, color=COL_TEXT, value=24)
 
 # ซ้ายคือค่าดิบจาก value() ขวาคือความหมายจาก is_pressed() วางคู่กันให้เทียบด้วยตา
-raw_seg = ui.Seg7(text="1", x=20, y=52, w=90, h=64, color=COL_INFO)
-mean_lbl = ui.Label("value() = 1  is_pressed() = ปล่อย", x=130, y=76,
-                    color=COL_DIM, value=22)
+raw_seg = ui.Seg7(text="1", x=20, y=52, w=92, h=64, color=COL_INFO)
+mean_lbl = ui.Label("value() = 1  is_pressed() = ปล่อย", x=132, y=76,
+                    color=COL_DIM, value=24)
 
 # กราฟค่าดิบ ตั้งช่วงเป็น 0 ถึง 1 พอดี เส้นจึงมีแค่สองระดับ อ่านออกทันที
 # ว่าช่วงไหนนิ้วแตะอยู่ โดยไม่ต้องอ่านตัวเลขสักตัว
-chart = ui.Chart(x=20, y=136, w=650, h=110, min=0, max=1, color=COL_CARD)
+chart = ui.Chart(x=20, y=136, w=652, h=112, min=0, max=1, color=COL_CARD)
 line = chart.add_series(COL_WARN)
-legend = ui.Label("เส้นบน 1 = ปล่อย", x=20, y=254, color=COL_DIM, value=18)
+legend = ui.Label("เส้นบน 1 = ปล่อย", x=20, y=256, color=COL_DIM, value=20)
 # ข้อความเต็มส่งด้วย .text() เพราะช่องตอนสร้าง widget แคบกว่าช่องของ .text()
 legend.text("เส้นบน 1 = ปล่อย (pull-up) เส้นล่าง 0 = กด (ลัดลงกราวด์)")
 
 # ประกาศกับดักชื่อไว้บนจอตั้งแต่ต้น เพื่อให้คนที่มองบอร์ดกับคนที่มองโค้ด
 # คุยกันรู้เรื่อง ป้ายใบนี้จะถูกใช้เขียนสรุปตอนหมดเวลาด้วย
 name_lbl = ui.Label("บนบอร์ดพิมพ์ว่า SW2", x=20, y=292, color=COL_WARN,
-                    value=18)
+                    value=20)
 name_lbl.text("บนบอร์ดพิมพ์ว่า SW2 - โค้ดเรียกว่า " + btn.name() + " ดัชนี 0")
 
 lcd.clear()

@@ -18,10 +18,13 @@ import time
 
 DEVICE_ID = "eva-team03"
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_TRACK = 0x27364F         # สีรางของ ui.Bar - ตัวแท่งที่วิ่งเป็นสีของธีมเสมอ
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
+# รางของ ui.Bar เป็น "พื้น" ไม่ใช่สถานะ จึงใช้สีพื้นการ์ดตัวเดียวกัน
+COL_TRACK = COL_CARD         # สีรางของ ui.Bar - ตัวแท่งที่วิ่งเป็นสีของธีมเสมอ
 
 # ค่าที่จะส่ง วันนี้ยังไม่ต้องมาจากของจริง ใช้ตัวนับกับนาฬิกาไปก่อน
 # ประเด็นของไฟล์นี้คือรูปร่างของข้อความ ไม่ใช่ที่มาของตัวเลข
@@ -56,37 +59,44 @@ widest = max(sizes)     # แท่งที่ยาวที่สุดเป
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("payload สามแบบ วัดเป็นไบต์", x=20, y=12, color=COL_TEXT, value=24)
+# ผังจอ: หัวเรื่องหนึ่งบรรทัด การ์ดคู่ซ้าย/ขวาแถวเดียว แล้วสามบรรทัดสรุปล่างสุด
+# การ์ดคู่สูงเท่ากันทั้งสองใบ (56 ถึง 280) ขอบบนกับขอบล่างจึงตรงกันพอดี
+ui.Label("payload สามแบบ วัดเป็นไบต์", x=24, y=8, color=COL_TEXT, value=28)
 
 # การ์ดซ้าย: สามแท่ง สเกลเดียวกัน ความยาวคือจำนวนไบต์ล้วน ๆ
-ui.Panel(x=20, y=52, w=440, h=180, color=COL_CARD, min=COL_DIM, max=12, value=1)
-row_y = 64
+# หนึ่งกลุ่มสูง 72 (ป้าย 27 + ช่องไฟ + แท่ง 24) สามกลุ่มจึงลงตัวในการ์ดสูง 224
+ui.Panel(x=24, y=56, w=488, h=224, color=COL_CARD, min=COL_CARD, max=12,
+         value=1)
+row_y = 72
 for i in range(3):
     name, _, col = SHAPES[i]
-    ui.Label("{}  {} bytes".format(name, sizes[i]), x=36, y=row_y,
-             color=col, value=16)
+    ui.Label("{}  {} bytes".format(name, sizes[i]), x=40, y=row_y,
+             color=col, value=20)
     # color ของ ui.Bar คือสี "ราง" ไม่ใช่สีแท่ง ตัวแท่งที่วิ่งเป็นสีของธีมตายตัว
     # ความหมายจึงอยู่ที่ความยาว ส่วนสีของหัวข้อข้างบนเป็นตัวบอกว่าแบบไหนดีไม่ดี
-    ui.Bar(x=36, y=row_y + 22, w=404, h=18, min=0, max=widest, value=sizes[i],
+    ui.Bar(x=40, y=row_y + 32, w=456, h=24, min=0, max=widest, value=sizes[i],
            color=COL_TRACK)
-    row_y += 54
+    row_y += 72
 
 # การ์ดขวา: ใบที่จะใช้จริงกินกี่ไบต์ Seg7 รับ "ข้อความ" เท่านั้น
 # seg.value(62) เงียบสนิทไม่ขึ้นอะไรเลย ต้อง seg.text("62")
-ui.Panel(x=475, y=52, w=195, h=180, color=COL_CARD, min=COL_OK, max=12, value=1)
-ui.Label("ใบพอดี กินกี่ไบต์", x=490, y=76, color=COL_DIM, value=16)
-seg = ui.Seg7(text=str(sizes[2]), x=490, y=116, w=165, h=76, color=COL_OK)
-# หน่วยวางใต้ตัวเลข ไม่ใช่ทับบนมัน Seg7 สูง 76 จึงจบที่ y=192
-ui.Label("bytes", x=490, y=198, color=COL_DIM, value=16)
+# เลขใหญ่ใช้สีเน้น ไม่ใช่สีเขียว - เขียวในจอนี้ถูกจองไว้ให้แถวที่แปลว่า "พอดี"
+# ถ้าทาเลขใหญ่เป็นเขียวด้วย ตาจะอ่านว่ามีสองอย่างที่หมายถึงสิ่งเดียวกัน
+ui.Panel(x=528, y=56, w=240, h=224, color=COL_CARD, min=COL_CARD, max=12,
+         value=1)
+ui.Label("ใบพอดี กินกี่ไบต์", x=544, y=72, color=COL_DIM, value=20)
+seg = ui.Seg7(text=str(sizes[2]), x=544, y=112, w=208, h=88, color=COL_ACCENT)
+# หน่วยวางใต้ตัวเลข ไม่ใช่ทับบนมัน Seg7 สูง 88 จึงจบที่ y=200
+ui.Label("bytes", x=544, y=216, color=COL_DIM, value=20)
 
 # ตัวเลขต้องเป็นตัวเลข ไม่ใช่สตริง สองบรรทัดนี้ต่างกันแค่เครื่องหมายคำพูดคู่เดียว
-ui.Label('ตัวเลข  {"v": 25.5}    ฝั่งรับวาดกราฟได้', x=20, y=252,
-         color=COL_OK, value=18)
-ui.Label('สตริง   {"v": "25.5"}  ฝั่งรับวาดกราฟไม่ได้', x=20, y=284,
-         color=COL_BAD, value=18)
-# แยกสองป้ายให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยหนึ่งตัวกิน 3 ไบต์
-ui.Label("สั้นแต่ยังเดาออก", x=20, y=330, color=COL_DIM, value=18)
-ui.Label("มีหน่วย มีตัวตน มีเวลา", x=200, y=330, color=COL_DIM, value=18)
+# บรรทัดที่ y=328 ลงไปเลยเส้น 340 จึงต้องสั้นพอให้จบก่อน x=690
+ui.Label('ตัวเลข  {"v": 25.5}    ฝั่งรับวาดกราฟได้', x=24, y=296,
+         color=COL_OK, value=20)
+ui.Label('สตริง   {"v": "25.5"}  ฝั่งรับวาดกราฟไม่ได้', x=24, y=328,
+         color=COL_BAD, value=20)
+ui.Label("พอดี = สั้น เดาออก มีหน่วย มีตัวตน", x=24, y=360, color=COL_DIM,
+         value=20)
 ui.poll()
 
 # lcd เก็บ JSON ตัวเต็มไว้ให้อ่านทีละบรรทัด จอเก็บการเปรียบเทียบ

@@ -40,22 +40,32 @@ SETTLED_N = 6      # ต้องนิ่งติดกันกี่รอ�
 SUB_N = 5          # อ่านย่อยกี่ครั้งต่อรอบ ใช้เพื่อให้กราฟมีจุดพอให้เห็นรูปร่าง
 
 ui.screen()
-ui.Label("คาลิเบรตเข็มทิศ - ดูตัวเลขลู่เข้า", x=12, y=6, value=24)
-ch = ui.Chart(x=12, y=40, w=470, h=210, min=-50, max=50)
+# ผังจอสองคอลัมน์ ขอบนอก 24 - ซ้ายคือกราฟกับการ์ดคำแนะนำ ขวาคือคำอธิบายเส้น
+# ตัวเลขที่ขยับรอบนี้ และตัวนับรอบที่นิ่ง
+#
+# ก่อนแก้ ป้าย "เห็นเส้นเดียว" ถูกวางไว้ที่ x=428 ซึ่งคาบสองคอลัมน์ แล้วการ์ด
+# ที่สร้างทีหลังก็ทาทับมันหายไปทั้งใบ ตอนนี้มันอยู่ในคอลัมน์ขวาที่เป็นบ้านของมัน
+ui.Label("คาลิเบรตเข็มทิศ - ดูตัวเลขลู่เข้า", x=24, y=8, value=24)
+ch = ui.Chart(x=24, y=48, w=440, h=192, min=-50, max=50)
 s_ox = 0
-s_oy = ch.add_series(0xFF5555)
+s_oy = ch.add_series(0xE5484D)
 
-ui.Label("ฟ้า = offset_x (uT)", x=496, y=44, value=16, color=0x00BFFF)
-ui.Label("แดง = offset_y (uT)", x=496, y=68, value=16, color=0xFF5555)
-ui.Label("เห็นเส้นเดียว = สองค่าเท่ากันพอดี", x=496, y=92, value=14)
-ui.Label("ขยับรอบนี้ (uT)", x=496, y=120, value=16)
-seg = ui.Seg7(x=496, y=142, w=180, h=44)
-lbl_stab = ui.Label("นิ่งติดกัน 0/%d" % SETTLED_N, x=496, y=194, value=16)
-bar = ui.Bar(x=496, y=216, w=180, h=16, min=0, max=SETTLED_N)
+ui.Label("ฟ้า = offset_x (uT)", x=496, y=48, value=20, color=0x4A9EFF)
+ui.Label("แดง = offset_y (uT)", x=496, y=76, value=20, color=0xE5484D)
+ui.Label("เส้นเดียว = ค่าเท่ากัน", x=496, y=104, value=20,
+         color=0x9AA3AF)
 
-ui.Panel(x=12, y=262, w=470, h=70)
-st = ui.Label("หมุนบอร์ดเป็นเลขแปดช้า ๆ", x=24, y=272, value=24)
-sub = ui.Label("valid = ?", x=24, y=302, value=18)
+ui.Label("ขยับรอบนี้ (uT)", x=496, y=148, value=20)
+seg = ui.Seg7(x=496, y=180, w=180, h=48)
+
+# ตัวนับกับแถบอยู่ติดกัน ตัวเลขบอกค่า แถบบอกว่าอีกไกลแค่ไหน ตาม §S7.7.8
+# สองแถวนี้จบที่ y=299 จึงพ้นมุมของปุ่ม Console (x>=690 และ y>=340)
+lbl_stab = ui.Label("นิ่งติดกัน 0/%d" % SETTLED_N, x=496, y=244, value=20)
+bar = ui.Bar(x=496, y=280, w=248, h=20, min=0, max=SETTLED_N)
+
+ui.Panel(x=24, y=268, w=440, h=108)
+st = ui.Label("หมุนบอร์ดเป็นเลขแปดช้า ๆ", x=40, y=288, value=24)
+sub = ui.Label("valid = ?", x=40, y=328, value=20)
 ui.poll()
 
 lcd.clear()
@@ -110,7 +120,7 @@ for r in range(ROUNDS):
     if stable >= SETTLED_N and st_now["valid"]:
         done = True
         st.text("นิ่งแล้วที่รอบ %d" % r)
-        st.color(0x55DD55)
+        st.color(0x30A46C)
         ui.poll()
         lcd.print("<span class=ok>ค่าชดเชยนิ่งแล้วที่รอบ " + str(r) + "</span>")
         break
@@ -121,7 +131,7 @@ for r in range(ROUNDS):
 after = sensors.bmm350.cal_status()
 if not done:
     st.text("ยังไม่นิ่งภายใน %d รอบ" % ROUNDS)
-    st.color(0xFFC83D)
+    st.color(0xF5A623)
 sub.text("ox %.1f oy %.1f | valid = %s"
          % (after["offset_x"], after["offset_y"], after["valid"]))
 ui.poll()

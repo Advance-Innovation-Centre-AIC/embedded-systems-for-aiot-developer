@@ -10,7 +10,7 @@
 # 01 คือคลังค่าตั้ง 05 คือการรอให้ต่อเสร็จจริง 06 คือลูปส่งที่เช็กสายก่อนส่งทุกครั้ง
 #
 # ดูที่จอ: ซ้ายคือตารางตัวตนที่บอร์ดใช้แนะนำตัว ขวาบนคือไฟสามดวงของการจับมือ TLS
-#         ขวากลางคือเวลาที่ใช้จับมือ เทียบเพดาน 30 วินาที ขวาล่างคือตัวนับกับปุ่ม
+#         ขวากลางคือปุ่มต่อ/ตัดสาย ขวาล่างคือเวลาที่ใช้จับมือ เทียบเพดาน 30 วินาที
 #         หน้าจอเขียนมาให้ครบแล้ว ช่องว่างห้าจุดอยู่ที่ตรรกะ ไม่ได้อยู่ที่การวาด
 # กับดัก : ถ้ายังไม่เติมช่องที่ 1-2 ตารางจะขึ้นค่าเปล่า และนั่นคือคำตอบว่าเติมครบหรือยัง
 
@@ -56,64 +56,70 @@ print("config ปัจจุบัน:", tesaiot.config())
 # --- ท่าที่ 2: กางหน้าจอ แล้วเอาตัวตนที่ตั้งไว้ขึ้นให้เห็น ---
 # หน้าจอนี้ตอบคำถามเดียวที่คาบนี้ถาม: "ตกลงบอร์ดแนะนำตัวว่าเป็นใคร และต่อแบบไหน"
 # ค่าที่ตั้งไว้ในท่าที่ 1 ไม่มีใครเห็นเลยถ้าไม่เอาขึ้นจอ - config_set() เงียบสนิท
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD, COL_OK, COL_RUN, COL_BAD = 0x142240, 0x00E676, 0x4FC3F7, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD, COL_OK, COL_RUN, COL_BAD = 0x171B22, 0x30A46C, 0x4A9EFF, 0xE5484D
 WAIT_CEILING_S = 30            # เพดานของลูปรอข้างล่าง ตัวเลขเดียวกันทั้งจอและโค้ด
 
+# จอวาดได้จริง 792 x 398 หน้านี้แบ่งเป็นแถบหัวเรื่องสูง 40 แล้วสองคอลัมน์
+# ซ้ายคือตารางตัวตน ขวาคือการจับมือ TLS ปุ่มสั่งงาน และเวลาที่ใช้จับมือ
 ui.screen()
 time.sleep_ms(200)
-ui.Label("MQTTs - ทีม " + TEAM_NAME, x=16, y=6, color=COL_TEXT, value=20)
+ui.Label("MQTTs - ทีม " + TEAM_NAME, x=24, y=8, color=COL_TEXT, value=20)
+lbl_sent = ui.Label("ส่งแล้ว 0 ใบ", x=560, y=8, color=COL_DIM, value=20)
 
-# ตารางตัวตน: สามบรรทัดนี้เคยเป็น print() ที่ไม่มีใครอ่าน ตอนนี้มันอยู่บนจอ
+# ตารางตัวตน: สี่บรรทัดนี้เคยเป็น print() ที่ไม่มีใครอ่าน ตอนนี้มันอยู่บนจอ
 # ui.Table จัดสองคอลัมน์ให้เอง ค่าที่ยาวไม่เท่ากันจึงไม่ทำให้คอลัมน์เยื้อง
-ui.Panel(x=16, y=34, w=440, h=354, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ตัวตนที่บอร์ดใช้แนะนำตัว", x=30, y=40, color=COL_DIM, value=14)
+# การ์ดต้องถูกสร้างก่อนของที่วางบนมัน LVGL วาดตามลำดับการสร้าง การ์ดที่มาทีหลัง
+# จะทาทับของที่สร้างไว้ก่อนจนหายไปทั้งใบ โดยไม่มี error สักบรรทัด
+ui.Panel(x=24, y=48, w=440, h=344, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ตัวตนที่บอร์ดใช้แนะนำตัว", x=40, y=60, color=COL_DIM, value=16)
 cfg0 = tesaiot.config()
-tbl_id = ui.Table(x=30, y=62, w=412, h=286, cols=2)
-tbl_id.col_width(0, 140)
-tbl_id.col_width(1, 260)
-tbl_id.add_row("คีย์", "ค่าที่ตั้งไว้")
+# สี่แถวคูณ 72 พิกเซล = 288 พอดีกับความสูงที่ขอไว้ ขอมากกว่านี้แถวล่างสุดจะถูกตัด
+# คอลัมน์ซ้ายต้องกว้างพอสำหรับ "mqtt_pass" ทั้งคำ ถ้าถูกตัดบรรทัด แถวนั้นสูงสองเท่าทันที
+tbl_id = ui.Table(x=40, y=96, w=408, h=288, cols=2)
+tbl_id.col_width(0, 160)
+tbl_id.col_width(1, 224)
 tbl_id.add_row("device_id", DEVICE_ID)
 tbl_id.add_row("broker", BROKER)
 tbl_id.add_row("tls_mode", str(cfg0["tls_mode"]))
-# ค่าที่อ่านกลับไม่ได้ ต้องเขียนว่า "ตั้งแล้วแต่อ่านไม่ได้" ไม่ใช่ปล่อยว่าง
+# ค่าที่อ่านกลับไม่ได้ ต้องเขียนว่า "ตั้งแล้วแต่ดูไม่ได้" ไม่ใช่ปล่อยว่าง
 # ช่องว่างบนหน้าจอแปลว่า "ยังไม่ได้ตั้ง" ซึ่งเป็นคนละเรื่องกับ "ตั้งแล้วแต่ดูไม่ได้"
-ui.Label("mqtt_pass ตั้งแล้ว แต่อ่านกลับไม่ได้", x=30, y=356, color=COL_DIM, value=14)
+tbl_id.add_row("mqtt_pass", "ตั้งแล้ว ดูไม่ได้")
 
-# การ์ดขวาบน: ไฟสามดวงของการจับมือ ติดทีละดวงเสมอ
-ui.Panel(x=470, y=34, w=306, h=132, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("การจับมือ TLS", x=484, y=40, color=COL_DIM, value=14)
-led_wait = ui.Led(x=488, y=64, w=28, h=28, color=COL_RUN, value=1)
-ui.Label("กำลังต่อ", x=484, y=98, color=COL_DIM, value=14)
-led_ok = ui.Led(x=588, y=64, w=28, h=28, color=COL_OK, value=0)
-ui.Label("สำเร็จ", x=588, y=98, color=COL_DIM, value=14)
-led_fail = ui.Led(x=688, y=64, w=28, h=28, color=COL_BAD, value=0)
-ui.Label("ไม่สำเร็จ", x=678, y=98, color=COL_DIM, value=14)
+# การ์ดขวา: ไฟสามดวงของการจับมือ ติดทีละดวงเสมอ แล้วปุ่มสั่งงาน แล้วเวลาที่ใช้
+ui.Panel(x=480, y=48, w=288, h=344, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("การจับมือ TLS", x=496, y=60, color=COL_DIM, value=16)
+led_wait = ui.Led(x=496, y=96, w=48, h=48, color=COL_RUN, value=1)
+led_ok = ui.Led(x=592, y=96, w=48, h=48, color=COL_OK, value=0)
+led_fail = ui.Led(x=688, y=96, w=48, h=48, color=COL_BAD, value=0)
+# ป้ายอยู่ใต้ไฟของตัวเอง ไม่ใช่ข้าง ๆ เพราะการ์ดกว้าง 288 ไม่พอให้ไฟกับคำอยู่บรรทัดเดียว
+ui.Label("กำลังต่อ", x=496, y=148, color=COL_DIM, value=16)
+ui.Label("สำเร็จ", x=592, y=148, color=COL_DIM, value=16)
+ui.Label("ล้มเหลว", x=672, y=148, color=COL_DIM, value=16)
 
-# การ์ดขวากลาง: เวลาจับมือ เทียบกับเพดานที่โค้ดใช้จริง ไม่ใช่เพดานที่เดาเอา
-ui.Panel(x=470, y=174, w=306, h=126, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("เวลาจับมือ เทียบเพดาน 30 วิ", x=484, y=180, color=COL_DIM, value=14)
-lbl_hs = ui.Label("0 วิ", x=484, y=202, color=COL_TEXT, value=20)
-bar_hs = ui.Bar(x=484, y=236, w=200, h=12, color=COL_RUN,
+# ปุ่มสั่งงานสองปุ่มแยกกัน วางไว้เหนือมาตรวัด เพราะปุ่มที่ยาวลงไปถึง y=340
+# จะไปทับมุมขวาล่างที่เฟิร์มแวร์ถือไว้ให้ปุ่ม Console แล้วกดไม่โดน
+btn_conn = ui.Button("ต่อใหม่", x=496, y=184, w=88, h=88, color=0x30A46C, value=20)
+btn_disc = ui.Button("ตัดสาย", x=616, y=184, w=88, h=88, color=0x171B22, value=20)
+
+# เวลาจับมือ เทียบกับเพดานที่โค้ดใช้จริง ไม่ใช่เพดานที่เดาเอา
+# ui.Scale คือไม้บรรทัด ไม่มีเข็มและไม่รับ .value() ตัวที่ขยับคือ ui.Bar ที่วางเหนือมัน
+lbl_hs = ui.Label("0 วิ", x=496, y=284, color=COL_TEXT, value=20)
+ui.Label("เพดาน 30 วิ", x=592, y=284, color=COL_DIM, value=16)
+bar_hs = ui.Bar(x=496, y=320, w=192, h=12, color=COL_RUN,
                 min=0, max=WAIT_CEILING_S, value=0)
-sc_hs = ui.Scale(x=484, y=250, w=200, h=44, color=COL_TEXT,
+sc_hs = ui.Scale(x=496, y=340, w=192, h=44, color=COL_TEXT,
                  min=0, max=WAIT_CEILING_S)
-sc_hs.ticks(16, 5)
-
-# การ์ดขวาล่าง: ตัวนับใบที่ส่ง กับปุ่มสั่งงานสองปุ่มแยกกัน
-ui.Panel(x=470, y=308, w=306, h=80, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ส่งแล้ว (ใบ)", x=484, y=312, color=COL_DIM, value=14)
-seg_sent = ui.Seg7("0", x=484, y=332, w=110, h=40, color=COL_TEXT)
-btn_conn = ui.Button("ต่อใหม่", x=606, y=312, w=80, h=32, color=0x1B5E20, value=14)
-btn_disc = ui.Button("ตัดสาย", x=606, y=350, w=80, h=32, color=0x37474F, value=14)
+# ไม้บรรทัดยาว 192 มีที่พอสำหรับตัวเลขสามตัว คือ 0 15 30 มากกว่านั้นเลขจะทับกัน
+sc_hs.ticks(7, 3)
 
 # กล่องยืนยัน: ตัดสายคือคำสั่งที่ถอยกลับไม่ได้ทันที ต้องจับมือ TLS ใหม่ทั้งชุด
 # คำยืนยันจึงบอกสิ่งที่จะเกิด ไม่ใช่ถามลอย ๆ ว่า "แน่ใจไหม"
 # ปุ่มในตัว MsgBox เองยังไม่ส่งเหตุการณ์กลับมาให้ Python เห็น จึงใช้ ui.Button จริง
-box = ui.MsgBox("ตัดสาย\nต้องจับมือ TLS ใหม่ทั้งชุด", x=30, y=120, w=412, h=104,
+box = ui.MsgBox("ตัดสาย\nต้องจับมือ TLS ใหม่ทั้งชุด", x=112, y=96, w=568, h=136,
                 color=COL_CARD)
-btn_yes = ui.Button("ตัดสาย", x=60, y=246, w=150, h=46, color=0x37474F, value=16)
-btn_no = ui.Button("ไม่ตัด", x=240, y=246, w=150, h=46, color=0x37474F, value=16)
+btn_yes = ui.Button("ตัดสาย", x=144, y=248, w=200, h=88, color=0x171B22, value=20)
+btn_no = ui.Button("ไม่ตัด", x=376, y=248, w=200, h=88, color=0x171B22, value=20)
 box.hide()
 btn_yes.hide()
 btn_no.hide()
@@ -176,7 +182,7 @@ while tesaiot.is_connected():
     #   และโปรแกรมที่ส่งต่อไปเฉย ๆ จะทำข้อมูลหายทั้งชั่วโมงโดยไม่มีใครรู้ตัวสักคน
     pass
 
-    seg_sent.text(str(sent))
+    lbl_sent.text("ส่งแล้ว " + str(sent) + " ใบ")
 
     # --- ท่าที่ 5: ปุ่มบนจอ กับคำสั่งที่ถอยกลับไม่ได้ (เขียนมาให้แล้ว) ---
     # ปุ่มถูกถามระหว่างรอบส่ง ไม่ใช่ถามถี่ ๆ ทุกมิลลิวินาที นิ้วคนไม่ได้เร็วขนาดนั้น

@@ -77,31 +77,31 @@ lcd.print("<span class=ok>" + TAIL + "</span>")
 ui.screen()
 time.sleep_ms(200)
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD, COL_OK, COL_RUN = 0x142240, 0x00E676, 0x4FC3F7
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD, COL_OK, COL_RUN = 0x171B22, 0x30A46C, 0x4A9EFF
 BYTE_LIMIT = 127
 
 # ui.Panel คือพื้นหลังของการ์ด ของอื่นวางทับได้ - min คือสีขอบ max คือความมน value คือความหนาขอบ
-ui.Panel(x=16, y=6, w=760, h=372, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ป้ายประจำทีม", x=32, y=14, color=COL_DIM, value=18)
+ui.Panel(x=16, y=8, w=760, h=372, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ป้ายประจำทีม", x=32, y=16, color=COL_DIM, value=20)
 ui.Label(TEAM_NAME, x=32, y=40, color=COL_TEXT, value=28)
-ui.Label(MOTTO, x=32, y=84, color=COL_DIM, value=18)
+ui.Label(MOTTO, x=32, y=84, color=COL_DIM, value=20)
 
 # ui.Table จัดคอลัมน์ให้เอง ถ้าเรียง ui.Label เองต้องนับพิกเซลทุกแถว และพอชื่อยาว
 # ไม่เท่ากัน คอลัมน์ที่สองจะเยื้องกันจนอ่านไม่ออก - ตารางจริงแก้ปัญหานี้ให้ตั้งแต่แรก
 # แถวหนึ่งสูงราว 62 พิกเซล ตารางหัวหนึ่งแถวบวกสมาชิกสามคนจึงต้องการความสูง 250
-tbl = ui.Table(x=32, y=114, w=340, h=252, cols=2)
+tbl = ui.Table(x=32, y=116, w=340, h=252, cols=2)
 tbl.col_width(0, 100)
 tbl.col_width(1, 230)
 tbl.add_row("ลำดับ", "ชื่อสมาชิก")
 
 # ไฟสองดวงแทนการเขียนสถานะด้วยสีตัวอักษร ไฟมีทั้งรูปทรงและความสว่าง
 # ถ่ายรูปจอเป็นขาวดำแล้วยังแยกออกว่าดวงไหนติด ส่วนตัวหนังสือสีเขียวกับสีเทาแยกไม่ออก
-ui.Label("สถานะการเขียนตาราง", x=400, y=114, color=COL_DIM, value=16)
-led_run = ui.Led(x=406, y=142, w=34, h=34, color=COL_RUN, value=1)
-ui.Label("กำลังเขียน", x=452, y=148, color=COL_DIM, value=18)
-led_done = ui.Led(x=406, y=186, w=34, h=34, color=COL_OK, value=0)
-ui.Label("เขียนครบแล้ว", x=452, y=192, color=COL_DIM, value=18)
+ui.Label("สถานะการเขียนตาราง", x=400, y=116, color=COL_DIM, value=20)
+led_run = ui.Led(x=408, y=144, w=48, h=48, color=COL_RUN, value=1)
+ui.Label("กำลังเขียน", x=452, y=148, color=COL_DIM, value=20)
+led_done = ui.Led(x=408, y=188, w=48, h=48, color=COL_OK, value=0)
+ui.Label("เขียนครบแล้ว", x=452, y=192, color=COL_DIM, value=20)
 
 # ลูปนี้เดินรายชื่อชุดเดิมกับท่าที่ 3 แต่ปลายทางคนละที่ - นั่นคือประเด็นทั้งหมดของคาบนี้
 # ท่าที่ 3 พิมพ์เข้าลิ้นชัก ท่านี้เขียนลงตารางบนจอ ข้อมูลชุดเดียวไปได้สองที่พร้อมกัน
@@ -118,10 +118,10 @@ led_done.value(1)
 # --- มาตรวัดไบต์: ตัวเลขลอย ๆ ไม่บอกว่าใกล้เพดานแค่ไหน มาตรวัดบอก ---
 # ภาษาไทยตัวละ 3 ไบต์ บรรทัดที่ดูสั้นบนจอคอมจึงกินโควตาเร็วกว่าที่ตาประเมิน
 used = len(TAIL.encode())
-ui.Label("ความยาวบรรทัดปิดท้าย จากเพดาน 127", x=400, y=240, color=COL_DIM, value=16)
-ui.Bar(x=406, y=270, w=330, h=14, color=COL_OK, min=0, max=BYTE_LIMIT, value=used)
-ui.Scale(x=406, y=288, w=330, h=44, color=COL_TEXT, min=0, max=BYTE_LIMIT)
-ui.Label(str(used) + " ไบต์", x=406, y=336, color=COL_TEXT, value=20)
+ui.Label("ความยาวบรรทัดปิดท้าย จากเพดาน 127", x=400, y=240, color=COL_DIM, value=20)
+ui.Bar(x=408, y=272, w=332, h=16, color=COL_OK, min=0, max=BYTE_LIMIT, value=used)
+ui.Scale(x=408, y=288, w=332, h=44, color=COL_TEXT, min=0, max=BYTE_LIMIT)
+ui.Label(str(used) + " ไบต์", x=408, y=336, color=COL_TEXT, value=20)
 ui.poll()
 
 # ปิดท้ายฝั่งคอมด้วย เผื่อทีมไหนจอมีปัญหา จะได้รู้ว่าโค้ดรันจบจริง

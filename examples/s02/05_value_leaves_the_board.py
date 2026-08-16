@@ -34,38 +34,44 @@ TOPIC = "bento/eva-team03/telemetry"
 N = 12               # ส่งกี่ใบแล้วหยุด
 GAP_MS = 2000        # เว้นระหว่างใบกี่ ms
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("ส่งค่าออกจากบอร์ด", x=20, y=12, color=COL_TEXT, value=24)
+# ผังจอ: หัวเรื่องกับคำเตือนเรื่องพอร์ตอยู่แถวบนสุด แล้วสองการ์ดเรียงลงมา
+# คำเตือนย้ายขึ้นมาบนสุดเพราะมันต้องอ่านก่อนกดรัน ไม่ใช่หลังจากส่งของออกไปแล้ว
+ui.Label("ส่งค่าออกจากบอร์ด", x=24, y=8, color=COL_TEXT, value=24)
+ui.Label("พอร์ต 1883 ไม่เข้ารหัส ห้ามส่งของลับ", x=384, y=16,
+         color=COL_WARN, value=20)
 
-ui.Panel(x=20, y=52, w=650, h=124, color=COL_CARD, min=COL_DIM, max=12,
+# บันไดสามขั้น ห่างกันขั้นละ 40 เพราะตัวอักษร 24 สูงราว 32 px รวมสระบนล่าง
+# ข้อความยาวสุดคือ "2) broker    ต่อแล้ว <IP>" ซึ่งกินราว 490 px ยังไม่ถึงขอบการ์ด
+ui.Panel(x=24, y=56, w=744, h=144, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
-st_wifi = ui.Label("1) WiFi      ยังไม่ถึงคิว", x=36, y=64, color=COL_DIM,
+st_wifi = ui.Label("1) WiFi      ยังไม่ถึงคิว", x=40, y=72, color=COL_DIM,
                    value=20)
-st_broker = ui.Label("2) broker    ยังไม่ถึงคิว", x=36, y=100, color=COL_DIM,
+st_broker = ui.Label("2) broker    ยังไม่ถึงคิว", x=40, y=112, color=COL_DIM,
                      value=20)
-st_pub = ui.Label("3) publish   ยังไม่ถึงคิว", x=36, y=136, color=COL_DIM,
-                  value=20)
+st_pub = ui.Label("3) publish   ยังไม่ถึงคิว", x=40, y=152, color=COL_DIM,
+                  value=16)
 
-ui.Panel(x=20, y=190, w=650, h=132, color=COL_CARD, min=COL_DIM, max=12,
+ui.Panel(x=24, y=216, w=744, h=120, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
-ui.Label("ส่งไปแล้ว (ใบ)", x=36, y=202, color=COL_DIM, value=16)
-seg = ui.Seg7(text="0", x=36, y=226, w=170, h=72, color=COL_INFO)
+ui.Label("ส่งไปแล้ว (ใบ)", x=40, y=232, color=COL_DIM, value=16)
+seg = ui.Seg7(text="0", x=40, y=264, w=160, h=56, color=COL_ACCENT)
 
-ui.Label("ความคืบหน้า", x=240, y=202, color=COL_DIM, value=16)
-bar = ui.Bar(x=240, y=228, w=400, h=24, min=0, max=N, value=0)
-bar.color(COL_INFO)
-payload_lbl = ui.Label("ยังไม่ได้ประกอบ payload", x=240, y=268, color=COL_DIM,
-                       value=18)
+ui.Label("ความคืบหน้า", x=248, y=232, color=COL_DIM, value=20)
+bar = ui.Bar(x=248, y=264, w=328, h=24, min=0, max=N, value=0)
+bar.color(COL_ACCENT)
+payload_lbl = ui.Label("ยังไม่ได้ประกอบ payload", x=248, y=296, color=COL_DIM,
+                       value=20)
 
-note = ui.Label("กำลังเริ่ม", x=20, y=336, color=COL_DIM, value=18)
-ui.Label("พอร์ต 1883 ไม่เข้ารหัส ห้ามส่งของลับ", x=20, y=368,
-         color=COL_WARN, value=16)
+note = ui.Label("กำลังเริ่ม", x=24, y=352, color=COL_DIM, value=16)
 ui.poll()
 
 lcd.clear()

@@ -21,9 +21,9 @@ import ui
 # สี่ตัวหลังคือที่โค้ดจากอินเทอร์เน็ตชอบเรียกหา
 ASK = ("Pin", "I2C", "PDM_PCM", "RTC", "PWM", "ADC", "SPI", "Timer")
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_BAD, COL_INFO = 0x00E676, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_BAD, COL_INFO = 0x30A46C, 0xE5484D, 0x4A9EFF
 
 # ถามครั้งเดียว เก็บ dict ไว้ในตัวแปร แล้วอ่านจากตัวแปรตลอดทั้งไฟล์
 info = gpio.board_info()
@@ -32,23 +32,23 @@ ui.screen()
 time.sleep_ms(200)
 
 ui.Label("บอร์ดตอบเองว่ามีอะไร", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=104, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=52, w=652, h=104, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
 ui.Label("ชื่อบอร์ด", x=40, y=64, color=COL_DIM, value=16)
-ui.Label(info["name"], x=40, y=90, color=COL_INFO, value=24)
+ui.Label(info["name"], x=40, y=92, color=COL_INFO, value=24)
 
 ui.Label("หลอด", x=440, y=64, color=COL_DIM, value=16)
-seg_led = ui.Seg7(text=str(info["leds"]), x=440, y=88, w=70, h=56,
+seg_led = ui.Seg7(text=str(info["leds"]), x=440, y=88, w=72, h=56,
                   color=COL_OK)
 
 ui.Label("ปุ่ม", x=540, y=64, color=COL_DIM, value=16)
-seg_btn = ui.Seg7(text=str(info["buttons"]), x=540, y=88, w=70, h=56,
+seg_btn = ui.Seg7(text=str(info["buttons"]), x=540, y=88, w=72, h=56,
                   color=COL_OK)
 
-led_row = ui.Label("กำลังอ่านรายชื่อหลอด", x=20, y=166, color=COL_TEXT,
-                   value=18)
-btn_row = ui.Label("กำลังอ่านรายชื่อปุ่ม", x=20, y=194, color=COL_TEXT,
-                   value=18)
+led_row = ui.Label("กำลังอ่านรายชื่อหลอด", x=20, y=168, color=COL_TEXT,
+                   value=20)
+btn_row = ui.Label("กำลังอ่านรายชื่อปุ่ม", x=20, y=196, color=COL_TEXT,
+                   value=20)
 
 ui.Label("ถาม machine ว่ามีคำสั่งไหนจริง", x=20, y=228, color=COL_TEXT,
          value=20)
@@ -58,10 +58,10 @@ ui.Label("ถาม machine ว่ามีคำสั่งไหนจริ�
 cells = []
 for i in range(4):
     cells.append(ui.Label("รอถาม", x=40, y=256 + i * 26, color=COL_DIM,
-                          value=18))
+                          value=20))
 for i in range(4):
     cells.append(ui.Label("รอถาม", x=380, y=256 + i * 26, color=COL_DIM,
-                          value=18))
+                          value=20))
 
 note = ui.Label("ยังไม่ได้ถามอะไรเลย", x=20, y=368, color=COL_DIM, value=16)
 ui.poll()

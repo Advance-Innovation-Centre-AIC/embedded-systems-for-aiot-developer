@@ -35,37 +35,51 @@ for i in range(N_SAMPLES):
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("median กับ ค่าเฉลี่ย ตอนเจอค่าหลุด", x=12, y=8, value=20)
-lbl_pos = ui.Label("", x=470, y=8, value=20, color=0x50D890)
+ui.Label("median กับ ค่าเฉลี่ย ตอนเจอค่าหลุด", x=24, y=24, value=24)
+lbl_pos = ui.Label("ท่า - / -", x=600, y=32, value=20, color=0x30A46C)
 
-ch = ui.Chart(x=12, y=36, w=420, h=200, min=0, max=110)   # หน่วยเป็นค่า x10
+# สีของสามเส้นต้องเป็นสีเดียวกับป้ายบอกสีที่อยู่ข้าง ๆ ไม่ใช่แค่ใกล้เคียง
+# เดิมป้ายเขียนว่าแดงด้วย 0xE5484D แต่เส้นเป็น 0xFF5555 คนละเฉด และเส้นค่าดิบ
+# ไม่ได้ตั้งสีไว้เลยทั้งที่ป้ายบอกว่าฟ้า - ป้ายที่บอกสีผิดคือป้ายที่พาไปหาเส้นผิดตัว
+ch = ui.Chart(x=24, y=76, w=428, h=164, min=0, max=110,
+              color=0x4A9EFF)                # หน่วยเป็นค่า x10
 s_raw = 0
-s_mean = ch.add_series(0xFF5555)
-s_med = ch.add_series(0x55FF88)
+s_mean = ch.add_series(0xE5484D)
+s_med = ch.add_series(0x30A46C)
 
-ui.Label("ฟ้า = ค่าดิบ (มี spike)", x=446, y=38, value=16, color=0x00BFFF)
-ui.Label("แดง = SMA", x=446, y=60, value=16, color=0xFF5555)
-ui.Label("เขียว = Median", x=446, y=82, value=16, color=0x55FF88)
-lbl_win = ui.Label("", x=446, y=108, value=24, color=0xFFD24A)
-ui.Label("SMA เบี่ยงสูงสุด (x100)", x=446, y=140, value=14)
-seg_mean = ui.Seg7(x=446, y=158, w=150, h=40, color=0xFF5555)
-ui.Label("median เบี่ยงสูงสุด (x100)", x=446, y=196, value=14)
-seg_med = ui.Seg7(x=446, y=214, w=150, h=40, color=0x55FF88)
-lbl_note = ui.Label("", x=12, y=238, value=16)
+# คอลัมน์ขวา: ป้ายบอกสี แล้ว N แล้วตัวเลขสองตัว
+# ซ้าย-ขวาของ Seg7 สองตัวตรงกับป้าย SMA / Median ที่อยู่เหนือมัน คนที่แยกสี
+# ไม่ออกจึงยังบอกได้ว่าตัวไหนของใคร ตาม S7.7.1 ที่ห้ามสื่อสถานะด้วยสีอย่างเดียว
+ui.Label("ฟ้า = ค่าดิบ (มี spike)", x=472, y=76, value=16, color=0x4A9EFF)
+ui.Label("แดง = SMA", x=472, y=108, value=16, color=0xE5484D)
+ui.Label("เขียว = Median", x=608, y=108, value=16, color=0x30A46C)
+lbl_win = ui.Label("N = -", x=472, y=140, value=24, color=0xF5A623)
+ui.Label("เบี่ยงสูงสุด (x100)", x=560, y=144, value=16)
+seg_mean = ui.Seg7(x=472, y=180, w=136, h=48, color=0xE5484D)
+seg_med = ui.Seg7(x=624, y=180, w=136, h=48, color=0x30A46C)
 
-btn_prev = ui.Button("< ย้อน", x=20, y=250, w=140, h=64, color=0x546E7A, value=20)
-btn_next = ui.Button("เดินหน้า >", x=176, y=250, w=160, h=64, color=0x1E88E5, value=20)
-btn_play = ui.Button(">> เล่นรวด", x=352, y=250, w=160, h=64, color=0x2E7D32, value=20)
-btn_home = ui.Button("เริ่มใหม่", x=528, y=250, w=140, h=64, color=0x6A1B9A, value=20)
+lbl_note = ui.Label("กำลังคำนวณ", x=24, y=248, value=16)
+bar_pos = ui.Bar(x=520, y=252, w=168, h=16, min=0, max=len(WINDOWS) - 1,
+                 value=0)
+
+# แถวปุ่มสูง 88 ตามเกณฑ์เป้าสัมผัส ห่างกัน 32 และตัวขวาสุดจบที่ 680 ซึ่งอยู่
+# ซ้ายของมุมที่ปุ่มคอนโซลจองไว้ ปุ่มที่ยื่นเข้าไปในมุมนั้นจะกดไม่ได้
+btn_prev = ui.Button("< ย้อน", x=24, y=284, w=128, h=88, color=0x9AA3AF,
+                     value=20)
+btn_next = ui.Button("เดินหน้า >", x=184, y=284, w=152, h=88, color=0x4A9EFF,
+                     value=20)
+btn_play = ui.Button(">> เล่นรวด", x=368, y=284, w=152, h=88, color=0x30A46C,
+                     value=20)
+btn_home = ui.Button("เริ่มใหม่", x=552, y=284, w=128, h=88, color=0x4A9EFF,
+                     value=20)
 ID_PREV, ID_NEXT = btn_prev.id(), btn_next.id()
 ID_PLAY, ID_HOME = btn_play.id(), btn_home.id()
-
-bar_pos = ui.Bar(x=20, y=322, w=300, h=14, min=0, max=len(WINDOWS) - 1, value=0)
-lbl_hint = ui.Label("", x=336, y=318, value=16, color=0x90A4AE)
 
 lcd.clear()
 lcd.console("<h2>median เทียบ ค่าเฉลี่ย</h2>")
 lcd.print("ฐาน", BASE, "| spike", SPIKE, "| spike ติดกัน", BURST, "ตัว")
+lcd.print("<span class=muted>กดเดินหน้าเพื่อขยายหน้าต่าง N "
+          "- ระหว่างเล่นรวด กดปุ่มไหนก็หยุด</span>")
 
 i = 0                   # ท่าปัจจุบัน - ความจริงของโปรแกรมอยู่ที่ตัวนี้
 playing = False
@@ -79,7 +93,11 @@ def show():
     worst_mean = 0.0
     worst_med = 0.0
 
-    # ป้อนครบ 50 จุดในท่าเดียว หน้าต่างของ Chart กว้าง 50 พอดี ภาพเดิมถูกแทนที่หมด
+    # ---- 1) คิดให้จบก่อน ยังไม่แตะจอเลยสักคำสั่ง ----
+    # คิดครบทั้ง 50 จุดแล้วเก็บไว้ในลิสต์ ตรงนี้ไม่มีคำสั่งไปหาคอร์จอแม้แต่คำสั่งเดียว
+    pts_raw = []
+    pts_mean = []
+    pts_med = []
     for x in samples:
         mean_buf.append(x)
         if len(mean_buf) > window:
@@ -92,12 +110,17 @@ def show():
         if abs(mv - BASE) > worst_med:
             worst_med = abs(mv - BASE)
 
-        ch.set_next(s_raw, int(x * 10.0))
-        ch.set_next(s_mean, int(m * 10.0))
-        ch.set_next(s_med, int(mv * 10.0))
+        pts_raw.append(int(x * 10.0))
+        pts_mean.append(int(m * 10.0))
+        pts_med.append(int(mv * 10.0))
 
     tolerated = (window - 1) // 2
-    lbl_pos.text("ท่า %d / %d" % (i + 1, len(WINDOWS)))
+
+    # ---- 2) รายงานตัวเลขทั้งหมดก่อน แล้วค่อยวาดกราฟทีหลัง ----
+    # ป้ายมุมขวาบนบอกทั้งตำแหน่งและสถานะ "กำลังเล่นรวด" ในบรรทัดเดียว
+    # จอนี้ไม่มีที่ให้ป้ายใบ้แยกอีกใบ และสองเรื่องนี้เป็นเรื่องเดียวกันอยู่แล้ว
+    lbl_pos.text(("เล่นรวด %d / %d" if playing else "ท่า %d / %d")
+                 % (i + 1, len(WINDOWS)))
     lbl_win.text("N = %d" % window)
     seg_mean.text(str(int(worst_mean * 100)))
     seg_med.text(str(int(worst_med * 100)))
@@ -108,8 +131,18 @@ def show():
         lbl_note.text("กัน spike ติดกันได้ %d ตัว -> กลุ่ม %d ตัว median แพ้"
                       % (tolerated, BURST))
     bar_pos.value(i)
-    lbl_hint.text("กำลังเล่นรวด - กดปุ่มไหนก็หยุด" if playing
-                  else "กดเดินหน้าเพื่อขยายหน้าต่าง N")
+
+    # ---- 3) ค่อยเทจุดลงกราฟเป็นอย่างสุดท้าย ----
+    # ลำดับสองขั้นบนสลับกันไม่ได้ และนี่คือกับดักที่มองไม่เห็นจากโค้ด
+    # คำสั่ง set_next() 150 ครั้งรวดเดียวถมคิว IPC จนเต็ม คำสั่งที่ต่อคิวอยู่ข้างหลัง
+    # ถูกทิ้งเงียบ ๆ ไม่มี error ไม่มีค่าคืนมาให้เช็ก เพราะมันเป็นแบบยิงแล้วลืม
+    # เดิมไฟล์นี้วาดกราฟก่อนแล้วค่อยสั่งเปลี่ยนข้อความ ผลคือป้ายสามใบค้างอยู่ที่
+    # ค่าตั้งต้นและ Seg7 ค้างที่ 0000 ตลอดกาล - เห็นได้จากภาพเรนเดอร์เท่านั้น
+    for k in range(len(pts_raw)):
+        ch.set_next(s_raw, pts_raw[k])
+        ch.set_next(s_mean, pts_mean[k])
+        ch.set_next(s_med, pts_med[k])
+
     lcd.print("N=" + str(window) + " SMA เบี่ยง " + str(round(worst_mean, 2)) +
               " median " + str(round(worst_med, 2)))
 

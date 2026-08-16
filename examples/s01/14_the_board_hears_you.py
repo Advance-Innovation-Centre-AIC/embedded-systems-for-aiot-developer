@@ -23,9 +23,9 @@ TICK_MS = 80         # คาบของลูป ถี่กว่านี�
 CLAP_PEAK = 12000    # ค่ายอดเท่าไรถึงนับว่าเป็นการตบมือ จาก 32768 เต็มสเกล
 CLAP_GAP_MS = 400    # ห้ามนับซ้ำภายในกี่ ms กันเสียงก้องถูกนับเป็นครั้งที่สอง
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x30A46C, 0xF5A623, 0xE5484D, 0x4A9EFF
 
 
 def meter_bytes(level):
@@ -50,37 +50,37 @@ ui.screen()
 time.sleep_ms(200)
 
 ui.Label("บอร์ดได้ยินเสียงคุณ", x=20, y=12, color=COL_TEXT, value=24)
-status = ui.Label("กำลังเปิดไมค์", x=20, y=48, color=COL_WARN, value=18)
+status = ui.Label("กำลังเปิดไมค์", x=20, y=48, color=COL_WARN, value=20)
 ui.Label("มิเตอร์จุด 8x8", x=480, y=52, color=COL_DIM, value=16)
 
-ui.Panel(x=20, y=78, w=430, h=190, color=COL_CARD, min=COL_DIM, max=12,
+ui.Panel(x=20, y=80, w=432, h=192, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
 
 ui.Label("ความดังตอนนี้", x=36, y=88, color=COL_DIM, value=16)
-seg_now = ui.Seg7(text="0", x=36, y=112, w=170, h=60, color=COL_OK)
+seg_now = ui.Seg7(text="0", x=36, y=112, w=172, h=60, color=COL_OK)
 
-ui.Label("ดังสุดที่เจอ", x=226, y=88, color=COL_DIM, value=16)
-seg_max = ui.Seg7(text="0", x=226, y=112, w=170, h=60, color=COL_WARN)
+ui.Label("ดังสุดที่เจอ", x=228, y=88, color=COL_DIM, value=16)
+seg_max = ui.Seg7(text="0", x=228, y=112, w=172, h=60, color=COL_WARN)
 
-ui.Label("แถบเดียวกัน", x=36, y=186, color=COL_DIM, value=16)
+ui.Label("แถบเดียวกัน", x=36, y=188, color=COL_DIM, value=16)
 
 # Bar ไม่รับ color= ตอนสร้าง ต้องเรียก .color() หลังสร้างถึงจะเปลี่ยนสีได้จริง
-bar = ui.Bar(x=36, y=210, w=390, h=26, min=0, max=100, value=0)
+bar = ui.Bar(x=36, y=212, w=392, h=28, min=0, max=100, value=0)
 bar.color(COL_OK)
 
 # DotMatrix กำหนดจำนวนดวงด้วย cols= กับ rows= ไม่ใช่ด้วย w= กับ h=
 # ส่วน w กับ h เป็นตัวบอกระยะห่างของดวง เพดานคือ 16x16
 dots = ui.DotMatrix(x=480, y=80, w=180, h=180, cols=8, rows=8)
-ui.Label("จ่อปากใกล้ ๆ แล้วพูด", x=480, y=266, color=COL_DIM, value=16)
+ui.Label("จ่อปากใกล้ ๆ แล้วพูด", x=480, y=268, color=COL_DIM, value=16)
 
-ui.Label("คิวค้าง (ms)", x=20, y=282, color=COL_DIM, value=16)
-seg_lag = ui.Seg7(text="0", x=20, y=306, w=140, h=48, color=COL_INFO)
+ui.Label("คิวค้าง (ms)", x=20, y=284, color=COL_DIM, value=16)
+seg_lag = ui.Seg7(text="0", x=20, y=308, w=140, h=48, color=COL_INFO)
 
-ui.Label("ตบมือ (ครั้ง)", x=190, y=282, color=COL_DIM, value=16)
-seg_clap = ui.Seg7(text="0", x=190, y=306, w=140, h=48, color=COL_OK)
+ui.Label("ตบมือ (ครั้ง)", x=192, y=284, color=COL_DIM, value=16)
+seg_clap = ui.Seg7(text="0", x=192, y=308, w=140, h=48, color=COL_OK)
 
-ui.Label("ยอด peak", x=380, y=282, color=COL_DIM, value=16)
-seg_peak = ui.Seg7(text="0", x=380, y=306, w=160, h=48, color=COL_WARN)
+ui.Label("ยอด peak", x=380, y=284, color=COL_DIM, value=16)
+seg_peak = ui.Seg7(text="0", x=380, y=308, w=160, h=48, color=COL_WARN)
 ui.poll()
 
 lcd.clear()

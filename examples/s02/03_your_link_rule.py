@@ -25,9 +25,11 @@ STEP_MS = 120        # เล่นเทปช้า ๆ ให้ตามอ�
 OK_IP = "192.168.1.42"
 NO_IP = "0.0.0.0"
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_BAD = 0x00E676, 0xFF5252
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
+COL_OK, COL_BAD = 0x30A46C, 0xE5484D
 
 # เทปผลตรวจ แต่ละแถวคือคำตอบของ wifi.is_connected() กับ wifi.ip() ในรอบนั้น
 # บันทึกมาจากบอร์ดจริงระหว่างที่มีคนเดินถือมันออกนอกห้องแล้วเดินกลับมา
@@ -61,27 +63,35 @@ def is_usable(online, ip):
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("เขียนกฎว่าลิงก์แบบไหนใช้ได้จริง", x=20, y=12, color=COL_TEXT,
+# ผังจอ: หัวเรื่องหนึ่งบรรทัด การ์ดตัวเลขสามช่อง กราฟหนึ่งช่อง แล้วสองบรรทัดสรุป
+# สามช่องในการ์ดวางห่างกัน 96 px เพราะ Seg7 กว้าง 144 และป้ายหัวช่องยาวสุด 11 ตัว
+ui.Label("เขียนกฎว่าลิงก์แบบไหนใช้ได้จริง", x=24, y=8, color=COL_TEXT,
          value=24)
-ui.Panel(x=20, y=52, w=650, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=24, y=56, w=744, h=128, color=COL_CARD, min=COL_CARD, max=12,
+         value=1)
 
-ui.Label("กฎคุณรายงาน", x=40, y=62, color=COL_DIM, value=16)
-seg_got = ui.Seg7(text="0", x=40, y=86, w=150, h=52, color=COL_BAD)
+ui.Label("กฎคุณรายงาน", x=40, y=72, color=COL_DIM, value=16)
+seg_got = ui.Seg7(text="0", x=40, y=104, w=144, h=64, color=COL_BAD)
 
-ui.Label("ควรรายงาน", x=230, y=62, color=COL_DIM, value=16)
-seg_want = ui.Seg7(text=str(WANT_REPORTS), x=230, y=86, w=150, h=52,
-                   color=COL_OK)
+# เลขเป้าหมายไม่ใช่สถานะ จึงใช้สีข้อความ ไม่ใช่สีเขียว - เขียวแปลว่า "ยืนยันว่าปกติ"
+# ถ้าเลขนี้เขียวค้างไว้ตลอด ตาจะอ่านว่าผ่านแล้วทั้งที่ยังไม่ได้เริ่มตรวจ
+ui.Label("ควรรายงาน", x=280, y=72, color=COL_DIM, value=16)
+seg_want = ui.Seg7(text=str(WANT_REPORTS), x=280, y=104, w=144, h=64,
+                   color=COL_TEXT)
 
-ui.Label("รอบที่", x=420, y=62, color=COL_DIM, value=16)
-seg_round = ui.Seg7(text="0", x=420, y=86, w=150, h=52, color=COL_TEXT)
+ui.Label("รอบที่", x=520, y=72, color=COL_DIM, value=16)
+seg_round = ui.Seg7(text="0", x=520, y=104, w=144, h=64, color=COL_TEXT)
 
-chart = ui.Chart(x=20, y=166, w=650, h=110, color=COL_CARD, min=0, max=100)
-s_link = chart.add_series(COL_OK)
-
-ui.Label("เขียวสูง = ใช้ได้  ต่ำ = ใช้ไม่ได้", x=20, y=282, color=COL_DIM,
+# คำอธิบายเส้นบอกด้วยคำว่า สูง/ต่ำ ไม่ใช่ด้วยชื่อสี จอขาวดำก็ยังอ่านออก (§S7.7.1)
+ui.Label("เส้นสูง = ใช้ได้  เส้นต่ำ = ใช้ไม่ได้", x=24, y=192, color=COL_DIM,
          value=16)
-now_lbl = ui.Label("ยังไม่เริ่มเล่นเทป", x=20, y=310, color=COL_DIM, value=20)
-result_lbl = ui.Label("ยังไม่ได้ตรวจ", x=20, y=344, color=COL_DIM, value=20)
+
+# เส้นกราฟค่าเดียวใช้สีเน้นเสมอ เขียวสงวนไว้บอกว่า "ปกติ" อย่างเดียว
+chart = ui.Chart(x=24, y=232, w=744, h=72, color=COL_CARD, min=0, max=100)
+s_link = chart.add_series(COL_ACCENT)
+
+now_lbl = ui.Label("ยังไม่เริ่มเล่นเทป", x=24, y=312, color=COL_DIM, value=20)
+result_lbl = ui.Label("ยังไม่ได้ตรวจ", x=24, y=352, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

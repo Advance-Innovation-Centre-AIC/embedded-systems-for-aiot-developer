@@ -23,11 +23,11 @@ MIN_THRESH = 900   # พื้นล่างของเกณฑ์ กัน�
 REFRACT_MS = 250   # หลังนับหนึ่งครั้ง ห้ามนับซ้ำภายในเวลานี้
 
 ui.screen()
-ui.Label("สวิตช์ไฟตบมือ", x=12, y=6, value=24)
+ui.Label("สวิตช์ไฟตบมือ", x=12, y=8, value=24)
 # วางไว้แถบล่าง ไม่ใช่ใต้หัวเรื่อง เพราะพื้นที่บนคือรอยเท้าของกราฟที่จะสร้าง
 # หลังได้เกณฑ์แล้ว ป้ายชั่วคราวที่นั่งทับที่ของ widget ตัวถัดไปคือนิสัยที่พาไปชนจริง
-busy = ui.Label("กำลังวัดพื้นเสียง อยู่เงียบ ๆ", x=12, y=246, value=16,
-                color=0xFFC83D)
+busy = ui.Label("กำลังวัดพื้นเสียง อยู่เงียบ ๆ", x=12, y=248, value=16,
+                color=0xF5A623)
 ui.poll()
 
 lcd.clear()
@@ -52,20 +52,20 @@ busy.hide()
 lcd.print("พื้นเสียง", floor, "| เกณฑ์", thresh)
 
 # กราฟสร้างหลังได้เกณฑ์ เพราะแกน Y ตั้งจากเกณฑ์นั้น ถ้าสร้างก่อนจะต้องเดาสเกล
-ch = ui.Chart(x=12, y=40, w=470, h=200, min=0, max=y_max)
+ch = ui.Chart(x=12, y=40, w=472, h=200, min=0, max=y_max)
 s_peak = 0
 s_thr = ch.add_series(0xFF5555)
-ui.Label("ฟ้า = ค่าสูงสุดต่อหน้าต่าง", x=496, y=44, value=16, color=0x00BFFF)
-ui.Label("แดง = เกณฑ์ " + str(thresh), x=496, y=68, value=16, color=0xFF5555)
+ui.Label("ฟ้า = ค่าสูงสุดต่อหน้าต่าง", x=496, y=44, value=16, color=0x4A9EFF)
+ui.Label("แดง = เกณฑ์ " + str(thresh), x=496, y=68, value=16, color=0xE5484D)
 
 ui.Label("ตบไปแล้ว (ครั้ง)", x=496, y=104, value=16)
-seg = ui.Seg7(x=496, y=126, w=180, h=44)
-st = ui.Label("รอเสียงตบ", x=496, y=186, value=20, color=0x9AA0A6)
+seg = ui.Seg7(x=496, y=128, w=180, h=44)
+st = ui.Label("รอเสียงตบ", x=496, y=188, value=20, color=0x9AA3AF)
 
-ui.Panel(x=12, y=256, w=470, h=72)
-ui.Label("เกณฑ์นี้เป็นของห้องนี้เท่านั้น", x=24, y=264, value=20,
-         color=0xFFC83D)
-ui.Label("ย้ายห้องแล้วต้องรันใหม่", x=24, y=292, value=18, color=0xFFC83D)
+ui.Panel(x=12, y=256, w=472, h=72)
+ui.Label("เกณฑ์นี้เป็นของห้องนี้เท่านั้น", x=340, y=264, value=20,
+         color=0xF5A623)
+ui.Label("ย้ายห้องแล้วต้องรันใหม่", x=24, y=292, value=20, color=0xF5A623)
 seg.text("0")
 ui.poll()
 

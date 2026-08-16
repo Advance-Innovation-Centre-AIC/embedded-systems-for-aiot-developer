@@ -55,8 +55,8 @@ TRIALS = [
 # ลิ้นชัก Console เก็บบรรทัดไว้ให้เราอ่านย้อนหลัง แต่คนที่เดินมาดูโต๊ะเราตอนนี้
 # ต้องการหน้าเดียวที่ตอบได้ทันทีว่า "ทดลองไปกี่รอบ ผลเป็นยังไง แล้วตอนนี้ต่ออยู่ไหม"
 # หน้าจอจึงสร้างก่อน แล้วค่อยเติมข้อมูลลงไประหว่างทาง ไม่ใช่รอจนจบแล้วค่อยวาดทีเดียว
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD, COL_OK, COL_BAD = 0x142240, 0x00E676, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD, COL_OK, COL_BAD = 0x171B22, 0x30A46C, 0xE5484D
 WAIT_CEILING_MS = 85000        # เพดานที่คนยืนรอจริงได้ ก่อนจะสรุปว่าบอร์ดแฮงก์
 
 ui.screen()
@@ -66,33 +66,33 @@ time.sleep_ms(200)
 # ถ้าจัดด้วยมือจะเยื้องกันจนอ่านไม่ออกทันทีที่ทีมเปลี่ยนข้อความในช่อง cond
 # แถวหนึ่งสูงราว 70 พิกเซล และจะสูงเป็นสองเท่าทันทีที่ข้อความในช่องยาวเกิน
 # ความกว้างคอลัมน์แล้วตัดบรรทัด - ตั้ง col_width ให้พอกับข้อความที่ยาวที่สุดเสมอ
-tbl = ui.Table(x=16, y=34, w=500, h=352, cols=4)
+tbl = ui.Table(x=16, y=36, w=500, h=352, cols=4)
 tbl.col_width(0, 120)
 tbl.col_width(1, 190)
 tbl.col_width(2, 90)
 tbl.col_width(3, 100)
 tbl.add_row("ย่าน", "เงื่อนไข", "ผล", "ms")
 
-ui.Label("ผลการทดลองของทีม " + TEAM_NAME, x=16, y=6, color=COL_TEXT, value=20)
+ui.Label("ผลการทดลองของทีม " + TEAM_NAME, x=16, y=8, color=COL_TEXT, value=20)
 
 # ไฟสองดวงบอกสถานะลิงก์ ติดทีละดวงเสมอ - แผงที่ติดพร้อมกันสองดวงคือแผงที่อ่านไม่ออก
-ui.Panel(x=522, y=34, w=254, h=352, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("สถานะลิงก์ตอนนี้", x=536, y=42, color=COL_DIM, value=16)
-led_up = ui.Led(x=540, y=70, w=34, h=34, color=COL_OK, value=0)
-ui.Label("ต่ออยู่", x=584, y=76, color=COL_DIM, value=18)
-led_down = ui.Led(x=540, y=112, w=34, h=34, color=COL_BAD, value=1)
-ui.Label("ยังไม่ต่อ", x=584, y=118, color=COL_DIM, value=18)
-lbl_ip = ui.Label("IP: ยังไม่มี", x=536, y=162, color=COL_DIM, value=18)
+ui.Panel(x=524, y=36, w=256, h=352, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("สถานะลิงก์ตอนนี้", x=536, y=44, color=COL_DIM, value=20)
+led_up = ui.Led(x=540, y=72, w=48, h=48, color=COL_OK, value=0)
+ui.Label("ต่ออยู่", x=584, y=76, color=COL_DIM, value=20)
+led_down = ui.Led(x=596, y=112, w=48, h=48, color=COL_BAD, value=1)
+ui.Label("ยังไม่ต่อ", x=652, y=120, color=COL_DIM, value=20)
+lbl_ip = ui.Label("IP: ยังไม่มี", x=536, y=164, color=COL_DIM, value=20)
 
 # ที่มาของค่าต้องอยู่บนหน้าจอเดียวกับค่า ไม่ใช่อยู่ในหัวคนที่พิมพ์มันเข้าไป
-ui.Label("ตารางซ้าย = ค่าที่จดมือ", x=536, y=200, color=COL_DIM, value=14)
-ui.Label("ไม่ใช่ค่าที่วัดสดตอนนี้", x=536, y=222, color=COL_DIM, value=14)
+ui.Label("ตารางซ้าย = ค่าที่จดมือ", x=536, y=200, color=COL_DIM, value=20)
+ui.Label("ไม่ใช่ค่าที่วัดสดตอนนี้", x=536, y=224, color=COL_DIM, value=20)
 
 # มาตรวัดเวลา: เลข ms ลอย ๆ ไม่บอกว่านานไหม เทียบกับเพดาน 85 วินาทีแล้วบอกทันที
 # ui.Scale คือไม้บรรทัด ไม่มีเข็มและไม่รับ .value() ตัวที่ขยับคือ ui.Bar ที่วางทับ
-ui.Label("เวลาต่อเฉลี่ย เทียบเพดาน", x=536, y=254, color=COL_DIM, value=14)
-lbl_wait = ui.Label("- วินาที", x=536, y=276, color=COL_TEXT, value=20)
-bar_wait = ui.Bar(x=536, y=312, w=148, h=12, color=COL_OK,
+ui.Label("เวลาต่อเฉลี่ย เทียบเพดาน", x=528, y=256, color=COL_DIM, value=20)
+lbl_wait = ui.Label("- วินาที", x=536, y=292, color=COL_TEXT, value=20)
+bar_wait = ui.Bar(x=632, y=312, w=148, h=12, color=0x4A9EFF,
                   min=0, max=WAIT_CEILING_MS, value=0)
 sc_wait = ui.Scale(x=536, y=328, w=148, h=44, color=COL_TEXT,
                    min=0, max=WAIT_CEILING_MS // 1000)

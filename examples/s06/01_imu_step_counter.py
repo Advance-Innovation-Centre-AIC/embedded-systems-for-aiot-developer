@@ -32,24 +32,24 @@ lcd.print("เกณฑ์", THRESH, "m/s2 | ห้ามนับซ้ำใ�
 
 # ---- หน้าจอ ------------------------------------------------------------------
 ui.screen()
-ui.Label("ตัวนับก้าว - ทำไมต้องกรองก่อนนับ", x=12, y=6, value=24)
-ch = ui.Chart(x=12, y=40, w=470, h=232, min=0, max=Y_MAX)
+ui.Label("ตัวนับก้าว - ทำไมต้องกรองก่อนนับ", x=12, y=8, value=24)
+ch = ui.Chart(x=12, y=40, w=472, h=232, min=0, max=Y_MAX)
 s_raw = 0                          # ซีรีส์ 0 เกิดพร้อมกราฟ สีฟ้าเริ่มต้น
 s_ema = ch.add_series(0xFF5555)
 s_thr = ch.add_series(0xFFC107)
-ui.Label("ฟ้า = ขนาดความเร่งดิบ", x=496, y=44, value=16, color=0x00BFFF)
-ui.Label("แดง = หลังกรอง EMA", x=496, y=68, value=16, color=0xFF5555)
-ui.Label("เหลือง = เกณฑ์ 12 m/s2", x=496, y=92, value=16, color=0xFFC107)
+ui.Label("ฟ้า = ขนาดความเร่งดิบ", x=496, y=44, value=16, color=0x4A9EFF)
+ui.Label("แดง = หลังกรอง EMA", x=496, y=68, value=16, color=0xE5484D)
+ui.Label("เหลือง = เกณฑ์ 12 m/s2", x=496, y=92, value=16, color=0xF5A623)
 
 ui.Label("นับได้ (ก้าว)", x=496, y=128, value=16)
 seg = ui.Seg7(x=496, y=152, w=180, h=40)
-state = ui.Label("พร้อมนับก้าว", x=496, y=210, value=20, color=0x00E676)
+state = ui.Label("พร้อมนับก้าว", x=496, y=212, value=20, color=0x30A46C)
 
 # สองป้ายแทนหนึ่งก้อน - ui.Label ตัดที่ 126 ไบต์ และไทยตัวละ 3 ไบต์
-ui.Panel(x=12, y=286, w=662, h=74)
-ui.Label("วางนิ่ง ๆ สองเส้นทับกันสนิท", x=24, y=294, value=20, color=0xFFC107)
+ui.Panel(x=12, y=288, w=664, h=76)
+ui.Label("วางนิ่ง ๆ สองเส้นทับกันสนิท", x=24, y=296, value=20, color=0xF5A623)
 ui.Label("พอเขย่า เส้นแดงเรียบกว่าเส้นฟ้า", x=24, y=324, value=20,
-         color=0xFFC107)
+         color=0xF5A623)
 
 steps = 0
 above = False

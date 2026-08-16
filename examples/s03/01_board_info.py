@@ -10,8 +10,8 @@ import lcd
 import time
 import ui
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_OK, COL_WARN, COL_INFO = 0x00E676, 0xFFA726, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_OK, COL_WARN, COL_INFO = 0x30A46C, 0xF5A623, 0x4A9EFF
 
 # ถามครั้งเดียว เก็บ dict ไว้ในตัวแปร แล้วอ่านจากตัวแปรตลอดทั้งไฟล์
 info = gpio.board_info()
@@ -23,11 +23,11 @@ ui.screen()
 time.sleep_ms(200)              # ให้ CM55 ล้างจอให้จบก่อนค่อยวางของ
 
 ui.Label("บอร์ดตัวนี้มีอะไรบ้าง", x=20, y=12, color=COL_TEXT, value=24)
-ui.Label(info["name"], x=20, y=58, color=COL_INFO, value=24)
+ui.Label(info["name"], x=20, y=60, color=COL_INFO, value=24)
 
 # Seg7 รับ "ข้อความ" ไม่ใช่ตัวเลข สั่ง .value(3) แล้วจอจะนิ่งสนิทโดยไม่ฟ้องอะไรเลย
-seg = ui.Seg7(text=str(info["leds"]), x=20, y=100, w=70, h=48, color=COL_OK)
-rows = ui.Label("กำลังอ่านรายชื่อ", x=110, y=118, color=COL_TEXT, value=18)
+seg = ui.Seg7(text=str(info["leds"]), x=20, y=100, w=72, h=48, color=COL_OK)
+rows = ui.Label("กำลังอ่านรายชื่อ", x=112, y=120, color=COL_TEXT, value=20)
 
 lcd.print("ชื่อ:", info["name"])
 lcd.print("ไฟ", info["leds"], "ดวง | ปุ่ม", info["buttons"], "ปุ่ม")
@@ -49,7 +49,7 @@ for i, name in enumerate(info["btn_names"]):
 # กับดักของไฟล์นี้ ประกาศไว้บนจอเลย เพราะคนที่ก้มดูบอร์ดกับคนที่มองโค้ด
 # จะเรียกปุ่มเดียวกันคนละชื่อ แล้วคุยกันไม่รู้เรื่องอยู่ครึ่งชั่วโมง
 trap = ui.Label("บนแผ่นวงจรพิมพ์ว่า SW2", x=20, y=176, color=COL_WARN,
-                value=18)
+                value=20)
 # ข้อความเต็มส่งด้วย .text() เพราะช่องตอนสร้าง widget แคบกว่าช่องของ .text()
 trap.text("บนแผ่นวงจรพิมพ์ว่า SW2 แต่โค้ดเรียก " +
           info["btn_names"][0] + " ดัชนี 0")
@@ -65,7 +65,7 @@ for i in range(n):
     gpio.led(i).off()
 
 ui.Label("range(n) สั่งดับครบ " + str(n) + " ดวง โดยไม่ต้องรู้เลข 3 มาก่อน",
-         x=20, y=226, color=COL_OK, value=18)
+         x=20, y=228, color=COL_OK, value=20)
 lcd.print("<span class=ok>ดับไฟครบ", n, "ดวงแล้ว</span>")
 
 # บรรทัดนี้ถูกปิดไว้โดยตั้งใจ ปลดคอมเมนต์แล้วรันดูสักครั้ง

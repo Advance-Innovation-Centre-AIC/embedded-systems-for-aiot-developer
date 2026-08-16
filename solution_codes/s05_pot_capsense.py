@@ -27,9 +27,9 @@ time.sleep_ms(200)
 
 # จานสีของแผงควบคุม ไม่ใช่จานสีของงานตกแต่ง - สีจัดสงวนไว้ให้สถานะผิดปกติเท่านั้น
 # ค่าปกติจึงเป็นตัวหนังสือสีขาวบนการ์ดสีเข้ม ไม่มีสีไหนแย่งสายตาไปจากไฟสองดวง
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFC83D, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 # เกณฑ์เตือนเป็นค่าที่ผู้ใช้ตั้งเอง ไม่ใช่ค่าคงที่ที่ฝังอยู่ในโค้ด
 # สามบรรทัดนี้คือพิสัยที่ยอมให้ตั้ง กับก้าวของปุ่มเพิ่ม/ลด
@@ -52,74 +52,72 @@ try:
 except OSError:
     print("คอร์จอยังไม่ตอบรอบแรก จะลองใหม่ในลูป")
 
-ui.Label("แผงคุมลูกบิดกับแถบสัมผัส", x=16, y=6, color=COL_TEXT, value=24)
+ui.Label("แผงคุมลูกบิดกับแถบสัมผัส", x=16, y=8, color=COL_TEXT, value=24)
 
 # --- ท่าที่ 2: ค่าที่วัดได้ ต้องมาพร้อมพิสัยของมันเอง ---
 # ui.Panel คือพื้นหลังของการ์ด - min คือสีขอบ max คือความมน value คือความหนาขอบ
-ui.Panel(x=12, y=38, w=468, h=170, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ลูกบิดเทียบพิสัย 0-100", x=26, y=44, color=COL_DIM, value=16)
+ui.Panel(x=12, y=40, w=468, h=200, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ลูกบิดเทียบพิสัย 0-100", x=28, y=48, color=COL_DIM, value=20)
 # แถบค่าวางไว้ "เหนือ" ไม้บรรทัด เพราะ ui.Scale ไม่มีเข็มให้ - ตัวที่ขยับคือ ui.Bar
-pot_bar = ui.Bar(x=26, y=72, w=428, h=16, color=COL_OK, min=0, max=100, value=0)
-pot_scale = ui.Scale(x=26, y=90, w=428, h=44, color=COL_TEXT, min=0, max=100)
+pot_bar = ui.Bar(x=28, y=80, w=428, h=16, color=0x4A9EFF, min=0, max=100, value=0)
+pot_scale = ui.Scale(x=28, y=92, w=428, h=44, color=COL_TEXT, min=0, max=100)
 # ไม้บรรทัดแคบ ๆ ที่มีขีดเยอะเกินไป ตัวเลขจะเบียดกันจนอ่านไม่ออก
 # ขีดทั้งหมด 11 ขีด ใส่ตัวเลขทุกขีดที่สอง = 0 20 40 60 80 100 พอดี
 pot_scale.ticks(11, 2)
 
-ui.Label("เปอร์เซ็นต์ที่วัดได้", x=26, y=140, color=COL_DIM, value=14)
-lbl_pct = ui.Label("0.0 %", x=26, y=162, color=COL_TEXT, value=28)
-lbl_raw = ui.Label("ค่าดิบ 0", x=240, y=146, color=COL_DIM, value=16)
-lbl_volt = ui.Label("โวลต์ 0.000 V", x=240, y=174, color=COL_DIM, value=16)
+ui.Label("เปอร์เซ็นต์ที่วัดได้", x=28, y=152, color=COL_DIM, value=20)
+lbl_pct = ui.Label("0.0 %", x=28, y=180, color=COL_TEXT, value=28)
+lbl_raw = ui.Label("ค่าดิบ 0", x=252, y=148, color=COL_DIM, value=16)
+lbl_volt = ui.Label("โวลต์ 0.000 V", x=252, y=172, color=COL_DIM, value=16)
 
 # ท่าเดียวกันครึ่งหลัง: เกณฑ์ที่ผู้ใช้ตั้งเอง กับไฟสองดวงที่บอกสถานะ
 # ค่าที่วัดได้ต้องมีเกณฑ์อยู่ข้าง ๆ ไม่งั้นคนดูตอบไม่ได้ว่า 55 เปอร์เซ็นต์คือมากหรือน้อย
-ui.Panel(x=492, y=38, w=288, h=170, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("เกณฑ์เตือน (เปอร์เซ็นต์)", x=506, y=44, color=COL_DIM, value=16)
+ui.Panel(x=492, y=40, w=288, h=224, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("เกณฑ์เตือน (เปอร์เซ็นต์)", x=508, y=48, color=COL_DIM, value=20)
 # ui.Spinbox หนีบค่าให้อยู่ในพิสัยที่ตั้งไว้เอง คนป้อนจึงพิมพ์เกินพิสัยไม่ได้เลย
 # ข้อควรรู้ของจอสัมผัส: spinbox เปล่า ๆ นิ้วเปลี่ยนค่าไม่ได้ เพราะการแตะแค่เลือก
 # ตำแหน่งหลัก ตัวที่เพิ่มลดค่าจริงคือปุ่มสองปุ่มข้าง ๆ นี้
-sp_th = ui.Spinbox(x=506, y=70, w=120, h=46, color=COL_TEXT,
+sp_th = ui.Spinbox(x=508, y=76, w=256, h=88, color=COL_TEXT,
                    min=TH_MIN, max=TH_MAX, value=th)
 # ค่าตั้งต้นของช่องคือสี่หลักไม่มีจุดทศนิยม เกณฑ์ของเราเป็นเลขสองหลัก
 # ถ้าไม่บอก จะเห็น 0070 ซึ่งอ่านแล้วสะดุด - digits(หลักทั้งหมด, หลักหน้าจุด)
 sp_th.digits(2, 0)
-btn_up = ui.Button("เพิ่ม", x=634, y=70, w=68, h=46, color=0x37474F, value=16)
-btn_dn = ui.Button("ลด", x=710, y=70, w=60, h=46, color=0x37474F, value=16)
+btn_up = ui.Button("เพิ่ม", x=644, y=172, w=120, h=88, color=0x171B22, value=16)
+btn_dn = ui.Button("ลด", x=508, y=172, w=120, h=88, color=0x171B22, value=16)
 
-ui.Label("สถานะเทียบเกณฑ์", x=506, y=124, color=COL_DIM, value=14)
-led_ok = ui.Led(x=510, y=148, w=32, h=32, color=COL_OK, value=1)
-ui.Label("ต่ำกว่าเกณฑ์", x=548, y=154, color=COL_DIM, value=16)
-led_bad = ui.Led(x=660, y=148, w=32, h=32, color=COL_BAD, value=0)
-ui.Label("เกิน", x=698, y=154, color=COL_DIM, value=16)
+ui.Label("สถานะเทียบเกณฑ์", x=492, y=280, color=COL_DIM, value=16)
+led_ok = ui.Led(x=492, y=304, w=48, h=48, color=COL_OK, value=1)
+ui.Label("ต่ำกว่าเกณฑ์", x=548, y=320, color=COL_DIM, value=16)
+led_bad = ui.Led(x=492, y=348, w=48, h=48, color=COL_BAD, value=0)
+ui.Label("เกิน", x=548, y=364, color=COL_DIM, value=16)
 
 # --- ท่าที่ 3: แถบเลื่อนสัมผัสและปุ่มทองแดงสองปุ่ม ---
 # ui.Bar ไม่รับการแตะและไม่ส่ง event ใด ๆ มันเป็นจอแสดงผลอย่างเดียว
 # ซึ่งตรงกับที่เราต้องการพอดี เพราะตัวสั่งงานคือนิ้วบนแถบทองแดง ไม่ใช่นิ้วบนกระจก
-ui.Panel(x=12, y=216, w=468, h=104, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("แถบสัมผัสและปุ่มทองแดง", x=26, y=222, color=COL_DIM, value=14)
-touch_bar = ui.Bar(x=26, y=244, w=318, h=14, color=COL_OK, min=0, max=100, value=0)
-touch_scale = ui.Scale(x=26, y=258, w=318, h=44, color=COL_TEXT, min=0, max=100)
+ui.Panel(x=12, y=248, w=468, h=140, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("แถบสัมผัสและปุ่มทองแดง", x=28, y=256, color=COL_DIM, value=20)
+touch_bar = ui.Bar(x=28, y=284, w=428, h=16, color=0x4A9EFF, min=0, max=100, value=0)
+touch_scale = ui.Scale(x=28, y=300, w=428, h=40, color=COL_TEXT, min=0, max=100)
 touch_scale.ticks(11, 2)
 # ไฟแทนตัวหนังสือสีสำหรับปุ่มสองปุ่ม: ถ่ายจอเป็นขาวดำแล้วยังแยกออกว่าดวงไหนติด
 # ส่วนคำว่า ON สีม่วงกับ - สีเทา พอเป็นขาวดำแล้วแยกไม่ออก
-led_b0 = ui.Led(x=380, y=244, w=28, h=28, color=COL_OK, value=0)
-ui.Label("ปุ่ม 0", x=412, y=248, color=COL_DIM, value=14)
-led_b1 = ui.Led(x=380, y=280, w=28, h=28, color=COL_OK, value=0)
-ui.Label("ปุ่ม 1", x=412, y=284, color=COL_DIM, value=14)
+led_b0 = ui.Led(x=28, y=344, w=48, h=48, color=COL_OK, value=0)
+ui.Label("ปุ่ม 0", x=84, y=356, color=COL_DIM, value=20)
+led_b1 = ui.Led(x=160, y=344, w=48, h=48, color=COL_OK, value=0)
+ui.Label("ปุ่ม 1", x=216, y=356, color=COL_DIM, value=20)
 
 # --- ท่าที่ 4: บรรทัดคุณภาพของค่า และการเทียบค่าดิบกับค่ากรองแล้ว ---
 # ค่าที่แสดงต้องบอกคุณภาพของตัวเองได้ ค่าที่ค้างอยู่ต้องเขียนให้ชัดว่ามันค้าง
 # ไม่ใช่ปล่อยเลขเดิมค้างไว้เฉย ๆ แล้วให้คนเดินมาดูเข้าใจว่ามันคือค่าปัจจุบัน
-ui.Panel(x=12, y=328, w=468, h=60, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("คุณภาพของค่า", x=26, y=334, color=COL_DIM, value=14)
-lbl_health = ui.Label("อ่านค่าปกติ", x=26, y=356, color=COL_DIM, value=20)
+ui.Panel(x=280, y=336, w=196, h=52, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("คุณภาพของค่า", x=292, y=340, color=COL_DIM, value=16)
+lbl_health = ui.Label("อ่านค่าปกติ", x=292, y=364, color=COL_TEXT, value=16)
 health = "อ่านค่าปกติ"      # ข้อความล่าสุดของบรรทัดคุณภาพ คิดใหม่วินาทีละครั้ง
 
 # แสดงคู่กันบนจอเดียว ถ้าดูทีละอันจะไม่มีวันรู้ว่าฟิลเตอร์ช่วยจริงหรือแค่รู้สึกไปเอง
-ui.Panel(x=492, y=216, w=288, h=172, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ค่าดิบเทียบค่าที่กรองแล้ว", x=506, y=224, color=COL_DIM, value=14)
-raw_line = ui.Label("ดิบ    0.00 %", x=506, y=252, color=COL_TEXT, value=20)
-ema_line = ui.Label("กรอง  0.00 %", x=506, y=284, color=COL_TEXT, value=20)
-ui.Label("อัลฟา 0.2 คาบ 200 ms", x=506, y=316, color=COL_DIM, value=14)
+raw_line = ui.Label("ดิบ 0.00 %", x=252, y=196, color=COL_TEXT, value=16)
+ema_line = ui.Label("กรอง 0.00 %", x=368, y=196, color=COL_TEXT, value=16)
+ui.Label("อัลฟา 0.2", x=252, y=216, color=COL_DIM, value=16)
 ui.poll()
 
 # สร้างนอกลูป เพราะฟิลเตอร์ต้องจำค่าเดิมข้ามรอบ ถ้าเผลอสร้างในลูป
@@ -208,13 +206,13 @@ while True:
         # ถ้าเขียนข้อความก่อน จะมีเสี้ยววินาทีที่ข้อความใหม่ยังใส่สีของสถานะเก่าอยู่
         if not fresh:
             lbl_health.color(COL_WARN)
-            health = "ค่าค้าง ตัวเลขข้างบนคือค่าล่าสุด"
+            health = "ค่าค้าง - เลขคือค่าล่าสุด"
         elif over:
             lbl_health.color(COL_BAD)
-            health = "เกินเกณฑ์ {} เปอร์เซ็นต์".format(th)
+            health = "เกินเกณฑ์ {} %".format(th)
         else:
             lbl_health.color(COL_DIM)
-            health = "อ่านค่าปกติ ต่ำกว่าเกณฑ์ {}".format(th)
+            health = "ปกติ ต่ำกว่า {} %".format(th)
 
     # --- ชีพจรของช่องทางข้ามคอร์: ส่งบรรทัดสถานะซ้ำทุกรอบโดยตั้งใจ ---
     # ฝั่งจอมีตัวจับเวลาสองจังหวะ โหมดเร็ว 5 ms กับโหมดปกติ 200 ms และมันจะอยู่

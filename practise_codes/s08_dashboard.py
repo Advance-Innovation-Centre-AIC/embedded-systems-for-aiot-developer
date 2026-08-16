@@ -7,9 +7,9 @@
 #   หัวเรื่อง 1 + ไฟค่าค้าง 1 + ป้ายค่าค้าง 1 + แถบสถานะ 1              =  4
 #   การ์ด IMU      Panel + หัวข้อ + Chart + Label ค่า                  =  4
 #   การ์ดเข็มทิศ   Panel + หัวข้อ + Compass + Label องศา + Label ทิศ   =  5
-#   การ์ดสัมผัส    Panel + หัวข้อ + ไฟ 2 ดวง + ป้าย 2 + Bar + Scale + % =  9
-#   การ์ด pot      Panel + หัวข้อ + Arc + Seg7 + Label โวลต์           =  5
-#   แถบคำสั่ง      ปุ่ม 2 + ป้ายเกณฑ์ + Spinbox + ไฟเตือน + ป้าย       =  5
+#   การ์ดสัมผัส    Panel + หัวข้อ + ไฟ 2 ดวง + ป้าย 2 + Bar + %       =  8
+#   การ์ด pot      Panel + หัวข้อ + Arc + Seg7 + โวลต์ + เกณฑ์ 4 ชิ้น  =  9
+#   ปุ่มสั่งงานในแถบหัว                                              =  2
 # จะเพิ่มอะไร ให้แก้ตัวเลขบล็อกนี้ก่อนพิมพ์โค้ดเสมอ
 #
 # ดูที่จอ: สี่การ์ดคือค่าที่วัดได้ แถบล่างสุดคือสิ่งที่ผู้ใช้ "สั่ง" ได้
@@ -35,18 +35,21 @@ time.sleep_ms(200)   # ให้ CM55 ตามทันก่อนเราเ
 # ต้นทางคือ ui_theme.py ในชุดตัวอย่างของเฟิร์มแวร์ Eva Kit ไม่ใช่ไฟล์ในหลักสูตรนี้
 # ทำไมยืมสีจากเฟิร์มแวร์: ผู้ใช้เห็นหน้าจอเราต่อจากหน้าจอเครื่อง ถ้าสีคนละชุด
 # สมองจะอ่านว่าเป็นคนละระบบ ความสม่ำเสมอของสีคือส่วนหนึ่งของการออกแบบ HMI
-BG_CARD   = 0x142240   # พื้นการ์ด น้ำเงินเข้ม
-COL_WHITE = 0xFFFFFF   # ตัวเลขพระเอก
-COL_GRAY  = 0xA0B4CC   # ข้อความประกอบ / สถานะเงียบ
-COL_IMU   = 0x4CAF50   # BMI270 เขียว
-COL_COMP  = 0xE040FB   # BMM350 ม่วง
-COL_TOUCH = 0x00BCD4   # CapSense ฟ้าน้ำทะเล
-COL_POT   = 0x8BC34A   # Potentiometer เขียวมะนาว
-COL_STAT  = 0x00E676   # เขียว "ปกติ"
+BG_CARD   = 0x171B22   # พื้นการ์ด เทาเข้มอมน้ำเงิน
+COL_WHITE = 0xE8EAED   # ตัวเลขพระเอก
+COL_GRAY  = 0x9AA3AF   # ข้อความประกอบ / สถานะเงียบ เทาอ่อน
+# สี่สีนี้คือ "สีประจำตัวของเซนเซอร์" หยิบจากจานสีเส้นข้อมูลของ §S7.13 ทั้งชุด
+# การ์ดใบไหนสีอะไร เส้นกราฟกับไฟในการ์ดใบนั้นก็สีเดียวกัน คนดูจึงรู้ว่าของชิ้นนี้
+# เป็นของเซนเซอร์ตัวไหนโดยไม่ต้องอ่านป้าย และไม่มีสีสถานะปนอยู่ในสี่ตัวนี้เลย
+COL_IMU   = 0x8E7BFF   # BMI270 - เส้นที่ 2 ของจานสีเส้นข้อมูล สีม่วง
+COL_COMP  = 0x2FB6A8   # BMM350 - เส้นที่ 3 ของจานสีเส้นข้อมูล สีเขียวน้ำทะเล
+COL_TOUCH = 0xC77DFF   # CapSense - เส้นที่ 4 ของจานสีเส้นข้อมูล สีม่วงกล้วยไม้
+COL_POT   = 0x4A9EFF   # Potentiometer - เส้นที่ 1 ของจานสีเส้นข้อมูล สีฟ้า
+COL_STAT  = 0x30A46C   # เขียว "ปกติ"
 # สองสีนี้สงวนไว้ให้เรื่องเดียวคือการเตือน ห้ามเอาไปใช้กับกราฟหรือเข็มทิศ
 # เพราะสีที่ใช้ทั้งกับของปกติและของผิดปกติ จะไม่มีความหมายอะไรเหลืออยู่เลย
-COL_WARN  = 0xFFC83D   # เหลือง "ค่าเชื่อไม่ได้"
-COL_ALERT = 0xFF5252   # แดง "ต้องลงมือ"
+COL_WARN  = 0xF5A623   # เหลือง "ค่าเชื่อไม่ได้"
+COL_ALERT = 0xE5484D   # แดง "ต้องลงมือ"
 # ---------- เซนเซอร์บนบอร์ดนี้ไม่ต้องเปิด แต่ต้องอุ่นเครื่อง ----------
 # IMU แถบสัมผัส และลูกบิด อยู่บนบัสที่คอร์จอ (CM55) ถือไว้คนเดียว ฝั่ง Python
 # ขอค่าที่คอร์จออ่านเก็บไว้ให้ทุก 200 ms จึงเรียกอ่านได้เลยโดยไม่ต้อง init
@@ -64,71 +67,80 @@ try:
 except OSError:
     print("คอร์จอยังไม่ตอบรอบแรก จะลองใหม่ในลูป")
 # ---------- แถบหัว: ชื่อทีม ไฟค่าค้าง และหลักฐานว่าลูปยังเดิน ----------
-ui.Label("แดชบอร์ดทีม " + TEAM, x=8, y=8, color=COL_WHITE, value=20)
+# ผังหน้าจอ: แถบหัว y=4..92 · การ์ดแถวบน y=100..236 · การ์ดแถวล่าง y=252..388
+# ปุ่มสั่งงานอยู่ในแถบหัว ไม่ใช่แถบล่าง เพราะปุ่มสูง 88 px และการ์ดสองแถวกินจนหมด
+# 398 px ที่มี ถ้ายืนยันจะมีแถบล่างอีกแถบ ต้องตัดการ์ดออกหนึ่งใบ
+ui.Label("แดชบอร์ดทีม " + TEAM, x=24, y=8, color=COL_WHITE, value=24)
 # ไฟดวงนี้คือคำตอบของคำถาม "เลขที่เห็นอยู่ตอนนี้ ใช่ค่าปัจจุบันไหม"
-led_stale = ui.Led(x=452, y=10, w=22, h=22, color=COL_WARN, value=0)
-ui.Label("ค่าค้าง", x=480, y=10, color=COL_GRAY, value=16)
+led_stale = ui.Led(x=400, y=12, w=48, h=48, color=COL_WARN, value=0)
+ui.Label("ค่าค้าง", x=400, y=64, color=COL_GRAY, value=16)
+# แดชบอร์ดที่ผู้ใช้แตะอะไรไม่ได้เลย คือโปสเตอร์ที่ตัวเลขขยับได้ ไม่ใช่แผงควบคุม
+# ปุ่มเดินหน้ากับหยุดภาพแยกกันคนละปุ่ม เพราะปุ่มสลับปุ่มเดียวบอกไม่ได้ว่าตอนนี้อยู่โหมดไหน
+btn_run = ui.Button("เดินหน้า", x=480, y=4, w=120, h=88, color=0x30A46C, value=20)
+btn_hold = ui.Button("หยุดภาพ", x=632, y=4, w=120, h=88, color=0x171B22, value=20)
 # เลขรอบที่หยุดนิ่ง = ลูปตาย ส่วนเลข loop ms ที่ค่อย ๆ โตขึ้น = เริ่มมีอะไรสะสม
 # แถบนี้ทำหน้าที่เดียวกับไฟหัวใจเต้นของอุปกรณ์จริง - แดชบอร์ดที่ค้างภาพสวย ๆ ไว้
 # แยกไม่ออกจากแดชบอร์ดที่ยังทำงาน ถ้าไม่มีอะไรบนจอที่ขยับตามรอบลูป
-head = ui.Label("รอบที่ 0 | loop 0 ms", x=560, y=10, color=COL_GRAY, value=16)
+head = ui.Label("รอบที่ 0 | loop 0 ms", x=24, y=52, color=COL_GRAY, value=16)
 # ---------- ท่าที่ 1: การ์ด IMU (ซ้ายบน) ----------
 # Panel คือ "การ์ด": color=สีพื้น  min=สีขอบ  max=รัศมีมุม  value=ความหนาขอบ
 # สร้าง Panel ก่อน Label เสมอ ของที่สร้างทีหลังจะอยู่ทับด้านบน
-# เติม: imu_panel = ui.Panel(x=8, y=32, w=386, h=160, color=BG_CARD, min=COL_IMU, max=12, value=2)
+# เติม: imu_panel = ui.Panel(x=24, y=100, w=368, h=136, color=BG_CARD, min=COL_IMU, max=12, value=2)
 # การ์ดสามใบที่เหลือเขียนไว้ให้แล้ว ลอกรูปทรงจากใบนั้นได้เลย
 pass
-imu_title = ui.Label("ความเร่ง BMI270 (m/s2)", x=20, y=36, color=COL_IMU, value=18)
+imu_title = ui.Label("ความเร่ง BMI270 (m/s2)", x=40, y=108, color=COL_IMU, value=16)
 # Chart เก็บ 50 จุด รับเฉพาะจำนวนเต็ม เราจึงคูณ 10 ก่อนป้อน (-150..150 = -15.0..+15.0)
 # ถ้าป้อน int(ax) ตรง ๆ ความละเอียดจะเหลือ 1 m/s2 ต่อขั้น กราฟจะดูเป็นขั้นบันได
-imu_chart = ui.Chart(x=18, y=60, w=366, h=94, min=-150, max=150, color=COL_IMU)
+imu_chart = ui.Chart(x=40, y=136, w=336, h=56, min=-150, max=150, color=COL_IMU)
 sy = imu_chart.add_series(COL_STAT)     # แกน Y เขียว
 sz = imu_chart.add_series(0x448AFF)     # แกน Z ฟ้า
-imu_val = ui.Label("X+0.0 Y+0.0 Z+9.8", x=20, y=160, color=COL_WHITE, value=16)
+imu_val = ui.Label("X+0.0 Y+0.0 Z+9.8", x=40, y=200, color=COL_WHITE, value=20)
 # ---------- ท่าที่ 2: การ์ดเข็มทิศ (ขวาบน) ----------
-comp_panel = ui.Panel(x=402, y=32, w=382, h=160,
+comp_panel = ui.Panel(x=408, y=100, w=360, h=136,
                       color=BG_CARD, min=COL_COMP, max=12, value=2)
-comp_title = ui.Label("เข็มทิศ BMM350", x=414, y=36, color=COL_COMP, value=18)
+comp_title = ui.Label("เข็มทิศ BMM350", x=424, y=108, color=COL_COMP, value=16)
 # Compass ใช้ w เป็นเส้นผ่านศูนย์กลาง - ระบุ h เท่ากันไว้ด้วย เพื่อให้ด่านตรวจ
 # พิกัดอ่านขนาดของมันได้ ตัวไหนที่ด่านอ่านไม่ได้ คือตัวที่ยังไม่มีใครตรวจ
-compass = ui.Compass(x=418, y=58, w=110, h=110, color=COL_COMP)
+compass = ui.Compass(x=424, y=132, w=96, h=96, color=COL_COMP)
 # ตัวเลของศาตัวใหญ่คือของที่ต้องอ่านออกจากอีกฝั่งห้อง จึงให้พื้นที่มากสุดในการ์ด
-comp_deg = ui.Label("000 deg", x=548, y=74, color=COL_WHITE, value=28)
-comp_dir = ui.Label("N", x=548, y=124, color=COL_COMP, value=24)
+comp_deg = ui.Label("000 deg", x=544, y=140, color=COL_WHITE, value=28)
+comp_dir = ui.Label("N", x=544, y=188, color=COL_COMP, value=24)
 # ---------- ท่าที่ 3: การ์ดสัมผัส (ซ้ายล่าง) ----------
-cap_panel = ui.Panel(x=8, y=200, w=386, h=130,
+cap_panel = ui.Panel(x=24, y=252, w=320, h=136,
                      color=BG_CARD, min=COL_TOUCH, max=12, value=2)
-cap_title = ui.Label("แถบสัมผัส CapSense", x=20, y=204, color=COL_TOUCH, value=18)
+cap_title = ui.Label("แถบสัมผัส CapSense", x=40, y=260, color=COL_TOUCH, value=16)
 # ไฟสองดวงแทนข้อความที่เปลี่ยนสี - ถ่ายจอเป็นขาวดำแล้วยังแยกออกว่าดวงไหนติด
 # ส่วนคำว่า ON สีเขียวกับ --- สีเทา พอเป็นขาวดำแล้วอ่านไม่ออกว่าอันไหนคืออันไหน
-cap_led0 = ui.Led(x=22, y=232, w=26, h=26, color=COL_TOUCH, value=0)
-ui.Label("ปุ่ม 0", x=56, y=234, color=COL_GRAY, value=16)
-cap_led1 = ui.Led(x=150, y=232, w=26, h=26, color=COL_TOUCH, value=0)
-ui.Label("ปุ่ม 1", x=184, y=234, color=COL_GRAY, value=16)
-cap_pct = ui.Label("แถบเลื่อน 0 %", x=270, y=234, color=COL_WHITE, value=16)
-# แถบค่าอยู่เหนือไม้บรรทัด - Scale ไม่มีเข็มและไม่รับ .value() ตัวที่ขยับคือ Bar
-cap_bar = ui.Bar(x=22, y=270, w=350, h=12, min=0, max=100, value=0, color=COL_TOUCH)
-cap_sc = ui.Scale(x=22, y=284, w=350, h=40, color=COL_GRAY, min=0, max=100)
+cap_led0 = ui.Led(x=40, y=288, w=48, h=48, color=COL_TOUCH, value=0)
+ui.Label("ปุ่ม 0", x=96, y=300, color=COL_GRAY, value=16)
+cap_led1 = ui.Led(x=160, y=288, w=48, h=48, color=COL_TOUCH, value=0)
+ui.Label("ปุ่ม 1", x=216, y=300, color=COL_GRAY, value=16)
+cap_pct = ui.Label("0 %", x=272, y=256, color=COL_WHITE, value=20)
+# เดิมแถบค่าตัวนี้อยู่ที่ y=332 ซึ่งต่ำกว่าขอบล่างของการ์ดตัวเอง แล้วยื่นไปถึง x=560
+# คือข้ามไปอยู่ในการ์ดลูกบิดใบข้าง ๆ - ทั้งที่ประตูตรวจไม่เคยฟ้อง เพราะมันไม่ทับใคร
+cap_bar = ui.Bar(x=40, y=348, w=288, h=16, min=0, max=100, value=0, color=COL_TOUCH)
 # ---------- ท่าที่ 4: การ์ดลูกบิด (ขวาล่าง) ----------
-pot_panel = ui.Panel(x=402, y=200, w=382, h=130,
+pot_panel = ui.Panel(x=360, y=252, w=408, h=136,
                      color=BG_CARD, min=COL_POT, max=12, value=2)
-pot_title = ui.Label("ลูกบิด Potentiometer", x=414, y=204, color=COL_POT, value=18)
+pot_title = ui.Label("ลูกบิด Potentiometer", x=376, y=260, color=COL_POT, value=16)
 # Arc ให้ความรู้สึก "อยู่ตรงไหนของช่วง" ส่วน Seg7 ให้ตัวเลขที่จดลงใบงานได้ ใช้คู่กัน
-pot_arc = ui.Arc(x=414, y=228, w=94, h=94, min=0, max=100, value=0)
-pot_seg7 = ui.Seg7(x=520, y=232, w=140, h=44, color=COL_POT, min=0, max=100, value=0)
-pot_volt = ui.Label("0.000 V", x=520, y=286, color=COL_WHITE, value=16)
-# ---------- ท่าที่ 5: แถบคำสั่ง - สิ่งที่ผู้ใช้สั่งได้ ไม่ใช่แค่ของให้ดู ----------
-# แดชบอร์ดที่ผู้ใช้แตะอะไรไม่ได้เลย คือโปสเตอร์ที่ตัวเลขขยับได้ ไม่ใช่แผงควบคุม
-# ปุ่มเดินหน้ากับหยุดภาพแยกกันคนละปุ่ม เพราะปุ่มสลับปุ่มเดียวบอกไม่ได้ว่าตอนนี้อยู่โหมดไหน
-btn_run = ui.Button("เดินหน้า", x=8, y=340, w=120, h=48, color=0x1B5E20, value=16)
-btn_hold = ui.Button("หยุดภาพ", x=136, y=340, w=120, h=48, color=0x37474F, value=16)
-ui.Label("เกณฑ์เตือนลูกบิด (%)", x=272, y=352, color=COL_GRAY, value=14)
+pot_arc = ui.Arc(x=376, y=288, w=88, h=88, min=0, max=100, value=0)
+# ไม่มี value= - Seg7 โยนทิ้ง (ui_widget_mgr.c:1452 ฝังฟอนต์ 28 ไว้ตายตัว
+# และเส้นทาง SET_TEXT ของมันไม่เรียก apply_font_size) ใส่ไว้ก็เป็นโค้ดตาย
+pot_seg7 = ui.Seg7(x=480, y=288, w=112, h=44, color=COL_POT, min=0, max=100)
+pot_volt = ui.Label("0.000 V", x=480, y=340, color=COL_WHITE, value=20)
+# ---------- ท่าที่ 5: เกณฑ์เตือน - อยู่ในการ์ดของลูกบิด เพราะมันคือเกณฑ์ของลูกบิด ----------
 # Spinbox แทนการฝังเลขเกณฑ์ไว้ในโค้ด - คนหน้างานเป็นคนรู้ว่าเกณฑ์ควรเป็นเท่าไร
 # ไม่ใช่คนเขียนโปรแกรมเมื่อสามเดือนก่อน และมันกันพิมพ์เกินพิสัยให้ด้วยในตัว
-spin_thr = ui.Spinbox(x=436, y=340, w=110, h=48, color=COL_WHITE,
+#
+# ทั้งกลุ่มนี้เคยอยู่ที่ y=404 ถึง y=612 บนจอที่สูง 398 - คือนอกจอทั้งแถบ
+# กดไม่ได้สักปุ่ม และไม่มีใครเห็นว่าหายไป เพราะจอที่เหลือยังดูปกติดี
+ui.Label("เกณฑ์ (%)", x=600, y=260, color=COL_GRAY, value=16)
+spin_thr = ui.Spinbox(x=600, y=288, w=88, h=88, color=COL_WHITE,
                       min=0, max=100, value=80)
-led_alarm = ui.Led(x=560, y=350, w=26, h=26, color=COL_ALERT, value=0)
-ui.Label("เกินเกณฑ์", x=594, y=352, color=COL_GRAY, value=14)
+# ป้ายอยู่เหนือไฟ ไม่ใช่ใต้ไฟ เพราะใต้ไฟคือมุมที่ปุ่ม Console จองไว้ (x>690 และ y>340)
+ui.Label("เกิน", x=704, y=260, color=COL_GRAY, value=16)
+led_alarm = ui.Led(x=704, y=288, w=48, h=48, color=COL_ALERT, value=0)
 
 DIRS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 rounds = 0
@@ -223,7 +235,7 @@ try:
             imu_val.text("X{:+.1f} Y{:+.1f} Z{:+.1f}".format(ax, ay, az))
             comp_deg.text("{:03.0f} deg".format(heading))
             comp_dir.text(DIRS[int((heading + 22.5) / 45.0) % 8])
-            cap_pct.text("แถบเลื่อน {} %".format(cap['slider'] if running else 0))
+            cap_pct.text("{} %".format(cap['slider'] if running else 0))
             # Seg7 รับ "ข้อความ" ไม่ใช่ "ค่า" - ui_widget_mgr_set_value() ในเฟิร์มแวร์
             # ไม่มี case ของ UI_WIDGET_SEG7 เลย ถ้าเรียก .value() ตัวเลขจะค้างที่
             # 0000 ตลอดกาลทั้งบนบอร์ดและใน emulator โดยไม่มี error ให้เห็น

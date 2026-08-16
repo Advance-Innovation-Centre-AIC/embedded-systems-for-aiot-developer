@@ -13,9 +13,9 @@ import ui
 import time
 
 ROWS = 4                       # จำนวนแถวที่จอ 4.3 นิ้ววางได้พอดีโดยไม่เบียดกัน
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x30A46C, 0xF5A623, 0xE5484D, 0x4A9EFF
 
 
 def percent_of(rssi):
@@ -32,17 +32,17 @@ lcd.console("<h2>คาบ 9 - รูปร่างของผล scan()</h2>"
 ui.screen()
 time.sleep_ms(200)
 ui.Label("คาบ 9 - ผลของ wifi.scan()", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("จำนวนวงที่เจอ", x=40, y=66, color=COL_DIM, value=16)
-seg = ui.Seg7(text="--", x=40, y=90, w=130, h=64, color=COL_INFO)
-l_first = ui.Label("วงแรก: -", x=200, y=90, color=COL_TEXT, value=18)
-bar = ui.Bar(x=200, y=124, w=440, h=22, min=0, max=100, value=0, color=COL_DIM)
+ui.Panel(x=20, y=52, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("จำนวนวงที่เจอ", x=40, y=68, color=COL_DIM, value=16)
+seg = ui.Seg7(text="--", x=40, y=92, w=132, h=64, color=COL_INFO)
+l_first = ui.Label("วงแรก: -", x=200, y=92, color=COL_TEXT, value=20)
+bar = ui.Bar(x=200, y=124, w=440, h=24, min=0, max=100, value=0, color=COL_DIM)
 ui.Label("สี่แถวแรก ตามลำดับที่ชิปเจอ", x=20, y=184, color=COL_DIM, value=16)
 rows = []
 for i in range(ROWS):
-    rows.append(ui.Label("-", x=40, y=212 + i * 30, color=COL_DIM, value=18))
+    rows.append(ui.Label("-", x=40, y=212 + i * 30, color=COL_DIM, value=20))
 status = ui.Label("กำลังสแกน... จอจะนิ่งไปครู่หนึ่ง", x=20, y=336,
-                  color=COL_WARN, value=18)
+                  color=COL_WARN, value=20)
 ui.poll()
 
 # scan() บล็อกจนกว่าจะสแกนครบทุกช่องสัญญาณ ราว 3-10 วินาที

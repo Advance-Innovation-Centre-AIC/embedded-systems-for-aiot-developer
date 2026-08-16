@@ -25,9 +25,9 @@ LAMP_FAULT = 0     # LED1 สีแดง     - ต้องเข้าแก�
 WARN_UT = 40.0     # เบี่ยงเบนจากเส้นฐานกี่ ไมโครเทสลา ถึงเรียกว่าเฝ้าดู
 FAULT_UT = 120.0   # เบี่ยงเบนเท่าไหร่ถึงเรียกว่าผิดปกติจริง
 
-C_OK = 0x33DD77
-C_WARN = 0xFFC107
-C_FAULT = 0xFF5555
+C_OK = 0x30A46C
+C_WARN = 0xF5A623
+C_FAULT = 0xE5484D
 NAME = {LAMP_OK: "ปกติ", LAMP_WARN: "เฝ้าดู", LAMP_FAULT: "ผิดปกติ"}
 TINT = {LAMP_OK: C_OK, LAMP_WARN: C_WARN, LAMP_FAULT: C_FAULT}
 
@@ -48,26 +48,26 @@ lcd.clear()
 lcd.console("<h2>เสาไฟสถานะ - andon light</h2>")
 
 ui.screen()
-ui.Label("เสาไฟสถานะ - andon light", x=12, y=6, value=24)
-ch = ui.Chart(x=12, y=44, w=470, h=210, min=-10, max=160, color=0x00BFFF)
+ui.Label("เสาไฟสถานะ - andon light", x=12, y=8, value=24)
+ch = ui.Chart(x=12, y=44, w=472, h=212, min=-10, max=160, color=0x4A9EFF)
 s_warn = ch.add_series(C_WARN)
 s_fault = ch.add_series(C_FAULT)
-ui.Label("เส้นฟ้า = เบี่ยงเบนจริง", x=496, y=44, value=16, color=0x00BFFF)
+ui.Label("เส้นฟ้า = เบี่ยงเบนจริง", x=496, y=44, value=16, color=0x4A9EFF)
 ui.Label("เส้นเหลือง = เฝ้าดู 40 uT", x=496, y=68, value=16, color=C_WARN)
 ui.Label("เส้นแดง = ผิดปกติ 120 uT", x=496, y=92, value=16, color=C_FAULT)
 
-ui.Panel(x=496, y=122, w=284, h=88, color=0x1A1A2E, min=0x3F4247, value=2)
+ui.Panel(x=496, y=124, w=284, h=88, color=0x171B22, min=0x171B22, value=2)
 ui.Label("ระดับตอนนี้", x=512, y=132, value=16)
 lv = ui.Label("ปกติ", x=512, y=160, value=28, color=C_OK)
 
-ui.Label("เบี่ยงเบนเทียบเส้นผิดปกติ", x=496, y=218, value=16)
-bar = ui.Bar(x=496, y=244, w=280, h=18, min=0, max=120, value=0)
-seg = ui.Seg7(x=496, y=274, w=160, h=40)
+ui.Label("เบี่ยงเบนเทียบเส้นผิดปกติ", x=496, y=220, value=16)
+bar = ui.Bar(x=496, y=244, w=280, h=20, min=0, max=120, value=0)
+seg = ui.Seg7(x=496, y=276, w=160, h=40)
 seg.text("0")      # Seg7 รับ "ข้อความ" ถ้าไม่ตั้งค่า มันจะค้างที่ 0000
-ui.Label("uT", x=664, y=282, value=20)
+ui.Label("uT", x=664, y=284, value=20)
 
-ui.Panel(x=12, y=290, w=470, h=44, color=0x1A1A2E, min=0x3F4247, value=2)
-st = ui.Label("กำลังวัดเส้นฐานของห้อง...", x=24, y=302, value=18)
+ui.Panel(x=12, y=292, w=472, h=44, color=0x171B22, min=0x171B22, value=2)
+st = ui.Label("กำลังวัดเส้นฐานของห้อง...", x=24, y=304, value=20)
 ui.poll()
 
 # เส้นอ้างอิงสองเส้นเติมให้เต็มหน้าต่างก่อน กราฟจะได้อ่านออกตั้งแต่วินาทีแรก

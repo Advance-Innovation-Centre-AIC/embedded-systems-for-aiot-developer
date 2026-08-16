@@ -7,8 +7,9 @@
 # และตั้งศูนย์ต้องเก็บค่าที่กรองแล้วเสมอ จุดอ้างอิงที่สั่น แย่กว่าไม่มีจุดอ้างอิง
 #
 # หน้าจอเขียนไว้ให้ครบแล้ว ไม่ต้องแตะ - งานของเราคือทำให้ค่าไหลเข้าไปในนั้น
-# ดูที่จอ: สองการ์ดซ้ายคือสองแกน แต่ละแกนมีแถบค่าวางบนไม้บรรทัด -90 ถึง 90 ของมันเอง
-#         ขวาบนคือเกณฑ์ยอมรับที่ตั้งเองได้ ขวากลางคือไฟสองดวง ล่างขวาคือคุณภาพของค่า
+# ดูที่จอ: การ์ดบนคือสองแกนวางเคียงกัน แต่ละแกนมีแถบค่าวางบนไม้บรรทัด -90 ถึง 90
+#         ขวาบนคือไฟสองดวงบอกว่าผ่านเกณฑ์หรือเกิน การ์ดล่างคือเกณฑ์ยอมรับกับปุ่มสั่งงาน
+#         ส่วนคุณภาพของค่าเขียนเป็นคำไว้ข้างหัวเรื่องบนสุด
 #
 # คาบนี้มีตัวอย่างสองไฟล์ ทั้งคู่กินค่าจาก IMU ตัวเดียวกับที่เราจะใช้
 # examples/s06/01_imu_step_counter.py คือท่ามาตรฐาน อ่าน แล้วกรอง แล้วค่อยตัดสิน
@@ -24,9 +25,9 @@ ui.clear()
 time.sleep_ms(200)
 
 # สีจัดสงวนไว้ให้สถานะผิดปกติ ค่าปกติเป็นตัวหนังสือขาวบนการ์ดสีเข้ม
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFC83D, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 # เกณฑ์ยอมรับหน่วยองศา ผู้ใช้ตั้งเองได้ ไม่ใช่ค่าคงที่ที่ฝังอยู่ในโค้ด
 TOL_MIN, TOL_MAX, TOL_STEP = 1, 30, 1
@@ -46,57 +47,57 @@ except OSError:
     print("คอร์จอยังไม่ตอบรอบแรก จะลองใหม่ในลูป")
 
 # --- ท่าที่ 2: สองแกน สองแถบ และไม้บรรทัดที่บอกพิสัยของมันเอง ---
-ui.Label("เครื่องวัดระดับดิจิทัลสองแกน", x=16, y=6, color=COL_TEXT, value=24)
+# ผังหน้าจอ: หัวเรื่อง+คุณภาพของค่า y=8..40 · การ์ดวัดสองแกน y=48..176
+#            การ์ดเทียบเกณฑ์ x=616..768 · การ์ดตั้งค่าและคำสั่ง y=192..380
+ui.Label("เครื่องวัดระดับดิจิทัลสองแกน", x=24, y=8, color=COL_TEXT, value=24)
 
-ui.Panel(x=12, y=44, w=468, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ROLL เอียงซ้าย-ขวา (องศา)", x=26, y=50, color=COL_DIM, value=16)
-roll_bar = ui.Bar(x=30, y=76, w=296, h=14, color=COL_OK, min=-90, max=90, value=0)
-roll_scale = ui.Scale(x=30, y=90, w=296, h=44, color=COL_TEXT, min=-90, max=90)
-roll_scale.ticks(13, 3)         # 13 ขีด ใส่ตัวเลขทุกขีดที่สาม = -90 -45 0 45 90
-roll_seg = ui.Seg7("+00.0", x=346, y=76, w=124, h=52, color=COL_TEXT)
+# คุณภาพของค่าเขียนเป็นคำ ไม่ใช่เป็นสีอย่างเดียว บรรทัดนี้จึงผ่านการทดสอบขาวดำได้เอง
+# และอยู่ตำแหน่งคงที่ข้างหัวเรื่อง คนอ่านรู้ตลอดว่าต้องมองที่ไหนถึงจะรู้ว่าเลขเชื่อได้ไหม
+lbl_health = ui.Label("กำลังวัดอยู่", x=416, y=12, color=COL_DIM, value=20)
+health = "กำลังวัดอยู่"     # ข้อความล่าสุดของบรรทัดคุณภาพ คิดใหม่วินาทีละครั้ง
 
-ui.Panel(x=12, y=152, w=468, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("PITCH เอียงหน้า-หลัง (องศา)", x=26, y=158, color=COL_DIM, value=16)
-pitch_bar = ui.Bar(x=30, y=184, w=296, h=14, color=COL_OK, min=-90, max=90, value=0)
-pitch_scale = ui.Scale(x=30, y=198, w=296, h=44, color=COL_TEXT, min=-90, max=90)
-pitch_scale.ticks(13, 3)
-pitch_seg = ui.Seg7("+00.0", x=346, y=184, w=124, h=52, color=COL_TEXT)
+# สองแกนวางเคียงกันแทนที่จะวางซ้อนกัน ไม้บรรทัดจึงสั้นลงแต่ได้ความสูงคืนมา 100 พิกเซล
+# ซึ่งเป็นความสูงที่แถวปุ่มข้างล่างต้องใช้ - ปุ่มสูง 88 px ไม่มีทางบีบให้เตี้ยกว่านี้ได้
+ui.Panel(x=24, y=48, w=576, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ROLL เอียงซ้าย-ขวา (องศา)", x=40, y=60, color=COL_DIM, value=16)
+roll_bar = ui.Bar(x=40, y=96, w=160, h=16, color=0x4A9EFF, min=-90, max=90, value=0)
+roll_scale = ui.Scale(x=40, y=112, w=160, h=44, color=COL_TEXT, min=-90, max=90)
+roll_scale.ticks(9, 4)          # 9 ขีด ใส่ตัวเลขทุกขีดที่สี่ = -90 0 90
+roll_seg = ui.Seg7("+00.0", x=216, y=96, w=96, h=56, color=COL_TEXT)
+
+ui.Label("PITCH เอียงหน้า-หลัง (องศา)", x=328, y=60, color=COL_DIM, value=16)
+pitch_bar = ui.Bar(x=328, y=96, w=160, h=16, color=0x4A9EFF, min=-90, max=90, value=0)
+pitch_scale = ui.Scale(x=328, y=112, w=160, h=44, color=COL_TEXT, min=-90, max=90)
+pitch_scale.ticks(9, 4)
+pitch_seg = ui.Seg7("+00.0", x=504, y=96, w=80, h=56, color=COL_TEXT)
+
+# ไฟสองดวงแทนตัวหนังสือสี: ถ่ายจอเป็นขาวดำแล้วยังแยกออกว่าดวงไหนติด
+ui.Panel(x=616, y=48, w=152, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1)
+led_in = ui.Led(x=632, y=72, w=48, h=48, color=COL_OK, value=1)
+led_out = ui.Led(x=704, y=72, w=48, h=48, color=COL_BAD, value=0)
+ui.Label("ผ่าน", x=632, y=128, color=COL_DIM, value=16)
+ui.Label("เกิน", x=696, y=128, color=COL_DIM, value=16)
 
 # เกณฑ์ยอมรับ: ผู้ใช้ตั้งเองด้วยปุ่มสองปุ่ม ไม่ใช่ค่าคงที่ในโค้ด
 # spinbox เปล่า ๆ บนจอสัมผัส นิ้วเปลี่ยนค่าไม่ได้ ตัวที่เพิ่มลดจริงคือปุ่มสองปุ่มข้าง ๆ
-ui.Panel(x=492, y=44, w=288, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("เกณฑ์ยอมรับ (องศา)", x=506, y=50, color=COL_DIM, value=16)
-sp_tol = ui.Spinbox(x=506, y=76, w=110, h=46, color=COL_TEXT,
+#
+# ห้าเป้าสัมผัสเรียงแถวเดียว เว้นห่างกัน 32 px และปุ่มขวาสุดจบที่ x=752 y=328
+# ซึ่งอยู่เหนือมุมที่ปุ่ม Console จองไว้ (x>690 และ y>340) พอดี
+ui.Panel(x=24, y=192, w=744, h=188, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("เกณฑ์ยอมรับ (องศา)", x=40, y=204, color=COL_DIM, value=16)
+sp_tol = ui.Spinbox(x=40, y=240, w=96, h=88, color=COL_TEXT,
                     min=TOL_MIN, max=TOL_MAX, value=tol)
 sp_tol.digits(2, 0)             # ไม่บอกจะเห็น 0005 เพราะค่าตั้งต้นคือสี่หลัก
-btn_up = ui.Button("เพิ่ม", x=624, y=76, w=68, h=46, color=0x37474F, value=16)
-btn_dn = ui.Button("ลด", x=700, y=76, w=64, h=46, color=0x37474F, value=16)
-
-# ไฟสองดวงแทนตัวหนังสือสี: ถ่ายจอเป็นขาวดำแล้วยังแยกออกว่าดวงไหนติด
-ui.Panel(x=492, y=152, w=288, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("สถานะเทียบเกณฑ์", x=506, y=158, color=COL_DIM, value=14)
-led_in = ui.Led(x=510, y=184, w=32, h=32, color=COL_OK, value=1)
-ui.Label("อยู่ในเกณฑ์", x=548, y=190, color=COL_DIM, value=16)
-led_out = ui.Led(x=656, y=184, w=32, h=32, color=COL_BAD, value=0)
-ui.Label("เกิน", x=694, y=190, color=COL_DIM, value=16)
+btn_dn = ui.Button("ลด", x=168, y=240, w=88, h=88, color=0x171B22, value=20)
+btn_up = ui.Button("เพิ่ม", x=288, y=240, w=88, h=88, color=0x171B22, value=20)
 
 # ปุ่มสั่งงานสองปุ่ม แยกหน้าที่กันคนละปุ่ม ไม่มีปุ่มไหนสลับสองความหมายในตัวเดียว
-ui.Panel(x=12, y=260, w=468, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("คำสั่ง", x=26, y=266, color=COL_DIM, value=14)
-zero_btn = ui.Button("ตั้งศูนย์", x=26, y=290, w=200, h=52, color=0x1B5E20, value=18)
+ui.Label("คำสั่ง", x=472, y=204, color=COL_DIM, value=16)
+zero_btn = ui.Button("ตั้งศูนย์", x=472, y=240, w=144, h=88, color=0x30A46C, value=20)
 zero_id = zero_btn.id()
-exit_btn = ui.Button("ออกจากโปรแกรม", x=246, y=290, w=210, h=52,
-                     color=0x37474F, value=18)
+exit_btn = ui.Button("จบการวัด", x=648, y=240, w=104, h=88, color=0x171B22, value=20)
 exit_id = exit_btn.id()
-ref = ui.Label("อ้างอิง R +0.0  P +0.0", x=26, y=352, color=COL_DIM, value=16)
-
-# คุณภาพของค่า: ค่าที่ค้างอยู่ต้องเขียนให้ชัดว่ามันค้าง ไม่ใช่ปล่อยเลขเดิมไว้เฉย ๆ
-ui.Panel(x=492, y=260, w=288, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("คุณภาพของค่า", x=506, y=266, color=COL_DIM, value=14)
-lbl_health = ui.Label("กำลังวัดอยู่", x=506, y=290, color=COL_DIM, value=20)
-health = "กำลังวัดอยู่"     # ข้อความล่าสุดของบรรทัดคุณภาพ คิดใหม่วินาทีละครั้ง
-led_stale = ui.Led(x=510, y=326, w=28, h=28, color=COL_WARN, value=0)
-ui.Label("ค่าค้าง", x=546, y=330, color=COL_DIM, value=16)
+ref = ui.Label("อ้างอิง R +0.0  P +0.0", x=40, y=336, color=COL_DIM, value=16)
 
 # ตัวกรองมีความจำ สองสัญญาณจึงต้องใช้สองตัวเสมอ ใช้ตัวเดียวร่วมกันไม่ได้
 ema_roll = dsp.EMA(alpha=0.2)
@@ -178,7 +179,6 @@ while running:
     in_tol = abs(roll_show) <= tol and abs(pitch_show) <= tol
     led_in.value(1 if in_tol else 0)
     led_out.value(0 if in_tol else 1)
-    led_stale.value(0 if ok_read else 1)
 
     # ตัวเลขที่คนต้องอ่าน เขียนใหม่ไม่เกินวินาทีละครั้ง และอยู่ตำแหน่งเดิมเสมอ
     sec = time.ticks_ms() // 1000
@@ -189,7 +189,7 @@ while running:
         # ตั้งสีก่อนแล้วค่อยเขียนข้อความ สองบรรทัดนี้เป็นคำสั่งคนละครั้งข้ามคอร์
         if not ok_read:
             lbl_health.color(COL_WARN)
-            health = "ค่าค้าง ตัวเลขคือค่าล่าสุด"
+            health = "ค่าค้าง นี่คือค่าล่าสุด"
         elif in_tol:
             lbl_health.color(COL_DIM)
             health = "อยู่ในเกณฑ์ {} องศา".format(tol)

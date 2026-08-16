@@ -32,9 +32,9 @@ WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 AP_SSID = "bento-team01"
 AP_PASS = "12345678"
 SHOW_ROWS = 3
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 lcd.clear()
 lcd.console("<h2>คาบ 9 - ไม่มีวงให้ต่อ ก็ปล่อยวงเอง</h2>")
@@ -42,15 +42,15 @@ lcd.console("<h2>คาบ 9 - ไม่มีวงให้ต่อ ก็ป
 ui.screen()
 time.sleep_ms(200)
 ui.Label("แผนสำรองเมื่อหาวงไม่เจอ", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
-l_found = ui.Label("กำลังสแกน รอสักครู่", x=40, y=66, color=COL_WARN, value=20)
+ui.Panel(x=20, y=52, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
+l_found = ui.Label("กำลังสแกน รอสักครู่", x=40, y=68, color=COL_WARN, value=20)
 l_action = ui.Label("-", x=40, y=100, color=COL_TEXT, value=20)
-l_ip = ui.Label("-", x=40, y=134, color=COL_DIM, value=20)
+l_ip = ui.Label("-", x=40, y=136, color=COL_DIM, value=20)
 
-ui.Panel(x=20, y=186, w=650, h=140, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=188, w=652, h=140, color=COL_CARD, min=COL_DIM, max=12, value=1)
 rows = []
 for i in range(SHOW_ROWS):
-    rows.append(ui.Label("-", x=40, y=200 + i * 32, color=COL_DIM, value=18))
+    rows.append(ui.Label("-", x=40, y=200 + i * 32, color=COL_DIM, value=20))
 l_hint = ui.Label("-", x=40, y=296, color=COL_DIM, value=16)
 ui.Label("วิทยุมีชุดเดียว เป็น AP แล้วออกเน็ตไม่ได้", x=20, y=340,
          color=COL_DIM, value=16)

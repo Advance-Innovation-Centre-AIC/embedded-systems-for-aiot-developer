@@ -19,22 +19,22 @@ import ui
 LIMIT = 127
 SAFE_BYTES = 120
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_INFO = 0x00E676, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_INFO = 0x30A46C, 0x4A9EFF
 
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("พิมพ์ยาวเท่าไรก็ไม่หาย", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=170, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=52, w=652, h=172, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
-ui.Label("ก้อนที่ปล่อยไปแล้ว", x=40, y=66, color=COL_DIM, value=16)
-seg = ui.Seg7(text="0", x=40, y=92, w=110, h=60, color=COL_OK)
+ui.Label("ก้อนที่ปล่อยไปแล้ว", x=40, y=68, color=COL_DIM, value=16)
+seg = ui.Seg7(text="0", x=40, y=92, w=112, h=60, color=COL_OK)
 
-ui.Label("ขนาดก้อนล่าสุด (ไบต์)", x=210, y=66, color=COL_DIM, value=16)
-bar = ui.Bar(x=210, y=98, w=420, h=26, min=0, max=LIMIT, value=0)
-size_lbl = ui.Label("0 / 120 ไบต์ - เพดานจริง 127", x=210, y=134,
+ui.Label("ขนาดก้อนล่าสุด (ไบต์)", x=248, y=68, color=COL_DIM, value=16)
+bar = ui.Bar(x=212, y=100, w=420, h=28, min=0, max=LIMIT, value=0)
+size_lbl = ui.Label("0 / 120 ไบต์ - เพดานจริง 127", x=212, y=136,
                     color=COL_INFO, value=16)
 
 piece = ui.Label("ยังไม่ได้ปล่อยก้อนไหน", x=40, y=172, color=COL_TEXT, value=20)

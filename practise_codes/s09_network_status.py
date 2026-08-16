@@ -11,6 +11,8 @@
 # ติดตรงไหนให้เปิดเฉพาะไฟล์ของท่านั้น ไม่ต้องอ่านรวด
 #
 # หน้าจอถูกวางไว้ให้ครบแล้ว ไม่ต้องแก้ - งานของเราคือทำให้ข้อมูลจริงไหลเข้าไปในนั้น
+# ดูที่จอ: แถบบนคือหัวเรื่อง SSID เลข IP ป้ายสถานะ และปุ่มสแกนใหม่
+#         ล่างซ้ายคือตารางวงที่สแกนเจอ ล่างขวาคือไฟลิงก์ เลข ping และมาตรวัดความแรง
 
 import wifi
 import ui
@@ -21,15 +23,15 @@ WIFI_SSID = "AIoT-Class"     # ชื่อเครือข่ายที่�
 WIFI_PASS = "changeme"       # รหัสผ่านของเครือข่ายนั้น
 NET_TEST_IP = "8.8.8.8"      # ปลายทางฝั่งอินเทอร์เน็ต (Google Public DNS)
 PING_TIMEOUT_MS = 1500       # รอคำตอบ ping นานสุดกี่ ms ต่อครั้ง
-TOP_N = 4                    # ตารางสูงพอดีกับหัวตารางบวกสี่แถว แถวละ 70 พิกเซล
+TOP_N = 3                    # ตารางสูง 288 = หัวตารางบวกสามแถว แถวละ 72 พิกเซล
 
 PING_EVERY_MS = 3000         # วัด ping ทุกกี่ ms
 RSSI_FLOOR, RSSI_CEIL = -90, -40   # พิสัยของมาตรวัด: แทบไม่เหลือ ถึง เต็มแท่ง
 
 # ---------- สีการ์ด (ชุดเดียวกับแดชบอร์ดคาบ 8) ----------
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD, COL_OK, COL_WARN, COL_BAD, COL_RUN = (0x142240, 0x00E676, 0xFFC83D,
-                                                0xFF5252, 0x4FC3F7)
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD, COL_OK, COL_WARN, COL_BAD, COL_RUN = (0x171B22, 0x30A46C, 0xF5A623,
+                                                0xE5484D, 0x4A9EFF)
 
 
 def signal_of(rssi):
@@ -47,42 +49,48 @@ def ms_text(name, ms):
 
 
 # --- ท่าที่ 1: วางหน้าจอสองแผง (ซ้าย = ตารางคลื่นรอบตัว, ขวา = สถานะลิงก์) ---
+# จอวาดได้จริง 792 x 398 หน้านี้จึงแบ่งเป็นสองแถบ: แถบหัวเรื่องสูง 96 พิกเซล
+# (หัวเรื่อง SSID เลข IP ป้ายสถานะ และปุ่มสแกน) แล้วแถบเนื้อหา 104 ถึง 392
+# ที่แบ่งเป็นสองคอลัมน์ ซ้ายตาราง ขวาการ์ดสถานะลิงก์
 ui.screen()
 time.sleep_ms(200)
-ui.Label("สถานะเครือข่ายของทีม", x=16, y=8, color=COL_TEXT, value=20)
+ui.Label("สถานะเครือข่ายของทีม", x=24, y=8, color=COL_TEXT, value=24)
+l_ssid = ui.Label("SSID: -", x=336, y=12, color=COL_TEXT, value=20)
+l_ip = ui.Label("IP: -", x=24, y=48, color=COL_TEXT, value=20)
+l_tick = ui.Label("กำลังสแกน", x=336, y=48, color=COL_DIM, value=20)
 # ปุ่มวางบนแถบหัวเรื่อง ไม่ใช่มุมขวาล่าง เพราะมุมนั้นเฟิร์มแวร์ถือไว้ให้ปุ่ม Console
-btn_scan = ui.Button("สแกนใหม่", x=596, y=2, w=184, h=40, color=0x37474F, value=18)
+btn_scan = ui.Button("สแกนใหม่", x=552, y=8, w=216, h=88, color=0x171B22, value=20)
 
 # ผลการสแกนคือตารางตั้งแต่ต้น จึงใช้ ui.Table ไม่ใช่ ui.Label เรียงกันเอง
-# แถวหนึ่งสูงราว 70 พิกเซล และสูงเป็นสองเท่าทันทีที่ข้อความในช่องยาวเกินคอลัมน์
-tbl = ui.Table(x=8, y=44, w=552, h=350, cols=4)
-tbl.col_width(0, 175)        # กว้างพอสำหรับชื่อ 12 ตัวอักษร ซึ่งเป็นเพดานที่เราตัดไว้
-tbl.col_width(1, 120)
+# แถวหนึ่งสูง 72 พิกเซลที่ฟอนต์ 20 ความสูง 288 จึงพอดีหัวตารางบวกอีกสามแถว
+# และผลรวมความกว้างคอลัมน์ต้องน้อยกว่า w อยู่ราว 16 ไม่งั้นมีแถบเลื่อนคาใต้ตาราง
+tbl = ui.Table(x=24, y=104, w=480, h=288, cols=4)
+tbl.col_width(0, 144)        # กว้างพอสำหรับชื่อ 12 ตัวอักษร ซึ่งเป็นเพดานที่เราตัดไว้
+tbl.col_width(1, 96)
 tbl.col_width(2, 80)
-tbl.col_width(3, 170)        # "ความปลอดภัย" คือข้อความที่ยาวที่สุดในคอลัมน์นี้
+tbl.col_width(3, 128)        # "มีรหัส" คือข้อความที่ยาวที่สุดในคอลัมน์นี้        # "ความปลอดภัย" คือข้อความที่ยาวที่สุดในคอลัมน์นี้
 
-ui.Panel(x=566, y=44, w=218, h=350, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("สถานะลิงก์", x=578, y=48, color=COL_DIM, value=16)
+# การ์ดต้องถูกสร้าง "ก่อน" ของที่วางบนมัน LVGL วาดตามลำดับการสร้าง การ์ดที่มาทีหลัง
+# จะทาทับป้ายที่สร้างไว้ก่อนจนหายไปทั้งใบ โดยไม่มี error สักบรรทัด
+ui.Panel(x=520, y=104, w=248, h=288, color=COL_CARD, min=COL_DIM, max=12, value=1)
 # ไฟสองดวงติดทีละดวงเสมอ ดวงที่ดับจะ "หรี่" ไม่ใช่ "หาย" คนดูจึงยังเห็นว่ามีดวงนั้นอยู่
-led_up = ui.Led(x=578, y=74, w=26, h=26, color=COL_OK, value=0)
-ui.Label("ต่ออยู่", x=612, y=76, color=COL_DIM, value=16)
-led_down = ui.Led(x=578, y=106, w=26, h=26, color=COL_BAD, value=1)
-ui.Label("ยังไม่ต่อ", x=612, y=108, color=COL_DIM, value=16)
+led_up = ui.Led(x=536, y=112, w=48, h=48, color=COL_OK, value=0)
+ui.Label("ต่ออยู่", x=592, y=124, color=COL_DIM, value=16)
+led_down = ui.Led(x=536, y=168, w=48, h=48, color=COL_BAD, value=1)
+ui.Label("ยังไม่ต่อ", x=592, y=180, color=COL_DIM, value=16)
 
-l_ssid = ui.Label("SSID: -", x=578, y=140, color=COL_TEXT, value=14)
-l_ip = ui.Label("IP: -", x=578, y=162, color=COL_TEXT, value=14)
-l_gw = ui.Label("เกตเวย์ -", x=578, y=184, color=COL_DIM, value=14)
-l_net = ui.Label("อินเทอร์เน็ต -", x=578, y=206, color=COL_DIM, value=14)
+l_gw = ui.Label("เกตเวย์ -", x=536, y=224, color=COL_DIM, value=20)
+l_net = ui.Label("อินเทอร์เน็ต -", x=536, y=256, color=COL_DIM, value=20)
 
-# ui.Scale คือไม้บรรทัด ไม่มีเข็มและไม่รับ .value() ตัวที่ขยับคือ ui.Bar ที่วางทับ
-ui.Label("ความแรงจากการสแกนล่าสุด", x=578, y=232, color=COL_DIM, value=14)
-l_rssi = ui.Label("- dBm", x=578, y=254, color=COL_TEXT, value=18)
-bar_rssi = ui.Bar(x=578, y=282, w=170, h=12, color=COL_RUN,
+# ui.Scale คือไม้บรรทัด ไม่มีเข็มและไม่รับ .value() ตัวที่ขยับคือ ui.Bar ที่วางเหนือมัน
+# ป้ายบรรทัดเดียวทำหน้าที่ทั้งชื่อและค่า เพราะการ์ดใบนี้ไม่มีที่พอให้สองบรรทัด
+l_rssi = ui.Label("ความแรง - dBm", x=536, y=288, color=COL_TEXT, value=20)
+bar_rssi = ui.Bar(x=536, y=320, w=152, h=12, color=COL_RUN,
                   min=RSSI_FLOOR, max=RSSI_CEIL, value=RSSI_FLOOR)
-sc_rssi = ui.Scale(x=578, y=296, w=170, h=44, color=COL_TEXT,
+# ไม้บรรทัดจบที่ 688 ไม่ใช่ 752 เพราะมุมขวาล่างตั้งแต่ x=690 y=340 เป็นของปุ่ม Console
+sc_rssi = ui.Scale(x=536, y=340, w=152, h=44, color=COL_TEXT,
                    min=RSSI_FLOOR, max=RSSI_CEIL)
 sc_rssi.ticks(11, 5)         # ไม้บรรทัดสั้น ๆ ที่มีตัวเลขหกตัวจะทับกันจนอ่านไม่ออก
-l_tick = ui.Label("กำลังสแกน", x=578, y=350, color=COL_DIM, value=14)
 ui.poll()
 
 
@@ -109,7 +117,9 @@ def rescan():
 
     # ล้างของเก่าก่อนเสมอ ไม่งั้นแถวของการสแกนรอบก่อนจะค้างอยู่ใต้แถวใหม่
     tbl.clear_items()
-    tbl.add_row("SSID", "RSSI", "ช่อง", "ความปลอดภัย")
+    # หัวตารางสั้นเพราะช่องแคบ - หัวที่ยาวกว่าช่องจะถูกตัดบรรทัด แล้วแถวนั้น
+    # สูงเป็นสองเท่าทันที ดันแถวล่างสุดตกขอบตารางไปโดยไม่มีอะไรฟ้อง
+    tbl.add_row("SSID", "dBm", "ช่อง", "รหัส")
 
     # ใช้ min() กันกรณีสแกนเจอน้อยกว่า TOP_N วง ไม่งั้นจะหลุด IndexError
     for i in range(min(TOP_N, len(nets))):
@@ -121,7 +131,7 @@ def rescan():
 
         # ตัดชื่อที่ 12 ตัวอักษรโดยตั้งใจ ชื่อที่ยาวกว่าคอลัมน์จะถูกตัดบรรทัด แล้วแถวนั้น
         # สูงเป็นสองเท่า ดันแถวสุดท้ายตกขอบจอไปเงียบ ๆ - ชื่อเต็มยังอยู่ที่ Console
-        tbl.add_row(ssid[:12], str(rssi) + " dBm", str(channel),
+        tbl.add_row(ssid[:12], str(rssi), str(channel),
                     "เปิด" if security == 0 else "มีรหัส")
         ui.poll()
 
@@ -134,17 +144,17 @@ def rescan():
             # จึงเอาสีไปไว้ที่ตัวเลขแทน ซึ่ง Label เปลี่ยนสีตัวอักษรได้ตรงตามที่สั่ง
             bar_rssi.value(rssi)
             l_rssi.color(col)
-            l_rssi.text(str(rssi) + " dBm (" + str(pct) + "%)")
+            l_rssi.text("ความแรง " + str(rssi) + " dBm (" + str(pct) + "%)")
             return nets
     bar_rssi.value(RSSI_FLOOR)
-    l_rssi.text("ไม่เจอวงของทีม")
+    l_rssi.text("ความแรง ไม่เจอวงของทีม")
     return nets
 
 
 nets = rescan()
 
 # --- ท่าที่ 4: ต่อเข้าเครือข่ายของทีม ---
-l_tick.text("กำลังต่อ รอ 85 วิ")
+l_tick.text("กำลังต่อ 85 วิ")
 ui.poll()
 # ตั้ง False ไว้ก่อน เพื่อให้กด Run ดูโครงหน้าจอได้ตั้งแต่ยังไม่ได้เติมอะไร
 # ตอนนี้จะได้ข้อความ "ต่อไม่ติด" ซึ่งเป็นหน้าตาเดียวกับตอนใส่รหัสผ่านผิดพอดี
@@ -160,8 +170,8 @@ pass
 
 if not ok:
     l_ssid.color(COL_BAD)
-    l_ssid.text("ต่อไม่ติด ตรวจ SSID และรหัสผ่าน")
-    l_tick.text("จบแล้ว")
+    l_ssid.text("ต่อไม่ติด")
+    l_tick.text("ตรวจ SSID/รหัสผ่าน")
     ui.poll()
     raise SystemExit
 
@@ -228,7 +238,7 @@ while True:
         l_gw.color(COL_BAD)
         l_net.color(COL_BAD)
         l_gw.text("ลิงก์หลุด")
-        l_net.text("เลขล่าสุดไม่ใช่ค่าปัจจุบัน")
+        l_net.text("เลขล่าสุด ไม่ใช่ตอนนี้")
 
     # ตัวเลขที่คนต้องอ่าน เขียนใหม่ไม่เกินวินาทีละครั้ง และอยู่ตำแหน่งเดิมเสมอ
     left = (PING_EVERY_MS - time.ticks_diff(now, t_ping)) // 1000

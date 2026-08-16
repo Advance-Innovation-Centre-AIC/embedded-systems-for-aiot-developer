@@ -6,9 +6,10 @@
 #             Pedometer - นับก้าวให้เสร็จในตัว ไม่ต้องเขียนตรรกะนับเอง
 #             ทั้งคู่ไม่มี .value() ต่างจากตัวกรองหกตัวในคาบ 5
 #             Madgwick มี .quaternion() กับ .reset() ส่วน Pedometer มีแค่ .reset()
-# ดูที่จอ   : ซ้ายคือสามมุมจาก Madgwick เทียบกับ roll/pitch จาก dsp.tilt()
-#             ขวาคือตัวนับก้าวสองตัว ตัวหนึ่งตั้งเกณฑ์ถูกหน่วย อีกตัวใช้ค่าตั้งต้น
-#             กดเดินอยู่กับที่แล้วดูว่าสองตัวนี้ให้ตัวเลขต่างกันแค่ไหน
+# ดูที่จอ   : แถวบนเป็นสามคอลัมน์ ซ้ายคือสามมุมจาก Madgwick กลางคือ roll/pitch
+#             จาก dsp.tilt() ไว้เทียบกัน ขวาคือตัวนับก้าวสองตัว ตัวหนึ่งตั้งเกณฑ์
+#             ถูกหน่วย อีกตัวใช้ค่าตั้งต้น เดินอยู่กับที่แล้วดูว่าสองตัวนี้ต่างกันแค่ไหน
+#             แถบล่างซ้ายคือการ์ดที่อธิบายกับดักหน่วย ล่างขวาคือปุ่ม
 # กับดัก    : (1) Madgwick.update() รับ gyro หน่วย "เรเดียนต่อวินาที"
 #                 แต่ sensors.bmi270 คืนมาเป็น "องศาต่อวินาที" ต้องแปลงเอง
 #                 ลืมแปลง = ป้อนตัวเลขใหญ่กว่าที่ควรราว 57 เท่า มุมจะหมุนติ้ว
@@ -31,10 +32,15 @@ DT_MS = 100
 FS = 10.0          # ลูป 100 ms = 10 Hz ต้องบอก Madgwick ให้ตรง ไม่งั้นมุมจะเดินผิดอัตรา
 G = 9.80665        # ตัวหารที่เปลี่ยน m/s2 เป็น g
 
-COL_ROLL = 0xFF5252
-COL_PITCH = 0x4CAF50
-COL_YAW = 0xFFD24A
-COL_GRAY = 0xA0B4CC
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+# สามมุมไม่ได้แยกกันด้วยสี แต่แยกด้วยชื่อที่เขียนนำหน้าค่าทุกบรรทัด
+# แปลงเป็นขาวดำแล้วยังอ่านออกทั้งสามมุม ตาม §S7.7.1
+COL_TEXT = 0xE8EAED
+COL_DIM = 0x9AA3AF
+COL_ACCENT = 0x4A9EFF
+COL_WARN = 0xF5A623
+COL_BAD = 0xE5484D
+COL_OK = 0x30A46C
 
 lcd.clear()
 lcd.console("<h2>Madgwick กับ Pedometer</h2>")
@@ -54,42 +60,45 @@ except OSError:
     lcd.print("คอร์จอยังไม่ตอบรอบแรก จะลองใหม่ในลูป")
 
 ui.screen()
-ui.Label("Madgwick + Pedometer: หน่วยคือกับดัก", x=12, y=8, value=20)
+# ผังจอเป็นสามแถบ ขอบนอก 24 ทุกด้าน - หัวเรื่อง แล้วสามคอลัมน์ค่าอ่าน
+# แล้วแถบล่างที่มีการ์ดกับดักหน่วยอยู่ซ้าย และแถวปุ่มอยู่ขวา
+# แถวปุ่มจบที่ y=332 จึงพ้นมุมของปุ่ม Console (x>=690 และ y>=340)
+ui.Label("Madgwick + Pedometer: หน่วยคือกับดัก", x=24, y=8, value=24,
+         color=COL_TEXT)
 
-ui.Label("Madgwick (accel + gyro)", x=12, y=42, value=18, color=COL_GRAY)
-lbl_mr = ui.Label("roll   ----", x=12, y=68, value=20, color=COL_ROLL)
-lbl_mp = ui.Label("pitch  ----", x=12, y=94, value=20, color=COL_PITCH)
-lbl_my = ui.Label("yaw    ----", x=12, y=120, value=20, color=COL_YAW)
-lbl_q = ui.Label("q ----", x=12, y=146, value=16, color=COL_GRAY)
+ui.Label("Madgwick (accel+gyro)", x=24, y=44, value=20, color=COL_DIM)
+lbl_mr = ui.Label("roll   ----", x=24, y=72, value=20, color=COL_TEXT)
+lbl_mp = ui.Label("pitch  ----", x=24, y=100, value=20, color=COL_TEXT)
+lbl_my = ui.Label("yaw    ----", x=24, y=128, value=20, color=COL_TEXT)
 
-ui.Label("dsp.tilt() เทียบกัน", x=250, y=42, value=18, color=COL_GRAY)
-lbl_tr = ui.Label("roll   ----", x=250, y=68, value=20, color=COL_ROLL)
-lbl_tp = ui.Label("pitch  ----", x=250, y=94, value=20, color=COL_PITCH)
-ui.Label("tilt ไม่มี yaw ให้ เพราะ", x=250, y=120, value=16, color=COL_GRAY)
-ui.Label("แรงโน้มถ่วงไม่รู้ทิศเหนือ", x=250, y=140, value=16, color=COL_GRAY)
+ui.Label("dsp.tilt() เทียบกัน", x=280, y=44, value=20, color=COL_DIM)
+lbl_tr = ui.Label("roll   ----", x=280, y=72, value=20, color=COL_TEXT)
+lbl_tp = ui.Label("pitch  ----", x=280, y=100, value=20, color=COL_TEXT)
+ui.Label("tilt ไม่มี yaw ให้", x=280, y=128, value=20, color=COL_DIM)
 
-ui.Label("Pedometer สองตัว", x=486, y=42, value=18, color=COL_GRAY)
-lbl_ok = ui.Label("g   ----", x=486, y=68, value=20, color=0x50D890)
-lbl_bad = ui.Label("m/s2 ----", x=486, y=94, value=20, color=0xFF9800)
-lbl_active = ui.Label("active ----", x=486, y=120, value=18, color=COL_GRAY)
-lbl_mag = ui.Label("|a| ----", x=486, y=146, value=18, color=COL_GRAY)
+ui.Label("Pedometer สองตัว", x=520, y=44, value=20, color=COL_DIM)
+lbl_ok = ui.Label("g    ----", x=520, y=72, value=20, color=COL_OK)
+lbl_bad = ui.Label("m/s2 ----", x=520, y=100, value=20, color=COL_WARN)
+lbl_active = ui.Label("active ----", x=520, y=128, value=20, color=COL_DIM)
 
-ui.Panel(x=12, y=180, w=670, h=76)
-ui.Label("ตัวส้มนับขึ้นทั้งที่บอร์ดวางนิ่ง", x=24, y=188, value=18,
-         color=0xFFC107)
-ui.Label("9.81 มากกว่าเกณฑ์ 1.5 ตั้งแต่ยังไม่ขยับ", x=24, y=210, value=18,
-         color=0xFFC107)
-ui.Label("ค่าตั้งต้นของไลบรารี ไม่ใช่ค่าที่ถูกเสมอไป", x=24, y=232,
-         value=18, color=0xFF5252)
+# แถวเต็มความกว้าง: quaternion ยาวเกินคอลัมน์ จึงมีบรรทัดของตัวเอง
+lbl_q = ui.Label("q ----", x=24, y=164, value=20, color=COL_DIM)
+lbl_mag = ui.Label("|a| ----", x=520, y=164, value=20, color=COL_DIM)
 
-ch = ui.Chart(x=12, y=266, w=470, h=118, min=-180, max=180, color=COL_YAW)
-s_yaw = 0
-s_mroll = ch.add_series(COL_ROLL)
-s_troll = ch.add_series(COL_GRAY)
+# การ์ดกับดักหน่วย - สามบรรทัดชิดขอบซ้ายเดียวกันที่ x=40 (ขอบการ์ด 24 + ระยะใน 16)
+ui.Panel(x=24, y=204, w=456, h=128)
+ui.Label("ตัวส้มนับขึ้นทั้งที่บอร์ดวางนิ่ง", x=40, y=224, value=20,
+         color=COL_WARN)
+ui.Label("9.81 มากกว่าเกณฑ์ 1.5 ตั้งแต่ยังไม่ขยับ", x=40, y=260, value=20,
+         color=COL_WARN)
+ui.Label("ค่าตั้งต้นของไลบรารี ไม่ใช่ค่าที่ถูก", x=40, y=296,
+         value=20, color=COL_BAD)
 
-btn_reset = ui.Button("reset ทั้งสามตัว", x=496, y=268, w=186, h=52,
-                      color=0x6A1B9A, value=20)
-btn_exit = ui.Button("ออก", x=496, y=330, w=186, h=52, color=0x546E7A,
+# ปุ่มสองใบเรียงข้างกัน กว้าง 116 สูง 88 เว้นกัน 32 ตาม §S7.13.11-12
+ui.Label("reset ทั้งสามตัว", x=504, y=204, value=20, color=COL_DIM)
+btn_reset = ui.Button("reset", x=504, y=244, w=116, h=88,
+                      color=COL_ACCENT, value=20)
+btn_exit = ui.Button("ออก", x=652, y=244, w=116, h=88, color=COL_DIM,
                      value=20)
 id_reset = btn_reset.id()
 id_exit = btn_exit.id()
@@ -137,10 +146,6 @@ while running:
     # active เป็น True เฉพาะรอบที่เพิ่งนับก้าวได้จริง ไม่ใช่ค่าค้าง
     lbl_active.text("active {} / {}".format(act_ok, act_bad))
     lbl_mag.text("|a| {:5.2f} m/s2".format(mag))
-
-    ch.set_next(s_yaw, int(max(-180, min(180, m_yaw))))
-    ch.set_next(s_mroll, int(max(-180, min(180, m_roll))))
-    ch.set_next(s_troll, int(max(-180, min(180, t_roll))))
 
     for ev in ui.poll():
         h = ev['handle']

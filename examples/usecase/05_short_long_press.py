@@ -35,26 +35,35 @@ lcd.console("<h2>ปุ่มเดียว สองความหมาย</
 lcd.print("ปุ่ม", btn.name(), "| กดค้าง >", LONG_MS, "ms = ล้าง")
 
 ui.screen()
-ui.Label("ปุ่มเดียว สองความหมาย", x=12, y=6, value=24)
-ch = ui.Chart(x=12, y=44, w=470, h=210, min=0, max=100, color=0x00BFFF)
-s_dec = ch.add_series(0xFF5555)
-ui.Label("เส้นฟ้า = ระดับปุ่มดิบ (กด=สูง)", x=496, y=44, value=16,
-         color=0x00BFFF)
-ui.Label("เส้นแดง = คำตัดสินตอนปล่อย", x=496, y=68, value=16, color=0xFF5555)
-ui.Label("แตะสั้น=ระดับกลาง กดค้าง=ระดับสูง", x=496, y=92, value=14)
+# ผังจอสองคอลัมน์ ขอบนอก 24 - ซ้ายคือกราฟกับคำอธิบายเส้นและแถบสถานะ
+# ขวาคือตัวเลขที่กำลังเดิน แถบความคืบหน้า และการ์ดคำตัดสิน
+#
+# ก่อนแก้ ป้ายคำอธิบายสองใบถูกวางไว้ที่ x=448 และ x=428 ซึ่งคาบเกี่ยวทั้งสอง
+# คอลัมน์ แล้วการ์ดที่สร้างทีหลังก็ทาทับมันหายไปทั้งใบ ส่วนป้ายคำตัดสิน vd
+# ถูกวางที่ y=336 ซึ่งอยู่ "ใต้" การ์ดของตัวเองที่จบไปแล้วตั้งแต่ y=320
+ui.Label("ปุ่มเดียว สองความหมาย", x=24, y=8, value=24)
+ch = ui.Chart(x=24, y=48, w=440, h=192, min=0, max=100, color=0x4A9EFF)
+s_dec = ch.add_series(0xE5484D)
+ui.Label("เส้นฟ้า = ระดับปุ่มดิบ (กด=สูง)", x=24, y=252, value=20,
+         color=0x4A9EFF)
+ui.Label("เส้นแดง = คำตัดสินตอนปล่อย", x=24, y=280, value=20, color=0xE5484D)
 
-ui.Label("กดค้างมาแล้ว (ms)", x=496, y=124, value=16)
-seg = ui.Seg7(x=496, y=150, w=160, h=40)
+ui.Panel(x=24, y=316, w=440, h=60, color=0x171B22, min=0x171B22, value=2)
+st = ui.Label("แตะสั้น = เลื่อนโหมด | กดค้าง = ล้าง", x=40, y=332, value=20)
+
+ui.Label("กดค้างมาแล้ว (ms)", x=496, y=48, value=20)
+seg = ui.Seg7(x=496, y=80, w=160, h=48)
 seg.text("0")      # Seg7 รับ "ข้อความ" ถ้าไม่ตั้งค่า มันจะค้างที่ 0000
 
-ui.Label("ความคืบหน้าสู่ 1000 ms", x=496, y=198, value=16)
-bar = ui.Bar(x=496, y=224, w=280, h=18, min=0, max=LONG_MS, value=0)
+ui.Label("ความคืบหน้าสู่ 1000 ms", x=496, y=144, value=20)
+bar = ui.Bar(x=496, y=176, w=256, h=24, min=0, max=LONG_MS, value=0)
 
-ui.Panel(x=496, y=254, w=284, h=64, color=0x1A1A2E, min=0x3F4247, value=2)
-vd = ui.Label("ยังไม่มีการกด", x=512, y=274, value=20, color=0x8899AA)
+ui.Label("แตะสั้น = ระดับกลาง", x=496, y=216, value=20)
+ui.Label("กดค้าง = ระดับสูง", x=496, y=244, value=20)
 
-ui.Panel(x=12, y=290, w=470, h=44, color=0x1A1A2E, min=0x3F4247, value=2)
-st = ui.Label("แตะสั้น = เลื่อนโหมด | กดค้าง = ล้าง", x=24, y=302, value=18)
+# การ์ดคำตัดสิน จบที่ y=340 พอดี จึงพ้นมุมของปุ่ม Console (x>=690 และ y>=340)
+ui.Panel(x=496, y=284, w=272, h=56, color=0x171B22, min=0x171B22, value=2)
+vd = ui.Label("ยังไม่มีการกด", x=512, y=296, value=20, color=0x9AA3AF)
 ui.poll()
 
 mode = 0
@@ -84,7 +93,7 @@ for _ in range(6000):
                     gpio.led(i).off()
                 dec_level = DEC_LONG
                 vd.text("กดค้าง -> ล้างทั้งหมด")
-                vd.color(0xFF5555)
+                vd.color(0xE5484D)
                 st.text("กดค้าง " + str(held) + " ms -> ล้างทั้งหมด")
                 lcd.print("กดค้าง", held, "ms -> ล้างทั้งหมด")
             else:
@@ -93,7 +102,7 @@ for _ in range(6000):
                 gpio.led(mode).on()
                 dec_level = DEC_SHORT
                 vd.text("แตะสั้น -> โหมด " + str(mode))
-                vd.color(0x33DD77)
+                vd.color(0x30A46C)
                 st.text("แตะ " + str(held) + " ms -> โหมด " + str(mode))
                 lcd.print("แตะ", held, "ms -> โหมด", mode)
         prev = v

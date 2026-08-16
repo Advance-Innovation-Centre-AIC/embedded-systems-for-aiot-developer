@@ -23,29 +23,29 @@ BROKER = "<ชื่อโฮสต์ของแพลตฟอร์ม>"
 WAIT_LIMIT_MS = 30000       # รอนานสุดเท่านี้ แล้วยอมแพ้อย่างมีสติ
 POLL_MS = 100               # ถามสถานะถี่พอให้แถบบนจอเดินลื่น
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x30A46C, 0xF5A623, 0xE5484D, 0x4A9EFF
 
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("connect() คืนค่าก่อนต่อเสร็จ", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("connect() คืนค่าใน (ms)", x=40, y=62, color=COL_DIM, value=16)
+ui.Panel(x=20, y=52, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("connect() คืนค่าใน (ms)", x=40, y=64, color=COL_DIM, value=16)
 seg_call = ui.Seg7(text="----", x=40, y=88, w=180, h=68, color=COL_INFO)
-ui.Label("ต่อสำเร็จจริงที่ (ms)", x=360, y=62, color=COL_DIM, value=16)
+ui.Label("ต่อสำเร็จจริงที่ (ms)", x=360, y=64, color=COL_DIM, value=16)
 seg_conn = ui.Seg7(text="----", x=360, y=88, w=180, h=68, color=COL_OK)
 
-wait_label = ui.Label("เพดานเวลา {} ms".format(WAIT_LIMIT_MS), x=20, y=186,
+wait_label = ui.Label("เพดานเวลา {} ms".format(WAIT_LIMIT_MS), x=20, y=188,
                       color=COL_DIM, value=16)
-bar = ui.Bar(x=20, y=212, w=650, h=26, min=0, max=WAIT_LIMIT_MS, value=0)
+bar = ui.Bar(x=20, y=212, w=652, h=28, min=0, max=WAIT_LIMIT_MS, value=0)
 # สองป้ายในบรรทัดเดียว ให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยตัวละ 3 ไบต์
 gap_label = ui.Label("ช่องว่างระหว่างสองเลข", x=20, y=252, color=COL_DIM,
-                     value=18)
-ui.Label("คือเวลาที่ TLS ใช้จับมือ", x=250, y=252, color=COL_DIM, value=18)
-step = ui.Label("กำลังต่อ WiFi " + WIFI_SSID, x=20, y=286, color=COL_WARN, value=18)
-status = ui.Label("รอสัญญาณ...", x=20, y=334, color=COL_DIM, value=18)
+                     value=20)
+ui.Label("คือเวลาที่ TLS ใช้จับมือ", x=252, y=252, color=COL_DIM, value=20)
+step = ui.Label("กำลังต่อ WiFi " + WIFI_SSID, x=20, y=288, color=COL_WARN, value=20)
+status = ui.Label("รอสัญญาณ...", x=20, y=336, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

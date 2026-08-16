@@ -25,25 +25,25 @@ SEND_EVERY_MS = 2000        # ถี่พอให้เห็นจังห�
 TICK_MS = 100               # ซอยการหน่วงเป็นช่วงสั้น ๆ เพื่อให้ ui.poll() ได้ทำงาน
 WAIT_LIMIT_MS = 30000
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x30A46C, 0xF5A623, 0xE5484D, 0x4A9EFF
 
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("ส่งขึ้นแพลตฟอร์มผ่าน TLS", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
-mode_label = ui.Label("ยังไม่ได้ตั้งโหมด", x=40, y=62, color=COL_INFO, value=20)
-seg_sent = ui.Seg7(text="0", x=40, y=96, w=150, h=48, color=COL_OK)
+ui.Panel(x=20, y=52, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
+mode_label = ui.Label("ยังไม่ได้ตั้งโหมด", x=40, y=64, color=COL_INFO, value=20)
+seg_sent = ui.Seg7(text="0", x=40, y=96, w=152, h=48, color=COL_OK)
 # คำอธิบายวางใต้ตัวเลข Seg7 สูง 48 จบที่ y=144 ป้ายจึงเริ่มที่ 146
-ui.Label("ส่งสำเร็จ (ครั้ง)", x=40, y=146, color=COL_DIM, value=16)
+ui.Label("ส่งสำเร็จ (ครั้ง)", x=40, y=148, color=COL_DIM, value=16)
 link_label = ui.Label("สาย: ยังไม่ได้ต่อ", x=360, y=100, color=COL_WARN, value=24)
 ui.Label("จังหวะการส่ง (ms ระหว่างสองครั้ง)", x=20, y=176, color=COL_DIM, value=16)
-chart = ui.Chart(x=20, y=196, w=650, h=118, color=COL_CARD,
+chart = ui.Chart(x=20, y=212, w=652, h=120, color=COL_CARD,
                  min=0, max=SEND_EVERY_MS * 2)
 series = chart.add_series(COL_OK)
-status = ui.Label("กำลังต่อ WiFi " + WIFI_SSID, x=20, y=330, color=COL_DIM, value=18)
+status = ui.Label("กำลังต่อ WiFi " + WIFI_SSID, x=20, y=332, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

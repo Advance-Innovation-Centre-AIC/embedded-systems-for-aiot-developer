@@ -6,9 +6,9 @@
 # คาบนี้ข้อมูลเดินสองทางเป็นครั้งแรก: เราส่งขึ้นทุก 5 วินาที และรับคำสั่งลงมาได้ตลอดเวลา
 # ปุ่มบนจอคนอื่นสั่งไฟบนบอร์ดเราได้ - นั่นคือความหมายจริง ๆ ของคำว่า IoT
 #
-# ดูที่จอ: ซ้ายบนคือไฟสี่ดวงบอกสถานะลิงก์ทั้งเส้นทาง กลางบนคือค่าที่กำลังจะถูกส่ง
-#         พร้อมพิสัยของมัน ขวาบนคือจำนวนใบที่ส่งไปแล้วกับคำสั่งที่รับกลับมา
-#         ล่างซ้ายคือรายการสามใบล่าสุด ล่างขวาคือปุ่มสั่งเริ่ม/หยุดส่ง
+# ดูที่จอ: แถบบนคือไฟสี่ดวงบอกสถานะลิงก์ทั้งเส้นทาง ซ้ายคือค่าที่กำลังจะถูกส่ง
+#         พร้อมพิสัยของมันและจำนวนใบที่ส่งไปแล้ว กลางคือรายการสามใบล่าสุด
+#         กับคำสั่งที่รับกลับมา ขวาคือปุ่มสั่งเริ่ม/หยุดส่ง
 # กับดัก : ไฟ "ค่าค้าง" มีไว้เพราะค่าที่อ่านไม่ได้ยังค้างเลขเดิมอยู่บนจอ ไม่ได้หายไป
 #         จอที่โชว์เลขเก่าโดยไม่บอกว่ามันเก่า อันตรายกว่าจอที่ไม่โชว์อะไรเลย
 
@@ -52,60 +52,61 @@ lcd.console("<h2>MQTT Telemetry - คาบ 10</h2>")
 
 # --- แผงเฝ้าลิงก์: สร้างก่อนต่อเน็ต เพราะการต่อคือสิ่งที่เราอยากเฝ้าดู ---
 # ถ้าสร้างจอหลังต่อเสร็จ ช่วงที่น่าดูที่สุดของโปรแกรมจะผ่านไปโดยไม่มีใครเห็น
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD, COL_OK, COL_WARN, COL_RUN = 0x142240, 0x00E676, 0xFFC83D, 0x4FC3F7
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD, COL_OK, COL_WARN, COL_RUN = 0x171B22, 0x30A46C, 0xF5A623, 0x4A9EFF
 SEND_MS = 5000
 STALE_MS = 12000       # เกินสองรอบส่งแล้วยังอ่านค่าไม่ได้ ถือว่าเลขบนจอเป็นของเก่า
 
+# แถบบนสูง 104 พิกเซลคือหัวเรื่องกับไฟสี่ดวงที่ไล่ตามเส้นทางจริงของข้อมูล
+# WiFi ก่อน แล้ว MQTT แล้วค่าค้าง แล้วไฟที่คนอื่นสั่ง - เรียงตามลำดับที่มันเกิดจริง
+# ใต้แถบนั้นคือการ์ดสามใบ ตั้งแต่ y=112 ถึง 392 ซึ่งเป็นขอบล่างที่ปลอดภัยของจอ
 ui.screen()
 time.sleep_ms(200)
-ui.Label("MQTT Telemetry - คาบ 10", x=16, y=6, color=COL_TEXT, value=20)
+ui.Label("MQTT Telemetry - คาบ 10", x=24, y=36, color=COL_TEXT, value=20)
 
-# การ์ด 1: ไฟสี่ดวงไล่ตามเส้นทางจริงของข้อมูล WiFi ก่อน แล้วค่อย MQTT
-ui.Panel(x=16, y=34, w=250, h=150, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("สถานะการเชื่อมต่อ", x=30, y=40, color=COL_DIM, value=14)
-led_wifi = ui.Led(x=34, y=62, w=28, h=28, color=COL_OK, value=0)
-ui.Label("WiFi", x=72, y=66, color=COL_DIM, value=16)
-led_mqtt = ui.Led(x=34, y=96, w=28, h=28, color=COL_OK, value=0)
-ui.Label("MQTT", x=72, y=100, color=COL_DIM, value=16)
+led_wifi = ui.Led(x=328, y=16, w=48, h=48, color=COL_OK, value=0)
+ui.Label("WiFi", x=328, y=72, color=COL_DIM, value=16)
+led_mqtt = ui.Led(x=440, y=16, w=48, h=48, color=COL_OK, value=0)
+ui.Label("MQTT", x=440, y=72, color=COL_DIM, value=16)
 # สีเหลืองใช้กับเรื่องเดียวในหน้านี้คือค่าที่เชื่อไม่ได้ ไม่เอาไปใช้กับอย่างอื่นอีก
-led_stale = ui.Led(x=34, y=130, w=28, h=28, color=COL_WARN, value=0)
-ui.Label("ค่าค้าง", x=72, y=134, color=COL_DIM, value=16)
-led_remote = ui.Led(x=150, y=130, w=28, h=28, color=COL_RUN, value=0)
-ui.Label("ไฟสั่งไกล", x=188, y=134, color=COL_DIM, value=16)
+led_stale = ui.Led(x=552, y=16, w=48, h=48, color=COL_WARN, value=0)
+ui.Label("ค่าค้าง", x=552, y=72, color=COL_DIM, value=16)
+led_remote = ui.Led(x=664, y=16, w=48, h=48, color=COL_RUN, value=0)
+ui.Label("ไฟสั่งไกล", x=664, y=72, color=COL_DIM, value=16)
 
-# การ์ด 2: ค่าที่กำลังจะถูกส่ง พร้อมพิสัยของมัน
+# การ์ด 1: ค่าที่กำลังจะถูกส่ง พร้อมพิสัยของมัน และจำนวนใบที่ส่งไปแล้ว
 # ตัวเลข 62 ลอย ๆ ไม่บอกว่าสูงไหม ตัวเลข 62 ที่มีไม้บรรทัด 0-100 อยู่ใต้มันบอกทันที
 # และค่าที่เห็นบนการ์ดนี้คือค่าเดียวกับที่ออกไปทาง MQTT ไม่ใช่ค่าที่อ่านคนละรอบ
-ui.Panel(x=278, y=34, w=250, h=150, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("โพเทนชิโอมิเตอร์ (ที่ส่งจริง)", x=292, y=40, color=COL_DIM, value=14)
-lbl_pot = ui.Label("- %", x=292, y=62, color=COL_TEXT, value=24)
-bar_pot = ui.Bar(x=292, y=104, w=220, h=12, color=COL_OK, min=0, max=100, value=0)
-sc_pot = ui.Scale(x=292, y=118, w=220, h=44, color=COL_TEXT, min=0, max=100)
+#
+# การ์ดต้องถูกสร้างก่อนของที่วางบนมันเสมอ LVGL วาดตามลำดับการสร้าง การ์ดที่มาทีหลัง
+# จะทาทับป้ายที่สร้างไว้ก่อนจนหายไปทั้งใบ โดยไม่มี error สักบรรทัด
+ui.Panel(x=24, y=112, w=232, h=280, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ลูกบิดที่ส่งจริง", x=40, y=124, color=COL_DIM, value=16)
+lbl_pot = ui.Label("- %", x=40, y=160, color=COL_TEXT, value=24)
+bar_pot = ui.Bar(x=40, y=204, w=200, h=12, color=0x4A9EFF, min=0, max=100, value=0)
+sc_pot = ui.Scale(x=40, y=224, w=200, h=44, color=COL_TEXT, min=0, max=100)
 sc_pot.ticks(11, 5)
+ui.Label("ส่งไปแล้ว (ใบ)", x=40, y=288, color=COL_DIM, value=16)
+seg_sent = ui.Seg7("0", x=40, y=324, w=200, h=48, color=COL_TEXT)
 
-# การ์ด 3: จำนวนใบที่ส่ง กับคำสั่งที่เดินทางกลับมา
-ui.Panel(x=540, y=34, w=236, h=150, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ส่งไปแล้ว (ใบ)", x=554, y=40, color=COL_DIM, value=14)
-seg_sent = ui.Seg7("0", x=554, y=60, w=200, h=48, color=COL_TEXT)
-ui.Label("คำสั่งที่รับล่าสุด", x=554, y=116, color=COL_DIM, value=14)
-lbl_cmd = ui.Label("ยังไม่มี", x=554, y=138, color=COL_DIM, value=18)
-
-# การ์ด 4: สามใบล่าสุด - ui.List ไม่ใช่ ui.Label เรียงกัน เพราะรายการที่ต้องล้างแล้ว
+# การ์ด 2: สามใบล่าสุด - ui.List ไม่ใช่ ui.Label เรียงกัน เพราะรายการที่ต้องล้างแล้ว
 # เขียนใหม่ทุกห้าวินาที ถ้าทำด้วย Label ต้องนับพิกเซลใหม่ทุกครั้งที่ข้อความยาวไม่เท่าเดิม
-# แถวหนึ่งของ List สูงราว 51 พิกเซล สามแถวจึงขอความสูงราว 165 ไม่ใช่เดาเอา
-ui.Panel(x=16, y=192, w=512, h=198, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("สามใบล่าสุดที่ส่งออกไป", x=30, y=198, color=COL_DIM, value=14)
-lst_sent = ui.List(x=30, y=220, w=484, h=166)
+# แถวหนึ่งของ List สูงราว 51 พิกเซล สามแถวจึงขอความสูง 168 ไม่ใช่เดาเอา
+ui.Panel(x=272, y=112, w=240, h=280, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("สามใบล่าสุด", x=288, y=124, color=COL_DIM, value=16)
+lst_sent = ui.List(x=288, y=160, w=208, h=168)
+ui.Label("รับล่าสุด", x=288, y=344, color=COL_DIM, value=16)
+lbl_cmd = ui.Label("ยังไม่มี", x=400, y=344, color=COL_DIM, value=20)
 
-# การ์ด 5: ปุ่มสั่งเริ่มกับหยุด แยกกันคนละปุ่ม ไม่ใช่ปุ่มเดียวสลับ
+# การ์ด 3: ปุ่มสั่งเริ่มกับหยุด แยกกันคนละปุ่ม ไม่ใช่ปุ่มเดียวสลับ
 # ที่นี่ไม่ต้องมีกล่องยืนยัน เพราะคำสั่งนี้ไม่ได้ทำให้ของจริงขยับ และย้อนกลับได้
 # ด้วยปุ่มที่อยู่ข้าง ๆ ทันที - กล่องยืนยันมีไว้สำหรับคำสั่งที่ถอยกลับไม่ได้
-ui.Panel(x=540, y=192, w=236, h=198, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("คำสั่งการส่งข้อมูล", x=554, y=198, color=COL_DIM, value=14)
-btn_go = ui.Button("เริ่มส่ง", x=554, y=222, w=104, h=44, color=0x1B5E20, value=16)
-btn_hold = ui.Button("หยุดส่ง", x=666, y=222, w=104, h=44, color=0x37474F, value=16)
-lbl_state = ui.Label("กำลังส่ง", x=554, y=286, color=COL_DIM, value=16)
+# ปุ่มทั้งคู่จบที่ y=328 เพราะมุมขวาล่างตั้งแต่ x=690 y=340 เป็นของปุ่ม Console
+ui.Panel(x=528, y=112, w=240, h=280, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("คำสั่งการส่งข้อมูล", x=544, y=124, color=COL_DIM, value=16)
+lbl_state = ui.Label("กำลังส่ง", x=544, y=160, color=COL_DIM, value=20)
+btn_go = ui.Button("เริ่มส่ง", x=544, y=240, w=88, h=88, color=0x30A46C, value=20)
+btn_hold = ui.Button("หยุดส่ง", x=664, y=240, w=88, h=88, color=0x171B22, value=20)
 ui.poll()
 
 wifi.connect(WIFI_SSID, WIFI_PASSWORD)
@@ -179,7 +180,9 @@ while True:
             seg_sent.text(str(sent))
 
             # รายการล้างแล้วเขียนใหม่ทั้งชุด ง่ายกว่าและถูกกว่าการเลื่อนทีละแถว
-            recent.append("ใบ " + str(sent) + " pot " + str(pot))
+            # ข้อความในแถวต้องสั้นกว่าความกว้างของ List ที่หักไอคอนออกแล้ว
+            # ยาวกว่านั้น LVGL จะเลื่อนข้อความไปมาเอง แล้วตัวแรกของบรรทัดหายไปจากตา
+            recent.append("ใบ " + str(sent) + " : " + str(pot))
             if len(recent) > 3:
                 recent.pop(0)
             lst_sent.clear_items()

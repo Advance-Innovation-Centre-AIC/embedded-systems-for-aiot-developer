@@ -22,8 +22,8 @@ ROUNDS = 6              # กะพริบกี่รอบต่อหนึ
 ON_MS = 250             # ติดค้างนานเท่าไร
 OFF_MS = 250            # ดับค้างนานเท่าไร
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_OK, COL_WARN, COL_INFO = 0x00E676, 0xFFA726, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_OK, COL_WARN, COL_INFO = 0x30A46C, 0xF5A623, 0x4A9EFF
 
 # ขอตัวจัดการมาเก็บไว้ในตัวแปรครั้งเดียว ไม่ต้องเรียก gpio.led(0) ซ้ำทุกบรรทัด
 led = gpio.led(LED)
@@ -35,9 +35,9 @@ time.sleep_ms(200)
 ui.Label("ไฟกะพริบและตัวนับรอบ", x=20, y=12, color=COL_TEXT, value=24)
 state = ui.Label("ดับ", x=20, y=64, color=COL_DIM, value=28)
 seg = ui.Seg7(text="0", x=200, y=56, w=140, h=56, color=COL_OK)
-how = ui.Label("led.on() / led.off()", x=370, y=72, color=COL_INFO, value=20)
+how = ui.Label("led.on() / led.off()", x=372, y=72, color=COL_INFO, value=20)
 note = ui.Label("มองหลอด " + led.name() + " บนบอร์ดคู่กับป้ายบนจอ", x=20,
-                y=150, color=COL_DIM, value=18)
+                y=152, color=COL_DIM, value=20)
 
 lcd.clear()
 lcd.console("<h2>ไฟกะพริบและตัวนับรอบ</h2>")

@@ -3,9 +3,9 @@
 #
 # ไฟล์นี้สอน: aliasing ไม่ใช่ noise และกรองทิ้งทีหลังไม่ได้ เพราะมันคือความถี่จริง
 #             ที่ถูกพับลงมาทับย่านที่เราสนใจตั้งแต่ตอนสุ่ม
-# ดูที่จอ   : เส้นฟ้าคือคลื่นจริง เส้นเขียวคือคลื่นที่เครื่องคิดว่าเห็น เส้นแดง
-#             เป็นบันไดคือค่าที่ ADC เก็บได้จริงที่ 40 Hz - บันไดแตะทั้งสองเส้น
-#             ที่จุดสุ่มทุกจุด ขั้นแรก ๆ สองเส้นทับกัน พอเกิน 20 Hz มันแยกกัน
+# ดูที่จอ   : เส้นสว่างคือคลื่นจริง เส้นสีเน้นคือคลื่นที่เครื่องคิดว่าเห็น
+#             เส้นจางเป็นบันไดคือค่าที่ ADC เก็บได้จริงที่ 40 Hz - บันไดแตะทั้ง
+#             สองเส้นที่จุดสุ่มทุกจุด ขั้นแรก ๆ สองเส้นทับกัน พอเกิน 20 Hz มันแยกกัน
 # กับดัก    : กฎคือ fs > 2*f ไม่ใช่ fs >= 2*f ตรงที่เท่ากันพอดีคือกรณีที่แย่ที่สุด
 #             อาจสุ่มโดนจุดตัดศูนย์ทุกครั้งแล้วได้สัญญาณแบน ๆ ที่ดูเหมือนไม่มีอะไรเลย
 
@@ -32,32 +32,33 @@ def alias_of(f_signal, fs):
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("aliasing: ความถี่ที่ไม่เคยมีอยู่จริง", x=12, y=8, value=20)
-lbl_pos = ui.Label("1 / 6", x=470, y=8, value=20, color=0x50D890)
+# ผังจอสี่แถบ ขอบนอก 24 - หัวเรื่อง / กราฟกับคำอธิบายสี / คำตัดสิน / แถวปุ่ม
+# แถวปุ่มจบที่ x=680 จึงพ้นมุมของปุ่ม Console (x>=690) ได้ทั้งสี่ใบ
+# ปุ่มกว้าง 140 สูง 88 เว้นกัน 32 ตาม §S7.13.11-12
+ui.Label("aliasing: ความถี่ที่ไม่เคยมีอยู่จริง", x=24, y=8, value=20)
+# ป้ายนี้บอกทั้งขั้นที่อยู่ และบอกว่ากำลังเล่นรวดอยู่หรือเปล่า ตาม §S7.7.5
+lbl_pos = ui.Label("1 / 6", x=448, y=8, value=20, color=0x30A46C)
 
-# สูง 178 ไม่ใช่ 200 เพื่อเว้นแถบว่างให้ lbl_note ข้างล่าง ก่อนถึงแถวปุ่มที่ y=250
-ch = ui.Chart(x=12, y=36, w=420, h=178, min=-120, max=120)   # หน่วยเป็นค่า x100
+ch = ui.Chart(x=24, y=44, w=408, h=192, min=-120, max=120)   # หน่วยเป็นค่า x100
 s_true = 0
-s_hold = ch.add_series(0xFF5555)
-s_alias = ch.add_series(0x55FF88)
+s_hold = ch.add_series(0xE5484D)
+s_alias = ch.add_series(0x30A46C)
 
-ui.Label("ฟ้า = คลื่นจริง", x=446, y=38, value=16, color=0x00BFFF)
-ui.Label("แดง = ที่ ADC เก็บได้", x=446, y=60, value=16, color=0xFF5555)
-ui.Label("เขียว = ที่เครื่องคิดว่าเห็น", x=446, y=82, value=16, color=0x55FF88)
-lbl_f = ui.Label("f จริง = 5 Hz", x=446, y=108, value=24, color=0xFFD24A)
-ui.Label("ความถี่ที่ 'เห็น' (Hz)", x=446, y=140, value=14)
-seg_seen = ui.Seg7(x=446, y=158, w=150, h=40)
-lbl_note = ui.Label("กดเดินหน้าเพื่อเพิ่มความถี่", x=12, y=220, value=16)
+ui.Label("ฟ้า = คลื่นจริง", x=448, y=44, value=20, color=0x4A9EFF)
+ui.Label("แดง = ที่ ADC เก็บได้", x=448, y=72, value=20, color=0xE5484D)
+ui.Label("เขียว = ที่เครื่องคิดว่าเห็น", x=448, y=100, value=20, color=0x30A46C)
+lbl_f = ui.Label("f จริง 5 | Nyquist 20 Hz", x=448, y=132, value=20,
+                 color=0xF5A623)
+ui.Label("ความถี่ที่ 'เห็น' (Hz)", x=448, y=164, value=20)
+seg_seen = ui.Seg7(x=448, y=196, w=152, h=40)
+lbl_note = ui.Label("กดเดินหน้าเพื่อเพิ่มความถี่", x=24, y=244, value=20)
 
-btn_prev = ui.Button("< ย้อน", x=20, y=250, w=140, h=64, color=0x546E7A, value=20)
-btn_next = ui.Button("เดินหน้า >", x=176, y=250, w=160, h=64, color=0x1E88E5, value=20)
-btn_play = ui.Button(">> เล่นรวด", x=352, y=250, w=160, h=64, color=0x2E7D32, value=20)
-btn_home = ui.Button("เริ่มใหม่", x=528, y=250, w=140, h=64, color=0x6A1B9A, value=20)
+btn_prev = ui.Button("< ย้อน", x=24, y=284, w=140, h=88, color=0x9AA3AF, value=20)
+btn_next = ui.Button("เดินหน้า >", x=196, y=284, w=140, h=88, color=0x4A9EFF, value=20)
+btn_play = ui.Button(">> เล่นรวด", x=368, y=284, w=140, h=88, color=0x30A46C, value=20)
+btn_home = ui.Button("เริ่มใหม่", x=540, y=284, w=140, h=88, color=0x4A9EFF, value=20)
 ID_PREV, ID_NEXT = btn_prev.id(), btn_next.id()
 ID_PLAY, ID_HOME = btn_play.id(), btn_home.id()
-
-lbl_hint = ui.Label("กดเดินหน้าเพื่อเพิ่มความถี่", x=20, y=322,
-                    value=16, color=0x90A4AE)
 
 lcd.clear()
 lcd.console("<h2>aliasing และ Nyquist</h2>")
@@ -91,7 +92,9 @@ def show():
         ch.set_next(s_hold, int(100.0 * held))
         ch.set_next(s_alias, int(flip * 100.0 * math.sin(2 * math.pi * f_seen * t)))
 
-    lbl_pos.text("%d / %d" % (step + 1, len(FREQS)))
+    # ป้ายขั้นบอกสถานะการเล่นรวดไปในตัว จึงไม่ต้องมีป้ายใบที่สองมาแย่งที่แถวปุ่ม
+    lbl_pos.text("%d / %d  เล่นรวด" % (step + 1, len(FREQS)) if playing
+                 else "%d / %d" % (step + 1, len(FREQS)))
     lbl_f.text("f จริง %.0f | Nyquist %.0f Hz" % (f_true, FS / 2.0))
     seg_seen.text(str(int(f_seen)))
     if f_true < FS / 2.0:
@@ -101,8 +104,6 @@ def show():
     else:
         lbl_note.text("เกิน Nyquist - เครื่องรายงาน %.0f Hz ซึ่งไม่มีอยู่จริง"
                       % f_seen)
-    lbl_hint.text("กำลังเล่นรวด - กดปุ่มไหนก็หยุด" if playing
-                  else "กดเดินหน้าเพื่อเพิ่มความถี่ของคลื่นจริง")
     lcd.print(str(int(f_true)) + " Hz สุ่มที่ " + str(int(FS)) +
               " Hz -> เห็น " + str(int(f_seen)) + " Hz")
 

@@ -12,9 +12,9 @@ import lcd
 import time
 import ui
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_INFO = 0x00E676, 0xFFA726, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_INFO = 0x30A46C, 0xF5A623, 0x4A9EFF
 
 # จัดกลุ่มเพื่อให้อ่านออกว่าแต่ละคีย์ตอบคำถามอะไร ไม่ใช่แค่ไล่พิมพ์ตามตัวอักษร
 GROUPS = (
@@ -35,16 +35,16 @@ ui.screen()
 time.sleep_ms(200)
 
 ui.Label("คลังค่าตั้ง tesaiot.config()", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=124, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("คีย์ที่อ่านกลับได้", x=40, y=62, color=COL_DIM, value=16)
-ui.Seg7(text=str(len(cfg)), x=40, y=86, w=150, h=72, color=COL_INFO)
+ui.Panel(x=20, y=52, w=652, h=124, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("คีย์ที่อ่านกลับได้", x=40, y=64, color=COL_DIM, value=16)
+ui.Seg7(text=str(len(cfg)), x=40, y=88, w=152, h=72, color=COL_INFO)
 
 y = 82
 for k in KEY_ROWS:
     # คีย์ที่ยังว่างต้องอ่านออกว่า "ว่าง" ไม่ใช่หายไปเฉย ๆ เพราะบอร์ดที่ยังไม่ได้
     # provision จะมี device_id เป็นสตริงว่าง ไม่ใช่ไม่มีคีย์
     shown_value = cfg[k] if cfg[k] != "" else "(ยังไม่ตั้ง)"
-    ui.Label("{} = {}".format(k, shown_value), x=214, y=y, color=COL_TEXT, value=16)
+    ui.Label("{} = {}".format(k, shown_value), x=216, y=y, color=COL_TEXT, value=16)
     y += 22
 
 # คีย์ที่ตั้งค่าได้แต่อ่านกลับไม่ได้ - ความไม่สมมาตรแบบแรกของโมดูลนี้
@@ -54,23 +54,23 @@ has_pass = "mqtt_pass" in cfg
 ui.Label("mqtt_pass อยู่ใน config() หรือไม่: {}".format(has_pass),
          x=20, y=188, color=COL_WARN, value=20)
 # สองป้ายในบรรทัดเดียว ให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยตัวละ 3 ไบต์
-ui.Label("ตั้งได้ด้วย config_set แต่อ่านตรง ๆ", x=20, y=214, color=COL_WARN,
+ui.Label("ตั้งได้ด้วย config_set แต่อ่านตรง ๆ", x=20, y=216, color=COL_WARN,
          value=16)
-ui.Label("ได้ KeyError -> ใช้ cfg.get()", x=330, y=214, color=COL_WARN,
+ui.Label("ได้ KeyError -> ใช้ cfg.get()", x=416, y=216, color=COL_WARN,
          value=16)
 
-ui.Panel(x=20, y=244, w=650, h=76, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=244, w=652, h=76, color=COL_CARD, min=COL_DIM, max=12, value=1)
 counts = []
 for title, keys in GROUPS:
     counts.append("{} {}".format(title, len(keys)))
-ui.Label(" - ".join(counts[:3]), x=40, y=258, color=COL_DIM, value=16)
+ui.Label(" - ".join(counts[:3]), x=40, y=260, color=COL_DIM, value=16)
 ui.Label(" - ".join(counts[3:]), x=40, y=288, color=COL_DIM, value=16)
 
 shown = 0
 for _title, keys in GROUPS:
     shown += len(keys)
 ui.Label("ไล่ครบ {} จาก {} คีย์ - รายละเอียดอยู่ในคอนโซล".format(shown, len(cfg)),
-         x=20, y=334, color=COL_OK if shown == len(cfg) else COL_WARN, value=18)
+         x=20, y=336, color=COL_OK if shown == len(cfg) else COL_WARN, value=20)
 ui.poll()
 
 # คอนโซลรับรายการแบบอ่านเรียง ส่วน print() รับตารางเต็มที่ยาวเกินจอ 4.3 นิ้ว

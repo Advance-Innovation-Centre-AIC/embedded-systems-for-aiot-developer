@@ -19,20 +19,20 @@ import ui
 TOTAL = 5           # นับถอยหลังกี่วินาที
 TICK_MS = 1000      # อัปเดตทุกกี่มิลลิวินาที
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN = 0x00E676, 0xFFA726
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN = 0x30A46C, 0xF5A623
 
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("นับถอยหลัง", x=20, y=12, color=COL_TEXT, value=24)
-ui.Panel(x=20, y=52, w=650, h=200, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=52, w=652, h=200, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
 # สร้างครั้งเดียวตรงนี้ นอกลูป ทั้งสามตัวจะถูกเขียนทับค่าใหม่ในลูปข้างล่าง
 # ถ้าย้ายสามบรรทัดนี้เข้าไปในลูป จะได้ widget ใหม่ทุกวินาที และชนโควตา 32 ตัว
-seg = ui.Seg7(text=str(TOTAL), x=60, y=90, w=150, h=110, color=COL_OK)
-arc = ui.Arc(x=280, y=80, w=130, h=130, min=0, max=TOTAL, value=TOTAL,
+seg = ui.Seg7(text=str(TOTAL), x=60, y=92, w=152, h=112, color=COL_OK)
+arc = ui.Arc(x=280, y=80, w=132, h=132, min=0, max=TOTAL, value=TOTAL,
              color=COL_OK)
 # ข้อความในการ์ดต้องสั้นพอที่จะไม่ล้นขอบขวาของ Panel (ขอบอยู่ที่ x=670)
 note = ui.Label("อยู่ที่เดิมทุกวินาที", x=440, y=120,

@@ -37,18 +37,18 @@ def cardinal(deg):
 
 
 ui.screen()
-ui.Label("เข็มทิศ BMM350", x=12, y=6, value=24)
+ui.Label("เข็มทิศ BMM350", x=12, y=8, value=24)
 comp = ui.Compass(x=12, y=44, w=200, value=0)
-ch = ui.Chart(x=230, y=44, w=250, h=200, min=0, max=360)
-ui.Label("ฟ้า = ทิศตามเวลา 0-360 องศา", x=230, y=250, value=16, color=0x00BFFF)
+ch = ui.Chart(x=232, y=44, w=252, h=200, min=0, max=360)
+ui.Label("ฟ้า = ทิศตามเวลา 0-360 องศา", x=232, y=252, value=16, color=0x4A9EFF)
 
 ui.Label("องศา", x=500, y=44, value=16)
-seg = ui.Seg7(x=500, y=66, w=180, h=44)
-lbl_dir = ui.Label("--", x=500, y=118, value=28)
+seg = ui.Seg7(x=500, y=68, w=180, h=44)
+lbl_dir = ui.Label("--", x=500, y=120, value=28)
 lbl_raw = ui.Label("mx my mz", x=500, y=164, value=16)
 ui.Label("หมุนบอร์ดช้า ๆ", x=500, y=192, value=16)
 
-st = ui.Label("อัปเดตจอเฉพาะตอนขยับเกิน 1 องศา", x=24, y=296, value=18)
+st = ui.Label("อัปเดตจอเฉพาะตอนขยับเกิน 1 องศา", x=24, y=296, value=20)
 ui.poll()
 
 lcd.clear()

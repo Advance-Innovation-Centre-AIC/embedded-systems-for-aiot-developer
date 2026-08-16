@@ -34,32 +34,32 @@ READ_MS = 200          # วัดถี่ เพราะการวัดไ
 SEND_MS = 2000         # ส่งห่าง เพราะการส่งกวน broker และกวนเพื่อนร่วมห้อง
 ROUNDS = 150
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_READ, COL_SENT = 0x40C4FF, 0x00E676
-COL_BAD = 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_READ, COL_SENT = 0x4A9EFF, 0x30A46C
+COL_BAD = 0xE5484D
 
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("ค่าจริงจากโต๊ะนี้ ออกไปหาคนอื่น", x=20, y=12, color=COL_TEXT, value=24)
 
-ui.Panel(x=20, y=52, w=330, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("อุณหภูมิที่วัดได้ตอนนี้", x=36, y=64, color=COL_DIM, value=16)
-seg_now = ui.Seg7(text="--", x=36, y=90, w=200, h=46, color=COL_READ)
+ui.Panel(x=20, y=52, w=332, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("อุณหภูมิที่วัดได้ตอนนี้", x=36, y=64, color=COL_DIM, value=20)
+seg_now = ui.Seg7(text="--", x=36, y=92, w=200, h=48, color=COL_READ)
 
-ui.Panel(x=366, y=52, w=304, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ส่งออกไปแล้ว (ครั้ง)", x=382, y=64, color=COL_DIM, value=16)
-seg_sent = ui.Seg7(text="0", x=382, y=90, w=140, h=46, color=COL_SENT)
+ui.Panel(x=368, y=52, w=304, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ส่งออกไปแล้ว (ครั้ง)", x=384, y=64, color=COL_DIM, value=20)
+seg_sent = ui.Seg7(text="0", x=384, y=92, w=140, h=48, color=COL_SENT)
 
 # กราฟตั้งช่วง 20-35 องศา ไม่ใช่ 0-100 เพราะช่วงกว้างเกินจริงทำให้เส้นแบน
 # จนมองไม่เห็นว่าค่าขยับ - สเกลที่แคบพอดีคือสิ่งที่ทำให้กราฟมีประโยชน์
-ch = ui.Chart(x=20, y=162, w=548, h=190, min=20, max=35)
+ch = ui.Chart(x=20, y=164, w=548, h=192, min=20, max=35)
 s_read = 0                      # เส้นที่ 0 มีมาพร้อม Chart อยู่แล้ว
 s_sent = ch.add_series(COL_SENT)
 
-ui.Label("ฟ้า = วัดทุก 0.2 วิ", x=580, y=170, color=COL_READ, value=16)
-ui.Label("เขียว = ส่งทุก 2 วิ", x=580, y=196, color=COL_SENT, value=16)
+ui.Label("ฟ้า = วัดทุก 0.2 วิ", x=580, y=172, color=COL_READ, value=20)
+ui.Label("เขียว = ส่งทุก 2 วิ", x=580, y=196, color=COL_SENT, value=20)
 status = ui.Label("กำลังต่อ...", x=20, y=364, color=COL_DIM, value=20)
 ui.poll()
 

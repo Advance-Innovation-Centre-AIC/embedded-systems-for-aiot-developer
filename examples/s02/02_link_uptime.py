@@ -23,36 +23,47 @@ WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 WATCH_MS = 30000     # เฝ้าดูลิงก์นานเท่าไร
 TICK_MS = 1000       # ถามซ้ำทุกกี่ ms
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("ต่อติดแล้ว แต่ยังต่ออยู่ไหม", x=20, y=12, color=COL_TEXT, value=24)
+ui.Label("ต่อติดแล้ว แต่ยังต่ออยู่ไหม", x=24, y=8, color=COL_TEXT, value=24)
 
 # ป้าย IP อยู่มุมขวาบน ที่เดิมตลอดทั้งโปรแกรม คนที่เดินผ่านมาจึงตอบได้ในสายตาเดียว
 # ว่าบอร์ดออนไลน์อยู่หรือไม่ โดยไม่ต้องรอให้มีอะไรเกิดขึ้นก่อน
-ip_lbl = ui.Label("ยังไม่ได้ต่อ", x=440, y=16, color=COL_WARN, value=20)
+# วางที่ x=480 เพราะหัวเรื่องขนาด 28 กินถึงราว x=424 แล้ว
+ip_lbl = ui.Label("ยังไม่ได้ต่อ", x=480, y=16, color=COL_WARN, value=20)
 
-ui.Panel(x=20, y=56, w=650, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("สถานะลิงก์", x=40, y=66, color=COL_DIM, value=16)
-link_lbl = ui.Label("ยังไม่ได้ตรวจ", x=40, y=90, color=COL_DIM, value=28)
+ui.Panel(x=24, y=56, w=744, h=160, color=COL_CARD, min=COL_CARD, max=12,
+         value=1)
+ui.Label("สถานะลิงก์", x=40, y=72, color=COL_DIM, value=16)
+link_lbl = ui.Label("ยังไม่ได้ตรวจ", x=40, y=104, color=COL_DIM, value=28)
 
-ui.Label("หลุดไปแล้ว (ครั้ง)", x=430, y=66, color=COL_DIM, value=16)
-drop_lbl = ui.Label("0", x=430, y=100, color=COL_OK, value=28)
+ui.Label("หลุดไปแล้ว (ครั้ง)", x=456, y=72, color=COL_DIM, value=16)
+# ตัวนับไม่ใช่สถานะ จึงเริ่มด้วยสีข้อความ ไม่ใช่สีเขียว - ถ้าทาเขียวไว้ตั้งแต่ต้น
+# ตาจะอ่านว่า "ยืนยันแล้วว่าปกติ" ทั้งที่ยังไม่ได้ตรวจอะไรเลยสักรอบ
+drop_lbl = ui.Label("0", x=456, y=104, color=COL_TEXT, value=28)
 
-ui.Label("ออนไลน์มาแล้ว (วินาที)", x=40, y=140, color=COL_DIM, value=16)
-seg = ui.Seg7(text="0", x=250, y=132, w=150, h=44, color=COL_OK)
+ui.Label("ออนไลน์มาแล้ว (วินาที)", x=40, y=152, color=COL_DIM, value=16)
+seg = ui.Seg7(text="0", x=304, y=144, w=144, h=56, color=COL_DIM)
 
-chart = ui.Chart(x=20, y=190, w=650, h=110, color=COL_CARD, min=0, max=100)
-s_link = chart.add_series(COL_OK)
-
-ui.Label("เขียวสูง = ต่ออยู่  ต่ำ = หลุด", x=20, y=306, color=COL_DIM, value=16)
-hist_lbl = ui.Label("ประวัติอยู่ในลิ้นชัก Console", x=20, y=334, color=COL_DIM,
+# คำอธิบายเส้นวางไว้เหนือกราฟ ไม่ใช่ใต้กราฟ เพราะแถบล่างสุดเป็นที่ของบรรทัดสถานะ
+# และข้อความบอกด้วยคำว่า "สูง/ต่ำ" ไม่ใช่ด้วยชื่อสี จอขาวดำก็ยังอ่านออก (§S7.7.1)
+ui.Label("เส้นสูง = ต่ออยู่  เส้นต่ำ = หลุด", x=24, y=224, color=COL_DIM,
+         value=16)
+hist_lbl = ui.Label("ประวัติอยู่ในลิ้นชัก Console", x=440, y=224, color=COL_DIM,
                     value=20)
-state = ui.Label("กำลังเริ่ม", x=20, y=366, color=COL_DIM, value=16)
+
+# เส้นกราฟค่าเดียวใช้สีเน้นเสมอ ไม่ใช่สีเขียว - เขียวสงวนไว้บอกว่า "ปกติ" เท่านั้น
+chart = ui.Chart(x=24, y=256, w=744, h=80, color=COL_CARD, min=0, max=100)
+s_link = chart.add_series(COL_ACCENT)
+
+state = ui.Label("กำลังเริ่ม", x=24, y=352, color=COL_DIM, value=16)
 
 # เคาะให้ป้ายทั้งชุดขึ้นจอก่อนเข้าบรรทัดที่บล็อก ถ้าลืม คนดูจะเห็นจอว่างตลอดช่วงที่รอ
 ui.poll()
@@ -146,7 +157,9 @@ while True:
 pct_up = online_ms * 100 // WATCH_MS
 state.text("จบแล้ว - ต่ออยู่ " + str(pct_up) + "% ของเวลาที่เฝ้าดู")
 state.color(COL_OK if drops == 0 else COL_WARN)
-hist_lbl.text("หลุด " + str(drops) + " ครั้ง - รายละเอียดในลิ้นชัก")
+# ป้ายใบนี้อยู่ครึ่งขวาของจอ ข้อความตอนจบจึงต้องสั้นกว่าตอนสร้าง ไม่ใช่ยาวกว่า
+# ไม่งั้นมันจะยื่นพ้นขอบขวาไปโดยไม่มี error ให้จับ
+hist_lbl.text("หลุด " + str(drops) + " ครั้ง - ดูในลิ้นชัก")
 ui.poll()
 
 lcd.console("<span class=muted>------------------------</span>")

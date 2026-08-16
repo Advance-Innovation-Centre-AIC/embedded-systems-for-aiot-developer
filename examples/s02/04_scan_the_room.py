@@ -20,9 +20,11 @@ import wifi
 ROWS = 5             # แสดงกี่แถวบนจอ ที่เหลือส่งลงลิ้นชัก Console
 STRONG, WEAK = -60, -75    # เกณฑ์แบ่งสีของความแรง
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+# จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_ACCENT = 0x4A9EFF
+COL_WARN, COL_BAD = 0xF5A623, 0xE5484D
 
 
 def percent_of(rssi):
@@ -34,44 +36,54 @@ def percent_of(rssi):
 
 
 def color_of(rssi):
+    """วงที่แรงพอใช้งานได้คือเรื่องปกติ จึงเงียบด้วยสีข้อความ ไม่ทาเขียว
+
+    ถ้าทาเขียวให้ทุกแถวที่แรงดี เขียวจะกลายเป็นสีที่ใช้บ่อยที่สุดบนจอ
+    แล้วส้มกับแดงของแถวที่มีปัญหาจะจมหายไปในกอง - ผิดทั้ง §S7.7.3 และ §S7.13.6
+    """
     if rssi >= STRONG:
-        return COL_OK
+        return COL_TEXT
     return COL_WARN if rssi >= WEAK else COL_BAD
 
 
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("หาทุกวงในห้องนี้", x=20, y=12, color=COL_TEXT, value=24)
-status = ui.Label("กำลังจะสแกน", x=20, y=48, color=COL_WARN, value=18)
+# ผังจอ: หัวเรื่องกับบรรทัดสถานะอยู่แถวเดียวกัน การ์ดสรุปหนึ่งใบ แล้วห้าแถวผลสแกน
+# แถวผลกว้างได้ถึงราว 550 px จึงต้องกินเต็มความกว้างและอยู่ล่างสุดของจอ
+ui.Label("หาทุกวงในห้องนี้", x=24, y=8, color=COL_TEXT, value=24)
+status = ui.Label("กำลังจะสแกน", x=304, y=16, color=COL_WARN, value=20)
 
-ui.Panel(x=20, y=78, w=650, h=104, color=COL_CARD, min=COL_DIM, max=12,
+ui.Panel(x=24, y=56, w=744, h=176, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
 
-ui.Label("เจอกี่วง", x=40, y=88, color=COL_DIM, value=16)
-seg_n = ui.Seg7(text="--", x=40, y=112, w=130, h=56, color=COL_INFO)
+ui.Label("เจอกี่วง", x=40, y=72, color=COL_DIM, value=16)
+seg_n = ui.Seg7(text="--", x=40, y=104, w=112, h=56, color=COL_ACCENT)
 
-ui.Label("ใช้เวลา (ms)", x=190, y=88, color=COL_DIM, value=16)
-seg_ms = ui.Seg7(text="--", x=190, y=112, w=150, h=56, color=COL_INFO)
+ui.Label("ใช้เวลา (ms)", x=192, y=72, color=COL_DIM, value=16)
+seg_ms = ui.Seg7(text="--", x=192, y=104, w=144, h=56, color=COL_ACCENT)
 
-ui.Label("แรงที่สุด", x=360, y=88, color=COL_DIM, value=16)
-best_lbl = ui.Label("รอผลสแกน", x=360, y=116, color=COL_TEXT, value=20)
+ui.Label("แรงที่สุด", x=400, y=72, color=COL_DIM, value=16)
+best_lbl = ui.Label("รอผลสแกน", x=400, y=104, color=COL_TEXT, value=20)
 
 # Bar ไม่รับ color= ตอนสร้าง ต้องเรียก .color() หลังสร้างถึงจะเปลี่ยนสีได้จริง
-bar = ui.Bar(x=360, y=146, w=290, h=18, min=0, max=100, value=0)
+bar = ui.Bar(x=400, y=144, w=344, h=24, min=0, max=100, value=0)
 bar.color(COL_DIM)
+
+# สองบรรทัดกับดักอยู่ในการ์ดแถวล่าง ไม่ใช่ก้นจอ เพราะก้นจอเป็นที่ของห้าแถวผลสแกน
+# ข้อความตอนรันของทั้งคู่ต้องไม่ยาวเกินครึ่งจอ ไม่งั้นสองใบนี้จะชนกันกลางจอ
+trap = ui.Label("status() ให้ rssi ที่เป็นของปลอม", x=24, y=184,
+                color=COL_DIM, value=20)
+hint = ui.Label("ความแรงจริงมาจาก scan() เท่านั้น", x=400, y=184,
+                color=COL_DIM, value=16)
 
 # ห้าแถวสร้างไว้ครบตั้งแต่ตอนนี้ แล้วเดี๋ยวเขียนทับด้วยผลจริง
 # ถ้าไปสร้างข้างในลูปทีหลัง จำนวน widget จะขึ้นกับจำนวนวงที่บังเอิญเจอในห้องนั้น
 # ห้องที่มีวงเยอะกว่าเพดาน 32 ตัวจะทำให้โปรแกรมตายกลางคัน ทั้งที่โค้ดไม่ได้ผิด
+# ระยะห่าง 32 คือขั้นต่ำของตัวอักษรขนาด 20 ซึ่งสูงราว 27 px รวมสระบนล่าง
 rows = []
 for i in range(ROWS):
-    rows.append(ui.Label("-", x=20, y=196 + i * 28, color=COL_DIM, value=18))
-
-trap = ui.Label("wifi.status() มี ssid กับ rssi แต่เป็นของปลอม", x=20, y=344,
-                color=COL_DIM, value=16)
-hint = ui.Label("ความแรงจริงมาจาก scan() เท่านั้น", x=20, y=370,
-                color=COL_DIM, value=16)
+    rows.append(ui.Label("-", x=24, y=240 + i * 32, color=COL_DIM, value=16))
 ui.poll()
 
 lcd.clear()
@@ -146,8 +158,10 @@ bar.color(color_of(top_rssi))
 best_lbl.color(color_of(top_rssi))
 best_lbl.text(top_ssid[:14] + "  " + str(top_rssi) + " dBm")
 
-seg_n.color(COL_OK)
-status.color(COL_OK)
+# สแกนสำเร็จคือเรื่องปกติ จึงกลับไปเงียบด้วยสีข้อความ ไม่ใช่ฉลองด้วยสีเขียว
+# สีเขียวบนจอนี้ไม่มีที่ใช้เลย เพราะไม่มีอะไรในจอที่แปลว่า "ยืนยันแล้วว่าปกติ"
+seg_n.color(COL_TEXT)
+status.color(COL_TEXT)
 status.text("เจอ " + str(len(nets)) + " วง | เปิดโล่ง " + str(open_count) +
             " วง | แสดง " + str(ROWS) + " แถวแรก")
 ui.poll()

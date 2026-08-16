@@ -21,9 +21,9 @@ import ui
 RUN_MS = 30000       # เฝ้าดูนานเท่าไร
 TICK_MS = 200        # ถามซ้ำทุกกี่ ms - เท่ากับคาบที่ CM55 อ่านเซนเซอร์พอดี
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x00E676, 0xFFA726, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x30A46C, 0xF5A623, 0xE5484D, 0x4A9EFF
 
 ui.screen()
 time.sleep_ms(200)
@@ -31,44 +31,44 @@ time.sleep_ms(200)
 ui.Label("อ่านทุกเซนเซอร์ด้วยคำสั่งเดียว", x=20, y=12, color=COL_TEXT,
          value=24)
 ui.Label("sensors.snapshot() คืน dict ก้อนเดียว", x=20, y=48, color=COL_DIM,
-         value=18)
+         value=20)
 
 # --- การ์ดซ้าย: เซนเซอร์ความเคลื่อนไหว ---
-ui.Panel(x=20, y=78, w=240, h=180, color=COL_CARD, min=COL_DIM, max=12,
+ui.Panel(x=20, y=80, w=240, h=180, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
 ui.Label("IMU  BMI270", x=36, y=88, color=COL_INFO, value=16)
-ax_lbl = ui.Label("ax  รอค่า", x=36, y=116, color=COL_TEXT, value=18)
-ay_lbl = ui.Label("ay  รอค่า", x=36, y=144, color=COL_TEXT, value=18)
-az_lbl = ui.Label("az  รอค่า", x=36, y=172, color=COL_TEXT, value=18)
-ui.Label("เอียงบอร์ดแล้วดู az", x=36, y=206, color=COL_DIM, value=16)
+ax_lbl = ui.Label("ax  รอค่า", x=36, y=116, color=COL_TEXT, value=20)
+ay_lbl = ui.Label("ay  รอค่า", x=36, y=144, color=COL_TEXT, value=20)
+az_lbl = ui.Label("az  รอค่า", x=36, y=172, color=COL_TEXT, value=20)
+ui.Label("เอียงบอร์ดแล้วดู az", x=36, y=208, color=COL_DIM, value=16)
 
 # --- การ์ดกลาง: แผ่นสัมผัส ---
-ui.Panel(x=276, y=78, w=240, h=180, color=COL_CARD, min=COL_DIM, max=12,
+ui.Panel(x=276, y=80, w=240, h=180, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
 ui.Label("CapSense", x=292, y=88, color=COL_INFO, value=16)
-btn_lbl = ui.Label("ปุ่ม  รอค่า", x=292, y=116, color=COL_TEXT, value=18)
-ui.Label("แถบเลื่อน 0-100", x=292, y=150, color=COL_DIM, value=16)
+btn_lbl = ui.Label("ปุ่ม  รอค่า", x=292, y=116, color=COL_TEXT, value=20)
+ui.Label("แถบเลื่อน 0-100", x=292, y=152, color=COL_DIM, value=16)
 
 # Bar ไม่รับ color= ตอนสร้าง ต้องเรียก .color() หลังสร้างถึงจะเปลี่ยนสีได้จริง
-slide_bar = ui.Bar(x=292, y=176, w=200, h=22, min=0, max=100, value=0)
+slide_bar = ui.Bar(x=292, y=176, w=200, h=24, min=0, max=100, value=0)
 slide_bar.color(COL_INFO)
-slide_lbl = ui.Label("slider  รอค่า", x=292, y=206, color=COL_TEXT, value=18)
+slide_lbl = ui.Label("slider  รอค่า", x=292, y=208, color=COL_TEXT, value=20)
 
 # --- การ์ดขวา: ลูกบิดหมุน ---
-ui.Panel(x=532, y=78, w=240, h=180, color=COL_CARD, min=COL_DIM, max=12,
+ui.Panel(x=532, y=80, w=240, h=180, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
 ui.Label("ลูกบิด  pot", x=548, y=88, color=COL_INFO, value=16)
 
 # Arc ก็ไม่รับ color= ตอนสร้างเหมือนกัน และถ้าไม่ใส่ w จะได้ 150x150 มาเลย
 arc = ui.Arc(x=556, y=112, w=104, h=104, min=0, max=100, value=0)
 arc.color(COL_OK)
-pot_lbl = ui.Label("pot  รอค่า", x=548, y=222, color=COL_TEXT, value=18)
+pot_lbl = ui.Label("pot  รอค่า", x=548, y=224, color=COL_TEXT, value=20)
 
 # ตัวนับรอบของ CM55 สามตัว ถ้ามันเดินขึ้นแปลว่าค่าที่เห็นสดจริง ไม่ใช่ค่าค้าง
 seq_lbl = ui.Label("ตัวนับรอบ  ยังไม่ได้อ่าน", x=20, y=276, color=COL_DIM,
-                   value=18)
-state = ui.Label("กำลังขอค่าชุดแรกจาก CM55", x=20, y=306, color=COL_WARN,
-                 value=18)
+                   value=20)
+state = ui.Label("กำลังขอค่าชุดแรกจาก CM55", x=20, y=308, color=COL_WARN,
+                 value=20)
 ui.Label("เอียง แตะ หมุน แล้วดูสามการ์ดขยับพร้อมกัน", x=20, y=340,
          color=COL_DIM, value=16)
 ui.poll()

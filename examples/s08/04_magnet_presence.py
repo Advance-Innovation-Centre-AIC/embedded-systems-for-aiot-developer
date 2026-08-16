@@ -36,17 +36,17 @@ def magnitude():
 
 
 ui.screen()
-ui.Label("ตัวตรวจจับแม่เหล็ก", x=12, y=6, value=24)
-ui.Label("ฟ้า = เบี่ยงจากเส้นฐาน", x=496, y=44, value=16, color=0x00BFFF)
-ui.Label("แดง = เกณฑ์ที่คำนวณได้", x=496, y=68, value=16, color=0xFF5555)
+ui.Label("ตัวตรวจจับแม่เหล็ก", x=12, y=8, value=24)
+ui.Label("ฟ้า = เบี่ยงจากเส้นฐาน", x=496, y=44, value=16, color=0x4A9EFF)
+ui.Label("แดง = เกณฑ์ที่คำนวณได้", x=496, y=68, value=16, color=0xE5484D)
 ui.Label("เบี่ยงตอนนี้ (หน่วยบอร์ด)", x=496, y=100, value=16)
-seg = ui.Seg7(x=496, y=122, w=180, h=44)
-ui.Label("เทียบเกณฑ์ (100% = ถึงเกณฑ์)", x=496, y=178, value=16)
-bar = ui.Bar(x=496, y=200, w=180, h=16, min=0, max=100)
+seg = ui.Seg7(x=496, y=124, w=180, h=44)
+ui.Label("เทียบเกณฑ์ (100% = ถึงเกณฑ์)", x=484, y=180, value=16)
+bar = ui.Bar(x=496, y=216, w=180, h=16, min=0, max=100)
 
-ui.Panel(x=12, y=266, w=470, h=66)
-st = ui.Label("กำลังเก็บเส้นฐาน", x=24, y=274, value=24)
-sub = ui.Label("อย่าขยับบอร์ด", x=24, y=304, value=18)
+ui.Panel(x=12, y=268, w=472, h=68)
+st = ui.Label("กำลังเก็บเส้นฐาน", x=24, y=276, value=24)
+sub = ui.Label("อย่าขยับบอร์ด", x=24, y=304, value=20)
 ui.poll()
 
 lcd.clear()
@@ -69,7 +69,7 @@ lcd.print("เส้นฐาน", int(mean), "| ผันผวน", round(spre
 lcd.print("เกณฑ์ที่คำนวณได้:", int(thresh), "(หน่วยบอร์ด)")
 
 # แกน Y ต้องเผื่อเหนือเกณฑ์ ไม่งั้นตอนพบแม่เหล็กเส้นจะชนขอบบนจนอ่านไม่ออก
-ch = ui.Chart(x=12, y=44, w=470, h=210, min=0, max=max(20, int(thresh * 2.5)))
+ch = ui.Chart(x=12, y=44, w=472, h=212, min=0, max=max(20, int(thresh * 2.5)))
 s_dev = 0
 s_thr = ch.add_series(0xFF5555)
 st.text("ยังไม่พบแม่เหล็ก")

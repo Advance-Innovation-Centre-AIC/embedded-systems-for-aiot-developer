@@ -37,33 +37,33 @@ ui.screen()
 time.sleep_ms(200)
 
 ui.Label("EMA: alpha คือเวลา ไม่ใช่เลขลอย ๆ", x=12, y=8, value=20)
-lbl_pos = ui.Label("1 / 6", x=470, y=8, value=20, color=0x50D890)
+lbl_pos = ui.Label("1 / 6", x=472, y=8, value=20, color=0x30A46C)
 
 ch = ui.Chart(x=12, y=36, w=420, h=160, min=-10, max=120)   # หน่วยเป็นค่า x100
 s_raw = 0
 s_prev = ch.add_series(0x6B7280)        # เงาของ alpha ขั้นที่แล้ว
 s_now = ch.add_series(0xFF5555)
 
-ui.Label("ฟ้า = ขั้นบันไดดิบ", x=446, y=38, value=16, color=0x00BFFF)
-ui.Label("แดง = EMA ขั้นนี้", x=446, y=60, value=16, color=0xFF5555)
-ui.Label("เทา = alpha ขั้นที่แล้ว", x=446, y=82, value=16, color=0x9AA3AF)
-lbl_a = ui.Label("alpha = 1.00", x=446, y=108, value=24, color=0xFFD24A)
-ui.Label("tau (ms)", x=446, y=140, value=14)
-seg_tau = ui.Seg7(x=446, y=158, w=150, h=40)
-lbl_note = ui.Label("กดเดินหน้าเพื่อลด alpha", x=12, y=210, value=16)
+ui.Label("ฟ้า = ขั้นบันไดดิบ", x=448, y=40, value=16, color=0x4A9EFF)
+ui.Label("แดง = EMA ขั้นนี้", x=448, y=76, value=16, color=0xE5484D)
+ui.Label("เทา = alpha ขั้นที่แล้ว", x=448, y=112, value=16, color=0x9AA3AF)
+lbl_a = ui.Label("alpha = 1.00", x=448, y=148, value=24, color=0xF5A623)
+ui.Label("tau (ms)", x=616, y=140, value=16)
+seg_tau = ui.Seg7(x=616, y=176, w=152, h=40)
+lbl_note = ui.Label("กดเดินหน้าเพื่อลด alpha", x=12, y=212, value=16)
 
-btn_prev = ui.Button("< ย้อน", x=20, y=250, w=140, h=64, color=0x546E7A, value=20)
-btn_next = ui.Button("เดินหน้า >", x=176, y=250, w=160, h=64, color=0x1E88E5,
+btn_prev = ui.Button("< ย้อน", x=20, y=252, w=140, h=88, color=0x9AA3AF, value=20)
+btn_next = ui.Button("เดินหน้า >", x=176, y=252, w=160, h=88, color=0x4A9EFF,
                      value=20)
-btn_play = ui.Button(">> เล่นรวด", x=352, y=250, w=160, h=64, color=0x2E7D32,
+btn_play = ui.Button(">> เล่นรวด", x=352, y=252, w=160, h=88, color=0x30A46C,
                      value=20)
-btn_home = ui.Button("เริ่มใหม่", x=528, y=250, w=140, h=64, color=0x6A1B9A,
+btn_home = ui.Button("เริ่มใหม่", x=528, y=252, w=140, h=88, color=0x4A9EFF,
                      value=20)
 ID_PREV, ID_NEXT = btn_prev.id(), btn_next.id()
 ID_PLAY, ID_HOME = btn_play.id(), btn_home.id()
 
-lbl_hint = ui.Label("กดเดินหน้าเพื่อลด alpha", x=20, y=322, value=16,
-                    color=0x90A4AE)
+lbl_hint = ui.Label("กดเดินหน้าเพื่อลด alpha", x=344, y=348, value=16,
+                    color=0x9AA3AF)
 
 lcd.clear()
 lcd.console("<h2>EMA และค่าคงที่เวลา</h2>")

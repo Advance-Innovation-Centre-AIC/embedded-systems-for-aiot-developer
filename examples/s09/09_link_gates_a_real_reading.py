@@ -26,9 +26,9 @@ WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 QUEUE_MAX = 60          # เก็บได้กี่ค่า ก่อนต้องทิ้งของเก่าสุด
 ROUNDS = 150
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK, COL_BAD, COL_INFO = 0x00E676, 0xFF5252, 0x40C4FF
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK, COL_BAD, COL_INFO = 0x30A46C, 0xE5484D, 0x4A9EFF
 
 ui.screen()
 time.sleep_ms(200)
@@ -36,20 +36,20 @@ time.sleep_ms(200)
 ui.Label("ค่ารออยู่ ลิงก์เป็นคนเปิดประตู", x=20, y=12, color=COL_TEXT, value=24)
 
 ui.Panel(x=20, y=52, w=740, h=64, color=COL_CARD, min=COL_DIM, max=12, value=1)
-lbl_link = ui.Label("กำลังต่อ...", x=40, y=72, color=COL_DIM, value=22)
-led_link = ui.Led(x=690, y=68, w=40, h=40, color=COL_OK, value=0)
+lbl_link = ui.Label("กำลังต่อ...", x=40, y=72, color=COL_DIM, value=24)
+led_link = ui.Led(x=692, y=68, w=48, h=48, color=COL_OK, value=0)
 
-ui.Panel(x=20, y=130, w=360, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("อุณหภูมิที่วัดได้", x=36, y=142, color=COL_DIM, value=16)
-seg_now = ui.Seg7(text="--", x=36, y=170, w=200, h=48, color=COL_INFO)
+ui.Panel(x=20, y=132, w=360, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("อุณหภูมิที่วัดได้", x=36, y=144, color=COL_DIM, value=20)
+seg_now = ui.Seg7(text="--", x=36, y=172, w=200, h=48, color=COL_INFO)
 
-ui.Panel(x=400, y=130, w=360, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ค้างในคิว (ค่า)", x=416, y=142, color=COL_DIM, value=16)
-seg_q = ui.Seg7(text="0", x=416, y=170, w=160, h=48, color=COL_OK)
+ui.Panel(x=400, y=132, w=360, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ค้างในคิว (ค่า)", x=416, y=144, color=COL_DIM, value=20)
+seg_q = ui.Seg7(text="0", x=416, y=172, w=160, h=48, color=COL_OK)
 
-bar_q = ui.Bar(x=20, y=250, w=740, h=24, color=COL_OK, min=0, max=QUEUE_MAX, value=0)
-note = ui.Label("ถอด WiFi ที่เราเตอร์ แล้วดูเลขขวาเดินขึ้น", x=20, y=290,
-                color=COL_DIM, value=18)
+bar_q = ui.Bar(x=20, y=252, w=740, h=24, color=COL_OK, min=0, max=QUEUE_MAX, value=0)
+note = ui.Label("ถอด WiFi ที่เราเตอร์ แล้วดูเลขขวาเดินขึ้น", x=20, y=292,
+                color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

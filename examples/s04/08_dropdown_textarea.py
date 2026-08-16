@@ -21,12 +21,12 @@ import time
 
 RUN_MS = 40000
 
-COL_TEXT = 0xFFFFFF
-COL_DIM = 0xA0B4CC
-COL_CARD = 0x142240
-COL_OK = 0x00E676
-COL_WARN = 0xFFA726
-COL_INFO = 0x40C4FF
+COL_TEXT = 0x4A9EFF
+COL_DIM = 0x9AA3AF
+COL_CARD = 0x171B22
+COL_OK = 0x30A46C
+COL_WARN = 0xF5A623
+COL_INFO = 0x4A9EFF
 
 # ตัวเลือกของ Dropdown คั่นด้วยขึ้นบรรทัดใหม่ นี่คือรูปแบบที่ LVGL รับ
 # เก็บเป็น list คู่ขนานไว้ด้วย เพราะ event ส่งกลับมาแค่ลำดับ ไม่ได้ส่งข้อความ
@@ -36,30 +36,30 @@ CHOICE_TEXT = "\n".join(CHOICES)
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("หกชนิดที่รับอินพุตได้", x=20, y=10, color=COL_TEXT, value=24)
+ui.Label("หกชนิดที่รับอินพุตได้", x=20, y=12, color=COL_TEXT, value=24)
 
-ui.Panel(x=20, y=48, w=750, h=112, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Panel(x=20, y=48, w=752, h=112, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
 # ---- สามตัวที่คาบนี้ใช้แล้ว วางไว้ให้เทียบ ----
-btn = ui.Button("Button", x=36, y=88, w=120, h=56, color=0x1565C0, value=16)
+btn = ui.Button("Button", x=36, y=88, w=120, h=88, color=0x4A9EFF, value=16)
 
-ui.Label("Switch", x=176, y=62, color=COL_DIM, value=14)
-sw = ui.Switch(x=176, y=90)
+ui.Label("Switch", x=176, y=64, color=COL_DIM, value=16)
+sw = ui.Switch(x=176, y=92)
 
-ui.Label("Slider", x=280, y=62, color=COL_DIM, value=14)
+ui.Label("Slider", x=280, y=64, color=COL_DIM, value=16)
 sld = ui.Slider(x=280, y=96, w=180, min=0, max=100, value=40)
 
 # ---- สามตัวที่ไฟล์นี้เพิ่มเข้ามา ----
 cb = ui.Checkbox("Checkbox", x=480, y=64, color=COL_TEXT)
 
-ui.Label("Dropdown", x=480, y=100, color=COL_DIM, value=14)
-dd = ui.Dropdown(text=CHOICE_TEXT, x=480, y=122, w=140)
+ui.Label("Dropdown", x=480, y=100, color=COL_DIM, value=16)
+dd = ui.Dropdown(text=CHOICE_TEXT, x=480, y=124, w=140)
 
-ui.Label("Textarea", x=636, y=62, color=COL_DIM, value=14)
-ta = ui.Textarea(text="แตะแล้วพิมพ์", x=636, y=84, w=118, h=60)
+ui.Label("Textarea", x=636, y=64, color=COL_DIM, value=16)
+ta = ui.Textarea(text="แตะแล้วพิมพ์", x=636, y=100, w=120, h=88)
 
 # ป้ายหนึ่งใบที่ไม่รับอินพุตเลย เอาไว้พิสูจน์ว่า .value() ของมันตอบ 0
-plain = ui.Label("Label ไม่รับอินพุต", x=20, y=170, color=COL_DIM, value=16)
+plain = ui.Label("Label ไม่รับอินพุต", x=20, y=172, color=COL_DIM, value=16)
 
 # ตารางค้นกลับ handle -> ชื่อที่คนอ่านเข้าใจ dict ค้นได้ในก้าวเดียว
 NAME_OF = {
@@ -71,11 +71,11 @@ NAME_OF = {
     ta.id(): "Textarea",
 }
 
-raw = ui.Label("ยังไม่มีเหตุการณ์เข้ามา", x=20, y=204, color=COL_INFO, value=22)
-mean = ui.Label("แตะของแถวบนทีละชิ้น", x=20, y=240, color=COL_DIM, value=18)
+raw = ui.Label("ยังไม่มีเหตุการณ์เข้ามา", x=20, y=204, color=COL_INFO, value=24)
+mean = ui.Label("แตะของแถวบนทีละชิ้น", x=20, y=240, color=COL_DIM, value=20)
 poll_line = ui.Label("ยังไม่ได้ไล่ถาม value()", x=20, y=276, color=COL_WARN,
                      value=16)
-ui.Label("Dropdown ส่งลำดับ ไม่ได้ส่งข้อความ", x=20, y=306, color=COL_DIM,
+ui.Label("Dropdown ส่งลำดับ ไม่ได้ส่งข้อความ", x=20, y=308, color=COL_DIM,
          value=16)
 ui.Label("value() ที่ตอบ 0 อาจแปลว่าตอบไม่ได้", x=20, y=332, color=COL_DIM,
          value=16)

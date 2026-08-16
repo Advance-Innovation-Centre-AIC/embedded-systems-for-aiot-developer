@@ -26,10 +26,10 @@ ALPHA = 0.15         # EMA ยิ่งน้อยยิ่งนิ่งแ�
 WINDOW = 7           # หน้าต่างของ Median ต้องเป็นเลขคี่ ถ้าใส่คู่มันบวกหนึ่งให้เอง
 CHART_MAX = 300      # เพดานแกนตั้ง เป็นค่าเร่งคูณสิบ ราบนิ่งอยู่แถว 98
 
-COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
-COL_CARD = 0x142240
-COL_RAW = 0x8899AA
-COL_OK, COL_WARN, COL_BAD = 0x00E676, 0xFFA726, 0xFF5252
+COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
+COL_CARD = 0x171B22
+COL_RAW = 0x4A9EFF
+COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
 # ตัวกรองของ dsp รับอาร์กิวเมนต์แบบคีย์เวิร์ดเท่านั้น เขียน dsp.EMA(0.15)
 # จะได้ TypeError ทันที ต้องเขียนชื่อพารามิเตอร์กำกับเสมอ
@@ -39,35 +39,40 @@ med = dsp.Median(window=WINDOW)
 ui.screen()
 time.sleep_ms(200)
 
-ui.Label("ค่าดิบกับค่าที่กรองแล้ว บนกราฟใบเดียว", x=20, y=12, color=COL_TEXT,
+ui.Label("ค่าดิบกับค่าที่กรองแล้ว บนกราฟใบเดียว", x=24, y=24, color=COL_TEXT,
          value=24)
-status = ui.Label("กำลังขอค่าชุดแรก", x=20, y=48, color=COL_WARN, value=18)
+status = ui.Label("กำลังขอค่าชุดแรก", x=24, y=72, color=COL_WARN, value=20)
 
 # สีที่ใส่ตอนสร้าง Chart คือสีของเส้นที่ 0 ซึ่งกราฟมีมาให้ตั้งแต่เกิดแล้ว
 # add_series() ตัวแรกจึงคืนเลข 1 ไม่ใช่ 0 เก็บเลขที่มันคืนมาไว้ อย่าเดาเอง
 # ใส่ได้ทั้งหมดสี่เส้น รวมเส้นที่ 0 ด้วย
-chart = ui.Chart(x=20, y=78, w=650, h=170, color=COL_RAW, min=0, max=CHART_MAX)
+chart = ui.Chart(x=24, y=112, w=448, h=200, color=COL_RAW, min=0, max=CHART_MAX)
 s_ema = chart.add_series(COL_OK)
 s_med = chart.add_series(COL_WARN)
 
-ui.Label("เทา = ค่าดิบ", x=20, y=254, color=COL_RAW, value=16)
-ui.Label("เขียว = EMA", x=250, y=254, color=COL_OK, value=16)
-ui.Label("ส้ม = Median", x=470, y=254, color=COL_WARN, value=16)
-
-ui.Panel(x=20, y=284, w=650, h=96, color=COL_CARD, min=COL_DIM, max=12,
+# การ์ดตัวเลขอยู่คอลัมน์ขวา หนึ่งแถวคือหนึ่งค่า ป้ายซ้าย ตัวเลขขวา
+# Panel ต้องถูกสร้างก่อนของที่จะวางบนมัน LVGL วาดตามลำดับการสร้าง
+# ถ้าสร้างการ์ดทีหลัง มันจะทาทับตัวเลขจนหายไปทั้งใบโดยไม่มี error
+ui.Panel(x=488, y=112, w=280, h=228, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
 
-ui.Label("ค่าดิบ x10", x=40, y=294, color=COL_DIM, value=16)
-seg_raw = ui.Seg7(text="0", x=40, y=316, w=120, h=48, color=COL_RAW)
+ui.Label("ค่าดิบ x10", x=504, y=140, color=COL_DIM, value=16)
+seg_raw = ui.Seg7(text="0", x=632, y=128, w=120, h=48, color=COL_RAW)
 
-ui.Label("EMA x10", x=200, y=294, color=COL_DIM, value=16)
-seg_ema = ui.Seg7(text="0", x=200, y=316, w=120, h=48, color=COL_OK)
+ui.Label("EMA x10", x=504, y=196, color=COL_DIM, value=16)
+seg_ema = ui.Seg7(text="0", x=632, y=184, w=120, h=48, color=COL_OK)
 
-ui.Label("Median x10", x=360, y=294, color=COL_DIM, value=16)
-seg_med = ui.Seg7(text="0", x=360, y=316, w=120, h=48, color=COL_WARN)
+ui.Label("Median x10", x=504, y=252, color=COL_DIM, value=16)
+seg_med = ui.Seg7(text="0", x=632, y=240, w=120, h=48, color=COL_WARN)
 
-ui.Label("เอียง องศา", x=520, y=294, color=COL_DIM, value=16)
-tilt_lbl = ui.Label("รอค่า", x=520, y=320, color=COL_TEXT, value=18)
+# ป้ายหัวช่องใช้ 16 ได้ แต่ตัวเลขที่คนต้องอ่านต้องไม่ต่ำกว่า 20
+# สามค่าบนใช้ Seg7 ซึ่งตายตัวที่ 28 อยู่แล้ว เหลือมุมเอียงที่เป็น Label ธรรมดา
+ui.Label("เอียง องศา", x=504, y=296, color=COL_DIM, value=16)
+tilt_lbl = ui.Label("รอค่า", x=632, y=292, color=COL_TEXT, value=20)
+
+ui.Label("เทา = ค่าดิบ", x=24, y=324, color=COL_RAW, value=16)
+ui.Label("เขียว = EMA", x=176, y=324, color=COL_OK, value=16)
+ui.Label("ส้ม = Median", x=328, y=324, color=COL_WARN, value=16)
 ui.poll()
 
 lcd.clear()
