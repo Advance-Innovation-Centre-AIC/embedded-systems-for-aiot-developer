@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   width="240"
+   height="140"
+   id="svg3262"
+   sodipodi:version="0.32"
+   inkscape:version="0.46"
+   sodipodi:docname="Potentiometer_linear.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+  <metadata
+     id="metadata25">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     inkscape:window-height="140"
+     inkscape:window-width="240"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     guidetolerance="10.0"
+     gridtolerance="10.0"
+     objecttolerance="5"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     showgrid="true"
+     inkscape:zoom="1"
+     inkscape:cx="211.46"
+     inkscape:cy="63.766"
+     inkscape:current-layer="svg3262">
+    <inkscape:grid
+       type="xygrid"
+       id="grid2400"
+       visible="true"
+       enabled="true"
+       spacingx="2px"
+       spacingy="2px" />
+  </sodipodi:namedview>
+  <defs
+     id="defs3264">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 70 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="240 : 70 : 1"
+       inkscape:persp3d-origin="120 : 46.667 : 1"
+       id="perspective27" />
+    <marker
+       orient="auto"
+       id="Arrow5End"
+       style="overflow:visible">
+      <polygon
+         points="0,-0.5 0,0.5 -9,2.5 -9,-2.5 0,-0.5"
+         id="polygonArrow5End" />
+    </marker>
+    <marker
+       orient="auto"
+       id="PinCircle"
+       style="fill:#ffffff;stroke:#000000;overflow:visible">
+      <path
+         sodipodi:type="arc"
+         id="pathPinCircle"
+         sodipodi:cx="0"
+         sodipodi:cy="0"
+         sodipodi:rx="1.6"
+         sodipodi:ry="1.6"
+         d="M 1.6,0 A 1.6,1.6 0 1 1 -1.6,1.9594e-16 A 1.6,1.6 0 1 1 1.6,-3.9187e-16 z" />
+    </marker>
+  </defs>
+  <rect
+     style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+     id="rect3274"
+     y="10.5"
+     x="60.5"
+     height="39.005"
+     width="119" />
+  <path
+     style="fill:#7f7f7f;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     id="path7543"
+     d="M 133.8,116.47 L 133.8,120 L 152,114.24 L 133.8,108.5 L 133.8,111.74 L 106.76,111.74 L 106.76,108.5 L 88.56,114.24 L 106.76,120 L 106.76,116.47 L 133.8,116.47 z" />
+  <path
+     style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#060000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;marker-end:url(#Arrow5End);stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#PinCircle)"
+     id="path3809"
+     d="M 230,100 L 120,100 L 120,50.005"
+     sodipodi:nodetypes="ccc" />
+  <text
+     sodipodi:linespacing="125%"
+     style="font-size:20px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Liberation Sans, Arial, sans-serif;-inkscape-font-specification:Arial Italic"
+     xml:space="preserve"
+     id="text6243"
+     y="134"
+     x="114"><tspan
+       style="font-size:20px;font-style:italic;-inkscape-font-specification:Arial Italic"
+       id="tspan6245"
+       y="134"
+       x="114">s</tspan></text>
+  <text
+     sodipodi:linespacing="125%"
+     style="font-size:20px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Liberation Sans, Arial, sans-serif;-inkscape-font-specification:Arial Italic"
+     xml:space="preserve"
+     id="text6247"
+     y="72"
+     x="194"><tspan
+       style="font-size:20px;font-style:italic;-inkscape-font-specification:Arial Italic"
+       id="tspan6249"
+       y="72"
+       x="194">R(s)</tspan></text>
+  <path
+     style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;marker-start:url(#PinCircle);marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path6251"
+     d="M 10,30 C 21.134,30 44.642,30 60,30"
+     sodipodi:nodetypes="cc" />
+  <path
+     style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:none;marker-end:url(#PinCircle)"
+     id="path6253"
+     d="M 180,30 L 230,30"
+     sodipodi:nodetypes="cc" />
+  <text
+     sodipodi:linespacing="125%"
+     style="font-size:20px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Liberation Sans, Arial, sans-serif;-inkscape-font-specification:Arial Italic"
+     xml:space="preserve"
+     id="text6255"
+     y="35.791016"
+     x="103.35938" />
+  <text
+     style="font-size:20px;font-family:Liberation Sans, Arial, sans-serif;-inkscape-font-specification:Arial Italic"
+     xml:space="preserve"
+     id="text6259"
+     y="34.560547"
+     x="103.35938"><tspan
+       id="tspan6261"
+       y="34.560547"
+       x="103.35938">R</tspan><tspan
+       id="tspan19"
+       style="font-size:62.5%"
+       dy="2"
+       dx="1">max</tspan></text>
+  <path
+     style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+     id="path6265"
+     d="M 13.2,30.033 C 13.2,31.8 11.767,33.233 10,33.233 C 8.233,33.233 6.8,31.8 6.8,30.033 C 6.8,28.266 8.233,26.833 10,26.833 C 11.767,26.833 13.2,28.266 13.2,30.033 L 13.2,30.033 z" />
+</svg>

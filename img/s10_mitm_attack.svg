@@ -1,0 +1,497 @@
+<?xml version="1.0" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1052" height="747">
+  <style>
+    .label { font-size: 48px; line-height: 120%; font-family: "DejaVu Sans"; text-anchor: middle; }
+  </style>
+
+  <switch>
+    <!-- af -->
+    <g systemLanguage="af">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-af">Alies</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-af">Mallorie</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-af">Bob</tspan>
+      </text>
+    </g>
+    <!-- am -->
+    <g systemLanguage="am">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-am">አሊስ</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-am">ማሎሪ</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-am">ቦብ</tspan>
+      </text>
+    </g>
+    <!-- ar -->
+    <g systemLanguage="ar">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-ar">أليس</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-ar">مالوري</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-ar">بوب</tspan>
+      </text>
+    </g>
+    <!-- be -->
+    <g systemLanguage="be">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-be">Аліса</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-be">Мэлары</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-be">Боб</tspan>
+      </text>
+    </g>
+    <!-- bg -->
+    <g systemLanguage="bg">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-bg">Алис</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-bg">Малори</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-bg">Боб</tspan>
+      </text>
+    </g>
+    <!-- bn -->
+    <g systemLanguage="bn">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-bn">অ্যালিস</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-bn">ম্যালরি</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-bn">বব</tspan>
+      </text>
+    </g>
+    <!-- ca -->
+    <g systemLanguage="ca">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-ca">Alícia</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-ca">Mallory</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-ca">Bob</tspan>
+      </text>
+    </g>
+    <!-- el -->
+    <g systemLanguage="el">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-el">Αλίκη</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-el">Μάλορι</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-el">Μπομπ</tspan>
+      </text>
+    </g>
+    <!-- es -->
+    <g systemLanguage="es">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-es">Alicia</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-es">Mallory</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-es">Bob</tspan>
+      </text>
+    </g>
+    <!-- fa -->
+    <g systemLanguage="fa">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-fa">آلیس</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-fa">مالوری</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-fa">باب</tspan>
+      </text>
+    </g>
+    <!-- gl -->
+    <g systemLanguage="gl">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-gl">Alicia</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-gl">Mallory</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-gl">Bob</tspan>
+      </text>
+    </g>
+    <!-- ha -->
+    <g systemLanguage="ha">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-ha">Alis</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-ha">Malori</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-ha">Bab</tspan>
+      </text>
+    </g>
+    <!-- he -->
+    <g systemLanguage="he">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-he">אליס</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-he">מלורי</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-he">בוב</tspan>
+      </text>
+    </g>
+    <!-- hi -->
+    <g systemLanguage="hi">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-hi">ऐलिस</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-hi">मैलरी</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-hi">बॉब</tspan>
+      </text>
+    </g>
+    <!-- hu -->
+    <g systemLanguage="hu">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-hu">Aliz</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-hu">Mallory</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-hu">Bob</tspan>
+      </text>
+    </g>
+    <!-- id -->
+    <g systemLanguage="id">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-id">Alis</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-id">Malori</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-id">Bob</tspan>
+      </text>
+    </g>
+    <!-- ja -->
+    <g systemLanguage="ja">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-ja">アリス</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-ja">マロリー</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-ja">ボブ</tspan>
+      </text>
+    </g>
+    <!-- kl -->
+    <g systemLanguage="kl">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-kl">Alise</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-kl">Mallori</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-kl">Bobi</tspan>
+      </text>
+    </g>
+    <!-- ko -->
+    <g systemLanguage="ko">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-ko">앨리스</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-ko">말로리</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-ko">밥</tspan>
+      </text>
+    </g>
+    <!-- lt -->
+    <g systemLanguage="lt">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-lt">Alisa</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-lt">Mallory</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-lt">Bob</tspan>
+      </text>
+    </g>
+    <!-- lv -->
+    <g systemLanguage="lv">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-lv">Alise</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-lv">Mallory</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-lv">Bob</tspan>
+      </text>
+    </g>
+    <!-- mg -->
+    <g systemLanguage="mg">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-mg">Alisy</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-mg">Malory</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-mg">Boby</tspan>
+      </text>
+    </g>
+    <!-- mk -->
+    <g systemLanguage="mk">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-mk">Алиса</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-mk">Малори</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-mk">Боб</tspan>
+      </text>
+    </g>
+    <!-- ml -->
+    <g systemLanguage="ml">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-ml">ആലിസ്</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-ml">മല്ലോറി</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-ml">ബോബ്</tspan>
+      </text>
+    </g>
+    <!-- mr -->
+    <g systemLanguage="mr">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-mr">अ‍ॅलिस</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-mr">मॅलरी</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-mr">बॉब</tspan>
+      </text>
+    </g>
+    <!-- pa -->
+    <g systemLanguage="pa">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-pa">ਐਲਿਸ</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-pa">ਮੈਲਰੀ</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-pa">ਬੌਬ</tspan>
+      </text>
+    </g>
+    <!-- pl -->
+    <g systemLanguage="pl">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-pl">Alicja</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-pl">Mallory</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-pl">Bob</tspan>
+      </text>
+    </g>
+    <!-- ru -->
+    <g systemLanguage="ru">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-ru">Алиса</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-ru">Мэлори</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-ru">Боб</tspan>
+      </text>
+    </g>
+    <!-- so -->
+    <g systemLanguage="so">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-so">Alis</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-so">Malori</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-so">Boob</tspan>
+      </text>
+    </g>
+    <!-- sr -->
+    <g systemLanguage="sr">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-sr">Алиса</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-sr">Малори</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-sr">Боб</tspan>
+      </text>
+    </g>
+    <!-- sw -->
+    <g systemLanguage="sw">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-sw">Alisi</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-sw">Malori</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-sw">Bobu</tspan>
+      </text>
+    </g>
+    <!-- ta -->
+    <g systemLanguage="ta">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-ta">ஆலிஸ்</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-ta">மல்லோரி</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-ta">பாப்</tspan>
+      </text>
+    </g>
+    <!-- te -->
+    <g systemLanguage="te">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-te">ఆలిస్</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-te">మల్లోరీ</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-te">బాబ్</tspan>
+      </text>
+    </g>
+    <!-- th -->
+    <g systemLanguage="th">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-th">อลิซ</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-th">มัลลอรี</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-th">บ็อบ</tspan>
+      </text>
+    </g>
+    <!-- uk -->
+    <g systemLanguage="uk">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-uk">Аліса</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-uk">Мелорі</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-uk">Боб</tspan>
+      </text>
+    </g>
+    <!-- ur -->
+    <g systemLanguage="ur">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-ur">ایلس</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-ur">میلوری</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-ur">باب</tspan>
+      </text>
+    </g>
+    <!-- yo -->
+    <g systemLanguage="yo">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-yo">Alisi</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-yo">Malori</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-yo">Bobu</tspan>
+      </text>
+    </g>
+    <!-- zh -->
+    <g systemLanguage="zh">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-zh">爱丽丝</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-zh">马洛里</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-zh">鲍勃</tspan>
+      </text>
+    </g>
+    <!-- zu -->
+    <g systemLanguage="zu">
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1-zu">Alisi</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2-zu">Maloli</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3-zu">Bobu</tspan>
+      </text>
+    </g>
+    <!-- default -->
+    <g>
+      <text class="label" x="149" y="228">
+        <tspan id="trsvg1">Alice</tspan>
+      </text>
+      <text class="label" x="535" y="228">
+        <tspan id="trsvg2">Mallory</tspan>
+      </text>
+      <text class="label" x="912" y="228">
+        <tspan id="trsvg3">Bob</tspan>
+      </text>
+    </g>
+  </switch>
+
+  <g stroke="#00F" stroke-width="7" fill="#CFF">
+    <circle cx="149" cy="358" r="99"/>
+    <circle cx="912" cy="358" r="99"/>
+    <path stroke-width="5" d="M149,358H912"/>
+    <circle stroke="#F00" fill="#FDF" cx="535" cy="358" r="99"/>
+  </g>
+  <path stroke="#F00" stroke-width="5" fill="none" d="M436,358a55,65 0 0,1 99,0a55,65 0 0,0 99,0"/>
+</svg>

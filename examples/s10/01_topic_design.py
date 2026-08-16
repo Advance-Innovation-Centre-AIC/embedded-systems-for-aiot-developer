@@ -1,0 +1,87 @@
+# 01_topic_design.py - ออกแบบชื่อ topic ก่อนเขียนโค้ดส่ง
+#
+# ไฟล์นี้สอน: topic คือที่อยู่ของข้อความ โครง ราก/ตัวตน/ชนิด ทำให้ทุกใบไม่ชนกัน
+#             และฝั่งรับกรองได้ตั้งแต่ชั้น broker
+# ดูที่จอ   : การ์ดบนคือ topic ที่ publish ได้จริง (เขียว) การ์ดล่างคือ wildcard (ส้ม)
+#             สีที่ต่างกันคือสาระของไฟล์นี้ ของสีส้มห้ามเอาไปใส่ publish
+# กับดัก    : wildcard (+ กับ #) ใช้ได้เฉพาะตอน subscribe ถ้าเอาไปใส่ publish
+#             จะได้ topic ที่มีตัวอักษรพวกนั้นอยู่จริง ๆ แล้วไม่มีใครได้รับ
+
+import ui
+import lcd
+import time
+
+DEVICE_ID = "eva-team03"     # ชื่อเดียวกับที่ขึ้นทะเบียนไว้ ยาวไม่เกิน 31 ตัวอักษร
+ROOT = "bento"               # รากของทั้งโครงการ กันชนกับข้อความของกลุ่มอื่นบน broker เดียวกัน
+
+COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
+COL_CARD = 0x142240
+COL_PUB = 0x00E676           # สีของ topic ที่ publish ได้
+COL_SUB = 0xFFA726           # สีของ wildcard ที่ subscribe ได้อย่างเดียว
+
+# โครงที่ใช้ได้จริง: ราก / ตัวตนอุปกรณ์ / ชนิดของข้อความ
+# เรียงจากกว้างไปแคบเสมอ เพราะ wildcard ตัดจากขวาไปซ้ายได้ง่ายกว่า
+TOPIC_TELEMETRY = ROOT + "/" + DEVICE_ID + "/telemetry"   # ค่าที่วัดได้ ส่งเป็นจังหวะ
+TOPIC_EVENT = ROOT + "/" + DEVICE_ID + "/event"           # เหตุการณ์ เกิดเมื่อมีเรื่อง
+TOPIC_STATUS = ROOT + "/" + DEVICE_ID + "/status"         # ยังอยู่ไหม
+TOPIC_COMMAND = ROOT + "/" + DEVICE_ID + "/command"       # ขาลง คนอื่นสั่งเรา
+
+# + แทนหนึ่งชั้นพอดี ดักทุกอุปกรณ์แต่เฉพาะข้อความชนิดเดียว
+WILDCARD_ONE = ROOT + "/+/telemetry"
+# # แทนทุกชั้นที่เหลือ ต้องอยู่ท้ายสุดเท่านั้น ดักทุกอย่างของอุปกรณ์เดียว
+WILDCARD_ALL = ROOT + "/" + DEVICE_ID + "/#"
+
+# ไฟล์นี้ไม่มีอะไรเปลี่ยนตามเวลา จอจึงเป็นแผนภาพนิ่ง วาดครั้งเดียวแล้วจบ
+# นั่นคือคำตอบที่ถูกของงานออกแบบ ไม่ใช่ข้อบกพร่อง
+ui.screen()
+time.sleep_ms(200)
+
+ui.Label("ต้นไม้ของ topic", x=20, y=12, color=COL_TEXT, value=24)
+
+# การ์ดบน: ที่อยู่จริงสี่ที่ ทั้งสี่ประกอบจาก ROOT กับ DEVICE_ID ชุดเดียวกัน
+ui.Panel(x=20, y=48, w=650, h=152, color=COL_CARD, min=COL_PUB, max=12, value=1)
+ui.Label("PUBLISH ได้จริง   ราก / ตัวตน / ชนิด", x=36, y=58, color=COL_DIM, value=16)
+row_y = 86
+for kind, topic in (("telemetry", TOPIC_TELEMETRY),
+                    ("event", TOPIC_EVENT),
+                    ("status", TOPIC_STATUS),
+                    ("command", TOPIC_COMMAND)):
+    # เว้นช่องให้เห็นรอยต่อของสามชั้น นักศึกษาจะได้เห็นว่าชั้นไหนคงที่ ชั้นไหนเปลี่ยน
+    ui.Label(ROOT + " / " + DEVICE_ID + " / " + kind, x=36, y=row_y,
+             color=COL_PUB, value=16)
+    row_y += 26
+
+# การ์ดล่าง: หน้าตาคล้ายกันแต่คนละสี เพราะใช้ได้คนละทิศทาง
+ui.Panel(x=20, y=212, w=650, h=108, color=COL_CARD, min=COL_SUB, max=12, value=1)
+ui.Label("SUBSCRIBE เท่านั้น - ห้ามใส่ใน publish", x=36, y=222, color=COL_SUB, value=16)
+ui.Label(WILDCARD_ONE + "   = telemetry ของทุกอุปกรณ์", x=36, y=250,
+         color=COL_SUB, value=16)
+ui.Label(WILDCARD_ALL + "   = ทุกข้อความของตัวเราเอง", x=36, y=276,
+         color=COL_SUB, value=16)
+
+# แยกสองป้ายให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยหนึ่งตัวกิน 3 ไบต์
+ui.Label("สีเขียว = ส่งได้", x=20, y=336, color=COL_DIM, value=18)
+ui.Label("สีส้ม = รับได้อย่างเดียว", x=200, y=336, color=COL_DIM, value=18)
+ui.poll()
+
+# lcd เก็บกฎสามข้อไว้ให้อ่านย้อนหลัง จอเก็บรูปร่าง drawer เก็บเหตุผล
+lcd.clear()
+lcd.console("<h2>คาบ 10 - ออกแบบ topic</h2>")
+
+# ข้อแรก: ไม่ขึ้นต้นด้วย / - "/bento/x" กับ "bento/x" เป็นคนละที่อยู่กัน
+# ชั้นแรกที่ว่างเปล่านั้นถูกต้องตามมาตรฐาน แต่ไม่มีใครตั้งใจให้มี
+lcd.print("1) ห้ามขึ้นต้นด้วย /")
+lcd.print("   /" + TOPIC_TELEMETRY, "คนละที่กับ", TOPIC_TELEMETRY)
+
+# ข้อสอง: ตัวตนของอุปกรณ์ต้องอยู่ใน topic ไม่ใช่อยู่ใน payload อย่างเดียว
+# ฝั่งรับจะได้กรองได้ตั้งแต่ชั้น broker โดยไม่ต้องแกะ JSON ของทุกข้อความก่อน
+lcd.print("2) device id อยู่ใน topic")
+lcd.print("   ฝั่งรับกรองได้โดยไม่ต้องแกะ payload")
+
+# ข้อสาม: แยกชนิดข้อความออกจากกัน telemetry ไหลตลอดเวลา event นาน ๆ ครั้ง
+# คนที่สนใจแค่ event จะได้ไม่ต้องรับ telemetry ทั้งกองมาทิ้ง
+lcd.print("3) แยก telemetry / event / status")
+lcd.print("   คนละจังหวะ คนละคนสนใจ")
+lcd.print("ระวัง", ROOT + "/#", "= ทุกอย่างใต้ราก ปริมาณเยอะมาก")
+lcd.print("ทั้งไฟล์นี้ไม่ได้ต่อเน็ตเลย")
+lcd.print("เพราะออกแบบ topic ทำบนกระดาษได้ก่อนเสมอ")

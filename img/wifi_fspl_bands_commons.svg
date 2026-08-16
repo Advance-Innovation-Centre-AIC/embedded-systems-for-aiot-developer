@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="-36 0 428 355" xmlns="http://www.w3.org/2000/svg">
+<path stroke="#000" stroke-width="0.8" d="
+M125 316v4M250 316v4M375 316v4
+M0 300h4m377 0h4M0 220h4m377 0h4M0 140h4m377 0h4M0 60h4m377 0h4" />
+<g stroke-width="1" fill="none">
+<path stroke="blue" d="M15,303C40,184 123,127 375,79.3" />
+<path stroke="red"  d="M15,251C40,132 123,75  375,27.4" />
+<path stroke="#0f0" d="M15,243C40,124 123,67  375,19.3" />
+</g><g font-family="Arial" font-size="18px">
+<text x= "20" y="40" font-size="24px">FSPL</text>
+<text x= "95" y="80">f = 5.7</text>
+<text x="146" y="110">5.1</text>
+<text x="166" y="154">2.4 GHz</text>
+<g text-anchor="end" transform="translate(-6)">
+<text y="30" x="-6">dB</text>
+<text y= "65">80</text>
+<text y="145">70</text>
+<text y="225">60</text>
+<text y="305">50</text>
+</g><g text-anchor="middle" transform="translate(0 342)">
+<text x="0">0</text>
+<text x="125">25</text>
+<text x="250">50</text>
+<text x="375">75</text>
+<text x="312" y="8">r in m</text>
+</g></g>
+<path fill="none" stroke="#000" stroke-width="0.8" d="M0 8 H385 V320 H0z"/>
+</svg>

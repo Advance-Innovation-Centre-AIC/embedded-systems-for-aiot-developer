@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#080d18"/>
+      <stop offset="0.6" stop-color="#0c1426"/>
+      <stop offset="1" stop-color="#101b33"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <circle cx="1180" cy="70" r="230" fill="#6cb2f5" opacity="0.05"/>
+  <circle cx="70" cy="680" r="170" fill="#6cb2f5" opacity="0.04"/>
+  <rect x="70" y="120" width="6" height="500" rx="3" fill="#6cb2f5" opacity="0.85"/>
+  <text x="100" y="88" font-family="IBM Plex Sans Thai, Noto Sans Thai, Thonburi, sans-serif"
+        font-size="27" fill="#94a1bf">ตอนที่ 3 · Sensor Visualization on HMI</text>
+  <text x="100" y="672" font-family="IBM Plex Sans Thai, Noto Sans Thai, Thonburi, sans-serif"
+        font-size="24" fill="#7c8aa8">AIoT in Action · Principle to Application · BENTO × TESAIoT</text>
+  <text x="1210" y="672" text-anchor="end" font-family="Menlo, monospace"
+        font-size="24" fill="#6cb2f5" opacity="0.75">Eva Kit</text>
+</svg>

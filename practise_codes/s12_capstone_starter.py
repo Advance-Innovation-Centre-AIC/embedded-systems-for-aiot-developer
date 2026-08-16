@@ -1,0 +1,346 @@
+# s12_capstone_starter.py - โครงเริ่มต้นของ mini-product: Sense -> Decide -> Show -> Send
+# วิธีรัน: 1) บนจอบอร์ด แตะการ์ด Playground บนหน้า Home แล้วค้างหน้านี้ไว้
+#          2) แก้บล็อก CONFIG ให้เป็นของทีม (device id, WiFi, broker, topic, เกณฑ์)
+#          3) กด Program to Device แล้วมองจอบอร์ด - ไฟล์นี้รันได้ตั้งแต่ยังไม่แก้อะไรเลย
+#
+# ไฟล์นี้ไม่ใช่ปริศนาให้เติมคำ มันคือวงจรที่ครบและรันได้แล้ว
+# ตรรกะข้างในเป็นแค่ตัวอย่าง (วัดมุมเอียง) งานของทีมคือแทนที่ด้วยโจทย์ของทีมเอง
+# ทุกบรรทัดที่เขียนว่า "ทีมเขียนเอง" คือที่ที่ผลงานของทีมจะไปอยู่
+#
+# หน้าจอที่ให้มาไม่ได้ให้มาสวย ๆ มันคือรายการสิ่งที่หน้าจอควบคุมต้องมีครบ
+#   ค่าที่วัดได้ + พิสัยของมัน (ui.Bar ทับ ui.Scale) - ตัวเลขลอย ๆ ไม่บอกว่าสูงไหม
+#   สถานะเป็นไฟ ไม่ใช่ตัวอักษรสี (ui.Led) - ภาพขาวดำต้องยังแยกสถานะออก
+#   ปุ่มเปิดกับปุ่มปิดแยกกันคนละปุ่ม - ปุ่มเดียวสลับไปมาบอกไม่ได้ว่าตอนนี้อยู่สถานะไหน
+#   คำสั่งที่ทำให้ของจริงขยับ ต้องมีกล่องยืนยันที่บอกว่าจะเกิดอะไร (ui.MsgBox)
+# ทั้งสี่ข้อคือเกณฑ์ให้คะแนนหน้าจอของทีมด้วย ลอกโครงนี้ไปแล้วเปลี่ยนเนื้อในได้เลย
+#
+# ห้าท่าในไฟล์นี้ มีตัวอย่างที่แยกออกมาทำเรื่องเดียวอยู่ที่ examples/s12/ ครบทุกท่า
+# Decide คือ 01 และ 02 - กันเน็ตหลุดคือ 03 และ 05 - จังหวะการส่งคือ 04
+# ทีมที่ยังไม่รู้ว่าจะเริ่มแทนที่ตรงไหนก่อน เปิด 01 ก่อนไฟล์อื่น มันสั้นที่สุดและเปลี่ยนวิธีคิดได้มากที่สุด
+
+import time
+import json
+import gpio
+import wifi
+import mqtt
+import sensors
+import dsp
+import ui
+
+# ---------- CONFIG: แก้เฉพาะบล็อกนี้ก่อนรันครั้งแรก ----------
+DEVICE_ID = "team01-eva"          # ห้ามซ้ำทีมอื่น broker ตัวนี้เป็นของสาธารณะ
+WIFI_SSID = "AIoT-Class"
+WIFI_PASS = "aiot12345"
+BROKER = "test.mosquitto.org"
+TOPIC = "bento/team01/telemetry"
+UNIT = "deg"                      # หน่วยของค่าที่ส่ง เขียนให้ตรงกับของจริงเสมอ
+SCALE_MAX = 45                    # ปลายพิสัยของมาตรวัดบนจอ ต้องเป็นค่าที่เป็นไปได้จริง
+WARN_LIMIT = 8.0                  # เกณฑ์ตัวอย่าง เกินเท่านี้ = เฝ้าดู
+LIMIT = 15.0                      # เกณฑ์ตัวอย่าง เอียงเกิน 15 องศาถือว่าผิดปกติ
+BEACON_LED = 0                    # ไฟเตือนหน้างาน ใช้หลอดบนบอร์ดแทนไฟหมุนจริง
+HEARTBEAT_MS = 30000              # ส่ง "ยังอยู่ดี" ทุก 30 วินาที
+ALERT_GAP_MS = 15000              # เตือนซ้ำได้เร็วที่สุดทุก 15 วินาที
+RETRY_MS = 10000                  # เน็ตหลุดแล้วลองต่อใหม่ทุก 10 วินาที
+LOOP_MS = 200                     # จังหวะลูป เร็วกว่านี้เฟรมจะหายเงียบ ๆ
+
+COL_TEXT, COL_DIM = 0xFFFFFF, 0xA0B4CC
+COL_CARD, COL_OK, COL_WARN, COL_BAD, COL_RUN = (0x142240, 0x00E676, 0xFFC83D,
+                                                0xFF5252, 0x4FC3F7)
+
+# สถานะที่ส่งขึ้น broker เป็นอังกฤษเพื่อให้ฝั่งรับเขียนเงื่อนไขง่าย ส่วนที่ขึ้นจอเป็นไทย
+# และบอก "แล้วต้องทำอะไร" ไม่ใช่บอกแค่ชื่อสถานะ คนหน้างานต้องการประโยคหลัง
+STATE_TEXT = {"OK": "ปกติ ไม่ต้องทำอะไร",
+              "WARN": "เฝ้าดู ยังไม่ต้องเข้าไป",
+              "ALERT": "ผิดปกติ ต้องมีคนไปดู"}
+
+# --- ท่าที่ 1: Sense - บีบข้อมูลดิบให้เหลือค่าเดียวที่สื่อความหมาย ---
+# บอร์ดนี้ไม่มี sensors.init() ให้เรียก IMU อยู่บนบัสที่คอร์จอ (CM55) ถือคนเดียว
+# ฝั่ง Python ขอค่าที่คอร์จออ่านเก็บไว้ให้ทุก 200 ms เรียก init() จะได้ OSError ทันที
+# หลังรีเซ็ต คอร์จอเริ่มตอบเรื่องเซนเซอร์ราว 13 วินาที การอ่านครั้งแรกจึงนิ่ง
+# ได้ถึง 16 วินาที ยิงหนึ่งครั้งตรงนี้ ให้การรอไปเกิดก่อนเข้าลูปหลัก
+try:
+    sensors.bmi270.motion()
+except OSError:
+    print("คอร์จอยังไม่ตอบรอบแรก จะลองใหม่ในลูป")
+smooth = dsp.EMA(alpha=0.2)       # กันค่ากระโดดครั้งเดียวจนเตือนผิด
+
+last_value = 0.0                  # ค่าล่าสุดที่ได้ ใช้ต่อเมื่อรอบไหนอ่านพลาด
+stale = False                     # รอบนี้อ่านไม่ได้ใช่ไหม - จอต้องบอกความจริงข้อนี้
+
+
+def read_value():
+    # อุปกรณ์ที่ต้องอยู่เป็นเดือนต้องทนการอ่านพลาดหนึ่งรอบได้ ไม่ใช่ตายทั้งเครื่อง
+    global last_value, stale
+    try:
+        ax, ay, az, gx, gy, gz = sensors.bmi270.motion()
+    except OSError:
+        # ค่าค้างยังมีประโยชน์ แต่ต้องไม่ถูกนำเสนอเหมือนค่าที่เพิ่งวัดมา
+        stale = True
+        return last_value
+    stale = False
+    roll, pitch = dsp.tilt(ax, ay, az)   # dsp.tilt คืน (roll, pitch) - roll มาก่อน
+    # ถ้าโจทย์ของทีมอยากให้เสียงเป็นแหล่งค่าแทนการอ่านมุมเอียง
+    # examples/s08/02_mic_sound_level_meter.py ยุบคลื่นเสียงทั้งชุดเหลือตัวเลขเดียว
+    # ซึ่งเสียบแทนบรรทัดล่างได้ตรง ๆ แล้วผ่านการยืนยัน N รอบเหมือนกันทุกประการ
+    # ทีมเขียนเอง: เปลี่ยนบรรทัดล่างเป็นปริมาณที่โจทย์ของทีมสนใจจริง ๆ
+    last_value = smooth.update(abs(roll))
+    return last_value
+
+
+# --- ท่าที่ 2: Decide - ตัดสินที่บอร์ด ไม่ต้องรอถามคลาวด์ ---
+# ฟังก์ชันนี้มีสองเกณฑ์และตัดสินทันที ซึ่งพอสำหรับให้ไฟล์รันได้ แต่ยังไม่พอสำหรับของจริง
+# examples/s12/01_state_machine.py แสดงรูปแบบที่มีหลายระดับ พร้อมกับดักที่เจอกันเกือบทุกทีม
+#   เขียน if value > WARN ก่อน if value > ALERT แล้วจะไม่มีทางเข้า ALERT เลยสักครั้ง
+# examples/s12/02_confirm_n.py เพิ่มอีกชั้นคือ "ต้องเห็นติดกันกี่รอบถึงจะเชื่อ" และคิดราคาให้ด้วยว่า
+#   การยืนยันทำให้เตือนช้าลงกี่วินาที ซึ่งเป็นตัวเลขที่ทีมต้องตอบได้ในวันนำเสนอ
+def decide(value):
+    if value > LIMIT:
+        return "ALERT"
+    if value > WARN_LIMIT:
+        return "WARN"
+    return "OK"
+
+
+def on_state_change(old, new, value):
+    pass  # ทีมเขียนเอง: ตอนสถานะเปลี่ยนให้เกิดอะไร (นับจำนวนครั้ง จดเวลา สั่งของอย่างอื่น)
+
+
+# --- ท่าที่ 3: Show - จอต้องอ่านรู้เรื่องแม้ไม่มีเน็ต ---
+# วางพิกัดเองทุกตัว เพราะ auto-layout จัดช่องกว้าง 200 px ตายตัว พอข้อความยาว
+# กว่านั้นจะล้นไปทับตัวถัดไป - พื้นที่จริงของจอ 4.3 นิ้วคือกว้าง 792 สูง 398
+# และมุมขวาล่างเฟิร์มแวร์ถือไว้ให้ปุ่ม Console ห้ามวางของที่ต้องกดไว้ตรงนั้น
+ui.screen()
+time.sleep_ms(200)
+ui.Label("จอเฝ้าระวัง - " + DEVICE_ID, x=16, y=8, color=COL_TEXT, value=20)
+
+# การ์ดซ้ายบน: ค่าที่วัดได้ พร้อมพิสัยของมัน
+ui.Panel(x=8, y=44, w=470, h=184, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ค่าที่วัดได้ เทียบกับเกณฑ์", x=22, y=52, color=COL_DIM, value=16)
+lbl_value = ui.Label("--", x=22, y=76, color=COL_TEXT, value=30)
+lbl_quality = ui.Label("รอค่าแรก", x=250, y=86, color=COL_DIM, value=16)
+# แถบค่าวางไว้ "เหนือ" ไม้บรรทัด เพราะ ui.Scale ไม่มีเข็มและไม่รับ .value()
+# มันคือไม้บรรทัด ตัวที่ขยับคือ ui.Bar ที่เราวางทับลงไปเอง
+bar_value = ui.Bar(x=22, y=134, w=440, h=14, color=COL_RUN,
+                   min=0, max=SCALE_MAX, value=0)
+sc_value = ui.Scale(x=22, y=150, w=440, h=48, color=COL_TEXT, min=0, max=SCALE_MAX)
+sc_value.ticks(10, 3)
+# ป้ายเกณฑ์ประกอบจากค่าคงที่ข้างบน ไม่ใช่พิมพ์เลขซ้ำ - ทีมที่แก้ CONFIG แล้วลืมแก้ป้าย
+# จะได้จอที่บอกเกณฑ์ผิด ซึ่งอันตรายกว่าจอที่ไม่บอกเกณฑ์เลย
+ui.Label("เฝ้าระวัง " + str(WARN_LIMIT) + " - ผิดปกติ " + str(LIMIT) + " " + UNIT,
+         x=22, y=200, color=COL_DIM, value=14)
+
+# การ์ดซ้ายล่าง: สถานะที่ตัดสินแล้ว เป็นไฟสามดวง ติดทีละดวงเสมอ
+ui.Panel(x=8, y=236, w=470, h=154, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("สถานะที่ตัดสินแล้ว", x=22, y=244, color=COL_DIM, value=16)
+led_ok = ui.Led(x=26, y=274, w=34, h=34, color=COL_OK, value=1)
+ui.Label("ปกติ", x=68, y=282, color=COL_DIM, value=16)
+led_warn = ui.Led(x=160, y=274, w=34, h=34, color=COL_WARN, value=0)
+ui.Label("เฝ้าระวัง", x=202, y=282, color=COL_DIM, value=16)
+led_bad = ui.Led(x=320, y=274, w=34, h=34, color=COL_BAD, value=0)
+ui.Label("ผิดปกติ", x=362, y=282, color=COL_DIM, value=16)
+lbl_state = ui.Label("เริ่มทำงาน", x=22, y=322, color=COL_TEXT, value=18)
+# ป้าย "ค้างรอรับทราบ" แยกเป็นบรรทัดของตัวเอง ไม่ต่อท้ายป้ายสถานะ เพราะข้อความไทย
+# ที่ยาวขึ้นอีกสิบตัวอักษรจะวิ่งไปใต้ปุ่มข้าง ๆ แล้วอ่านไม่ออก ทั้งที่ตอนออกแบบยังพอดี
+lbl_latch = ui.Label("รอคนรับทราบ", x=22, y=352, color=COL_WARN, value=16)
+lbl_latch.hide()
+btn_ack = ui.Button("รับทราบ", x=300, y=324, w=160, h=52, color=0x37474F, value=18)
+
+# การ์ดขวา: ของจริงที่เราสั่งได้ กับสถานะการส่งข้อมูล
+ui.Panel(x=486, y=44, w=298, h=346, color=COL_CARD, min=COL_DIM, max=12, value=1)
+ui.Label("ไฟเตือนหน้างาน", x=498, y=52, color=COL_DIM, value=16)
+# ui.Led สั่ง .value(0) แล้ว "หรี่" ไม่ใช่ "หาย" - ไฟแผงควบคุมที่หายไปตอนดับ
+# แย่กว่าไฟที่หรี่ลง เพราะคนดูแยกไม่ออกว่าดับหรือจอเสีย
+led_beacon = ui.Led(x=498, y=80, w=32, h=32, color=COL_BAD, value=0)
+# ป้ายข้างไฟบอกสถานะเป็นคำด้วย ไม่ใช่ปล่อยให้สีกับความสว่างเล่าคนเดียว
+# ภาพขาวดำหรือคนตาบอดสีต้องอ่านหน้าจอนี้ออกเท่ากัน
+lbl_beacon_state = ui.Label("ไฟดับอยู่", x=540, y=84, color=COL_DIM, value=16)
+# ปุ่มเปิดกับปุ่มปิดแยกกันคนละปุ่ม ห้ามใช้ปุ่มเดียวสลับไปมา เพราะปุ่มสลับบอกไม่ได้ว่า
+# ตอนนี้อยู่สถานะไหน คนกดจึงต้องเดา และเดาผิดได้เสมอ
+btn_on = ui.Button("เปิดไฟเตือน", x=498, y=124, w=184, h=46, color=0x1B5E20, value=18)
+btn_off = ui.Button("ปิดไฟเตือน", x=498, y=178, w=184, h=46, color=0x37474F, value=18)
+lbl_beacon = ui.Label("สั่งปิดต้องยืนยันก่อน", x=498, y=234, color=COL_DIM, value=14)
+lbl_net = ui.Label("net: starting", x=498, y=262, color=COL_DIM, value=14)
+lbl_sent = ui.Label("ส่งแล้ว 0 ใบ", x=498, y=290, color=COL_DIM, value=14)
+
+# กล่องยืนยันสร้างพร้อมหน้าจอแล้วซ่อนไว้ ไม่ใช่สร้างตอนกด - แฮนเดิลมีจำกัด และการ
+# สร้างของตอนคนกำลังรอคำตอบ คือการเพิ่มความหน่วงในจังหวะที่แย่ที่สุด
+# ข้อความของ MsgBox เดินทางไปกับ CREATE ซึ่งพาได้ 95 ไบต์ ภาษาไทยตัวละ 3 ไบต์
+# แปลว่าหัวเรื่องบวกเนื้อความรวมกันได้ราว 31 ตัวอักษร ยาวกว่านั้นถูกตัดเงียบ ๆ
+box = ui.MsgBox("ปิดไฟเตือน\nไฟหน้างานจะดับทันที", x=490, y=256, w=290, h=76,
+                color=COL_CARD)
+box.hide()
+# ปุ่มสองปุ่มนี้คือคำตอบของกล่อง - ปุ่มในตัว MsgBox เองยังไม่ส่งเหตุการณ์กลับมาให้
+# Python เห็น (เฟิร์มแวร์ผูก callback ไว้กับ ui.Button เท่านั้น) ถ้าวางปุ่มตายไว้บนจอ
+# คนกดจะสรุปว่าเครื่องแฮงก์ จึงใช้ ui.Button จริงสองปุ่มแทน
+btn_yes = ui.Button("ยืนยัน", x=498, y=336, w=90, h=50, color=0x37474F, value=16)
+btn_no = ui.Button("ยกเลิก", x=592, y=336, w=90, h=50, color=0x37474F, value=16)
+btn_yes.hide()
+btn_no.hide()
+ui.poll()
+
+last_sec = -1                     # วินาทีที่เพิ่งเขียนตัวเลขลงจอ
+last_shown = None                 # สถานะที่ป้ายกำลังบอกอยู่ตอนนี้
+
+
+def show(now, value, state, latched, net_text, sent):
+    # แถบกับไฟขยับได้ทุกรอบ ตาอ่านรูปทรงได้เร็วกว่าอ่านตัวเลข
+    global last_sec, last_shown
+    # ไม่เรียก bar_value.color() ตอนรัน เพราะ .color() ของ Bar ไปลงที่ "ราง"
+    # ไม่ใช่ "แถบที่เต็ม" - รางที่เปลี่ยนสีทำให้ดูเหมือนแถบเต็มทั้งที่ค่ายังน้อย
+    # สถานะเล่าด้วยไฟสามดวงข้างล่างแทน ซึ่งชัดกว่าและผ่านการทดสอบขาวดำ
+    bar_value.value(int(min(value, SCALE_MAX)))
+    led_ok.value(1 if state == "OK" else 0)
+    led_warn.value(1 if state == "WARN" else 0)
+    led_bad.value(1 if state == "ALERT" else 0)
+
+    # ป้ายสถานะเขียนตอน "เปลี่ยน" ไม่ใช่ตอนถึงรอบ ถ้าปล่อยให้มันรอรอบวินาที
+    # ป้ายกับไฟจะไม่ตรงกันได้นานถึงหนึ่งวินาที ซึ่งคนดูจะอ่านว่าจอเพี้ยน
+    if (state, latched) != last_shown:
+        last_shown = (state, latched)
+        lbl_state.text(STATE_TEXT[state])
+        if latched:
+            lbl_latch.show()
+        else:
+            lbl_latch.hide()
+
+    # ตัวเลขที่คนต้องอ่าน เขียนใหม่ไม่เกินวินาทีละครั้ง และอยู่ตำแหน่งคงที่เสมอ
+    # ตัวเลขที่กระพริบเร็วกว่านั้น คนอ่านไม่ทัน และไม่มีใครได้ประโยชน์จากมัน
+    sec = now // 1000
+    if sec == last_sec:
+        return
+    last_sec = sec
+    lbl_value.text("{:.1f} {}".format(value, UNIT))
+    # ค่าที่แสดงต้องบอกคุณภาพของตัวเองได้ ค่าค้างต้องระบุว่าไม่ใช่ค่าปัจจุบัน
+    lbl_quality.text("ค่าค้าง อ่านไม่ได้" if stale else "ค่าปกติ")
+    lbl_quality.color(COL_WARN if stale else COL_DIM)
+    lbl_net.text(net_text)
+    lbl_sent.text("ส่งแล้ว " + str(sent) + " ใบ")
+    # ทีมเขียนเอง: เพิ่ม widget ของทีม (งบรวมทั้งจอไม่เกิน 64 ตัว ตอนนี้ใช้ไป 31)
+    # เกณฑ์ข้อหนึ่งของงานคาบนี้คือ ถอดปลั๊กเราเตอร์แล้วจอต้องยังทำงาน
+    # examples/s12/05_hmi_survives_offline.py คือการทดสอบข้อนั้นในรูปแบบที่เล็กที่สุด
+    # มันแยกลูปของจอออกจากลูปของเครือข่ายเด็ดขาด และให้จอรายงานเองว่า "ค่านี้ออกไปแล้วหรือยัง"
+    # ซึ่งเป็นคนละคำถามกับ "ค่าเท่าไร" และคนหน้างานต้องรู้ทั้งสองอย่าง
+
+
+def beacon(on):
+    # ของจริงกับจอต้องขยับพร้อมกันเสมอ จอที่บอกว่าไฟติดทั้งที่หลอดดับ คือจอที่โกหก
+    if on:
+        gpio.led(BEACON_LED).on()
+    else:
+        gpio.led(BEACON_LED).off()
+    led_beacon.value(1 if on else 0)
+    lbl_beacon_state.text("ไฟติดอยู่" if on else "ไฟดับอยู่")
+
+
+# --- ท่าที่ 4: Send - ส่ง "เหตุการณ์" ไม่ใช่สตรีมดิบ ---
+# ทำไมต้องมีทั้ง beat และ event: examples/s12/04_heartbeat_and_alert.py แยกสองอย่างนี้ให้เห็น
+# heartbeat ส่งตามนาฬิกาไม่ว่าจะมีเรื่องหรือไม่ ส่วน alert ส่งตอนสถานะเปลี่ยนเท่านั้น
+# เพราะบอร์ดที่เงียบไปสามชั่วโมง แปลได้ทั้ง "ปกติดี" และ "ตายไปแล้ว" ฝั่งรับต้องแยกออก
+# ไฟล์นั้นยังนับใบที่ถูกกลั้นไว้ขึ้นจอด้วย ซึ่งเป็นตัวเลขที่ควรมีในรายงานของทีม
+def payload(value, state, kind):
+    d = {"id": DEVICE_ID, "v": round(value, 1), "unit": UNIT,
+         "state": state, "kind": kind, "t": time.ticks_ms()}
+    # ทีมเขียนเอง: เพิ่มหรือตัดฟิลด์ให้ตรงกับตาราง schema ที่ทีมออกแบบไว้ในใบงาน
+    return json.dumps(d)
+
+
+def send(value, state, kind):
+    if not mqtt.is_connected():
+        return False
+    mqtt.publish(TOPIC, payload(value, state, kind))
+    return True
+
+
+# --- ท่าที่ 5: กันเน็ตหลุด - งานหลักต้องไม่หยุดตามเน็ต ---
+# RETRY_MS ข้างบนเป็นระยะคงที่ 10 วินาที ซึ่งพอสำหรับคาบเรียน แต่ของจริงไม่ทำแบบนั้น
+# examples/s12/03_reconnect_backoff.py เพิ่มระยะห่างเป็นเท่าตัวทุกครั้งที่ต่อไม่ติด จนถึงเพดาน
+# แล้วรีเซ็ตกลับทันทีที่ต่อได้ - ทีมที่จะยกโค้ดนี้ไปใช้ต่อ ควรอ่านกับดักที่ไฟล์นั้นชี้ไว้
+# คือลืมรีเซ็ตระยะห่าง แล้วครั้งถัดไปที่หลุดสองวินาที บอร์ดจะรอห้านาทีกว่าจะรู้ว่ากลับมาแล้ว
+def go_online():
+    if not wifi.is_connected():
+        if not wifi.connect(WIFI_SSID, WIFI_PASS):   # บล็อกได้นานถ้ารหัสผิด รอให้ครบ
+            return False
+    return mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID)
+
+
+state = "OK"
+latched = False                   # เตือนแล้วค้างไว้ จนกว่าคนจะกดรับทราบ
+asking = False                    # กำลังรอคำตอบจากกล่องยืนยันอยู่ไหม
+beacon(False)
+online = go_online()
+missed = 0
+sent = 0
+last_alert = None                 # None = ยังไม่เคยเตือน จะได้เตือนครั้งแรกได้ทันที
+now = time.ticks_ms()
+t_beat = now
+t_retry = now
+
+while True:
+    now = time.ticks_ms()
+    value = read_value()
+    new_state = decide(value)
+
+    # เช็กสายก่อนใช้งานเสมอ แล้วนัดเวลาลองใหม่ - ไม่ต่อใหม่รัว ๆ ในลูป
+    if online and not mqtt.is_connected():
+        online = False
+        t_retry = now
+    if (not online) and time.ticks_diff(now, t_retry) >= RETRY_MS:
+        online = go_online()
+        t_retry = now
+
+    if new_state != state:
+        on_state_change(state, new_state, value)
+        state = new_state
+        ready = last_alert is None or time.ticks_diff(now, last_alert) >= ALERT_GAP_MS
+        if state == "ALERT":
+            latched = True         # เหตุการณ์ต้องมีคนเห็น ไม่ใช่แวบแล้วหาย
+            beacon(True)           # ของจริงขยับเอง ไม่ต้องรอคนกด
+            if ready:
+                if send(value, state, "event"):
+                    last_alert = now
+                    sent += 1
+                else:
+                    missed += 1
+                    pass  # ทีมเขียนเอง: ออฟไลน์แล้วจะ "ทิ้ง" หรือ "เก็บไว้ส่งทีหลัง" ตัดสินใจแล้วจดไว้ในใบงาน
+
+    if time.ticks_diff(now, t_beat) >= HEARTBEAT_MS:
+        t_beat = now
+        if send(value, state, "beat"):
+            sent += 1
+        else:
+            missed += 1
+
+    # --- ปุ่มบนจอ: อ่านทุกรอบ แต่คำสั่งที่ทำให้ของจริงขยับต้องผ่านการยืนยันก่อน ---
+    for ev in ui.poll():           # ต้องเรียกทุกลูป ไม่งั้นจอจะซ่อน widget ราวสองวินาที
+        if ev["type"] != "clicked":
+            continue
+        if ev["handle"] == btn_on.id():
+            # คำสั่งเปิดไม่ต้องยืนยัน เพราะมันย้อนกลับได้ด้วยปุ่มข้าง ๆ ทันที
+            beacon(True)
+        elif ev["handle"] == btn_off.id() and not asking:
+            # คำสั่งที่ทำให้ไฟหน้างานดับ ต้องถามก่อน และคำถามต้องบอกสิ่งที่จะเกิด
+            asking = True
+            box.show()
+            btn_yes.show()
+            btn_no.show()
+        elif ev["handle"] == btn_yes.id() and asking:
+            asking = False
+            beacon(False)
+            box.hide()
+            btn_yes.hide()
+            btn_no.hide()
+        elif ev["handle"] == btn_no.id() and asking:
+            asking = False
+            box.hide()
+            btn_yes.hide()
+            btn_no.hide()
+        elif ev["handle"] == btn_ack.id() and latched:
+            # คนหน้างานเห็นแล้ว จึงปลดล็อกให้จอกลับเป็นปกติได้
+            # ไม่มีอะไรค้างอยู่ก็ไม่ต้องทำอะไร ปุ่มที่กดแล้วส่งใบเปล่าคือปุ่มที่สร้างขยะ
+            latched = False
+            if send(value, state, "ack"):
+                sent += 1
+
+    show(now, value, state, latched,
+         "online" if online else "offline - missed " + str(missed), sent)
+    time.sleep_ms(LOOP_MS)
