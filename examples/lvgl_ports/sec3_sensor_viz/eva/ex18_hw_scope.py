@@ -9,7 +9,8 @@ import gpio
 
 
 def pot_pct():
-    return ((sensors.pot.read() >> 4) * 100) // 4095  # 0-65535 -> %
+    r = sensors.pot.read() >> 4          # 0-65535 -> 0-4095
+    return (r * 100) // 4095, r
 
 
 hw_led = gpio.led(2)  # น้ำเงิน P16.5 จริง (ตารางชื่อ firmware หลอกว่า RGB_RED)
@@ -55,11 +56,12 @@ ui.Label("OUTPUT", x=648, y=56, color=0xCCCCCC, value=14)
 out_sw = ui.Switch(x=644, y=82, w=80, h=40)
 out_led = ui.Led(x=740, y=88, w=26, h=26, color=0x2196F3, value=80)
 duty_l = ui.Label("Duty: --%", x=636, y=150, color=0xFFFF00, value=14)
+raw_l = ui.Label("raw: ----", x=636, y=196, color=0x888888, value=14)
 ui.Label(POT_NAME + " = duty", x=636, y=176, color=0x888888, value=14)
-freq_l = ui.Label("100 Hz", x=648, y=222, color=0xFFFFFF, value=14)
+freq_l = ui.Label("100 Hz", x=648, y=246, color=0xFFFFFF, value=14)
 
-ui.Label("Freq (10-500 Hz)", x=16, y=300, color=0xCCCCCC, value=14)
-fsld = ui.Slider(x=210, y=298, w=330, h=22, min=10, max=500, value=100)
+ui.Label("Freq (1-500 Hz)", x=16, y=300, color=0xCCCCCC, value=14)
+fsld = ui.Slider(x=210, y=298, w=330, h=22, min=1, max=500, value=100)
 t = "Turn " + POT_NAME + " - the duty and the real LED follow"
 ui.Label(t, x=cx(t, 14), y=336, color=0x888888, value=14)
 ui.Label(FOOTER, x=cx(FOOTER, 14), y=378, color=0x666666, value=14)
@@ -74,6 +76,7 @@ else:
 
 freq, duty, out_on = 100, 50, False
 phase = 0
+led_lit = None   # None = โหมด PWM ตาม duty; True/False = โหมดกะพริบ (freq <= 5)
 
 lcd.print("sec3 ex18: เส้นวิ่งตลอด - pot คุม duty, OUTPUT ขับ LED จริง")
 t0 = time.ticks_ms()
@@ -83,6 +86,7 @@ while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
             RUN_MS = 0
         elif ev["type"] == "toggled" and ev["handle"] == out_sw.id():
             out_on = ev["value"] == 1
+            led_lit = None
             if out_on:
                 hw_led.brightness(duty)
             else:
@@ -92,12 +96,26 @@ while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
         elif ev["type"] == "value_changed" and ev["handle"] == fsld.id():
             freq = ev["value"]
             freq_l.text(str(freq) + " Hz")
-    d = pot_pct()
+    d, raw = pot_pct()
+    raw_l.text("raw: " + str(raw))      # ให้เห็นจะ ๆ ว่าหมุน VR แล้วค่าขยับ
     if abs(d - duty) > 2:
         duty = d
         duty_l.text("Duty: " + str(duty) + "%")
         if out_on:
             hw_led.brightness(duty)  # PWM จริง - หรี่ตาม duty
+    if out_on:
+        if freq <= 5:
+            # ความถี่ต่ำพอที่ตามอง: สลับไฟตามจังหวะสัญญาณจริง (duty กำหนด
+            # ช่วงติดในหนึ่งคาบ) - persistence of vision: เกิน ~5Hz ตาจะ
+            # กลืนเป็นแสงนิ่ง จึงกลับไปใช้ PWM ความสว่างตาม duty แทน
+            per = 1000 // freq
+            on_now = (time.ticks_ms() % per) < (per * duty) // 100
+            if on_now != led_lit:
+                led_lit = on_now
+                hw_led.brightness(100 if on_now else 0)
+        elif led_lit is not None:
+            led_lit = None              # ออกจากโหมดกะพริบ -> สว่างตาม duty
+            hw_led.brightness(duty)
     phase = push_square(ch, freq, duty, phase)
     time.sleep_ms(100)
 hw_led.brightness(0)

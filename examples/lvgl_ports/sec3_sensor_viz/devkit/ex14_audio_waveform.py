@@ -45,9 +45,8 @@ if globals().get("MENU_MODE"):
 else:
     _back_id = -1
 
-mic.start(sens=4)
+mic.start(sens=3)   # sens=4 อิ่มตัวจนคลื่นชนเพดาน (บทเรียน 2026-08-20)
 running = True
-peak = 300  # autogain: C สเกล int16 เต็ม แต่เสียงพูดจริงเล็ก - ไต่ตามยอด
 
 lcd.print("sec3 ex14: live mic waveform - Pause freezes the trace")
 t0 = time.ticks_ms()
@@ -60,17 +59,24 @@ while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
                 running = not running
                 btn.text("Pause" if running else "Play")
     if running:
+        # PDM ring เสิร์ฟเสียงเก่าก่อน - ลูปช้ากว่า 16kHz จะตามหลังจริงถึง
+        # ~600ms; stats(fresh=True) ทิ้ง backlog เหลือหน้าต่างล่าสุด แล้ว
+        # raw() ที่ตามมาจึงได้เสียง "ตอนนี้" จริง ๆ (เหตุ real-time 2026-08-20)
+        mic.stats(fresh=True)
         samples = dsp.s16(mic.raw(), 2)  # 128 จุด แกะใน C
         m = sum(samples) // len(samples)
-        top = 1
-        for v in samples:
-            d = v - m if v > m else m - v
-            if d > top:
-                top = d
-        peak = max(300, (peak * 3 + top) // 4)  # smooth ลดกราฟเด้ง
+        # สเกลคงที่ - ห้าม autogain: ตัวปรับอัตโนมัติจะขยายความเงียบจนเต็มจอ
+        # แล้วหดเสียงดังลงมาเท่ากัน ทำให้เบา/ดังดูไม่ต่าง (บทเรียน 2026-08-20)
+        # ±GAIN นับเป็นเต็มจอ: ห้องเงียบ (rms ~170) = เส้นเกือบนิ่ง
+        # เสียงพูด/ตบมือ = คลื่นเต็มตา แล้ว clamp กันทะลุ
         i = 0
         for v in samples:
-            ch.set_next(0, 50 + ((v - m) * 40) // peak)
+            d = ((v - m) * 40) // 2500
+            if d > 40:
+                d = 40
+            elif d < -40:
+                d = -40
+            ch.set_next(0, 50 + d)
             i += 1
             if i % 16 == 0:
                 time.sleep_ms(6)

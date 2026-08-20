@@ -18,17 +18,21 @@ def pot_pct():
 # ==== END BOARD ====
 
 
-# ==== BOARD: Eva Kit — ปุ่มที่สองใช้ CapSense BTN0 แทน (SW4 มีบนเมนู Controls
-# แต่ modgpio ยังเอื้อมไม่ถึง — NUM_BTNS ล็อก 1) ====
+# ==== BOARD: Eva Kit — สองปุ่ม: USER Button 1 + CapSense BTN0 ====
+import gpio as _g
 import sensors as _s
-BTN2 = "CapSense BTN0"
 
-def read_btn2():
-    # CapSense อ่านพลาดชั่วครู่ได้ - อ่านเป็น "ไม่กด" แทนการตาย
-    try:
-        return _s.capsense.buttons()[0]
-    except OSError:
-        return False
+_b1 = _g.button(0)
+
+
+def _cap0():
+    return _s.capsense.buttons()[0]
+
+
+BTNS = (
+    ("USR BTN1", _b1.is_pressed),
+    ("CAP BTN0", _cap0),
+)
 # ==== END BOARD ====
 
 # ==== BOARD: Eva Kit — ไม่มี RGB Matrix ====
@@ -85,13 +89,19 @@ led_blue = ui.Led(x=CX - 122, y=BY, w=45, h=45, color=BLUE, value=0)
 ui.Label("Blue", x=CX - 35 - 12, y=BY + 4, color=0xFFFFFF, value=14)
 ui.Label("(POT ctrl)", x=CX + 45 - 35, y=BY + 12, color=CYAN_B, value=14)
 
-# แผงล่างซ้าย: สถานะปุ่ม (C: 225x128 @BOTTOM_LEFT(5,-25))
+# แผงล่างซ้าย: สถานะปุ่มจริงทุกตัวของบอร์ด (C: 225x128 @BOTTOM_LEFT(5,-25))
 ui.Panel(x=137, y=271, w=225, h=106, color=0x0F0F23, min=0x444444, max=0,
          value=2)
-t = "USER BTN2 (" + BTN2 + ")"
-ui.Label(t, x=249 - len(t) * 3, y=279, color=0xFFFFFF, value=14)
-btn_led = ui.Led(x=152, y=311, w=50, h=50, color=ORANGE, value=0)
-btn_st = ui.Label("Released", x=237, y=330, color=BAD, value=20)
+ui.Label("Buttons", x=249 - 21, y=277, color=0xFFFFFF, value=14)
+_bn = len(BTNS)
+btn_leds, btn_lbls, btn_prev = [], [], []
+for _i, (_nm, _rd) in enumerate(BTNS):
+    _cx = 137 + (225 // (_bn * 2)) * (_i * 2 + 1)
+    btn_leds.append(ui.Led(x=_cx - 16, y=299, w=32, h=32, color=ORANGE,
+                           value=0))
+    btn_lbls.append(ui.Label(_nm, x=_cx - (len(_nm) * 14) // 4, y=338,
+                             color=BAD, value=14))
+    btn_prev.append(None)
 
 # แผงล่างขวา: pot -> blue (C: 225x128 @BOTTOM_RIGHT(-5,-25))
 ui.Panel(x=562, y=271, w=225, h=106, color=0x0F0F23, min=0x444444, max=0,
@@ -125,7 +135,6 @@ def set_ch(i, on):
     print("[HW] " + NAMES[i] + (": ON" if on else ": OFF"))
 
 
-prev_b = None
 prev_p = -1
 
 # ปุ่มย้อนกลับ มุมล่างซ้าย - โผล่เฉพาะตอนรันผ่านเมนูบนบอร์ด (MENU_MODE)
@@ -156,12 +165,15 @@ while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
             led_blue.value(0)
             hw_blue.brightness(0)
 
-    b = read_btn2()
-    if b != prev_b:
-        prev_b = b
-        btn_led.value(1 if b else 0)
-        btn_st.text("PRESSED" if b else "Released")
-        btn_st.color(OK if b else BAD)
+    for _i, (_nm, _rd) in enumerate(BTNS):
+        try:
+            b = _rd()
+        except OSError:
+            b = False               # ตัวอ่านสะดุดหนึ่งจังหวะ = ยังไม่กด
+        if b != btn_prev[_i]:
+            btn_prev[_i] = b
+            btn_leds[_i].value(1 if b else 0)
+            btn_lbls[_i].color(OK if b else BAD)
 
     p = pot_pct()
     if abs(p - prev_p) > 1:
