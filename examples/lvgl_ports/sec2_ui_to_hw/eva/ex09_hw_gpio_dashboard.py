@@ -24,7 +24,11 @@ import sensors as _s
 BTN2 = "CapSense BTN0"
 
 def read_btn2():
-    return _s.capsense.buttons()[0]
+    # CapSense อ่านพลาดชั่วครู่ได้ - อ่านเป็น "ไม่กด" แทนการตาย
+    try:
+        return _s.capsense.buttons()[0]
+    except OSError:
+        return False
 # ==== END BOARD ====
 
 # ==== BOARD: Eva Kit — ไม่มี RGB Matrix ====

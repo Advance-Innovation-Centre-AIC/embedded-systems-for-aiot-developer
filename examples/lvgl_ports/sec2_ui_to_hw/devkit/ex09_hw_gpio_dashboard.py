@@ -25,7 +25,11 @@ import sensors as _s
 BTN2 = "CapSense BTN0"
 
 def read_btn2():
-    return _s.capsense.buttons()[0]
+    # snapshot ไม่พร้อม = OSError - อ่านเป็น "ไม่กด" แทนการตาย
+    try:
+        return _s.capsense.buttons()[0]
+    except OSError:
+        return False
 # ==== END BOARD ====
 
 # ==== BOARD: TESAIoT Dev Kit — RGB Matrix 16x8 (DFR0522 @0x10) ====
