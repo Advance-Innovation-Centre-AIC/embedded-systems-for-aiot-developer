@@ -55,18 +55,18 @@ screens/                   ภาพคู่ emu_*/hw_* ต่อตัวอ�
 firmware release template** (`TESAIoT_Firmware_Development_and_Release`) — ต้องใช้
 firmware ที่ build จากทรีนี้ (2026-08-20+) จนกว่าจะมี release รอบถัดไป
 
-## วิธีขึ้นบอร์ด
+## วิธีขึ้นบอร์ด (เครื่องมือโต๊ะพัฒนา — ผู้เรียนไม่ต้องใช้)
 
 ```bash
-T=TESAIoT_Dev_Kit_C_and_Micropython_Examples/tools/tacp_program.py
-L=AIoT_Cirriculum/examples/lvgl_ports
-# เลือกชุดบอร์ด: devkit หรือ eva
-i=1; for f in $L/sec2_ui_to_hw/devkit/ex*.py; do
-  python3 $T "$f" --dest /s2e$(printf %02d $i).py --reset none; i=$((i+1)); done
-python3 $T $L/sec2_ui_to_hw/menu_sec2.py --dest /s2menu.py --reset none
-python3 $T $L/boot/menu_sections.py     --dest /menu.py   --reset none
-python3 $T $L/boot/main_loader.py                     # -> /main.py + hard reset ปิดชุด
+python3 AIoT_Cirriculum/tools/lvgl_ports_deploy.py                 # devkit ทั้งชุด
+python3 AIoT_Cirriculum/tools/lvgl_ports_deploy.py --board eva
+python3 AIoT_Cirriculum/tools/lvgl_ports_deploy.py --menus-only    # เมนู 4 ไฟล์
+python3 AIoT_Cirriculum/tools/lvgl_ports_deploy.py --only s3e12    # ไฟล์เดียว
 ```
+
+สคริปต์ทำลำดับที่ถูกให้เอง: TACP PROGRAM_MODE (safe boot — ห้ามส่งทับโปรแกรม ui
+ที่กำลังรัน) → ส่งรายไฟล์พร้อม OK/FAIL (ล้มติดกัน 3 = หยุด) → hard reset ปิดชุด
+ในห้องเรียนจริงผู้เรียนเปิดตัวอย่างทีละไฟล์ผ่าน BENTO IDE ตามคาบ ไม่ใช้เมนูชุดนี้
 
 กติกา deploy (บทเรียนจ่ายจริง 2026-08-19/20): ชุดส่งไฟล์ปิดท้ายด้วย hard reset เสมอ
 (`--reset none` ทิ้งจอค้าง Programming Mode) · ห้าม Ctrl-C โปรแกรมที่ยิง ui ·
