@@ -27,22 +27,13 @@ def cx(s, fs):
     return CX - (len(s) * fs) // 4
 
 
-def gen_square(freq, duty, n=N, sr=GEN_SR):
-    out = []
+def push_square(ch, freq, duty, phase, k=8, sr=GEN_SR):
+    # เส้นวิ่งต่อเนื่อง: duty จาก pot มีผลกับจุดใหม่ทันที
     per = sr / freq
-    for i in range(n):
-        ph = (i % per) / per
-        out.append(70 if ph < duty / 100 else 30)
-    return out
-
-
-def draw_trace(ch, pts):
-    i = 0
-    for v in pts:
-        ch.set_next(0, v)
-        i += 1
-        if i % 16 == 0:
-            time.sleep_ms(6)
+    for i in range(k):
+        ph = ((phase + i) % per) / per
+        ch.set_next(0, 70 if ph < duty / 100 else 30)
+    return phase + k
 
 
 ui.screen()
@@ -81,35 +72,33 @@ if globals().get("MENU_MODE"):
 else:
     _back_id = -1
 
-freq, duty, out_on = 100, -1, False
-prev_pts = None
+freq, duty, out_on = 100, 50, False
+phase = 0
 
-lcd.print("sec3 ex18: pot -> duty, switch OUTPUT -> real LED PWM")
+lcd.print("sec3 ex18: เส้นวิ่งตลอด - pot คุม duty, OUTPUT ขับ LED จริง")
 t0 = time.ticks_ms()
 while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
-    dirty = False
     for ev in ui.poll():
         if ev["type"] == "clicked" and ev["handle"] == _back_id:
             RUN_MS = 0
         elif ev["type"] == "toggled" and ev["handle"] == out_sw.id():
             out_on = ev["value"] == 1
-            if not out_on:
+            if out_on:
+                hw_led.brightness(duty)
+            else:
                 hw_led.brightness(0)
                 hw_led.off()
             out_led.prop(ui.PROP_LED_BRIGHTNESS, 255 if out_on else 80)
         elif ev["type"] == "value_changed" and ev["handle"] == fsld.id():
             freq = ev["value"]
             freq_l.text(str(freq) + " Hz")
-            dirty = True
     d = pot_pct()
     if abs(d - duty) > 2:
         duty = d
         duty_l.text("Duty: " + str(duty) + "%")
         if out_on:
             hw_led.brightness(duty)  # PWM จริง - หรี่ตาม duty
-        dirty = True
-    if dirty:
-        draw_trace(ch, gen_square(freq, duty if duty >= 0 else 50))
+    phase = push_square(ch, freq, duty, phase)
     time.sleep_ms(100)
 hw_led.brightness(0)
 hw_led.off()

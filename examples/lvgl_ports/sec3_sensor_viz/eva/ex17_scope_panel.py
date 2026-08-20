@@ -31,13 +31,18 @@ def gen_wave(wt, freq, n, sr=SR, amp=16000, duty=50):
     return out
 
 
-def draw_trace(ch, pts, scale=True):
-    i = 0
-    for v in pts:
-        ch.set_next(0, 50 + (v * 40) // 32767 if scale else v)
-        i += 1
-        if i % 16 == 0:
-            time.sleep_ms(6)
+def push_chunk(ch, wt, freq, phase, sr=SR, duty=50, k=8):
+    per = sr / freq
+    for i in range(k):
+        ph = ((phase + i) % per) / per
+        if wt == 0:
+            s = 1.0 if ph < duty / 100 else -1.0
+        elif wt == 1:
+            s = math.sin(2 * math.pi * ph)
+        else:
+            s = 4 * ph - 1 if ph < 0.5 else 3 - 4 * ph
+        ch.set_next(0, 50 + int(s * 20))
+    return phase + k
 
 
 ui.screen()
@@ -124,35 +129,25 @@ def show_page(p):
     nav_fft.color(0x2196F3 if p == "fft" else 0x333333)
 
 
-def redraw():
-    if page == "scp":
-        draw_trace(scp_ch, gen_wave(wt, freq, N))
-    elif page == "gen":
-        draw_trace(gen_ch, gen_wave(0, gen_freq, 100, sr=10000,
-                                    duty=gen_duty))
-    else:
-        mags = dsp.fft_mag(gen_wave(wt, freq, FFT_N), n=FFT_N)
-        top, dom = 1.0, 0
-        for k in range(1, len(mags)):
-            if mags[k] > top:
-                top, dom = mags[k], k
-        i = 0
-        for b in range(64):
-            v = int(mags[b * 2] * 100 / top)
-            fft_ch.set_next(0, v if v <= 100 else 100)
-            i += 1
-            if i % 16 == 0:
-                time.sleep_ms(6)
-        fft_info.text("Dominant: " + str((dom * SR) // FFT_N) + " Hz")
+def fft_redraw():
+    mags = dsp.fft_mag(gen_wave(wt, freq, FFT_N), n=FFT_N)
+    top, dom = 1.0, 0
+    for k in range(1, len(mags)):
+        if mags[k] > top:
+            top, dom = mags[k], k
+    for b in range(64):
+        v = int(mags[b * 2] * 100 / top)
+        fft_ch.set_next(0, v if v <= 100 else 100)
+    fft_info.text("Dominant: " + str((dom * SR) // FFT_N) + " Hz")
 
 
 show_page("scp")
-redraw()
+scp_phase = 0
+gen_phase = 0
 
-lcd.print("sec3 ex17: Scope/Gen/FFT panels - custom navigation")
+lcd.print("sec3 ex17: สวิตช์ Run = ทุกหน้าวิ่งต่อเนื่อง")
 t0 = time.ticks_ms()
 while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
-    dirty = False
     for ev in ui.poll():
         h = ev["handle"]
         if ev["type"] == "clicked":
@@ -161,15 +156,12 @@ while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
             elif h == nav_scp.id():
                 page = "scp"
                 show_page(page)
-                dirty = True
             elif h == nav_gen.id():
                 page = "gen"
                 show_page(page)
-                dirty = True
             elif h == nav_fft.id():
                 page = "fft"
                 show_page(page)
-                dirty = True
         elif ev["type"] == "toggled" and h == run_sw.id():
             running = ev["value"] == 1
             run_led.prop(ui.PROP_LED_BRIGHTNESS, 255 if running else 80)
@@ -177,12 +169,16 @@ while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
             if h == gen_fsld.id():
                 gen_freq = ev["value"]
                 gen_fl.text(str(gen_freq) + " Hz")
-                dirty = True
             elif h == gen_dsld.id():
                 gen_duty = ev["value"]
                 gen_dl.text(str(gen_duty) + " %")
-                dirty = True
-    if running and dirty:
-        redraw()
-    time.sleep_ms(100)
+    if running:
+        if page == "scp":
+            scp_phase = push_chunk(scp_ch, wt, freq, scp_phase)
+        elif page == "gen":
+            gen_phase = push_chunk(gen_ch, 0, gen_freq, gen_phase,
+                                   sr=10000, duty=gen_duty, k=6)
+        else:
+            fft_redraw()    # FFT ใน C ~1ms - รีเฟรชได้ทุกรอบ
+    time.sleep_ms(150 if page == "fft" else 100)
 print("sec3 ex17: done")

@@ -28,13 +28,6 @@ def lfsr_noise(n=N, amp=20, mid=50):
     return out
 
 
-def draw_trace(ch, s, pts):
-    i = 0
-    for v in pts:
-        ch.set_next(s, v)
-        i += 1
-        if i % 16 == 0:
-            time.sleep_ms(6)
 
 
 ui.screen()
@@ -51,6 +44,8 @@ ch.prop(ui.PROP_CHART_POINTS, N)
 
 t = "LFSR-based pseudo-random noise"
 ui.Label(t, x=cx(t, 14), y=324, color=0x888888, value=14)
+run_b = ui.Button("Run", x=560, y=316, w=104, h=46, color=0x1B5E20, value=16)
+stop_b = ui.Button("Stop", x=676, y=316, w=104, h=46, color=0x333333, value=16)
 ui.Label(FOOTER, x=cx(FOOTER, 14), y=378, color=0x666666, value=14)
 
 # ปุ่มย้อนกลับ มุมล่างซ้าย - โผล่เฉพาะตอนรันผ่านเมนูบนบอร์ด (MENU_MODE)
@@ -61,12 +56,21 @@ if globals().get("MENU_MODE"):
 else:
     _back_id = -1
 
-lcd.print("sec3 ex13: LFSR noise redraws continuously")
+lcd.print("sec3 ex13: noise scrolls while Run")
+running = True
 t0 = time.ticks_ms()
 while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
     for ev in ui.poll():
-        if ev["type"] == "clicked" and ev["handle"] == _back_id:
-            RUN_MS = 0
-    draw_trace(ch, 0, lfsr_noise())
-    time.sleep_ms(150)
+        h = ev["handle"]
+        if ev["type"] == "clicked":
+            if h == _back_id:
+                RUN_MS = 0
+            elif h == run_b.id():
+                running = True
+            elif h == stop_b.id():
+                running = False
+    if running:
+        for v in lfsr_noise(8):     # ดัน 8 จุด/รอบ - เส้นไหลต่อเนื่อง
+            ch.set_next(0, v)
+    time.sleep_ms(100)
 print("sec3 ex13: done")

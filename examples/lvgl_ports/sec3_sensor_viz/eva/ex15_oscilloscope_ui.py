@@ -30,13 +30,19 @@ def gen_wave(wt, freq, n=N, sr=SR, amp=16000, mid=0):
     return out
 
 
-def draw_trace(ch, s, pts):
-    i = 0
-    for v in pts:
-        ch.set_next(s, 50 + (v * 40) // 32767)
-        i += 1
-        if i % 16 == 0:
-            time.sleep_ms(6)
+def push_chunk(ch, wt, freq, phase, k=8):
+    # สโคปวิ่งต่อเนื่อง: ดัน k จุด/รอบ คงเฟสข้ามรอบ
+    per = SR / freq
+    for i in range(k):
+        ph = ((phase + i) % per) / per
+        if wt == 0:
+            s = 1.0 if ph < 0.5 else -1.0
+        elif wt == 1:
+            s = math.sin(2 * math.pi * ph)
+        else:
+            s = 4 * ph - 1 if ph < 0.5 else 3 - 4 * ph
+        ch.set_next(0, 50 + int(s * 20))
+    return phase + k
 
 
 ui.screen()
@@ -59,8 +65,10 @@ for o in ("Square", "Sine", "Triangle"):
 dd.value(1)
 sld = ui.Slider(x=634, y=112, w=130, h=22, min=0, max=100, value=30)
 freq_l = ui.Label("1000 Hz", x=650, y=140, color=0xFFFFFF, value=14)
-ui.Label("1 ms/div", x=650, y=190, color=0xFFFF00, value=14)
-ui.Label("1 V/div", x=650, y=220, color=0x00FFFF, value=14)
+ui.Label("1 ms/div", x=650, y=176, color=0xFFFF00, value=14)
+ui.Label("1 V/div", x=650, y=198, color=0x00FFFF, value=14)
+run_b = ui.Button("Run", x=630, y=224, w=66, h=46, color=0x1B5E20, value=16)
+stop_b = ui.Button("Stop", x=702, y=224, w=66, h=46, color=0x333333, value=16)
 
 ui.Panel(x=16, y=288, w=762, h=52, color=0x1A1A1A, min=0x333333, max=6,
          value=1)
@@ -99,28 +107,33 @@ def measure(pts):
 
 
 wt, freq = 1, 1000
-pts = gen_wave(wt, freq)
-draw_trace(ch, 0, pts)
-measure(pts)
+running = True
+phase = 0
+measure(gen_wave(wt, freq))
 
-lcd.print("sec3 ex15: scope with live Vpp/Freq/RMS measurements")
+lcd.print("sec3 ex15: Run = เส้นวิ่ง + วัด Vpp/Freq/RMS สด")
 t0 = time.ticks_ms()
+last_meas = t0
 while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
-    dirty = False
     for ev in ui.poll():
-        if ev["type"] == "clicked" and ev["handle"] == _back_id:
-            RUN_MS = 0
+        h = ev["handle"]
+        if ev["type"] == "clicked":
+            if h == _back_id:
+                RUN_MS = 0
+            elif h == run_b.id():
+                running = True
+            elif h == stop_b.id():
+                running = False
         elif ev["type"] == "value_changed":
-            if ev["handle"] == dd.id():
+            if h == dd.id():
                 wt = ev["value"]
-                dirty = True
-            elif ev["handle"] == sld.id():
+            elif h == sld.id():
                 freq = 100 + ev["value"] * ev["value"]
                 freq_l.text(str(freq) + " Hz")
-                dirty = True
-    if dirty:
-        pts = gen_wave(wt, freq)
-        draw_trace(ch, 0, pts)
-        measure(pts)
+    if running:
+        phase = push_chunk(ch, wt, freq, phase)
+        if time.ticks_diff(time.ticks_ms(), last_meas) > 1000:
+            last_meas = time.ticks_ms()
+            measure(gen_wave(wt, freq))
     time.sleep_ms(100)
 print("sec3 ex15: done")

@@ -60,6 +60,8 @@ for o in ("Square", "Sine", "Triangle", "Sawtooth", "Noise"):
     dd.add_option(o)
 dd.value(1)
 dom_l = ui.Label("Dominant: -- Hz", x=580, y=52, color=0xFFFF00, value=14)
+run_b = ui.Button("Run", x=220, y=40, w=90, h=44, color=0x1B5E20, value=16)
+stop_b = ui.Button("Stop", x=320, y=40, w=90, h=44, color=0x333333, value=16)
 
 ch = ui.Chart(x=66, y=96, w=660, h=230, min=0, max=100, color=0x00FFFF)
 ch.prop(ui.PROP_CHART_POINTS, BINS)
@@ -95,19 +97,24 @@ def redraw(wt, freq):
 
 
 wt, freq = 1, 1000
+running = True
 redraw(wt, freq)
 
-lcd.print("sec3 ex16: real C FFT - pick a wave, watch its harmonics")
+lcd.print("sec3 ex16: Run = analyzer วัดซ้ำต่อเนื่องด้วย dsp.fft_mag")
 t0 = time.ticks_ms()
 while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
-    dirty = False
     for ev in ui.poll():
-        if ev["type"] == "clicked" and ev["handle"] == _back_id:
-            RUN_MS = 0
-        elif ev["type"] == "value_changed" and ev["handle"] == dd.id():
+        h = ev["handle"]
+        if ev["type"] == "clicked":
+            if h == _back_id:
+                RUN_MS = 0
+            elif h == run_b.id():
+                running = True
+            elif h == stop_b.id():
+                running = False
+        elif ev["type"] == "value_changed" and h == dd.id():
             wt = ev["value"]
-            dirty = True
-    if dirty or wt == 4:
-        redraw(wt, freq)
-    time.sleep_ms(120)
+    if running:
+        redraw(wt, freq)    # FFT ใน C จบ ~1ms - รีเฟรชทั้งสเปกตรัมได้ทุกรอบ
+    time.sleep_ms(250)
 print("sec3 ex16: done")

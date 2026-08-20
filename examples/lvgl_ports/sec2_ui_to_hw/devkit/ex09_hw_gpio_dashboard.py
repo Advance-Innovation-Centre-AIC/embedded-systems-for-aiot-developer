@@ -18,13 +18,14 @@ def pot_pct():
 # ==== END BOARD ====
 
 
-# ==== BOARD: TESAIoT Dev Kit — ปุ่มที่สอง = SW5 บนฐาน (ป้ายตามเมนู GPIO & RGB;
-# โมดูล buttons เรียกคู่นี้ว่า SW9/SW10 — ขาเดียวกัน P17.5/P17.7) ====
-import buttons
-BTN2 = "SW5"
+# ==== BOARD: TESAIoT Dev Kit — ปุ่มที่สองใช้ CapSense BTN0 (วัดจริง 2026-08-20:
+# SW4 ฐาน = P17.5 คือขา USB VBUS enable ห้ามใช้เป็นปุ่ม; การกด SW5 ฐาน
+# ไปไม่ถึง P17.7 ที่ SoC) ====
+import sensors as _s
+BTN2 = "CapSense BTN0"
 
 def read_btn2():
-    return buttons.pressed(0)
+    return _s.capsense.buttons()[0]
 # ==== END BOARD ====
 
 # ==== BOARD: TESAIoT Dev Kit — RGB Matrix 16x8 (DFR0522 @0x10) ====

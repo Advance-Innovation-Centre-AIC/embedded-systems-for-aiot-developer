@@ -11,13 +11,14 @@ import ui
 import lcd
 import gpio
 
-# ==== BOARD: TESAIoT Dev Kit — ปุ่มที่สอง = SW5 บนฐาน (ป้ายตามเมนู GPIO & RGB;
-# โมดูล buttons เรียกคู่นี้ว่า SW9/SW10 — ขาเดียวกัน P17.5/P17.7) ====
-import buttons
-BTN2_NAME = "(SW5)"
+# ==== BOARD: TESAIoT Dev Kit — ปุ่มที่สองใช้ CapSense BTN0 (วัดจริง 2026-08-20:
+# SW4 ฐาน = P17.5 คือขา USB VBUS enable ห้ามใช้เป็นปุ่ม; ส่วนการกด SW5 ฐาน
+# ไปไม่ถึง P17.7 ที่ SoC — ติดเส้นทางบนฐาน) ====
+import sensors as _s
+BTN2_NAME = "(CapSense BTN0)"
 
 def read_btn2():
-    return buttons.pressed(0)
+    return _s.capsense.buttons()[0]
 # ==== END BOARD ====
 
 W, H, CX = 792, 398, 396

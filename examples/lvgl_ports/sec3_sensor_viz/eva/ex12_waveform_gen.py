@@ -17,41 +17,30 @@ def cx(s, fs):
 _lfsr = 0xACE1
 
 
-def gen_wave(wt, freq, n=N, sr=SR, amp=20, mid=50):
-    # สเกลจอเดียวกับ C: 50 + v*40/32767 (amp 16000 -> แกว่ง ~±20)
+def push_chunk(ch, wt, freq, phase, k=8):
+    # สโคปวิ่งจริง: ดันทีละ k จุดต่อรอบลูป (~80 จุด/วินาที) แทนวาดทั้งเส้น
     global _lfsr
-    out = []
-    if wt == 4:
-        for _ in range(n):
+    per = SR / freq
+    for i in range(k):
+        if wt == 4:
             b = _lfsr & 1
             _lfsr >>= 1
             if b:
                 _lfsr ^= 0xB400
-            out.append(mid + ((_lfsr % (2 * amp + 1)) - amp))
-        return out
-    per = sr / freq
-    for i in range(n):
-        ph = (i % per) / per
-        if wt == 0:
-            v = 1.0 if ph < 0.5 else -1.0
-        elif wt == 1:
-            v = math.sin(2 * math.pi * ph)
-        elif wt == 2:
-            v = 4 * ph - 1 if ph < 0.5 else 3 - 4 * ph
+            v = 50 + ((_lfsr % 41) - 20)
         else:
-            v = 2 * ph - 1
-        out.append(mid + int(v * amp))
-    return out
-
-
-def draw_trace(ch, s, pts):
-    # 200 จุดคือ 200 ข้อความ IPC - เว้นจังหวะให้ drain (fast-mode 16/5ms)
-    i = 0
-    for v in pts:
-        ch.set_next(s, v)
-        i += 1
-        if i % 16 == 0:
-            time.sleep_ms(6)
+            ph = ((phase + i) % per) / per
+            if wt == 0:
+                s = 1.0 if ph < 0.5 else -1.0
+            elif wt == 1:
+                s = math.sin(2 * math.pi * ph)
+            elif wt == 2:
+                s = 4 * ph - 1 if ph < 0.5 else 3 - 4 * ph
+            else:
+                s = 2 * ph - 1
+            v = 50 + int(s * 20)
+        ch.set_next(0, v)
+    return phase + k
 
 
 ui.screen()
@@ -73,7 +62,9 @@ dd.value(1)
 
 sld = ui.Slider(x=280, y=316, w=240, h=22, min=0, max=100, value=30)
 freq_l = ui.Label("Freq: 1000 Hz", x=310, y=290, color=0xFFFFFF, value=14)
-info_l = ui.Label("Waveform: Sine", x=580, y=312, color=0x888888, value=14)
+info_l = ui.Label("Waveform: Sine", x=560, y=352, color=0x888888, value=14)
+run_b = ui.Button("Run", x=560, y=294, w=104, h=46, color=0x1B5E20, value=16)
+stop_b = ui.Button("Stop", x=676, y=294, w=104, h=46, color=0x333333, value=16)
 
 ui.Label(FOOTER, x=cx(FOOTER, 14), y=378, color=0x666666, value=14)
 
@@ -87,25 +78,29 @@ else:
 
 NAMES = ("Square", "Sine", "Triangle", "Sawtooth", "Noise")
 wt, freq = 1, 1000
-draw_trace(ch, 0, gen_wave(wt, freq))
+running = True
+phase = 0
 
-lcd.print("sec3 ex12: pick a wave + slide the frequency")
+lcd.print("sec3 ex12: Run = คลื่นวิ่งต่อเนื่อง, Stop = หยุดนิ่ง")
 t0 = time.ticks_ms()
 while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
-    dirty = False
     for ev in ui.poll():
-        if ev["type"] == "clicked" and ev["handle"] == _back_id:
-            RUN_MS = 0
+        h = ev["handle"]
+        if ev["type"] == "clicked":
+            if h == _back_id:
+                RUN_MS = 0
+            elif h == run_b.id():
+                running = True
+            elif h == stop_b.id():
+                running = False
         elif ev["type"] == "value_changed":
-            if ev["handle"] == dd.id():
+            if h == dd.id():
                 wt = ev["value"]
                 info_l.text("Waveform: " + NAMES[wt])
-                dirty = True
-            elif ev["handle"] == sld.id():
+            elif h == sld.id():
                 freq = 100 + ev["value"] * ev["value"]  # แผนที่กำลังสองแบบ C
                 freq_l.text("Freq: " + str(freq) + " Hz")
-                dirty = True
-    if dirty or wt == 4:  # Noise วาดใหม่เรื่อย ๆ เหมือน timer ของ C
-        draw_trace(ch, 0, gen_wave(wt, freq))
+    if running:
+        phase = push_chunk(ch, wt, freq, phase)
     time.sleep_ms(100)
 print("sec3 ex12: done")
