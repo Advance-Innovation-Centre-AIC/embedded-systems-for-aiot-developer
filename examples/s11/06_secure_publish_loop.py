@@ -118,8 +118,9 @@ while True:
         break
 
     # ค่าที่ส่งวันนี้เป็นตัวนับกับเวลาเดินเครื่อง คาบ 12 ทีมจะเปลี่ยนเป็นค่าของโจทย์ตัวเอง
-    # ห่อใต้คีย์ data เพราะแพลตฟอร์มแยกส่วนข้อมูลออกจากส่วนหัวด้วยคีย์นี้
-    payload = {"data": {"seq": sent + 1, "uptime_s": time.ticks_ms() // 1000}}
+    # ส่งแบน ไม่ต้องห่อ bridge ของแพลตฟอร์มเป็นคนห่อให้เอง แล้วเติม device_id
+    # จาก topic ให้ด้วย ห่อเองซ้ำจะได้ชื่อวัดขึ้นต้นด้วย data_ ทุกตัว
+    payload = {"seq": sent + 1, "uptime_s": time.ticks_ms() // 1000}
     now = time.ticks_ms()
     gap = time.ticks_diff(now, last_send)
     last_send = now

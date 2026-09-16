@@ -44,7 +44,7 @@ while True:
     ui.Label("ตอนที่ 2 - UI-to-Hardware", x=250, y=10, color=0xFFFFFF,
              value=20)
     status = ui.Label(msg, x=250, y=40, color=0x00D4FF, value=14)
-    back = ui.Button("< Sections", x=8, y=346, w=150, h=44, color=0x333333,
+    back = ui.Button("< Sections", x=8, y=346, w=150, h=44, color=0x3A4150,
                      value=16)
     back_id = back.id()
 

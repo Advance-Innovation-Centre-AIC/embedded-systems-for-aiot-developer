@@ -88,14 +88,14 @@ ui.Label("เกณฑ์ยอมรับ (องศา)", x=40, y=204, color=
 sp_tol = ui.Spinbox(x=40, y=240, w=96, h=88, color=COL_TEXT,
                     min=TOL_MIN, max=TOL_MAX, value=tol)
 sp_tol.digits(2, 0)             # ไม่บอกจะเห็น 0005 เพราะค่าตั้งต้นคือสี่หลัก
-btn_dn = ui.Button("ลด", x=168, y=240, w=88, h=88, color=0x171B22, value=20)
-btn_up = ui.Button("เพิ่ม", x=288, y=240, w=88, h=88, color=0x171B22, value=20)
+btn_dn = ui.Button("ลด", x=168, y=240, w=88, h=88, color=0x3A4150, value=20)
+btn_up = ui.Button("เพิ่ม", x=288, y=240, w=88, h=88, color=0x3A4150, value=20)
 
 # ปุ่มสั่งงานสองปุ่ม แยกหน้าที่กันคนละปุ่ม ไม่มีปุ่มไหนสลับสองความหมายในตัวเดียว
 ui.Label("คำสั่ง", x=472, y=204, color=COL_DIM, value=16)
 zero_btn = ui.Button("ตั้งศูนย์", x=472, y=240, w=144, h=88, color=0x30A46C, value=20)
 zero_id = zero_btn.id()
-exit_btn = ui.Button("จบการวัด", x=648, y=240, w=104, h=88, color=0x171B22, value=20)
+exit_btn = ui.Button("จบการวัด", x=648, y=240, w=104, h=88, color=0x3A4150, value=20)
 exit_id = exit_btn.id()
 ref = ui.Label("อ้างอิง R +0.0  P +0.0", x=40, y=336, color=COL_DIM, value=16)
 

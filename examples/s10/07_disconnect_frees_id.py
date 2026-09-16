@@ -77,7 +77,7 @@ lcd.print("<span class=ok>ต่อรอบแรกสำเร็จ</span>")
 time.sleep_ms(800)
 
 # --- ขั้นที่ 2: ส่งหนึ่งใบ เพื่อให้แน่ใจว่าเซสชันใช้งานได้จริง ---
-sent = mqtt.publish(TOPIC, json.dumps({"data": {"round": 1}}))
+sent = mqtt.publish(TOPIC, json.dumps({"round": 1}))
 step(st2, "2) ส่งหนึ่งใบ          publish คืน {}".format(sent),
      COL_OK if sent else COL_WARN)
 lcd.print("publish รอบแรกคืนค่า {}".format(sent))
@@ -105,13 +105,13 @@ lcd.print("ต่อกลับด้วยชื่อเดิมคืนค
 if back:
     note.color(COL_OK)
     note.text("ชื่อ {} ว่างทันทีหลังบอกลา".format(DEVICE_ID))
-    mqtt.publish(TOPIC, json.dumps({"data": {"round": 2}}))
+    mqtt.publish(TOPIC, json.dumps({"round": 2}))
     note2.text("ส่งรอบสองสำเร็จบนเซสชันใหม่")
 
 # --- ขั้นที่ 5: พิสูจน์ว่า publish หลังตัดโยน OSError ไม่ได้คืน False ---
 mqtt.disconnect()
 try:
-    mqtt.publish(TOPIC, json.dumps({"data": {"round": 3}}))
+    mqtt.publish(TOPIC, json.dumps({"round": 3}))
     step(st5, "5) publish หลังตัด     ไม่โยน error (ผิดคาด)", COL_WARN)
 except OSError as e:
     # นี่คือพฤติกรรมที่ถูกต้อง ดักไว้เพื่อให้เห็นว่ามันเป็น error ไม่ใช่ค่า False

@@ -105,7 +105,7 @@ seg_count = ui.Seg7("0", x=640, y=132, w=88, h=56, color=COL_TEXT)
 ui.Panel(x=24, y=212, w=440, h=160, color=COL_CARD, min=COL_DIM, max=12, value=1)
 ui.Label("คำสั่งไฟวิ่ง", x=40, y=228, color=COL_DIM, value=16)
 btn_run = ui.Button("เดินไฟวิ่ง", x=40, y=268, w=176, h=88, color=0x30A46C, value=20)
-btn_stop = ui.Button("หยุดไฟวิ่ง", x=248, y=268, w=176, h=88, color=0x171B22, value=20)
+btn_stop = ui.Button("หยุดไฟวิ่ง", x=248, y=268, w=176, h=88, color=0x3A4150, value=20)
 
 # การ์ดขวาล่าง: เวลาที่เหลือ พร้อมพิสัยของมัน ตัวเลขลอย ๆ ไม่บอกว่าเหลือมากหรือน้อย
 ui.Panel(x=480, y=212, w=288, h=160, color=COL_CARD, min=COL_DIM, max=12, value=1)
@@ -127,8 +127,8 @@ box.hide()
 # ปุ่มสองปุ่มนี้คือคำตอบของกล่อง - ปุ่มในตัว MsgBox เองยังไม่ส่งเหตุการณ์กลับมา
 # ให้ Python เห็น (เฟิร์มแวร์ผูก callback ไว้กับ ui.Button เท่านั้น) ถ้าวางปุ่มตาย
 # ไว้บนจอ คนกดจะสรุปว่าเครื่องแฮงก์ จึงใช้ ui.Button จริงสองปุ่มแทน
-btn_yes = ui.Button("ยืนยัน", x=568, y=96, w=152, h=88, color=0x171B22, value=20)
-btn_no = ui.Button("ยกเลิก", x=568, y=216, w=152, h=88, color=0x171B22, value=20)
+btn_yes = ui.Button("ยืนยัน", x=568, y=96, w=152, h=88, color=0x3A4150, value=20)
+btn_no = ui.Button("ยกเลิก", x=568, y=216, w=152, h=88, color=0x3A4150, value=20)
 btn_yes.hide()
 btn_no.hide()
 ui.poll()

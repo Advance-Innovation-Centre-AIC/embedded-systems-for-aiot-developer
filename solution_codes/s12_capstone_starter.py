@@ -164,7 +164,7 @@ ui.Label("ปกติ", x=40, y=328, color=COL_DIM, value=16)
 ui.Label("เฝ้าระวัง", x=144, y=328, color=COL_DIM, value=16)
 ui.Label("ผิดปกติ", x=248, y=328, color=COL_DIM, value=16)
 lbl_state = ui.Label("กำลังวัดท่าตั้งต้น", x=40, y=356, color=COL_TEXT, value=20)
-btn_ack = ui.Button("รับทราบ", x=368, y=276, w=104, h=88, color=0x171B22, value=20)
+btn_ack = ui.Button("รับทราบ", x=368, y=276, w=104, h=88, color=0x3A4150, value=20)
 
 # การ์ดขวา: ของจริงที่เราสั่งได้ กับสถานะการส่งข้อมูล
 ui.Panel(x=504, y=48, w=264, h=344, color=COL_CARD, min=COL_DIM, max=12, value=1)
@@ -180,7 +180,7 @@ lbl_beacon = ui.Label("สั่งปิดต้องยืนยันก่
 # ตอนนี้อยู่สถานะไหน คนกดจึงต้องเดา และเดาผิดได้เสมอ
 # ทั้งคู่จบที่ y=264 เพราะมุมขวาล่างตั้งแต่ x=690 y=340 เป็นของปุ่ม Console
 btn_on = ui.Button("เปิดไฟ", x=520, y=176, w=96, h=88, color=0x30A46C, value=20)
-btn_off = ui.Button("ปิดไฟ", x=648, y=176, w=96, h=88, color=0x171B22, value=20)
+btn_off = ui.Button("ปิดไฟ", x=648, y=176, w=96, h=88, color=0x3A4150, value=20)
 lbl_net = ui.Label("net: starting", x=520, y=296, color=COL_DIM, value=20)
 lbl_sent = ui.Label("ส่งแล้ว 0 ใบ", x=520, y=336, color=COL_DIM, value=16)
 
@@ -196,8 +196,8 @@ box.hide()
 # ปุ่มสองปุ่มนี้คือคำตอบของกล่อง - ปุ่มในตัว MsgBox เองยังไม่ส่งเหตุการณ์กลับมาให้
 # Python เห็น (เฟิร์มแวร์ผูก callback ไว้กับ ui.Button เท่านั้น) ถ้าวางปุ่มตายไว้บนจอ
 # คนกดจะสรุปว่าเครื่องแฮงก์ จึงใช้ ui.Button จริงสองปุ่มแทน
-btn_yes = ui.Button("ยืนยัน", x=144, y=248, w=200, h=88, color=0x171B22, value=20)
-btn_no = ui.Button("ยกเลิก", x=376, y=248, w=200, h=88, color=0x171B22, value=20)
+btn_yes = ui.Button("ยืนยัน", x=144, y=248, w=200, h=88, color=0x3A4150, value=20)
+btn_no = ui.Button("ยกเลิก", x=376, y=248, w=200, h=88, color=0x3A4150, value=20)
 btn_yes.hide()
 btn_no.hide()
 ui.poll()

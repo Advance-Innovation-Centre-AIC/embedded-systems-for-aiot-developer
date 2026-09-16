@@ -58,9 +58,9 @@ lbl_scroll = ui.Label("รายชื่อ: ยังไม่ได้เล�
                       value=20)
 lbl_focus = ui.Label("โฟกัส: ยังไม่มี", x=448, y=344, color=COL_DIM, value=20)
 
-btn_a = ui.Button("ช่อง ก", x=24, y=280, w=200, h=88, color=COL_CARD,
+btn_a = ui.Button("ช่อง ก", x=24, y=280, w=200, h=88, color=0x3A4150,
                   value=24)
-btn_b = ui.Button("ช่อง ข", x=240, y=280, w=200, h=88, color=COL_CARD,
+btn_b = ui.Button("ช่อง ข", x=240, y=280, w=200, h=88, color=0x3A4150,
                   value=24)
 btn_a.listen("focused", "defocused")
 btn_b.listen("focused", "defocused")

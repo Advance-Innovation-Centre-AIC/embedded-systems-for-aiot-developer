@@ -81,7 +81,7 @@ for r in range(ROWS):
         if used >= MAX_WIDGETS - RESERVE_FOR_TEXT:
             break
         ui.Button(str(r) + "," + str(c), x=x, y=y,
-                  w=CELL_W, h=CELL_H, color=0x171B22, value=14)
+                  w=CELL_W, h=CELL_H, color=0x3A4150, value=14)
         spend(used + 1)
 
 # Label ที่สร้างด้วยข้อความว่าง LVGL จะเติมคำว่า "Label" ให้เอง

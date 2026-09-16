@@ -68,3 +68,10 @@ while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
         pit_l.text("Pitch: %.1f deg" % pitch)
     time.sleep_ms(200)
 print("sec3 ex10: done")
+
+
+# ---- ตัวอย่างจบแล้ว -------------------------------------------------------
+# RUN_MS หมดแล้วลูปรับ event ก็จบด้วย ภาพยังค้างบนจอ ถ้าไม่บอก ผู้เรียนจะกด
+# ปุ่มแล้วนึกว่าบอร์ดเสีย - แถบทึบนี้วาดทับแถวล่างตอนจบเท่านั้น
+ui.Panel(x=0, y=330, w=792, h=36, color=0x1A1A2E, min=0xFF6600, max=0, value=1)
+ui.Label("ตัวอย่างจบแล้ว กดปุ่มไม่ได้", x=232, y=338, color=0xFF6600, value=16)

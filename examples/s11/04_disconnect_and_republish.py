@@ -102,7 +102,7 @@ lcd.print("<span class=ok>ต่อเสร็จใน", took, "ms</span>")
 
 # --- ขั้นที่ 3: ส่งใบแรก ---
 # payload มาก่อน topic ไม่ใส่ topic เฟิร์มแวร์ประกอบให้จาก device_id
-sent1 = tesaiot.publish(json.dumps({"data": {"round": 1}}))
+sent1 = tesaiot.publish(json.dumps({"round": 1}))
 step(s3, "3) publish รอบแรก      คืน {}".format(sent1),
      COL_OK if sent1 else COL_WARN)
 lcd.print("publish รอบแรกคืนค่า", sent1)
@@ -130,7 +130,7 @@ if took2 < 0:
     note2.color(COL_BAD)
     note2.text("ปิดแล้วเปิดใหม่ต้องเว้นจังหวะให้ broker ตามทัน")
 else:
-    sent2 = tesaiot.publish(json.dumps({"data": {"round": 2}}))
+    sent2 = tesaiot.publish(json.dumps({"round": 2}))
     step(s5, "5) ต่อกลับ + ส่งอีกใบ  {} ms publish {}".format(took2, sent2),
          COL_OK if sent2 else COL_WARN)
     note2.color(COL_OK)

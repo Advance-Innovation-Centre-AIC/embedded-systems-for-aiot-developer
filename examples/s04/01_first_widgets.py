@@ -49,7 +49,7 @@ ui.Label("ทุก widget ต้องระบุ x= y= เสมอ", x=24, y
 # ตำแหน่งของปุ่มเป็นส่วนหนึ่งของการออกแบบ ไม่ใช่เรื่องที่ปล่อยให้บังเอิญ
 b_hello = ui.Button("ทักทาย", x=24, y=240, w=200, h=88, color=COL_ACCENT,
                     value=24)
-b_bye = ui.Button("ลาก่อน", x=256, y=240, w=200, h=88, color=COL_CARD,
+b_bye = ui.Button("ลาก่อน", x=256, y=240, w=200, h=88, color=0x3A4150,
                   value=24)
 ui.Label("แตะปุ่มสองใบนี้", x=488, y=272, color=COL_DIM, value=20)
 

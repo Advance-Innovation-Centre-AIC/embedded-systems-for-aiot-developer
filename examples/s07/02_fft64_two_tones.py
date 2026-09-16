@@ -128,13 +128,13 @@ lbl_res = ui.Label("1 bin = fs/N Hz", x=520, y=184, color=COL_DIM, value=20)
 
 # แถวปุ่ม h=88 ตามเกณฑ์เป้าสัมผัส เว้นระหว่างปุ่ม 32 และจบที่ y=336
 # ปุ่มขวาสุดล้ำเข้าคอลัมน์ x>690 ได้ เพราะมันจบก่อน y=340 ที่ปุ่ม Console เริ่ม
-btn_prev = ui.Button("< ย้อน", x=24, y=248, w=168, h=88, color=COL_CARD,
+btn_prev = ui.Button("< ย้อน", x=24, y=248, w=168, h=88, color=0x3A4150,
                      value=24)
 btn_next = ui.Button("เดินหน้า >", x=224, y=248, w=168, h=88, color=COL_ACCENT,
                      value=24)
 btn_play = ui.Button(">> เล่นรวด", x=424, y=248, w=168, h=88, color=COL_ACCENT,
                      value=24)
-btn_home = ui.Button("เริ่มใหม่", x=624, y=248, w=144, h=88, color=COL_CARD,
+btn_home = ui.Button("เริ่มใหม่", x=624, y=248, w=144, h=88, color=0x3A4150,
                      value=24)
 ID_PREV, ID_NEXT = btn_prev.id(), btn_next.id()
 ID_PLAY, ID_HOME = btn_play.id(), btn_home.id()

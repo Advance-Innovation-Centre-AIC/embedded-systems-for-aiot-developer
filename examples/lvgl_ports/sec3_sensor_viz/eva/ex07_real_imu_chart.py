@@ -35,7 +35,7 @@ ui.Label(FOOTER, x=cx(FOOTER, 14), y=378, color=0x666666, value=14)
 
 # ปุ่มย้อนกลับ มุมล่างซ้าย - โผล่เฉพาะตอนรันผ่านเมนูบนบอร์ด (MENU_MODE)
 if globals().get("MENU_MODE"):
-    _back = ui.Button("< Menu", x=8, y=344, w=120, h=46, color=0x333333,
+    _back = ui.Button("< Menu", x=8, y=344, w=120, h=46, color=0x3A4150,
                       value=16)
     _back_id = _back.id()
 else:
@@ -56,3 +56,10 @@ while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
     lab_z.text("Z: %+.2f" % az)
     time.sleep_ms(100)
 print("sec3 ex07: done")
+
+
+# ---- ตัวอย่างจบแล้ว -------------------------------------------------------
+# RUN_MS หมดแล้วลูปรับ event ก็จบด้วย ภาพยังค้างบนจอ ถ้าไม่บอก ผู้เรียนจะกด
+# ปุ่มแล้วนึกว่าบอร์ดเสีย - แถบทึบนี้วาดทับแถวล่างตอนจบเท่านั้น
+ui.Panel(x=0, y=330, w=792, h=36, color=0x1A1A2E, min=0xFF6600, max=0, value=1)
+ui.Label("ตัวอย่างจบแล้ว กดปุ่มไม่ได้", x=232, y=338, color=0xFF6600, value=16)

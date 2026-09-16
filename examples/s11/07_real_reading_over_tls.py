@@ -14,6 +14,7 @@
 # บน Eva Kit: sensors.snapshot() ใช้ได้ · tesaiot.publish() ใช้การตั้งค่าที่เก็บไว้
 #             ในบอร์ดจากไฟล์ 01 และ 02 ของคาบนี้ ต้องรันสองไฟล์นั้นก่อน
 
+import json
 import lcd
 import sensors
 import tesaiot
@@ -82,7 +83,10 @@ for _ in range(ROUNDS):
     if last_value is not None and waited >= SEND_MS:
         last_send = now
         try:
-            tesaiot.publish("temp_c", round(last_value, 1))
+            # publish(payload, topic) -- payload มาก่อน และต้องเป็น JSON สตริง
+            # เขียน publish("temp_c", 25.3) จะกลายเป็นการส่ง "temp_c" ขึ้นไป
+            # โดยใช้ 25.3 เป็น topic ซึ่งไม่ใช่สิ่งที่ตั้งใจเลย
+            tesaiot.publish(json.dumps({"temperature": round(last_value, 1)}))
             sent = sent + 1
             seg_sent.text(str(sent))
             lcd.print("ส่งแล้ว", sent, "ครั้ง | ล่าสุด", round(last_value, 1), "C")

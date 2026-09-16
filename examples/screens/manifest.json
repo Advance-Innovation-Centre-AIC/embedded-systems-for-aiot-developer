@@ -1,0 +1,1457 @@
+[
+ {
+  "file": "lvgl_ports/boot/main_loader.py",
+  "group": "lvgl_ports",
+  "display": "console",
+  "screenshot": "lvgl_ports__boot__main_loader.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/boot/menu_sections.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__boot__menu_sections.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/ex01_hello_world.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__ex01_hello_world.png",
+  "status": "DONE"
+ },
+ {
+  "file": "lvgl_ports/part1/ex02_button_counter.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__ex02_button_counter.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/ex03_led_control.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__ex03_led_control.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/ex04_switch_toggle.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__ex04_switch_toggle.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/ex05_gpio_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__ex05_gpio_dashboard.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/ex06_hw_led_control.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__ex06_hw_led_control.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/ex07_hw_button_status.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__ex07_hw_button_status.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/ex08_hw_adc_display.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__ex08_hw_adc_display.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/ex09_hw_gpio_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__ex09_hw_gpio_dashboard.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/ex10_capsense_mockup.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__ex10_capsense_mockup.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/ex11_capsense_hardware.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__ex11_capsense_hardware.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/main_loader.py",
+  "group": "lvgl_ports",
+  "display": "console",
+  "screenshot": "lvgl_ports__part1__main_loader.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/part1/menu_part1.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__part1__menu_part1.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/devkit/ex01_hello_world.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex01_hello_world.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/devkit/ex02_button_counter.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex02_button_counter.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/devkit/ex03_led_control.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex03_led_control.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/devkit/ex04_switch_toggle.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex04_switch_toggle.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/devkit/ex05_gpio_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex05_gpio_dashboard.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/devkit/ex06_hw_led_control.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex06_hw_led_control.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/devkit/ex07_hw_button_status.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex07_hw_button_status.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/devkit/ex08_hw_adc_display.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex08_hw_adc_display.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/devkit/ex09_hw_gpio_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex09_hw_gpio_dashboard.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/devkit/ex10_capsense_mockup.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex10_capsense_mockup.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/devkit/ex11_capsense_hardware.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex11_capsense_hardware.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/eva/ex01_hello_world.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex01_hello_world.png",
+  "status": "DONE"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/eva/ex02_button_counter.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex02_button_counter.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/eva/ex03_led_control.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex03_led_control.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/eva/ex04_switch_toggle.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex04_switch_toggle.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/eva/ex05_gpio_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex05_gpio_dashboard.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/eva/ex06_hw_led_control.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex06_hw_led_control.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/eva/ex07_hw_button_status.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex07_hw_button_status.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/eva/ex08_hw_adc_display.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex08_hw_adc_display.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/eva/ex09_hw_gpio_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex09_hw_gpio_dashboard.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/eva/ex10_capsense_mockup.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex10_capsense_mockup.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/eva/ex11_capsense_hardware.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__eva__ex11_capsense_hardware.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec2_ui_to_hw/menu_sec2.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec2_ui_to_hw__menu_sec2.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex01_adc_visualization.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex01_adc_visualization.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex02_arc_gauge.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex02_arc_gauge.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex03_accel_chart.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex03_accel_chart.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex04_temperature_gauge.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex04_temperature_gauge.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex05_sensor_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex05_sensor_dashboard.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex06_chart_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex06_chart_dashboard.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex07_real_imu_chart.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex07_real_imu_chart.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex08_real_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex08_real_dashboard.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex09_arc_roll.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex09_arc_roll.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex10_scale_pitch.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex10_scale_pitch.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex11_chart_dashboard_mag.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex11_chart_dashboard_mag.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex12_waveform_gen.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex12_waveform_gen.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex13_noise_gen.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex13_noise_gen.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex14_audio_waveform.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex14_audio_waveform.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex15_oscilloscope_ui.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex15_oscilloscope_ui.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex16_spectrum_analyzer.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex16_spectrum_analyzer.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex17_scope_panel.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex17_scope_panel.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/devkit/ex18_hw_scope.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "status": "TWIN",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex18_hw_scope.png",
+  "note": "devkit twin — UI เหมือนคู่ eva นอก BOARD block; ต้องรันบนบอร์ดจริง"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex01_adc_visualization.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex01_adc_visualization.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex02_arc_gauge.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex02_arc_gauge.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex03_accel_chart.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex03_accel_chart.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex04_temperature_gauge.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex04_temperature_gauge.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex05_sensor_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex05_sensor_dashboard.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex06_chart_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex06_chart_dashboard.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex07_real_imu_chart.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex07_real_imu_chart.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex08_real_dashboard.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex08_real_dashboard.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex09_arc_roll.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex09_arc_roll.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex10_scale_pitch.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex10_scale_pitch.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex11_chart_dashboard_mag.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex11_chart_dashboard_mag.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex12_waveform_gen.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex12_waveform_gen.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex13_noise_gen.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex13_noise_gen.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex14_audio_waveform.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex14_audio_waveform.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex15_oscilloscope_ui.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex15_oscilloscope_ui.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex16_spectrum_analyzer.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex16_spectrum_analyzer.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex17_scope_panel.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex17_scope_panel.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/eva/ex18_hw_scope.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__eva__ex18_hw_scope.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "lvgl_ports/sec3_sensor_viz/menu_sec3.py",
+  "group": "lvgl_ports",
+  "display": "ui",
+  "screenshot": "lvgl_ports__sec3_sensor_viz__menu_sec3.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s01/01_first_line.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__01_first_line.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s01/02_markup_tags.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__02_markup_tags.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s01/03_byte_limit.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__03_byte_limit.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s01/04_console_drawer.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__04_console_drawer.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s01/05_clear_and_refresh.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__05_clear_and_refresh.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s01/06_safe_print.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__06_safe_print.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s01/07_ticks_and_beat.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__07_ticks_and_beat.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s01/08_status_screen.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__08_status_screen.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s01/09_your_level_rule.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__09_your_level_rule.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s01/10_board_knows_itself.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__10_board_knows_itself.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s01/11_lights_and_a_button.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__11_lights_and_a_button.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s01/12_every_sense_at_once.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__12_every_sense_at_once.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s01/13_raw_and_filtered.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__13_raw_and_filtered.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s01/14_the_board_hears_you.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__14_the_board_hears_you.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s01/15_one_number_many_faces.py",
+  "group": "s01",
+  "display": "ui",
+  "screenshot": "s01__15_one_number_many_faces.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s02/01_wifi_first_connect.py",
+  "group": "s02",
+  "display": "ui",
+  "screenshot": "s02__01_wifi_first_connect.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s02/02_link_uptime.py",
+  "group": "s02",
+  "display": "ui",
+  "screenshot": "s02__02_link_uptime.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s02/03_your_link_rule.py",
+  "group": "s02",
+  "display": "ui",
+  "screenshot": "s02__03_your_link_rule.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s02/04_scan_the_room.py",
+  "group": "s02",
+  "display": "ui",
+  "screenshot": "s02__04_scan_the_room.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s02/05_value_leaves_the_board.py",
+  "group": "s02",
+  "display": "ui",
+  "screenshot": "s02__05_value_leaves_the_board.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s02/06_command_comes_back.py",
+  "group": "s02",
+  "display": "ui",
+  "screenshot": "s02__06_command_comes_back.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s02/07_platform_in_one_call.py",
+  "group": "s02",
+  "display": "ui",
+  "screenshot": "s02__07_platform_in_one_call.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s03/01_board_info.py",
+  "group": "s03",
+  "display": "ui",
+  "screenshot": "s03__01_board_info.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s03/02_led_blink.py",
+  "group": "s03",
+  "display": "ui",
+  "screenshot": "s03__02_led_blink.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s03/03_led_brightness.py",
+  "group": "s03",
+  "display": "ui",
+  "screenshot": "s03__03_led_brightness.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s03/04_button_active_low.py",
+  "group": "s03",
+  "display": "ui",
+  "screenshot": "s03__04_button_active_low.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s03/05_debounce_count.py",
+  "group": "s03",
+  "display": "ui",
+  "screenshot": "s03__05_debounce_count.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s03/06_button_picks_led.py",
+  "group": "s03",
+  "display": "ui",
+  "screenshot": "s03__06_button_picks_led.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/01_first_widgets.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__01_first_widgets.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/02_event_types.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__02_event_types.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/03_switch_matches_led.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__03_switch_matches_led.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/04_seg7_takes_text.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__04_seg7_takes_text.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/05_sound_feedback.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__05_sound_feedback.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/06_layout_budget.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__06_layout_budget.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/07_find_move_hide_delete.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__07_find_move_hide_delete.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/08_dropdown_textarea.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__08_dropdown_textarea.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/09_scale_led_spinbox.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__09_scale_led_spinbox.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s04/10_tabview_second_screen.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__10_tabview_second_screen.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/11_menu_settings_tree.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__11_menu_settings_tree.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/12_table_and_list.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__12_table_and_list.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/13_confirm_before_acting.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__13_confirm_before_acting.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/14_container_coordinates.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__14_container_coordinates.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/15_press_and_hold.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__15_press_and_hold.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s04/16_swipe_scroll_focus.py",
+  "group": "s04",
+  "display": "ui",
+  "screenshot": "s04__16_swipe_scroll_focus.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s05/01_capsense_dimmer.py",
+  "group": "s05",
+  "display": "ui",
+  "screenshot": "s05__01_capsense_dimmer.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s05/02_capsense_menu_wet_hand.py",
+  "group": "s05",
+  "display": "ui",
+  "screenshot": "s05__02_capsense_menu_wet_hand.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s05/03_pot_setpoint_deadband.py",
+  "group": "s05",
+  "display": "ui",
+  "screenshot": "s05__03_pot_setpoint_deadband.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s05/04_pot_taper_volume.py",
+  "group": "s05",
+  "display": "ui",
+  "screenshot": "s05__04_pot_taper_volume.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s05/05_adc_counts_to_volts.py",
+  "group": "s05",
+  "display": "ui",
+  "screenshot": "s05__05_adc_counts_to_volts.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s05/06_ema_time_constant.py",
+  "group": "s05",
+  "display": "ui",
+  "screenshot": "s05__06_ema_time_constant.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s05/07_median_beats_mean.py",
+  "group": "s05",
+  "display": "ui",
+  "screenshot": "s05__07_median_beats_mean.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s05/08_six_filters_one_signal.py",
+  "group": "s05",
+  "display": "ui",
+  "screenshot": "s05__08_six_filters_one_signal.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s05/09_sensors_api_tour.py",
+  "group": "s05",
+  "display": "ui",
+  "screenshot": "s05__09_sensors_api_tour.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s05/10_roller_picks_the_filter.py",
+  "group": "s05",
+  "display": "ui",
+  "screenshot": "s05__10_roller_picks_the_filter.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s06/01_imu_step_counter.py",
+  "group": "s06",
+  "display": "ui",
+  "screenshot": "s06__01_imu_step_counter.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s06/02_imu_fall_detection.py",
+  "group": "s06",
+  "display": "ui",
+  "screenshot": "s06__02_imu_fall_detection.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s06/03_tilt_from_gravity.py",
+  "group": "s06",
+  "display": "ui",
+  "screenshot": "s06__03_tilt_from_gravity.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s06/04_compass_and_magnetometer.py",
+  "group": "s06",
+  "display": "ui",
+  "screenshot": "s06__04_compass_and_magnetometer.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s06/05_madgwick_and_pedometer.py",
+  "group": "s06",
+  "display": "ui",
+  "screenshot": "s06__05_madgwick_and_pedometer.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s07/01_imu_vibration_monitor.py",
+  "group": "s07",
+  "display": "ui",
+  "screenshot": "s07__01_imu_vibration_monitor.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s07/02_fft64_two_tones.py",
+  "group": "s07",
+  "display": "ui",
+  "screenshot": "s07__02_fft64_two_tones.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s07/03_aliasing_nyquist.py",
+  "group": "s07",
+  "display": "ui",
+  "screenshot": "s07__03_aliasing_nyquist.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s08/02_mic_sound_level_meter.py",
+  "group": "s08",
+  "display": "ui",
+  "screenshot": "s08__02_mic_sound_level_meter.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s08/03_mic_clap_trigger.py",
+  "group": "s08",
+  "display": "ui",
+  "screenshot": "s08__03_mic_clap_trigger.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s08/04_magnet_presence.py",
+  "group": "s08",
+  "display": "ui",
+  "screenshot": "s08__04_magnet_presence.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s08/05_door_open_switch.py",
+  "group": "s08",
+  "display": "ui",
+  "screenshot": "s08__05_door_open_switch.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s08/06_compass_readout.py",
+  "group": "s08",
+  "display": "ui",
+  "screenshot": "s08__06_compass_readout.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s08/07_mic_window_stats.py",
+  "group": "s08",
+  "display": "ui",
+  "screenshot": "s08__07_mic_window_stats.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s08/08_win_titled_card.py",
+  "group": "s08",
+  "display": "ui",
+  "screenshot": "s08__08_win_titled_card.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s09/01_scan_tuples.py",
+  "group": "s09",
+  "display": "ui",
+  "screenshot": "s09__01_scan_tuples.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s09/02_rank_by_rssi.py",
+  "group": "s09",
+  "display": "ui",
+  "screenshot": "s09__02_rank_by_rssi.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s09/03_connect_says_first.py",
+  "group": "s09",
+  "display": "ui",
+  "screenshot": "s09__03_connect_says_first.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s09/04_ping_two_targets.py",
+  "group": "s09",
+  "display": "ui",
+  "screenshot": "s09__04_ping_two_targets.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s09/05_status_dict.py",
+  "group": "s09",
+  "display": "ui",
+  "screenshot": "s09__05_status_dict.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s09/06_link_panel_hmi.py",
+  "group": "s09",
+  "display": "ui",
+  "screenshot": "s09__06_link_panel_hmi.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s09/07_disconnect_rejoin.py",
+  "group": "s09",
+  "display": "ui",
+  "screenshot": "s09__07_disconnect_rejoin.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s09/08_softap_fallback.py",
+  "group": "s09",
+  "display": "ui",
+  "screenshot": "s09__08_softap_fallback.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s09/09_link_gates_a_real_reading.py",
+  "group": "s09",
+  "display": "ui",
+  "screenshot": "s09__09_link_gates_a_real_reading.png",
+  "status": "ERROR",
+  "error": "Traceback (most recent call last): |   File \"<stdin>\", line 69, in <module> | KeyError: temperature"
+ },
+ {
+  "file": "s09/10_keyboard_types_the_password.py",
+  "group": "s09",
+  "display": "ui",
+  "screenshot": "s09__10_keyboard_types_the_password.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s09/11_two_fields_one_keyboard.py",
+  "group": "s09",
+  "display": "ui",
+  "screenshot": "s09__11_two_fields_one_keyboard.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s10/01_topic_design.py",
+  "group": "s10",
+  "display": "ui",
+  "screenshot": "s10__01_topic_design.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s10/02_payload_shape.py",
+  "group": "s10",
+  "display": "ui",
+  "screenshot": "s10__02_payload_shape.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s10/03_connect_and_publish.py",
+  "group": "s10",
+  "display": "ui",
+  "screenshot": "s10__03_connect_and_publish.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s10/04_subscribe_command.py",
+  "group": "s10",
+  "display": "ui",
+  "screenshot": "s10__04_subscribe_command.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s10/05_send_every_5s_still_listen.py",
+  "group": "s10",
+  "display": "ui",
+  "screenshot": "s10__05_send_every_5s_still_listen.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s10/06_sent_is_not_delivered.py",
+  "group": "s10",
+  "display": "ui",
+  "screenshot": "s10__06_sent_is_not_delivered.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s10/07_disconnect_frees_id.py",
+  "group": "s10",
+  "display": "ui",
+  "screenshot": "s10__07_disconnect_frees_id.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s10/08_real_sensor_leaves_the_board.py",
+  "group": "s10",
+  "display": "ui",
+  "screenshot": "s10__08_real_sensor_leaves_the_board.png",
+  "status": "ERROR",
+  "error": "Traceback (most recent call last): |   File \"<stdin>\", line 89, in <module> | KeyError: temperature"
+ },
+ {
+  "file": "s11/01_config_store.py",
+  "group": "s11",
+  "display": "ui",
+  "screenshot": "s11__01_config_store.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s11/02_config_reset_reload.py",
+  "group": "s11",
+  "display": "ui",
+  "screenshot": "s11__02_config_reset_reload.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s11/03_slots_and_the_dead_half.py",
+  "group": "s11",
+  "display": "ui",
+  "screenshot": "s11__03_slots_and_the_dead_half.png",
+  "status": "ERROR",
+  "error": "Traceback (most recent call last): |   File \"<stdin>\", line 56, in <module> | TypeError: unsupported types for __lt__: 'dict', 'dict'"
+ },
+ {
+  "file": "s11/04_disconnect_and_republish.py",
+  "group": "s11",
+  "display": "ui",
+  "screenshot": "s11__04_disconnect_and_republish.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s11/05_wait_for_connected.py",
+  "group": "s11",
+  "display": "ui",
+  "screenshot": "s11__05_wait_for_connected.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s11/06_secure_publish_loop.py",
+  "group": "s11",
+  "display": "ui",
+  "screenshot": "s11__06_secure_publish_loop.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s11/07_real_reading_over_tls.py",
+  "group": "s11",
+  "display": "ui",
+  "screenshot": "s11__07_real_reading_over_tls.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s12/01_state_machine.py",
+  "group": "s12",
+  "display": "ui",
+  "screenshot": "s12__01_state_machine.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s12/02_confirm_n.py",
+  "group": "s12",
+  "display": "ui",
+  "screenshot": "s12__02_confirm_n.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s12/03_reconnect_backoff.py",
+  "group": "s12",
+  "display": "ui",
+  "screenshot": "s12__03_reconnect_backoff.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s12/04_heartbeat_and_alert.py",
+  "group": "s12",
+  "display": "ui",
+  "screenshot": "s12__04_heartbeat_and_alert.png",
+  "status": "DONE"
+ },
+ {
+  "file": "s12/05_hmi_survives_offline.py",
+  "group": "s12",
+  "display": "ui",
+  "screenshot": "s12__05_hmi_survives_offline.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s12/06_sense_decide_act_report.py",
+  "group": "s12",
+  "display": "ui",
+  "screenshot": "s12__06_sense_decide_act_report.png",
+  "status": "ERROR",
+  "error": "Traceback (most recent call last): |   File \"<stdin>\", line 89, in <module> | KeyError: temperature"
+ },
+ {
+  "file": "s12/07_spangroup_event_log.py",
+  "group": "s12",
+  "display": "ui",
+  "screenshot": "s12__07_spangroup_event_log.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s12/08_calendar_sets_the_clock.py",
+  "group": "s12",
+  "display": "ui",
+  "screenshot": "s12__08_calendar_sets_the_clock.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "s12/09_tileview_swipe_only.py",
+  "group": "s12",
+  "display": "ui",
+  "screenshot": "s12__09_tileview_swipe_only.png",
+  "status": "ERROR",
+  "error": "Traceback (most recent call last): |   File \"<stdin>\", line 99, in <module> | KeyError: temperature"
+ },
+ {
+  "file": "usecase/01_andon_severity_lamp.py",
+  "group": "usecase",
+  "display": "ui",
+  "screenshot": "usecase__01_andon_severity_lamp.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "usecase/02_heartbeat_liveness.py",
+  "group": "usecase",
+  "display": "ui",
+  "screenshot": "usecase__02_heartbeat_liveness.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "usecase/05_short_long_press.py",
+  "group": "usecase",
+  "display": "ui",
+  "screenshot": "usecase__05_short_long_press.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "usecase/07_hold_to_confirm.py",
+  "group": "usecase",
+  "display": "ui",
+  "screenshot": "usecase__07_hold_to_confirm.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "usecase/14_hard_iron_calibration.py",
+  "group": "usecase",
+  "display": "ui",
+  "screenshot": "usecase__14_hard_iron_calibration.png",
+  "status": "DONE"
+ },
+ {
+  "file": "widgets/00_all_new_widgets.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__00_all_new_widgets.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/buttonmatrix.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__buttonmatrix.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/calendar.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__calendar.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/container.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__container.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/keyboard.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__keyboard.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/led.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__led.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/line.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__line.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/list.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__list.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/menu.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__menu.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/msgbox.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__msgbox.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/picture.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__picture.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/roller.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__roller.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/scale.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__scale.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/spangroup.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__spangroup.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/spinbox.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__spinbox.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/table.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__table.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/tabview.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__tabview.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/tileview.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__tileview.png",
+  "status": "RUNS"
+ },
+ {
+  "file": "widgets/win.py",
+  "group": "widgets",
+  "display": "ui",
+  "screenshot": "widgets__win.png",
+  "status": "RUNS"
+ }
+]

@@ -59,7 +59,7 @@ l_ssid = ui.Label("SSID: -", x=336, y=12, color=COL_TEXT, value=20)
 l_ip = ui.Label("IP: -", x=24, y=48, color=COL_TEXT, value=20)
 l_tick = ui.Label("กำลังสแกน", x=336, y=48, color=COL_DIM, value=20)
 # ปุ่มวางบนแถบหัวเรื่อง ไม่ใช่มุมขวาล่าง เพราะมุมนั้นเฟิร์มแวร์ถือไว้ให้ปุ่ม Console
-btn_scan = ui.Button("สแกนใหม่", x=552, y=8, w=216, h=88, color=0x171B22, value=20)
+btn_scan = ui.Button("สแกนใหม่", x=552, y=8, w=216, h=88, color=0x3A4150, value=20)
 
 # ผลการสแกนคือตารางตั้งแต่ต้น จึงใช้ ui.Table ไม่ใช่ ui.Label เรียงกันเอง
 # แถวหนึ่งสูง 72 พิกเซลที่ฟอนต์ 20 ความสูง 288 จึงพอดีหัวตารางบวกอีกสามแถว

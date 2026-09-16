@@ -62,7 +62,7 @@ lcd.print("ex04: toggle the switch - virtual LED follows")
 
 # ปุ่มย้อนกลับ - โผล่เฉพาะตอนรันผ่านเมนูบนบอร์ด (MENU_MODE) ไม่กระทบ layout เดิม
 if globals().get("MENU_MODE"):
-    _back = ui.Button("< Menu", x=4, y=4, w=76, h=32, color=0x333333, value=14)
+    _back = ui.Button("< Menu", x=4, y=4, w=76, h=32, color=0x3A4150, value=14)
     _back_id = _back.id()
 else:
     _back_id = -1

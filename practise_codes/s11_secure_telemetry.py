@@ -100,7 +100,7 @@ ui.Label("ล้มเหลว", x=672, y=148, color=COL_DIM, value=16)
 # ปุ่มสั่งงานสองปุ่มแยกกัน วางไว้เหนือมาตรวัด เพราะปุ่มที่ยาวลงไปถึง y=340
 # จะไปทับมุมขวาล่างที่เฟิร์มแวร์ถือไว้ให้ปุ่ม Console แล้วกดไม่โดน
 btn_conn = ui.Button("ต่อใหม่", x=496, y=184, w=88, h=88, color=0x30A46C, value=20)
-btn_disc = ui.Button("ตัดสาย", x=616, y=184, w=88, h=88, color=0x171B22, value=20)
+btn_disc = ui.Button("ตัดสาย", x=616, y=184, w=88, h=88, color=0x3A4150, value=20)
 
 # เวลาจับมือ เทียบกับเพดานที่โค้ดใช้จริง ไม่ใช่เพดานที่เดาเอา
 # ui.Scale คือไม้บรรทัด ไม่มีเข็มและไม่รับ .value() ตัวที่ขยับคือ ui.Bar ที่วางเหนือมัน
@@ -118,8 +118,8 @@ sc_hs.ticks(7, 3)
 # ปุ่มในตัว MsgBox เองยังไม่ส่งเหตุการณ์กลับมาให้ Python เห็น จึงใช้ ui.Button จริง
 box = ui.MsgBox("ตัดสาย\nต้องจับมือ TLS ใหม่ทั้งชุด", x=112, y=96, w=568, h=136,
                 color=COL_CARD)
-btn_yes = ui.Button("ตัดสาย", x=144, y=248, w=200, h=88, color=0x171B22, value=20)
-btn_no = ui.Button("ไม่ตัด", x=376, y=248, w=200, h=88, color=0x171B22, value=20)
+btn_yes = ui.Button("ตัดสาย", x=144, y=248, w=200, h=88, color=0x3A4150, value=20)
+btn_no = ui.Button("ไม่ตัด", x=376, y=248, w=200, h=88, color=0x3A4150, value=20)
 box.hide()
 btn_yes.hide()
 btn_no.hide()
@@ -151,7 +151,7 @@ ui.poll()
 
 sent = 0
 asking = False
-payload = {"data": {}}
+payload = {}
 
 while tesaiot.is_connected():
     # --- ท่าที่ 3: ส่งค่าเซนเซอร์ขึ้นแพลตฟอร์มทุก 5 วินาที ---
@@ -161,7 +161,9 @@ while tesaiot.is_connected():
         m = sensors.bmi270.motion()             # (ax, ay, az, gx, gy, gz)
 
         # ส่งเป็นตัวเลขจริง ไม่ใช่สตริง ไม่งั้น dashboard จะขึ้นค่าแต่วาดกราฟไม่ได้
-        # เติม: payload = {"data": {"ax": round(m[0], 2), "heading": round(sensors.bmm350.heading(), 1), "pot": sensors.pot.percent()}}
+        # เติม: payload = {"accel_x": round(m[0], 2), "heading": round(sensors.bmm350.heading(), 1), "pot": sensors.pot.percent()}
+        # ส่งแบน ห้ามห่อใต้ {"data": ...} เพราะ bridge ห่อให้เองอยู่แล้ว ห่อซ้ำ
+        # จะได้ชื่อวัด data_accel_x ซึ่งตารางหน่วยฝั่งเซิร์ฟเวอร์หาไม่เจอ
         # ส่งขึ้นแพลตฟอร์มไม่ต้องใส่ topic เอง เฟิร์มแวร์ประกอบให้จาก device_id
         #   examples/s11/06_secure_publish_loop.py คือลูปส่งเต็มรูปแบบของท่านี้ ใส่ topic เองเมื่อไร
         #   จะไม่ตรงกับที่แพลตฟอร์มรออยู่ แล้วค่าจะหายไปทั้งที่ฝั่งเราไม่มี error อะไรเลย

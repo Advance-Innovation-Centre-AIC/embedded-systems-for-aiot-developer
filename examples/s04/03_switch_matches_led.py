@@ -52,7 +52,7 @@ ui.Panel(x=24, y=224, w=360, h=112, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
 ui.Label("ไฟที่ติดอยู่ (ดวง)", x=40, y=240, color=COL_DIM, value=16)
 
-# Seg7 รับข้อความเท่านั้น str() จึงไม่ใช่เรื่องความสวยงาม แต่เป็นเรื่องจำเป็น
+# ส่งเป็นข้อความเพราะเราคือคนที่รู้ว่าอยากได้รูปแบบไหน str() จึงจำเป็น
 # ขนาดตัวเลขของ Seg7 มาจาก h= ไม่ได้มาจาก value= อย่าง Label
 seg = ui.Seg7(text="0", x=40, y=272, w=104, h=48, color=COL_ACCENT)
 # Label ที่สร้างด้วยข้อความว่าง LVGL จะเติมคำว่า "Label" ให้เอง
@@ -60,7 +60,7 @@ seg = ui.Seg7(text="0", x=40, y=272, w=104, h=48, color=COL_ACCENT)
 status = ui.Label("ยังไม่ได้ตั้งค่าไฟ", x=168, y=280, color=COL_DIM, value=20)
 
 # ปุ่มกับคำอธิบายของมันวางซ้อนกันเป็นคอลัมน์ขวา ห่างจากการ์ดสรุป 32
-off_btn = ui.Button("ALL OFF", x=416, y=224, w=200, h=88, color=COL_CARD,
+off_btn = ui.Button("ALL OFF", x=416, y=224, w=200, h=88, color=0x3A4150,
                     value=24)
 off_id = off_btn.id()
 ui.Label("สวิตช์จะเด้งกลับเอง", x=416, y=320, color=COL_DIM, value=16)

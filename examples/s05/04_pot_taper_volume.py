@@ -107,7 +107,7 @@ def show():
     lin = float(pct)
     log = log_taper(pct)
     mark(pct)
-    seg.text(str(pct) + "%")
+    seg.text(str(pct))
     lbl_pos.text("ท่า %d / %d" % (i + 1, len(STEPS)))
     lbl_body.text("เส้นตรง " + str(int(lin)) + " -> เส้นโค้ง " + str(int(log)))
     vol_bar.value(int(log))

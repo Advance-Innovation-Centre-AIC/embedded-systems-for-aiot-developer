@@ -39,7 +39,7 @@ ui.Panel(x=20, y=52, w=652, h=112, color=COL_CARD, min=COL_DIM, max=12, value=1)
 ui.Label("ผ่านแล้ว", x=40, y=64, color=COL_DIM, value=16)
 
 # Seg7 รับข้อความ ไม่ใช่ตัวเลข จึงเขียน "0/4" ตรง ๆ ได้เลย
-# ถ้าเผลอเรียก seg.value(0) จะไม่มีอะไรเกิดขึ้น และไม่มี error ให้จับด้วย
+# seg.value(0) ใช้ได้ แต่ที่นี่ต้องการรูปแบบ "ผ่าน-รวม" จึงต้องเป็นข้อความ
 seg = ui.Seg7(text="0/" + str(TOTAL), x=40, y=96, w=160, h=48, color=COL_OK)
 bar = ui.Bar(x=220, y=104, w=432, h=24, min=0, max=TOTAL, value=0)
 
@@ -69,7 +69,7 @@ for name, ok in CHECKS:
         ui.Label(name + "  ไม่ผ่าน", x=40, y=row_y, color=COL_BAD, value=20)
         lcd.print(name, "<span class=error>ไม่ผ่าน</span>")
 
-    seg.text(str(passed) + "/" + str(TOTAL))
+    seg.text(str(passed) + "-" + str(TOTAL))
     bar.value(passed)
     row_y = row_y + 34
 

@@ -68,7 +68,7 @@ for i in range(3):
     #   64 ตัวต่อหน้า กับมุมขวาล่างที่ปุ่ม Console จองไว้ ห้ามวางปุ่มทับ
     pass
 
-    btn_off.append(ui.Button("ปิด", x=360, y=y, w=144, h=88, color=COL_OFF, value=20))
+    btn_off.append(ui.Button("ปิด", x=360, y=y, w=144, h=88, color=0x3A4150, value=20))
 
 # เก็บหมายเลขประจำตัวไว้ เพราะเหตุการณ์บอกมาแค่ handle ไม่ได้บอกชื่อปุ่ม
 on_ids = [b.id() for b in btn_on]
@@ -81,14 +81,14 @@ ui.Panel(x=520, y=48, w=248, h=308, color=COL_CARD, min=COL_DIM, max=12, value=1
 lbl_count = ui.Label("ติดอยู่ 0 จาก 3 ดวง", x=536, y=60, color=COL_TEXT, value=20)
 ui.Label("คำสั่งทั้งชุด", x=536, y=96, color=COL_DIM, value=16)
 btn_all_on = ui.Button("เปิดทั้งหมด", x=536, y=132, w=216, h=88, color=0x30A46C, value=20)
-btn_all_off = ui.Button("ปิดทั้งหมด", x=536, y=252, w=216, h=88, color=COL_OFF, value=20)
+btn_all_off = ui.Button("ปิดทั้งหมด", x=536, y=252, w=216, h=88, color=0x3A4150, value=20)
 
 # กล่องยืนยัน: "ปิดทั้งหมด" แตะทีเดียวเปลี่ยนของจริงสามดวงพร้อมกัน
 # คำยืนยันจึงต้องบอกสิ่งที่จะเกิด ไม่ใช่ถามลอย ๆ ว่า "แน่ใจไหม"
 box = ui.MsgBox("ปิดทั้งหมด\nไฟสามดวงจะดับพร้อมกัน", x=48, y=88, w=496, h=160,
                 color=COL_CARD)
-btn_yes = ui.Button("ปิดทั้งหมด", x=568, y=88, w=152, h=88, color=COL_OFF, value=20)
-btn_no = ui.Button("ไม่ปิด", x=568, y=208, w=152, h=88, color=COL_OFF, value=20)
+btn_yes = ui.Button("ปิดทั้งหมด", x=568, y=88, w=152, h=88, color=0x3A4150, value=20)
+btn_no = ui.Button("ไม่ปิด", x=568, y=208, w=152, h=88, color=0x3A4150, value=20)
 box.hide()
 btn_yes.hide()
 btn_no.hide()

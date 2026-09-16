@@ -100,7 +100,7 @@ ui.Panel(x=528, y=112, w=240, h=280, color=COL_CARD, min=COL_DIM, max=12, value=
 ui.Label("คำสั่งการส่งข้อมูล", x=544, y=124, color=COL_DIM, value=16)
 lbl_state = ui.Label("กำลังส่ง", x=544, y=160, color=COL_DIM, value=20)
 btn_go = ui.Button("เริ่มส่ง", x=544, y=240, w=88, h=88, color=0x30A46C, value=20)
-btn_hold = ui.Button("หยุดส่ง", x=664, y=240, w=88, h=88, color=0x171B22, value=20)
+btn_hold = ui.Button("หยุดส่ง", x=664, y=240, w=88, h=88, color=0x3A4150, value=20)
 ui.poll()
 
 wifi.connect(WIFI_SSID, WIFI_PASSWORD)
@@ -137,7 +137,8 @@ def publish_telemetry():
         return data
 
     # publish() รับตามตำแหน่งเท่านั้น และไม่มีอาร์กิวเมนต์ retain ให้ใช้
-    # เติม: mqtt.publish(TOPIC_PUB, json.dumps({"data": data}))
+    # เติม: mqtt.publish(TOPIC_PUB, json.dumps(data))
+    # ส่งแบน ห้ามห่อใต้ {"data": ...} แพลตฟอร์มห่อให้เองอยู่แล้ว
     # publish() คืน True ไม่ได้แปลว่าใบนั้นถึง broker แล้ว
     # examples/s10/06_sent_is_not_delivered.py วางตัวเลขสองก้อนไว้ข้างกัน "เราบอกว่าส่งแล้ว"
     # กับ "กลับมาจริง" แล้วให้ดูว่ามันไม่เท่ากันเมื่อไร - ถ้าจะรายงานว่าส่งครบกี่ใบในใบงาน

@@ -95,7 +95,7 @@ lbl_dt = ui.Label("คาบลูป -- ms", x=88, y=252, color=COL_DIM, value=
 btn_start = ui.Button("เริ่มบันทึก", x=24, y=296, w=128, h=88,
                       color=0x30A46C, value=20)
 btn_stop = ui.Button("หยุดบันทึก", x=184, y=296, w=128, h=88,
-                     color=0x171B22, value=20)
+                     color=0x3A4150, value=20)
 start_id = btn_start.id()
 stop_id = btn_stop.id()
 ui.poll()

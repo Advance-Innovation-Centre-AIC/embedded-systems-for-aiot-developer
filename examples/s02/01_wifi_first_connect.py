@@ -63,7 +63,7 @@ t0 = time.ticks_ms()
 ok = wifi.connect(WIFI_SSID, WIFI_PASS)
 elapsed = time.ticks_diff(time.ticks_ms(), t0)
 
-# Seg7 รับ "ข้อความ" เท่านั้น seg.value(12345) เงียบสนิทและไม่มี error ให้จับ
+# ส่งเป็นข้อความเพื่อคุมรูปแบบเอง seg.value(12345) ก็ได้ แต่ได้จำนวนเต็มล้วน
 seg.text(str(elapsed))
 step_lbl.text("กลับมาแล้ว - connect() คืนค่า " + str(ok))
 print("connect() ใช้เวลา", elapsed, "ms คืนค่า", ok)

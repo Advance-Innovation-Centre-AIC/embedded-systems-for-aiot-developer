@@ -69,7 +69,7 @@ while True:
                       color=0x1F4068, value=14)
         ids[b.id()] = (name, path)
 
-    back = ui.Button("< Sections", x=8, y=346, w=150, h=44, color=0x333333,
+    back = ui.Button("< Sections", x=8, y=346, w=150, h=44, color=0x3A4150,
                      value=16)
     back_id = back.id()
 

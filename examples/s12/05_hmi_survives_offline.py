@@ -40,7 +40,7 @@ ui.Label("คาบ 12 - จอต้องอยู่ได้เมื่อ�
 ui.Panel(x=20, y=44, w=652, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
 ui.Label("ค่าที่กำลังเฝ้าดู", x=40, y=52, color=COL_DIM, value=16)
-# Seg7 รับข้อความเท่านั้น การส่งตัวเลขเข้าไปเงียบหายไปโดยไม่มีคำเตือน
+# ส่งเป็นข้อความเพื่อคุมรูปแบบเอง .value() ได้แต่จำนวนเต็ม
 seg = ui.Seg7("25", x=40, y=76, w=172, h=52, color=COL_TEXT)
 
 ui.Label("ลากเพื่อเปลี่ยนค่า", x=232, y=52, color=COL_DIM, value=16)

@@ -69,7 +69,7 @@ last = ui.Label("ยังไม่มีเหตุการณ์เข้า
 # แถวปุ่มอยู่ล่างสุด y+h = 392 จึงต้องจบก่อน x=690 ที่เป็นที่ของปุ่ม Console
 btn_next = ui.Button("เดินหน้า", x=24, y=304, w=200, h=88, color=COL_ACCENT,
                      value=24)
-btn_home = ui.Button("เริ่มใหม่", x=256, y=304, w=200, h=88, color=COL_CARD,
+btn_home = ui.Button("เริ่มใหม่", x=256, y=304, w=200, h=88, color=0x3A4150,
                      value=24)
 
 ID_NEXT, ID_HOME = btn_next.id(), btn_home.id()

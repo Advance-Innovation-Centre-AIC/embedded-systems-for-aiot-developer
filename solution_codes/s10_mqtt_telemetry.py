@@ -106,7 +106,7 @@ ui.Panel(x=528, y=112, w=240, h=280, color=COL_CARD, min=COL_DIM, max=12, value=
 ui.Label("คำสั่งการส่งข้อมูล", x=544, y=124, color=COL_DIM, value=16)
 lbl_state = ui.Label("กำลังส่ง", x=544, y=160, color=COL_DIM, value=20)
 btn_go = ui.Button("เริ่มส่ง", x=544, y=240, w=88, h=88, color=0x30A46C, value=20)
-btn_hold = ui.Button("หยุดส่ง", x=664, y=240, w=88, h=88, color=0x171B22, value=20)
+btn_hold = ui.Button("หยุดส่ง", x=664, y=240, w=88, h=88, color=0x3A4150, value=20)
 ui.poll()
 
 wifi.connect(WIFI_SSID, WIFI_PASSWORD)
@@ -139,11 +139,12 @@ def publish_telemetry():
         return None
 
     # publish() รับตามตำแหน่งเท่านั้น และไม่มีอาร์กิวเมนต์ retain ให้ใช้
-    # ห่อใน {"data": ...} เพราะฝั่งแพลตฟอร์มคาดหวังรูปแบบนี้ตั้งแต่คาบ 11 เป็นต้นไป
+    # ส่งแบน ไม่ต้องห่อ ฝั่งแพลตฟอร์มห่อให้เองและอ่าน device_id จาก topic
+    # ห่อเองจะได้ชื่อวัดขึ้นต้น data_ แล้วหน่วยหาย คาบ 11 ใช้รูปเดียวกันนี้
     # ที่ไฟล์นี้ไม่นับ True จาก publish() เป็น "ส่งสำเร็จ" มีเหตุผลอยู่ที่
     # examples/s10/06_sent_is_not_delivered.py - True แปลว่าส่งต่อให้ชั้นเครือข่ายแล้วเท่านั้น
     # ไม่ได้แปลว่า broker ได้รับ หลักฐานเดียวที่เชื่อได้คือของเดินกลับมาให้เราเห็น
-    mqtt.publish(TOPIC_PUB, json.dumps({"data": data}))
+    mqtt.publish(TOPIC_PUB, json.dumps(data))
     return data
 
 # --- ท่าที่ 3: subscribe แล้ว poll ถี่ ๆ ในลูปเดียวกับที่ publish ---

@@ -82,8 +82,8 @@ sp_th = ui.Spinbox(x=508, y=76, w=256, h=88, color=COL_TEXT,
 # ค่าตั้งต้นของช่องคือสี่หลักไม่มีจุดทศนิยม เกณฑ์ของเราเป็นเลขสองหลัก
 # ถ้าไม่บอก จะเห็น 0070 ซึ่งอ่านแล้วสะดุด - digits(หลักทั้งหมด, หลักหน้าจุด)
 sp_th.digits(2, 0)
-btn_up = ui.Button("เพิ่ม", x=644, y=172, w=120, h=88, color=0x171B22, value=16)
-btn_dn = ui.Button("ลด", x=508, y=172, w=120, h=88, color=0x171B22, value=16)
+btn_up = ui.Button("เพิ่ม", x=644, y=172, w=120, h=88, color=0x3A4150, value=16)
+btn_dn = ui.Button("ลด", x=508, y=172, w=120, h=88, color=0x3A4150, value=16)
 
 ui.Label("สถานะเทียบเกณฑ์", x=492, y=280, color=COL_DIM, value=16)
 led_ok = ui.Led(x=492, y=304, w=48, h=48, color=COL_OK, value=1)

@@ -32,7 +32,7 @@ ui.Label("กดค้างที่ปุ่มเพิ่มหรือล�
 # สูง 88 ตามขั้นต่ำของเป้าสัมผัส เว้นห่างกัน 32
 btn_up = ui.Button("เพิ่ม", x=24, y=96, w=232, h=88, color=COL_ACCENT,
                    value=24)
-btn_down = ui.Button("ลด", x=288, y=96, w=232, h=88, color=COL_CARD,
+btn_down = ui.Button("ลด", x=288, y=96, w=232, h=88, color=0x3A4150,
                      value=24)
 
 # การ์ดค่าที่ตั้งไว้ - ตัวเลขที่ต้องอ่านปราดเดียวจึงมีพื้นของตัวเอง
@@ -56,7 +56,7 @@ lbl_why = ui.Label("เหตุการณ์แต่ละชนิดหม
 lbl_state = ui.Label("นิ้ว: ไม่ได้แตะ", x=24, y=272, color=COL_DIM, value=20)
 
 btn_reset = ui.Button("ตั้งค่าใหม่เป็น 50", x=24, y=304, w=304, h=88,
-                      color=COL_CARD, value=24)
+                      color=0x3A4150, value=24)
 
 ID_UP, ID_DOWN, ID_RESET = btn_up.id(), btn_down.id(), btn_reset.id()
 
