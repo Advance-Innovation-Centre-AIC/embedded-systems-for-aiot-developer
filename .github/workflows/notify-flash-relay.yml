@@ -1,0 +1,105 @@
+name: notify-flash-relay
+
+# Tell the Remote Flash relay (flash.tesaiot.dev) that a new firmware release
+# exists, and PROVE it arrived.
+#
+# The relay re-reads GitHub on its own every ten minutes, or at once when this
+# endpoint is called. Students flash from ide.tesaiot.dev, which lists what the
+# relay serves, so until the relay has the new .hex the release does not exist
+# for them. This workflow fires the refresh and then verifies, by sha256, that
+# every .hex asset of the release is being served — a refresh that fired is not
+# the same as a file that arrived (a repository the relay is not configured to
+# read, or one pinned to a fixed tag, refreshes to nothing).
+#
+# Copied from tesaiot/tesaiot-pse84-devkit-sdk, where it has run since ef72c1b.
+# No secret is needed — the endpoint is unauthenticated and rate-limited. If
+# that ever changes this workflow starts failing loudly, which is the correct
+# way to find out.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: notify-flash-relay
+  cancel-in-progress: false
+
+env:
+  RELAY: https://flash.tesaiot.dev
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask the relay to re-read GitHub
+        run: |
+          set -euo pipefail
+          echo "POST $RELAY/api/firmware/github/refresh"
+          code=$(curl -s -o /tmp/refresh.json -w '%{http_code}' -X POST --max-time 120 \
+                   "$RELAY/api/firmware/github/refresh")
+          echo "HTTP $code"; cat /tmp/refresh.json; echo
+          test "$code" = "200"
+
+      # Firing the refresh is not the same as the file arriving. The relay only
+      # pulls repositories listed in FLASH_GH_RELEASE_URLS, and a source pinned
+      # to a fixed tag never advances no matter how often this runs — both were
+      # true here at some point. So verify by sha256, which is the one identity
+      # that cannot be mistyped.
+      - name: Verify every .hex in this release is now served
+        run: |
+          set -euo pipefail
+          tag='${{ github.event.release.tag_name }}'
+          [ -n "$tag" ] || { echo "no tag (manual run) — refresh done, nothing to verify"; exit 0; }
+
+          api="https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
+          curl -s -H 'Accept: application/vnd.github+json' "$api" -o /tmp/rel.json
+
+          python3 - <<'PY'
+          import json, os, sys, time, urllib.request
+
+          rel = json.load(open('/tmp/rel.json'))
+          want = {}
+          for a in rel.get('assets', []):
+              if a['name'].lower().endswith('.hex'):
+                  d = str(a.get('digest') or '').replace('sha256:', '').lower()
+                  if d:
+                      want[d] = a['name']
+          if not want:
+              print('release publishes no .hex with a digest — nothing to verify')
+              sys.exit(0)
+
+          relay = os.environ['RELAY']
+          deadline = time.time() + 180          # the relay syncs in seconds; this is generous
+          missing = dict(want)
+          while time.time() < deadline and missing:
+              try:
+                  with urllib.request.urlopen(f'{relay}/api/firmware', timeout=20) as r:
+                      served = json.load(r)
+              except Exception as e:
+                  print('relay unreachable:', e); time.sleep(10); continue
+              items = served if isinstance(served, list) else (
+                  served.get('firmware') or served.get('firmwares') or served.get('items') or [])
+              have = {str(f.get('sha256', '')).lower() for f in items}
+              missing = {d: n for d, n in missing.items() if d not in have}
+              if missing:
+                  print('waiting for:', ', '.join(missing.values())); time.sleep(10)
+
+          if missing:
+              print('')
+              print('FAILED: the relay is not serving these, three minutes after a refresh:')
+              for d, n in missing.items():
+                  print(f'  {n}  sha256:{d}')
+              print('')
+              print('Almost always one of two things, both on the flash host:')
+              print('  - this repository is not listed in FLASH_GH_RELEASE_URLS, so the')
+              print('    relay never looks at it;')
+              print('  - or its entry is PINNED to a fixed tag instead of "latest", in')
+              print('    which case no refresh will ever advance it.')
+              print(f'  Read them: GET {relay}/api/firmware/github/sources')
+              sys.exit(1)
+          print('the relay serves every .hex in this release')
+          PY
