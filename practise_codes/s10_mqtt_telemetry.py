@@ -28,20 +28,38 @@ import ui
 WIFI_SSID = "AIoT-Class"
 WIFI_PASSWORD = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"                # IP ของเครื่องที่รัน TESAIoT CE ในแลน (ไม่ใช่ localhost)
-DEVICE_ID = "eva-team03"                # ต้องตรงกับ device_id ที่ขึ้นทะเบียนบนแพลตฟอร์ม             # <= 31 ตัวอักษร และต้องไม่ซ้ำกับทีมอื่น
+DEVICE_ID = "team03"                # ต้องตรงกับ device_id ที่ขึ้นทะเบียนบนแพลตฟอร์ม             # <= 31 ตัวอักษร และต้องไม่ซ้ำกับทีมอื่น
 MQTT_PASS = "bento"                    # broker ฝึกไม่ตรวจ แต่ของห้องเรียนจะตรวจ
-TOPIC_PUB = "device/eva-team03/telemetry"
-TOPIC_CMD = "device/eva-team03/commands"
+TOPIC_PUB = "device/team03/telemetry"
+TOPIC_CMD = "device/team03/commands"
+
+
+def led_named(*names, fallback=0):
+    """หา LED จากชื่อในตารางเฟิร์มแวร์ - เลขดัชนีต่างกันตามบอร์ด ชื่อไม่ต่าง
+
+    Eva Kit : LED1=แดง LED2=เขียว RGB_RED=ฟ้า (ชื่อ RGB_RED บน Eva คือดวงสีฟ้า)
+    Dev Kit : LED1 LED2 อยู่บน SoM มองไม่เห็นบนบอร์ดประกอบ  RGB_RED RGB_BLUE RGB_GREEN
+    ส่งชื่อเรียงให้ตัวแรกเป็นของ Dev Kit ตัวถัดไปเป็นของ Eva"""
+    table = gpio.board_info()["led_names"]
+    for n in names:
+        if n in table:
+            return gpio.led(table.index(n))
+    return gpio.led(fallback)
+
+
+# หลอดจริงที่คนอีกห้องสั่งได้ - สีเขียวทั้งสองบอร์ด: Dev Kit RGB_GREEN / Eva LED2
+lamp = led_named("RGB_GREEN", "LED2")
 
 # --- ท่าที่ 1: ต่อเน็ตให้ได้ก่อน แล้วค่อยแนะนำตัวกับ broker ---
-# บอร์ดนี้ไม่มี sensors.init() ให้เรียก เซนเซอร์อยู่บนบัสที่คอร์จอ (CM55) ถือคนเดียว
+# บน Eva ไม่มี sensors.init() ให้เรียก เซนเซอร์อยู่บนบัสที่คอร์จอ (CM55) ถือคนเดียว
 # ฝั่ง Python ขอค่าที่คอร์จออ่านเก็บไว้ให้ จึงเรียกอ่านได้เลย เรียก init() จะได้ OSError
-# แต่หลังรีเซ็ต คอร์จอเริ่มตอบเรื่องเซนเซอร์ราว 13 วินาที อุ่นเครื่องหนึ่งครั้งตรงนี้
+# บน Dev Kit CM33 อ่าน IMU ตรงจาก I2C เอง และเฟิร์มแวร์ปลุกมันไว้ตั้งแต่บูต จึงไม่ต้อง init เช่นกัน
+# แต่บน Eva หลังรีเซ็ต คอร์จอเริ่มตอบเรื่องเซนเซอร์ราว 13 วินาที อุ่นเครื่องหนึ่งครั้งตรงนี้
 # ให้การรอไปเกิดก่อนต่อเน็ต ไม่ใช่ไปโผล่ตอนถึงรอบส่งข้อมูลรอบแรก
 try:
     sensors.bmi270.motion()
 except OSError:
-    print("คอร์จอยังไม่ตอบรอบแรก จะลองใหม่ตอนส่ง")
+    print("อ่านเซนเซอร์รอบแรกยังไม่ได้ - ลองใหม่ตอนส่ง")
 
 lcd.clear()
 lcd.console("<h2>MQTT Telemetry - คาบ 10</h2>")
@@ -212,7 +230,7 @@ while True:
             cmd = {}
         if cmd.get("cmd") == "toggle":
             led_on = not led_on                  # จำสถานะเอง ขาตอบระดับ ไม่ตอบความตั้งใจ
-            # เติม: gpio.led(1).value(1 if led_on else 0)
+            # เติม: lamp.value(1 if led_on else 0)
             pass
 
             # ไฟบนจอสะท้อนหลอดจริง คนหน้าจอจึงเห็นผลของคำสั่งที่มาจากอีกห้อง

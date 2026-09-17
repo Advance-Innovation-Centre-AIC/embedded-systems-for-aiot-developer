@@ -12,7 +12,7 @@
 #          และสั่งซ่อน-แสดง บรรทัดล่างรายงานว่า ui.list() นับได้กี่ตัว
 # กับดัก : ui.list() ใช้คีย์ 'id' ส่วน ui.poll() ใช้คีย์ 'handle' คนละคำ
 #          ค่าเดียวกัน เขียนสลับกันแล้วจะได้ KeyError ที่อ่านแล้วงง
-#          และของที่ .hide() ไว้ ยังกินโควตา 32 อยู่ มีแต่ .delete() ที่คืนช่อง
+#          และของที่ .hide() ไว้ ยังกินโควตาอยู่ (เพดานเฟิร์มแวร์ 64 - คอร์สใช้ไม่เกิน 32) มีแต่ .delete() ที่คืนช่อง
 
 import ui
 import lcd
@@ -84,14 +84,14 @@ def census_text():
 census_text()
 
 # ------------------------------------------------------------------
-# หลักฐานชิ้นที่ 2 - ui.get() ปฏิเสธเลขนอกช่วง 0-31 ด้วย ValueError
+# หลักฐานชิ้นที่ 2 - ui.get() ปฏิเสธเลขนอกช่วง 0-63 ด้วย ValueError (เพดานเฟิร์มแวร์ 64)
 # ลองจริงหนึ่งครั้ง ดีกว่าเชื่อเพราะสไลด์บอก
 # ------------------------------------------------------------------
 try:
-    ui.get(40)
-    lcd.print("ui.get(40) ผ่านได้ - ผิดจากที่เอกสารบอก")
+    ui.get(99)
+    lcd.print("ui.get(99) ผ่านได้ - ผิดจากที่เอกสารบอก")
 except ValueError:
-    lcd.print("<span class=ok>ui.get(40) โยน ValueError ตามคาด</span>")
+    lcd.print("<span class=ok>ui.get(99) โยน ValueError ตามคาด</span>")
 
 # เลขที่อยู่ในช่วงแต่ไม่มี widget ตัวนั้น ก็ ValueError เหมือนกัน
 try:
@@ -122,7 +122,7 @@ throwaway.delete()
 time.sleep_ms(120)          # ให้ CM55 ลบเสร็จก่อนไปนับใหม่
 after = census_text()
 lcd.print("นับได้ " + str(before) + " -> " + str(mid) + " -> " + str(after))
-lcd.print("delete() คืนช่องในโควตา 32 ให้จริง")
+lcd.print("delete() คืนช่องในโควตา 64 ให้จริง")
 
 hidden = False              # ความจริงเรื่องซ่อน-แสดงอยู่ที่ตัวแปรนี้ที่เดียว
 at_a = True                 # ตอนนี้เป้าหมายอยู่ตำแหน่ง A หรือเปล่า
@@ -170,7 +170,7 @@ while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
 
     time.sleep_ms(50)
 
-# ปิดท้ายด้วยการล้างทั้งหน้า ui.clear() ลบทุกตัวและคืนโควตาให้ครบ 32
+# ปิดท้ายด้วยการล้างทั้งหน้า ui.clear() ลบทุกตัวและคืนโควตาให้ครบ 64
 # ต่างจาก ui.screen() ตรงที่ไม่ได้ตั้งขนาดพื้นที่วาดใหม่ให้ด้วย
 status.text("กำลังจะเรียก ui.clear()")
 ui.poll()
@@ -179,4 +179,4 @@ time.sleep_ms(900)
 ui.clear()
 time.sleep_ms(200)
 lcd.print("ui.clear() แล้ว - ui.list() =", len(ui.list()))
-lcd.print("<span class=ok>จอว่าง โควตากลับมาครบ 32 ช่อง</span>")
+lcd.print("<span class=ok>จอว่าง โควตากลับมาครบ 64 ช่อง</span>")

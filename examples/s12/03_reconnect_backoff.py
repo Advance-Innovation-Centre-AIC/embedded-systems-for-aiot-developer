@@ -17,7 +17,7 @@ import wifi
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"
-DEVICE_ID = "eva-team03"
+DEVICE_ID = "team03"
 BACKOFF_START_MS = 2000     # ครั้งแรกรอสองวินาที
 BACKOFF_MAX_MS = 60000      # เพดาน หนึ่งนาที ไม่ปล่อยให้ยาวกว่านี้
 SCHEDULE_N = 7              # จำนวนครั้งที่เอามาวาดให้ดูเป็นตัวอย่าง

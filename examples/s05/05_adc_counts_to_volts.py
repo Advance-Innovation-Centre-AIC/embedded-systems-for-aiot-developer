@@ -12,8 +12,11 @@ import math
 import time
 import ui
 
-V_FULL_SCALE = 1.8          # โวลต์ ปลายบนของ potentiometer บนบอร์ดต่อกับ VDD_1V8
-N_BITS_API = 16             # sensors.pot.read() คืน 0-65535 จึงเป็น 16 บิตของ API
+# แรงดันเต็มสเกลที่ "สมมติ" ไว้สำหรับบทเรียนนี้ - ยังไม่มีใครวัดแรงดันอ้างอิงของลูกบิด
+# บนบอร์ดจริงทั้งสองรุ่น (sensors.pot.voltage() ในเฟิร์มแวร์ก็คูณด้วย 3.3 โดยไม่ได้วัดเช่นกัน)
+# สัญญาณในไฟล์นี้เราสร้างเองทั้งหมด ตัวเลขนี้จึงเป็นแค่สเกลของกราฟ ไม่ใช่ข้อเท็จจริงของบอร์ด
+V_FULL_SCALE = 1.8          # โวลต์ (สมมติ)
+N_BITS_API = 16             # sensors.pot.read() คืน 0-65535 ทั้งสองบอร์ด จึงเป็น 16 บิตของ API
 N_POINTS = 50               # เท่ากับหน้าต่างของ ui.Chart พอดี
 PLAY_MS = 1300
 
@@ -88,7 +91,7 @@ lbl_hint = ui.Label("กดเดินหน้าเพื่อลดจำ�
 
 lcd.clear()
 lcd.console("<h2>ADC: นับขั้น ไม่ใช่โวลต์</h2>")
-lcd.print("เต็มสเกล", V_FULL_SCALE, "V | API", N_BITS_API, "บิต")
+lcd.print("เต็มสเกล (สมมติ)", V_FULL_SCALE, "V | API", N_BITS_API, "บิต")
 
 step = 0                # ขั้นปัจจุบัน - ความจริงของโปรแกรมอยู่ที่ตัวนี้
 playing = False
@@ -131,7 +134,8 @@ def show():
 show()
 
 # ตอบคำถามที่นักศึกษาถามบ่อยที่สุด: 32768 คือกี่โวลต์ ส่งออก serial ไว้อ่านทีหลัง
-print("V_FS = %.1f V, %d bit, full count = %d"
+# คำตอบขึ้นกับ V_FS ที่สมมติ - เปลี่ยนตัวเลขบนสุดของไฟล์ ตารางนี้ก็เปลี่ยนตาม
+print("V_FS = %.1f V (assumed, not measured), %d bit, full count = %d"
       % (V_FULL_SCALE, N_BITS_API, FULL_COUNT))
 for raw in (0, 16384, 32768, 49152, 65535):
     print("raw %-6d = %.4f V" % (raw, counts_to_volts(raw, N_BITS_API,

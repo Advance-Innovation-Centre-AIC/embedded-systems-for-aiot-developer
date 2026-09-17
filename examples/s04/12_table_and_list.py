@@ -10,8 +10,8 @@
 #             จัดคอลัมน์ให้ ส่วน .add_row() เขียนลงแถวถัดจากแถวที่ตัวมันเองเขียน
 #             ล่าสุด ไม่ใช่แถวที่ว่าง ถ้าจะแก้ค่าในแถวเดิมต้องใช้ .cell(แถว, คอลัมน์)
 #
-# บน Eva Kit: sensors.init() ถูกปฏิเสธด้วย OSError เพราะ CM55 เป็นเจ้าของ SCB0
-#             ค่าที่อ่านได้จึงมาจาก snapshot ที่ CM55 ส่งข้ามมาให้ ไม่ใช่จากบัส
+# sensors.pot / bmi270 / capsense อ่านได้เลยทั้งสองบอร์ดโดยไม่ต้องเรียก sensors.init()
+#             (บน Eva Kit เรียกแล้วจะถูกปฏิเสธด้วย OSError เสียด้วยซ้ำ) ไฟล์นี้จึงไม่เรียก
 
 import lcd
 import time
@@ -25,13 +25,6 @@ COL_ACCENT = 0x4A9EFF
 
 ROUNDS = 40
 ROW_POT, ROW_TILT, ROW_TOUCH = 1, 2, 3
-
-# CM55 เป็นเจ้าของบัสเซนเซอร์บน Eva Kit การสั่ง init() จากฝั่งเราจึงถูกปฏิเสธ
-# ไว้ตรงนี้ ไม่ใช่ตอนอ่านค่า - จับไว้แล้วเดินต่อ เพราะ snapshot ยังอ่านได้ปกติ
-try:
-    sensors.init()
-except OSError:
-    pass
 
 ui.screen()
 time.sleep_ms(200)

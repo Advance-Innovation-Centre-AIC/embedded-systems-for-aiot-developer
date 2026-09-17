@@ -22,13 +22,43 @@ import time
 import ui
 import wifi
 
+
+# ---- อุณหภูมิ: ของจริงถ้าบอร์ดมี ไม่งั้นให้ลูกบิดเล่นบทแทน --------------------
+# snapshot() ไม่มีช่องอุณหภูมิ (มีแค่ ax..gz ของ IMU, capsense, pot) และบน Eva Kit
+# ไม่มีทางอ่านอุณหภูมิจาก Python เลย: bmi270.temperature() ปฏิเสธ ไม่มี SHT40
+# ไฟล์นี้จึงเคยพังด้วย KeyError ทุกรอบบนบอร์ดจริง (ผ่านบน emulator ที่ตอบทุก key)
+# บอร์ดที่มี SHT40 (Dev Kit) ได้อุณหภูมิห้องจริง บอร์ดอื่นใช้ลูกบิด 0-100 % แทน
+# ช่วง 15-45 C - หมุนข้าม threshold ได้ในห้องเรียนโดยไม่ต้องรอห้องร้อนจริง
+_TEMP_SRC = None
+
+
+def read_temp(snap):
+    """-> (อุณหภูมิ C, แหล่งที่มา) หรือ (None, "") ถ้ารอบนี้ไม่มีค่า"""
+    global _TEMP_SRC
+    if hasattr(sensors, "sht40"):
+        try:
+            t = sensors.sht40.temperature()
+            if _TEMP_SRC != "SHT40":
+                _TEMP_SRC = "SHT40"
+                lcd.print("อุณหภูมิจาก SHT40 (เซนเซอร์จริงบนบอร์ด)")
+            return t, "SHT40"
+        except OSError:
+            pass
+    if "pot" in snap:
+        if _TEMP_SRC != "pot":
+            _TEMP_SRC = "pot"
+            lcd.print("<span class=warn>ไม่มีเซนเซอร์อุณหภูมิ</span>")
+            lcd.print("ใช้ลูกบิดแทน: 0-100 % = 15-45 C")
+        return 15.0 + snap["pot"]["percent"] * 0.3, "pot"
+    return None, ""
+
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"
-DEVICE_ID = "eva-team03"
-MQTT_USER = "eva-team03"
+DEVICE_ID = "team03"
+MQTT_USER = "team03"
 MQTT_PASS = "<รหัสผ่าน MQTT ของทีม>"
-TOPIC = "bento/eva-team03/telemetry"
+TOPIC = "bento/team03/telemetry"
 
 READ_MS = 200          # วัดถี่ เพราะการวัดไม่ได้กวนใคร
 SEND_MS = 2000         # ส่งห่าง เพราะการส่งกวน broker และกวนเพื่อนร่วมห้อง
@@ -85,8 +115,8 @@ for _ in range(ROUNDS):
     # snapshot() คืนทุกเซนเซอร์ในครั้งเดียว เราหยิบมาใช้ตัวเดียว - ที่เหลือ
     # ไม่ได้เสียเปล่า เพราะการอ่านครั้งเดียวถูกกว่าการถามทีละตัวหลายครั้ง
     snap = sensors.snapshot()
-    if "bmi270" in snap:
-        temp = snap["bmi270"]["temperature"]
+    temp, _src = read_temp(snap)
+    if temp is not None:
         last_value = temp
         seg_now.text("{:.1f}".format(temp))
         ch.set_next(s_read, int(temp))

@@ -21,11 +21,11 @@ import time
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"
-DEVICE_ID = "eva-team03"
+DEVICE_ID = "team03"
 
 # ส่งไปที่ topic ของตัวเอง แล้ว subscribe topic เดียวกัน ข้อความจึงวิ่งครบวง
 # broker -> กลับมาหาเรา นี่คือวิธีพิสูจน์การส่งถึงที่ถูกที่สุดที่ทำได้ในห้องเรียน
-TOPIC_ECHO = "bento/eva-team03/echo"
+TOPIC_ECHO = "bento/team03/echo"
 N = 10
 
 COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF

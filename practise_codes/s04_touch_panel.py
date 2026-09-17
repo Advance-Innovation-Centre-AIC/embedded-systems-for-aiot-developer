@@ -23,15 +23,25 @@ import gpio
 import time
 
 # ---------- ข้อมูลของแผงควบคุม (ปรับสีหรือข้อความได้ตามใจทีม) ----------
-BTN_TEXT = ["แดง", "เขียว", "น้ำเงิน"]              # ดวงที่ 2 คือน้ำเงิน แม้ .name() จะคืน "RGB_RED"
+BTN_TEXT = ["แดง", "เขียว", "น้ำเงิน"]              # สามสีของแผง เรียงตรงกับ LED_IDX ข้างล่าง
 COL_ON = [0xE53935, 0x43A047, 0x1E88E5]           # สีไฟสถานะตอนติด เรียงตรงกับ BTN_TEXT
 COL_OFF = 0x171B22                                 # สีเทาของปุ่มที่ไม่ได้กำลังทำงาน
 COL_TEXT, COL_DIM, COL_CARD = 0xE8EAED, 0x9AA3AF, 0x171B22
 
+# แผงนี้คุม "สามสี" ไม่ใช่ "ทุกดวงบนบอร์ด" - เลขดวงของแต่ละสีถามจากชื่อที่เฟิร์มแวร์รายงาน
+# บอร์ดที่รายงานครบ RGB_RED / RGB_GREEN / RGB_BLUE (Dev Kit) ใช้ชื่อ เพราะเลขดวงอาจเปลี่ยนในรุ่นถัดไป
+# บอร์ดที่ไม่ครบ (Eva Kit: ดวง 0 1 2 คือ แดง เขียว น้ำเงิน แม้ดวงที่ 2 จะชื่อ "RGB_RED") ใช้เลขตรง ๆ
+LED_NAMES = gpio.board_info()["led_names"]
+RGB_NAMES = ("RGB_RED", "RGB_GREEN", "RGB_BLUE")
+if all(n in LED_NAMES for n in RGB_NAMES):
+    LED_IDX = [LED_NAMES.index(n) for n in RGB_NAMES]
+else:
+    LED_IDX = [0, 1, 2]
+
 # ความจริงของโปรแกรมอยู่ที่ list นี้ที่เดียว
 # ห้ามไปอ่านจากฮาร์ดแวร์: gpio.led(2).value() ตอบระดับของขา ไม่ใช่สิ่งที่เราสั่ง
 # และหลัง brightness() หรือ hold() ขาจะถูกทิ้งไว้ต่ำ ค่าที่ได้จึงเป็น 0
-led_on = [False, False, False]
+led_on = [False] * len(LED_IDX)
 
 # --- ท่าที่ 1: เตรียมหน้าจอให้ว่าง แล้วปักหัวเรื่อง ---
 # ui.screen() ล้าง widget ที่กลุ่มก่อนหน้าทิ้งค้างไว้ ไม่งั้นเรานับโควตาผิด
@@ -55,7 +65,7 @@ ROW_PITCH = 120        # ปุ่มสูง 88 + ระยะระหว่�
 lamps = []
 btn_on = []
 btn_off = []
-for i in range(3):
+for i in range(len(LED_IDX)):
     y = ROW_TOP + i * ROW_PITCH
     # ไฟสถานะบอกว่า "ตอนนี้เป็นยังไง" ปุ่มบอกว่า "สั่งอะไรได้" - คนละหน้าที่ คนละชิ้น
     lamps.append(ui.Led(x=24, y=y + 20, w=48, h=48, color=COL_ON[i], value=0))
@@ -78,14 +88,15 @@ off_ids = [b.id() for b in btn_off]
 # ปุ่มล่างของการ์ดนี้จบที่ y=340 พอดี ต่ำกว่านั้นคือมุมที่ปุ่ม Console จองไว้
 ui.Panel(x=520, y=48, w=248, h=308, color=COL_CARD, min=COL_DIM, max=12, value=1)
 # ตัวเลขมาพร้อมพิสัยของมันเสมอ ป้ายกำกับแยกอีกบรรทัดจึงไม่จำเป็น และไม่มีที่ให้ด้วย
-lbl_count = ui.Label("ติดอยู่ 0 จาก 3 ดวง", x=536, y=60, color=COL_TEXT, value=20)
+lbl_count = ui.Label("ติดอยู่ 0 จาก " + str(len(LED_IDX)) + " ดวง", x=536, y=60,
+                     color=COL_TEXT, value=20)
 ui.Label("คำสั่งทั้งชุด", x=536, y=96, color=COL_DIM, value=16)
 btn_all_on = ui.Button("เปิดทั้งหมด", x=536, y=132, w=216, h=88, color=0x30A46C, value=20)
 btn_all_off = ui.Button("ปิดทั้งหมด", x=536, y=252, w=216, h=88, color=0x3A4150, value=20)
 
-# กล่องยืนยัน: "ปิดทั้งหมด" แตะทีเดียวเปลี่ยนของจริงสามดวงพร้อมกัน
+# กล่องยืนยัน: "ปิดทั้งหมด" แตะทีเดียวเปลี่ยนของจริงทุกดวงในแผงพร้อมกัน
 # คำยืนยันจึงต้องบอกสิ่งที่จะเกิด ไม่ใช่ถามลอย ๆ ว่า "แน่ใจไหม"
-box = ui.MsgBox("ปิดทั้งหมด\nไฟสามดวงจะดับพร้อมกัน", x=48, y=88, w=496, h=160,
+box = ui.MsgBox("ปิดทั้งหมด\nไฟทุกสีจะดับพร้อมกัน", x=48, y=88, w=496, h=160,
                 color=COL_CARD)
 btn_yes = ui.Button("ปิดทั้งหมด", x=568, y=88, w=152, h=88, color=0x3A4150, value=20)
 btn_no = ui.Button("ไม่ปิด", x=568, y=208, w=152, h=88, color=0x3A4150, value=20)
@@ -97,24 +108,25 @@ btn_no.hide()
 def show_status():
     # อ่านจาก led_on อย่างเดียว ไม่ถามฮาร์ดแวร์ จึงเชื่อถือได้เสมอ
     n = 0
-    for i in range(3):
+    for i in range(len(LED_IDX)):
         if led_on[i]:
             n += 1
     # ตัวเลขมาพร้อมพิสัยของมันเสมอ "ติดอยู่ 2" ไม่บอกอะไร "2 จาก 3" บอกทันที
-    lbl_count.text("ติดอยู่ " + str(n) + " จาก 3 ดวง")
+    lbl_count.text("ติดอยู่ " + str(n) + " จาก " + str(len(LED_IDX)) + " ดวง")
 
 def set_led(i, on):
+    # i คือแถวของแผง (0 แดง 1 เขียว 2 น้ำเงิน) ส่วนเลขดวงจริงอยู่ที่ LED_IDX[i]
     led_on[i] = on                                 # 1) จำไว้ก่อน
     if on:
         # 2) สั่งของจริง แล้วให้ไฟบนจอรายงานตรงกัน
-        # เติม: gpio.led(i).on()
+        # เติม: gpio.led(LED_IDX[i]).on()
         # สามบรรทัดในฟังก์ชันนี้ (จำ - สั่งของจริง - รายงาน) ต้องอยู่ครบทุกครั้ง
         #   examples/s04/03_switch_matches_led.py ให้ปุ่ม ALL OFF ที่ดับไฟจริงแต่ลืมดึงสวิตช์
         #   บนจอกลับ แล้วชี้ว่าตั้งแต่วินาทีนั้นจอก็โกหกผู้ใช้ไปแล้ว โดยไม่มี error อะไรเลย
         pass
         lamps[i].value(1)
     else:
-        # เติม: gpio.led(i).off()
+        # เติม: gpio.led(LED_IDX[i]).off()
         pass
         # value(0) ทำให้ไฟหรี่ ไม่ใช่หาย โดยตั้งใจ - ดวงที่หายไปตอนดับ
         # ทำให้คนดูแยกไม่ออกว่าดับจริงหรือจอเสีย
@@ -123,7 +135,7 @@ def set_led(i, on):
 
 # --- ท่าที่ 5: เริ่มจากสถานะที่เรารู้แน่ ---
 # ไม่ "สมมติ" ว่าไฟดับอยู่ แต่สั่งให้ดับ เผื่อโปรแกรมก่อนหน้าทิ้งไฟติดค้างไว้
-for i in range(3):
+for i in range(len(LED_IDX)):
     set_led(i, False)
 
 asking = False
@@ -153,9 +165,9 @@ while True:
 
             status.text("สั่งปิด " + BTN_TEXT[off_ids.index(h)])
         elif h == btn_all_on.id():
-            for i in range(3):
+            for i in range(len(LED_IDX)):
                 set_led(i, True)
-            status.text("เปิดครบทั้งสามดวง")
+            status.text("เปิดครบทุกสี")
         elif h == btn_all_off.id() and not asking:
             # คำสั่งที่เปลี่ยนของจริงหลายชิ้นพร้อมกัน ต้องถามก่อนเสมอ (เขียนมาให้แล้ว)
             asking = True
@@ -165,12 +177,12 @@ while True:
             status.hide()
         elif h == btn_yes.id() and asking:
             asking = False
-            for i in range(3):
+            for i in range(len(LED_IDX)):
                 set_led(i, False)
             box.hide()
             btn_yes.hide()
             btn_no.hide()
-            status.text("ปิดครบทั้งสามดวง")
+            status.text("ปิดครบทุกสี")
             status.show()
         elif h == btn_no.id() and asking:
             asking = False

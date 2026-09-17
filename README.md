@@ -1,6 +1,6 @@
 # AIoT in Action — Embedded Systems for AIoT Developer
 
-> เรียน **AIoT** จากของจริงบนบอร์ด **BENTO PSoC Edge (Eva Kit)** ด้วยภาษา **MicroPython** — แตะฮาร์ดแวร์จริง อ่านเซนเซอร์จริง แล้วส่งขึ้นแพลตฟอร์ม IoT ที่ติดตั้งเอง
+> เรียน **AIoT** จากของจริงบนบอร์ด **BENTO PSoC Edge — Eva Kit หรือ TESAIoT Dev Kit** ด้วยภาษา **MicroPython** — แตะฮาร์ดแวร์จริง อ่านเซนเซอร์จริง แล้วส่งขึ้นแพลตฟอร์ม IoT ที่ติดตั้งเอง · ตัวอย่างชุดเดียวกันรันได้ทั้งสองบอร์ด เพราะโค้ดถามบอร์ดเองว่ามีไฟกี่ดวง ปุ่มชื่ออะไร และมีเซนเซอร์อะไรบ้าง
 
 ### ดูสไลด์ออนไลน์ (ไม่ต้องติดตั้งอะไร)
 
@@ -55,9 +55,9 @@
 
 ## ต้องมีอะไรบ้าง
 
-- บอร์ด **BENTO PSoC Edge Eva Kit** (KIT_PSE84_EVAL_EPC2) พร้อมเฟิร์มแวร์ MicroPython ของ BENTO
+- บอร์ด **BENTO PSoC Edge Eva Kit** (KIT_PSE84_EVAL_EPC2) **หรือ TESAIoT Dev Kit** (SoM KIT_PSE84_AI บนฐาน QWA309) อย่างใดอย่างหนึ่ง พร้อมเฟิร์มแวร์ MicroPython ของ BENTO — สองบอร์ดต่างกันที่จำนวนไฟ (3 กับ 5 ดวง) เซนเซอร์เพิ่มบน Dev Kit (SHT40 · DPS368 · เรดาร์) และการ์ดบนหน้า Home (Dev Kit ไม่มี Controls · TESAIoT Connectivity · Audio Player) สไลด์บอกไว้ทุกจุดที่สองบอร์ดต่างกัน
 - **BENTO IDE** — https://ide.tesaiot.com/ (เขียนโค้ด กด Program to Device ได้จากเบราว์เซอร์)
-- WiFi สำหรับคาบ 9 ขึ้นไป และ **TESAIoT Community Edition** สำหรับคาบ 10–12
+- WiFi ตั้งแต่คาบ 2 (ต่อเน็ตครั้งแรก) และใช้จริงจังตั้งแต่คาบ 9 · **TESAIoT Community Edition** สำหรับคาบ 10–12
 
 ---
 

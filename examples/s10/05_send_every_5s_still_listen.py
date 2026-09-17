@@ -43,7 +43,10 @@ COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD = 0x171B22          # และใช้เป็นสีรางของ ui.Bar ด้วย แท่งที่วิ่งเป็นสีธีม
 COL_OK, COL_INFO = 0x30A46C, 0x4A9EFF
 
-btn = gpio.button(0)         # SW1 - ใช้แทนคำสั่งที่วิ่งเข้ามาระหว่างรอ
+btn = gpio.button(0)         # ปุ่มผู้ใช้ - ใช้แทนคำสั่งที่วิ่งเข้ามาระหว่างรอ
+# ถามชื่อจากเฟิร์มแวร์แทนการพิมพ์ชื่อบนแผ่นวงจร: บน Eva Kit ปุ่มนี้พิมพ์ว่า SW2
+# (SW1 ไม่ใช่ปุ่มที่โปรแกรมได้ - BSP ไม่มีมันเลย) ส่วนบนฐาน QWA309 ของ Dev Kit "SW2" คือสวิตช์ตัดไฟ
+BTN = btn.name()
 
 ui.screen()
 time.sleep_ms(200)
@@ -69,7 +72,7 @@ ui.Panel(x=24, y=192, w=744, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1
 ui.Label("เวลาที่ผ่านไปตั้งแต่ใบล่าสุด", x=40, y=208, color=COL_DIM, value=20)
 bar = ui.Bar(x=40, y=244, w=712, h=24, min=0, max=SEND_EVERY_MS, value=0,
              color=COL_CARD)
-l_recv = ui.Label("กด SW1 ระหว่างรอ - รับได้: 0 ครั้ง", x=40, y=280,
+l_recv = ui.Label("กด " + BTN + " ระหว่างรอ - รับได้: 0 ครั้ง", x=40, y=280,
                   color=COL_TEXT, value=20)
 note = ui.Label("ลูปทุก 100 ms  ส่งทุก 5000 ms  ไม่มี sleep ยาว", x=24, y=336,
                 color=COL_DIM, value=20)
@@ -78,7 +81,7 @@ ui.poll()
 lcd.clear()
 lcd.console("<h2>คาบ 10 - นาฬิกาสองเรือนในลูปเดียว</h2>")
 lcd.print("ลูปทุก", LOOP_MS, "ms | ส่งทุก", SEND_EVERY_MS, "ms")
-lcd.print("กด SW1 ระหว่างรอ แล้วดูว่าบอร์ดรู้ตัวทันทีหรือไม่")
+lcd.print("กด", BTN, "ระหว่างรอ แล้วดูว่าบอร์ดรู้ตัวทันทีหรือไม่")
 
 loops = 0
 sent = 0
@@ -109,7 +112,7 @@ for _ in range(ROUNDS):
     if v == 0 and prev_btn == 1:     # ขอบขาลง - ปุ่มบอร์ดนี้ 0 คือกด
         received += 1
         l_recv.color(COL_INFO)
-        l_recv.text("กด SW1 ระหว่างรอ - รับได้: " + str(received) + " ครั้ง")
+        l_recv.text("กด " + BTN + " ระหว่างรอ - รับได้: " + str(received) + " ครั้ง")
         lcd.print("รับคำสั่งระหว่างรอบที่", loops, "- ครั้งที่", received)
     prev_btn = v
 

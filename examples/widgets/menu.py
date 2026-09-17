@@ -24,6 +24,7 @@
 #
 # รันจบเองใน 20 วินาที ไม่ต้องต่อเน็ต ไม่ต้องมีเซนเซอร์
 
+import gpio
 import time
 import ui
 
@@ -60,7 +61,7 @@ sec_net.row("วง AIoT-Class")
 sec_net.row("ต่ออัตโนมัติ")
 
 sec_about = page_about.section()
-sec_about.row("รุ่น Eva Kit EPC2")
+sec_about.row("รุ่น " + gpio.board_info()["name"])
 
 ui.Label("แตะแถวเข้าหน้าลูก", x=496, y=112, color=COL_TEXT, value=24)
 ui.Label("กดลูกศรที่หัวเพื่อกลับ", x=496, y=160, color=COL_DIM, value=20)

@@ -23,8 +23,8 @@ import wifi
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"
-DEVICE_ID = "eva-team03"
-TOPIC = "bento/eva-team03/telemetry"
+DEVICE_ID = "team03"
+TOPIC = "bento/team03/telemetry"
 SEND_EVERY_MS = 3000
 CHART_MS = 300           # กราฟเดินตามลูปของจอ ไม่ได้เดินตามคาบส่ง
 

@@ -17,10 +17,10 @@ import time
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"          # IP ของเครื่องที่รัน broker ในแลน ไม่ใช่ localhost
-DEVICE_ID = "eva-team03"
-MQTT_USER = "eva-team03"         # ต้องเท่ากับ client_id ฝั่ง CE ตรวจข้อนี้
+DEVICE_ID = "team03"
+MQTT_USER = "team03"         # ต้องเท่ากับ client_id ฝั่ง CE ตรวจข้อนี้
 MQTT_PASS = "<รหัสผ่าน MQTT ของทีม>"
-TOPIC = "bento/eva-team03/telemetry"
+TOPIC = "bento/team03/telemetry"
 N = 10
 
 COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF

@@ -17,8 +17,8 @@ import time
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"
-DEVICE_ID = "eva-team03"
-TOPIC_CMD = "bento/eva-team03/command"
+DEVICE_ID = "team03"
+TOPIC_CMD = "bento/team03/command"
 
 NOTE_A4 = 69                # ui.tone รับ "โน้ต MIDI" 0-127 ไม่ใช่ความถี่เป็นเฮิรตซ์
 LOOP_MS = 100

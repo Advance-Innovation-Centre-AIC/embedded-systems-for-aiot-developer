@@ -78,7 +78,7 @@ ui.poll()
 lcd.clear()
 lcd.console("<h2>ค่าดิบกับค่าที่กรองแล้ว</h2>")
 lcd.print("EMA alpha =", ALPHA, "| Median window =", WINDOW)
-lcd.print("<span class=muted>เขย่าบอร์ดหรือเคาะโต๊ะ แล้วดูสามเส้นแยกกัน</span>")
+lcd.print("<span class=muted>เขย่าบอร์ด แล้วดูสามเส้นแยกกัน</span>")
 
 t0 = time.ticks_ms()
 rounds = 0
@@ -93,13 +93,14 @@ while True:
     if time.ticks_diff(t_work, t0) >= RUN_MS:
         break
 
-    # หลังรีเซ็ต CM55 ยังไม่พร้อมตอบอยู่พักหนึ่ง ไม่ดักไว้แล้วโปรแกรมตายคาบรรทัดแรก
+    # หลังรีเซ็ตเซนเซอร์ยังไม่พร้อมตอบอยู่พักหนึ่ง (Eva Kit รอ CM55 ราว 13 วินาที)
+    # ไม่ดักไว้แล้วโปรแกรมตายคาบรรทัดแรก
     try:
         ax, ay, az = sensors.bmi270.acceleration()
     except OSError:
         misses = misses + 1
         status.color(COL_WARN)
-        status.text("CM55 ยังไม่ตอบ - พลาดไป " + str(misses) + " รอบ")
+        status.text("IMU ยังไม่ตอบ - พลาดไป " + str(misses) + " รอบ")
         ui.poll()
         time.sleep_ms(TICK_MS)
         continue

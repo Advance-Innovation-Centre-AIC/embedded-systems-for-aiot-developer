@@ -7,10 +7,9 @@
 # What: เมนูสี่รายการที่เลื่อนด้วยปุ่มสัมผัสสองปุ่ม และตอบกลับทุกครั้งด้วยจอ ไฟ เสียง
 #       การตอบกลับไม่ใช่ของแถม มันคือสิ่งที่มาแทนแรงต้านของปุ่มกลไกที่หายไป
 #
-# บน Eva Kit: sensors.init() และ sensors.scan() ปฏิเสธด้วย OSError ไม่ต้องเรียก
-#   ส่วนตัวอ่านของแต่ละเซนเซอร์ใช้ได้เลย - มันอ่านจาก snapshot ที่ CM55 ส่งมาทาง IPC
-#   (modsensors.c) หลังรีเซ็ต การอ่านครั้งแรกช้าได้ถึงราว 16 วินาที
-#   และอาจโยน OSError ระหว่างนั้น
+# sensors.capsense.* ใช้ได้เลยทั้งสองบอร์ดโดยไม่ต้องเรียก sensors.init() (บน Eva Kit
+#   เรียกแล้วถูกปฏิเสธด้วย OSError เสียด้วยซ้ำ) แต่หลังรีเซ็ต การอ่านครั้งแรกอาจต้อง
+#   รอคอร์จอตอบ และอาจโยน OSError ระหว่างนั้น
 #
 # ดูที่จอ: เมนูสี่แถว แถวที่เลือกมี > นำหน้าและใช้สีเน้น ที่เหลือเป็นสีข้อความรอง
 #         เครื่องหมาย > คือสิ่งที่บอกแถวที่เลือกได้แม้พิมพ์จอออกมาเป็นขาวดำ
@@ -33,6 +32,14 @@ COL_DIM = 0x9AA3AF       # ข้อความรอง เชิงอรร�
 COL_CARD = 0x171B22      # พื้นการ์ด
 COL_ACCENT = 0x4A9EFF    # แถวที่เลือกอยู่ และแถบที่กำลังเปลี่ยน
 COL_BAD = 0xE5484D       # ผิดปกติ - จอนี้ใช้กับอาการแตะค้างเท่านั้น
+
+# ไฟสองดวง: ดวง "ตอบรับ" ติดตอนนิ้วแตะติด ดวง "เตือน" ติดตอนแตะค้างผิดปกติ
+# บอร์ดที่รายงานครบ RGB_RED / RGB_GREEN / RGB_BLUE (Dev Kit) หาดวงจากชื่อ เพราะเลขดวง
+# อาจเปลี่ยนในรุ่นถัดไป ส่วนบอร์ดที่ไม่ครบ (Eva Kit: ดวง 0 แดง ดวง 1 เขียว) ใช้เลขตรง ๆ
+LED_NAMES = gpio.board_info()["led_names"]
+RGB_FULL = all(n in LED_NAMES for n in ("RGB_RED", "RGB_GREEN", "RGB_BLUE"))
+led_warn = gpio.led(LED_NAMES.index("RGB_RED") if RGB_FULL else 0)
+led_ack = gpio.led(LED_NAMES.index("RGB_GREEN") if RGB_FULL else 1)
 
 lcd.clear()
 lcd.console("<h2>เมนูสัมผัสสองปุ่ม</h2>")
@@ -99,18 +106,18 @@ for _ in range(900):
     # ทำงานตอนขอบขาขึ้นเท่านั้น ไม่ใช่ตลอดเวลาที่นิ้วอยู่
     if b0 and not prev[0]:
         idx = (idx - 1) % len(MENU)
-        gpio.led(1).on()
+        led_ack.on()
         ui.tone(76, ui.WAVE_SINE, 90, 60)
         draw_menu(idx)
         lcd.print("> " + MENU[idx])
     elif b1 and not prev[1]:
         idx = (idx + 1) % len(MENU)
-        gpio.led(1).on()
+        led_ack.on()
         ui.tone(72, ui.WAVE_SINE, 90, 60)
         draw_menu(idx)
         lcd.print("> " + MENU[idx])
     elif not b0 and not b1:
-        gpio.led(1).off()
+        led_ack.off()
 
     # แถบนี้คือคำตอบว่า "แตะค้างมานานแค่ไหนแล้ว" ซึ่งนิ้วบอกเองไม่ได้
     held = held0 if held0 > held1 else held1
@@ -122,12 +129,12 @@ for _ in range(900):
     # ตรวจอาการ "แตะค้างไม่เลิก" ซึ่งในครัวจริงมักแปลว่ามีน้ำอยู่บนแผ่น
     if held0 == STUCK_ROUNDS or held1 == STUCK_ROUNDS:
         stuck = True
-        gpio.led(0).on()
+        led_warn.on()
         warn.text("แตะค้างผิดปกติ\nเช็ดแผ่นสัมผัส")
         warn.color(COL_BAD)
         lcd.print("<span class=muted>แตะค้างผิดปกติ - เช็ดแผ่นสัมผัส</span>")
     elif not b0 and not b1:
-        gpio.led(0).off()
+        led_warn.off()
         if stuck:
             stuck = False
             warn.text("สถานะ: ปกติ")
@@ -137,6 +144,6 @@ for _ in range(900):
     ui.poll()
     time.sleep_ms(60)
 
-gpio.led(0).off()
-gpio.led(1).off()
+led_warn.off()
+led_ack.off()
 print("เลือกไว้ที่:", MENU[idx])

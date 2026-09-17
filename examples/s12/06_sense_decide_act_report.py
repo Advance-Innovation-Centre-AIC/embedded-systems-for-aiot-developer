@@ -10,8 +10,9 @@
 #             เกณฑ์พอดีจะสั่งเปิดปิดสลับกันหลายครั้งต่อวินาที - รีเลย์จริงพัง
 #             ด้วยวิธีนี้ และไม่มี error ให้จับสักตัว
 #
-# บน Eva Kit: sensors.snapshot() ใช้ได้ ส่วน gpio.led() คุมไฟบนบอร์ดได้ตรง ๆ
-#             ทั้งคู่ไม่ต้องขออนุญาตใคร
+# ทั้ง Eva Kit และ Dev Kit: sensors.snapshot() ใช้ได้ (dict รูปเดียวกัน) ส่วน gpio.led()
+#             คุมไฟบนบอร์ดได้ตรง ๆ ทั้งคู่ไม่ต้องขออนุญาตใคร - แต่ "ไฟดวงไหน" ต้องหาตามชื่อ
+#             ไม่ใช่ตามเลข เพราะเลขดัชนีต่างกันตามบอร์ด ดู led_named() ข้างล่าง
 
 import gpio
 import json
@@ -20,7 +21,51 @@ import sensors
 import time
 import ui
 
-DEVICE_ID = "eva-team03"
+
+# ---- อุณหภูมิ: ของจริงถ้าบอร์ดมี ไม่งั้นให้ลูกบิดเล่นบทแทน --------------------
+# snapshot() ไม่มีช่องอุณหภูมิ (มีแค่ ax..gz ของ IMU, capsense, pot) และบน Eva Kit
+# ไม่มีทางอ่านอุณหภูมิจาก Python เลย: bmi270.temperature() ปฏิเสธ ไม่มี SHT40
+# ไฟล์นี้จึงเคยพังด้วย KeyError ทุกรอบบนบอร์ดจริง (ผ่านบน emulator ที่ตอบทุก key)
+# บอร์ดที่มี SHT40 (Dev Kit) ได้อุณหภูมิห้องจริง บอร์ดอื่นใช้ลูกบิด 0-100 % แทน
+# ช่วง 15-45 C - หมุนข้าม threshold ได้ในห้องเรียนโดยไม่ต้องรอห้องร้อนจริง
+_TEMP_SRC = None
+
+
+def read_temp(snap):
+    """-> (อุณหภูมิ C, แหล่งที่มา) หรือ (None, "") ถ้ารอบนี้ไม่มีค่า"""
+    global _TEMP_SRC
+    if hasattr(sensors, "sht40"):
+        try:
+            t = sensors.sht40.temperature()
+            if _TEMP_SRC != "SHT40":
+                _TEMP_SRC = "SHT40"
+                lcd.print("อุณหภูมิจาก SHT40 (เซนเซอร์จริงบนบอร์ด)")
+            return t, "SHT40"
+        except OSError:
+            pass
+    if "pot" in snap:
+        if _TEMP_SRC != "pot":
+            _TEMP_SRC = "pot"
+            lcd.print("<span class=warn>ไม่มีเซนเซอร์อุณหภูมิ</span>")
+            lcd.print("ใช้ลูกบิดแทน: 0-100 % = 15-45 C")
+        return 15.0 + snap["pot"]["percent"] * 0.3, "pot"
+    return None, ""
+
+
+def led_named(*names, fallback=0):
+    """หา LED จากชื่อในตารางเฟิร์มแวร์ - เลขดัชนีต่างกันตามบอร์ด ชื่อไม่ต่าง
+
+    Eva Kit : LED1=แดง LED2=เขียว RGB_RED=ฟ้า (ชื่อ RGB_RED บน Eva คือดวงสีฟ้า)
+    Dev Kit : LED1 LED2 อยู่บน SoM มองไม่เห็นบนบอร์ดประกอบ  RGB_RED RGB_BLUE RGB_GREEN
+    ส่งชื่อเรียงให้ตัวแรกเป็นของ Dev Kit ตัวถัดไปเป็นของ Eva"""
+    table = gpio.board_info()["led_names"]
+    for n in names:
+        if n in table:
+            return gpio.led(table.index(n))
+    return gpio.led(fallback)
+
+
+DEVICE_ID = "team03"
 ON_ABOVE = 27.5        # ข้ามขึ้นเกินนี้จึงสั่งเปิด
 OFF_BELOW = 26.5       # ต้องตกต่ำกว่านี้จึงยอมสั่งปิด - ช่องว่าง 1 องศาคือ hysteresis
 REPORT_MS = 3000
@@ -64,7 +109,9 @@ ui.poll()
 lcd.clear()
 lcd.console("<h2>วงจรเต็มสี่ขั้น</h2>")
 
-fan = gpio.led(0)
+# "พัดลม" คือหลอดที่มองเห็นได้ทั้งสองบอร์ด สีเขียวทั้งคู่ตรงกับป้าย "เปิด" บนจอ:
+# Dev Kit = RGB_GREEN / Eva = LED2 (led(0) บน Dev Kit คือ LED1 บน SoM ซึ่งมองไม่เห็น)
+fan = led_named("RGB_GREEN", "LED2")
 fan.off()
 on = False
 reports = 0
@@ -81,12 +128,12 @@ for _ in range(ROUNDS):
     # --- 1 วัด -------------------------------------------------------------
     light(0)
     snap = sensors.snapshot()
-    if "bmi270" not in snap:
-        lcd.print("<span class=warn>ไม่มีค่าจาก IMU รอบนี้</span>")
+    temp, _src = read_temp(snap)
+    if temp is None:
+        lcd.print("<span class=warn>ไม่มีค่าอุณหภูมิรอบนี้</span>")
         ui.poll()
         time.sleep_ms(200)
         continue
-    temp = snap["bmi270"]["temperature"]
     seg.text("{:.1f}".format(temp))
     ch.set_next(s_temp, int(temp))
     ch.set_next(s_on, int(ON_ABOVE))
@@ -140,7 +187,7 @@ for i in range(4):
     st[i].color(COL_DIM)
 sent_lbl.text("จบ - รายงานทั้งหมด " + str(reports) + " ครั้ง")
 ui.poll()
-lcd.print("<span class=ok>จบรอบ - พัดลมถูกสั่งจากค่าที่วัดได้จริง</span>")
+lcd.print("<span class=ok>จบรอบ - พัดลมสั่งจากค่าที่วัดจริง</span>")
 print("สี่ขั้นนี้คือโครงของงานจบ เปลี่ยนแค่ว่าวัดอะไร ตัดสินด้วยกฎอะไร สั่งอะไร")
 
 # ตาคุณ

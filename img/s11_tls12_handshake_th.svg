@@ -8,7 +8,7 @@
   <text x="262" y="30" text-anchor="middle" font-size="23" font-weight="700" fill="#37474f">บอร์ด (Client)</text>
   <text x="600" y="30" text-anchor="middle" font-size="23" font-weight="700" fill="#37474f">แพลตฟอร์ม (Server)</text>
   <rect x="222" y="42" width="80" height="46" rx="6" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
-  <text x="262" y="72" text-anchor="middle" font-size="19" fill="#0d47a1">Eva Kit</text>
+  <text x="262" y="72" text-anchor="middle" font-size="19" fill="#0d47a1">บอร์ด</text>
   <rect x="555" y="42" width="90" height="46" rx="6" fill="#ede7f6" stroke="#4527a0" stroke-width="2"/>
   <text x="600" y="72" text-anchor="middle" font-size="19" fill="#4527a0">EMQX</text>
   <line x1="262" y1="88" x2="262" y2="452" stroke="#b0bec5" stroke-width="3"/>

@@ -25,6 +25,7 @@
 #          และ section ไม่ใช่ page: เรียก row.opens(section) จะเงียบสนิท
 #          เพราะ CM55 เช็กว่าแฮนเดิลปลายทางต้องเป็นชนิดหน้าเท่านั้น
 
+import gpio
 import lcd
 import time
 import ui
@@ -85,7 +86,8 @@ sec_alarm.row("เตือนเมื่อเกิน " + str(setting["แ�
 sec_alarm.row("ส่งซ้ำทุก " + str(setting["รอบส่ง"]) + " วินาที")
 
 sec_about = page_about.section()
-sec_about.row("รุ่น Eva Kit EPC2")
+# ชื่อรุ่นถามจากเฟิร์มแวร์ ไม่พิมพ์ตาย - ไฟล์เดียวกันจึงขึ้นชื่อถูกทั้ง Eva Kit และ Dev Kit
+sec_about.row("รุ่น " + gpio.board_info()["name"])
 sec_about.row("เฟิร์มแวร์ BENTO")
 
 # การ์ดขวา: ค่าเดียวกันที่เมนูโชว์ แต่เห็นได้โดยไม่ต้องเดินเข้าไป
@@ -118,7 +120,7 @@ for i in range(ROUNDS):
     time.sleep_ms(200)
 
 lcd.print("<span class=ok>event จากแถวเมนู =", events, "</span>")
-lcd.print("ถ้าแตะแถวแล้วยังได้ศูนย์ แปลว่า .listen() ไปไม่ถึง CM55")
+lcd.print("แตะแล้วยังศูนย์ = .listen() ไปไม่ถึงคอร์จอ")
 print("Menu: .add_page() -> .section() -> .row() -> .opens()")
 
 # ตาคุณ

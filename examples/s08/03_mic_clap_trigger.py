@@ -22,6 +22,20 @@ K = 3              # เกณฑ์ = ค่าที่ห้องนี้�
 MIN_THRESH = 900   # พื้นล่างของเกณฑ์ กันห้องเงียบจัดจนเกณฑ์ต่ำเกินจริง
 REFRACT_MS = 250   # หลังนับหนึ่งครั้ง ห้ามนับซ้ำภายในเวลานี้
 
+
+def led_named(*names, fallback=0):
+    """หา LED จากชื่อในตารางเฟิร์มแวร์ - เลขดัชนีต่างกันตามบอร์ด ชื่อไม่ต่าง
+
+    Eva Kit : LED1=แดง LED2=เขียว RGB_RED=ฟ้า (ชื่อ RGB_RED บน Eva คือดวงสีฟ้า)
+    Dev Kit : LED1 LED2 อยู่บน SoM มองไม่เห็นบนบอร์ดประกอบ  RGB_RED RGB_BLUE RGB_GREEN
+    ส่งชื่อเรียงให้ตัวแรกเป็นของ Dev Kit ตัวถัดไปเป็นของ Eva"""
+    table = gpio.board_info()["led_names"]
+    for n in names:
+        if n in table:
+            return gpio.led(table.index(n))
+    return gpio.led(fallback)
+
+
 ui.screen()
 ui.Label("สวิตช์ไฟตบมือ", x=12, y=8, value=24)
 # วางไว้แถบล่าง ไม่ใช่ใต้หัวเรื่อง เพราะพื้นที่บนคือรอยเท้าของกราฟที่จะสร้าง
@@ -69,7 +83,9 @@ ui.Label("ย้ายห้องแล้วต้องรันใหม่"
 seg.text("0")
 ui.poll()
 
-light = gpio.led(0)
+# ไฟที่มองเห็นได้ทั้งสองบอร์ด และเป็นสีเขียวทั้งคู่: Dev Kit = RGB_GREEN / Eva = LED2
+# (บน Dev Kit led(0) คือ LED1 บน SoM ซึ่งบอร์ดประกอบแล้วมองไม่เห็น จึงไม่ใช้เลขตรง ๆ)
+light = led_named("RGB_GREEN", "LED2")
 light.off()
 claps = 0
 lit = False
@@ -112,5 +128,5 @@ for _ in range(1200):
 mic.stop()
 light.off()
 lcd.print("ตบทั้งหมด", claps, "ครั้ง | เกณฑ์ที่ใช้", thresh)
-lcd.print("<span class=muted>ลองตั้ง K = 1 แล้วดูว่าเสียงพิมพ์คีย์บอร์ดผ่านไหม</span>")
+lcd.print("<span class=muted>ลอง K = 1 แล้วดูว่าเสียงพิมพ์ผ่านไหม</span>")
 print("เกณฑ์มาจากพื้นเสียงของห้องนี้ ไม่ใช่ตัวเลขที่เดามา ย้ายห้องแล้วรันใหม่")

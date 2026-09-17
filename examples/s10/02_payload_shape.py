@@ -16,7 +16,7 @@ import lcd
 import json
 import time
 
-DEVICE_ID = "eva-team03"
+DEVICE_ID = "team03"
 
 # จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
 COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF

@@ -30,7 +30,7 @@ import tesaiot
 # แก้ให้ตรงกับที่ผู้สอนแจกหน้าห้อง
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
-DEVICE_ID = "eva-team03"
+DEVICE_ID = "team03"
 BROKER = "192.168.1.50"
 
 WAIT_MS = 15000      # รอให้ต่อติดนานสุดเท่าไร ครบแล้วเลิกรอ ไม่รอตลอดไป

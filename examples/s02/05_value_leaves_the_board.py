@@ -28,8 +28,8 @@ import mqtt
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"          # IP ของเครื่องที่รัน broker ในแลน ไม่ใช่ localhost
-DEVICE_ID = "eva-team03"
-TOPIC = "bento/eva-team03/telemetry"
+DEVICE_ID = "team03"
+TOPIC = "bento/team03/telemetry"
 
 N = 12               # ส่งกี่ใบแล้วหยุด
 GAP_MS = 2000        # เว้นระหว่างใบกี่ ms

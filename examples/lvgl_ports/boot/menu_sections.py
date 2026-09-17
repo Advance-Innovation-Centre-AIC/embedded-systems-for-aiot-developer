@@ -50,7 +50,7 @@ while True:
 
     name, path = picked
     if path is None:
-        msg = name + " — ยังไม่พร้อม"
+        msg = name + " - ยังไม่พร้อม"
         continue
     print("sections: running " + path)
     err = run(path)

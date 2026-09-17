@@ -8,10 +8,9 @@
 #       ค่าที่รายงานจึงกลายเป็นขั้นบันได ไม่ใช่เส้นต่อเนื่องตามค่าดิบ
 #       และจำนวนข้อความที่ส่งออกไปลดลงหลายเท่าโดยผู้ใช้ไม่รู้สึกว่าเสียอะไร
 #
-# บน Eva Kit: sensors.init() และ sensors.scan() ปฏิเสธด้วย OSError ไม่ต้องเรียก
-#   ส่วนตัวอ่านของแต่ละเซนเซอร์ใช้ได้เลย - มันอ่านจาก snapshot ที่ CM55 ส่งมาทาง IPC
-#   (modsensors.c) หลังรีเซ็ต การอ่านครั้งแรกช้าได้ถึงราว 16 วินาที
-#   และอาจโยน OSError ระหว่างนั้น
+# sensors.pot.* ใช้ได้เลยทั้งสองบอร์ดโดยไม่ต้องเรียก sensors.init() (บน Eva Kit
+#   เรียกแล้วถูกปฏิเสธด้วย OSError เสียด้วยซ้ำ) แต่หลังรีเซ็ต การอ่านครั้งแรกอาจต้อง
+#   รอคอร์จอตอบ และอาจโยน OSError ระหว่างนั้น
 #
 # ดูที่จอ: กราฟสองเส้นที่แยกกันด้วยรูปทรง ไม่ใช่ด้วยสี - เส้นต่อเนื่องคือค่าดิบที่
 #         ไต่ขึ้นแล้วสั่นอยู่กับที่ ส่วนเส้นขั้นบันไดคือค่าที่รายงาน ซึ่งนิ่งสนิท
@@ -38,6 +37,14 @@ COL_ACCENT = 0x4A9EFF    # ค่าที่รายงานออกไป -
 
 # ค่าสั่นสาธิต 4 จังหวะ กว้างสุด 1.8% ซึ่งยังไม่ถึง DEAD_PCT จึงต้องถูกกลืนทั้งหมด
 JITTER = (0.9, 0.3, -0.9, -0.3)
+
+# ไฟบอกว่าตั้งไว้สูง (แดง) หรือต่ำ (เขียว) - บอร์ดที่รายงานครบ RGB_RED / RGB_GREEN /
+# RGB_BLUE (Dev Kit) หาดวงจากชื่อ เพราะเลขดวงอาจเปลี่ยนในรุ่นถัดไป ส่วนบอร์ดที่ไม่ครบ
+# (Eva Kit: ดวง 0 แดง ดวง 1 เขียว) ใช้เลขตรง ๆ
+LED_NAMES = gpio.board_info()["led_names"]
+RGB_FULL = all(n in LED_NAMES for n in ("RGB_RED", "RGB_GREEN", "RGB_BLUE"))
+led_high = gpio.led(LED_NAMES.index("RGB_RED") if RGB_FULL else 0)
+led_low = gpio.led(LED_NAMES.index("RGB_GREEN") if RGB_FULL else 1)
 
 
 def clamp_ends(pct):
@@ -119,19 +126,19 @@ for _ in range(700):
         lcd.print("ตั้งไว้", round(setpoint, 1), "C  (", int(pct), "% )")
 
         # ไฟบอกว่าตั้งไว้สูงหรือต่ำ โดยไม่ต้องอ่านตัวเลข
-        gpio.led(0).off()
-        gpio.led(1).off()
+        led_high.off()
+        led_low.off()
         if setpoint > (SET_MIN + SET_MAX) / 2:
-            gpio.led(0).on()
+            led_high.on()
         else:
-            gpio.led(1).on()
+            led_low.on()
 
     count_txt.text("อ่าน " + str(raw_reads) + " ครั้ง / รายงาน " +
                    str(changes) + " ครั้ง")
     ui.poll()
     time.sleep_ms(80)
 
-gpio.led(0).off()
-gpio.led(1).off()
+led_high.off()
+led_low.off()
 lcd.print("อ่าน", raw_reads, "ครั้ง | รายงานจริง", changes, "ครั้ง")
 print("ลองตั้ง DEAD_PCT = 0 แล้วดูว่าจำนวนรายงานพุ่งขึ้นกี่เท่า")

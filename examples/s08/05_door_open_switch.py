@@ -13,8 +13,10 @@
 #   ขณะที่สนามแม่เหล็กโลกอยู่ที่ 25-65 uT สองอย่างนี้จริงพร้อมกันไม่ได้ และยังไม่มี
 #   ใครตัดสิน ตัวเลขเกณฑ์จึงต้องปรับตามที่วัดได้จริงในห้องนั้น อย่ายกไปใช้ที่อื่น
 #
-# บน Eva Kit: sensors.bmm350.* ใช้ได้เลยโดยไม่ต้อง init แต่หลังรีเซ็ต การอ่าน
-#   ครั้งแรกช้าได้ถึงราว 16 วินาที และอาจโยน OSError - magnitude() จึงดักไว้
+# ทั้งสองบอร์ด: sensors.bmm350.* อ่านตรงจากชิปบนบัส I3C ของมันเอง ไม่ผ่านคอร์จอ
+#   จึงใช้ได้เลยโดยไม่ต้อง init และไม่ต้องรอ snapshot ของ Eva แต่รอบแรก ๆ ยังโยน
+#   OSError ได้ - magnitude() จึงดักไว้
+#   ส่วนไฟสองดวงหาตามชื่อ ไม่ใช่ตามเลข - ดู led_named() ข้างล่างว่าทำไม
 
 import gpio
 import lcd
@@ -28,8 +30,25 @@ OPEN_DEV = 25.0    # เบี่ยงต่ำกว่านี้ = ปร�
 CONFIRM = 3        # ต้องอ่านได้ตรงกันกี่ครั้งติดถึงจะเปลี่ยนสถานะ
 Y_MAX = 60         # แกน Y ต้องสูงกว่า CLOSE_DEV พอควร ไม่งั้นเส้นชนขอบบน
 
-led_open = gpio.led(0)
-led_shut = gpio.led(1)
+# ไฟสองดวงหาตามชื่อ ไม่ใช่ตามเลข - เลขดัชนีของ gpio.led() ต่างกันตามบอร์ดและอาจเปลี่ยนอีก
+# ตารางที่เฟิร์มแวร์รายงาน (modgpio.c วัดจริง 2026-09-16):
+#   Eva Kit : LED1=แดง  LED2=เขียว  RGB_RED=ฟ้า   <- ชื่อ RGB_RED บน Eva คือดวงสีฟ้า
+#   Dev Kit : LED1 LED2 อยู่บน SoM มองไม่เห็นบนบอร์ดประกอบ  RGB_RED RGB_BLUE RGB_GREEN
+# สีแดงเป็นข้อยกเว้น: ทั้งสองบอร์ดมีทั้ง "RGB_RED" และ "LED1" ต้องดูก่อนว่ามี RGB ครบสามสีไหม
+LED_NAMES = gpio.board_info()["led_names"]
+HAS_RGB = "RGB_GREEN" in LED_NAMES          # Dev Kit จริง / Eva ไม่มีชื่อนี้
+
+
+def led_named(*names, fallback=0):
+    """หา LED จากชื่อในตารางเฟิร์มแวร์ - เลขดัชนีต่างกันตามบอร์ด ชื่อไม่ต่าง"""
+    for n in names:
+        if n in LED_NAMES:
+            return gpio.led(LED_NAMES.index(n))
+    return gpio.led(fallback)
+
+
+led_open = led_named("RGB_RED" if HAS_RGB else "LED1")   # แดง: Dev Kit RGB_RED / Eva LED1
+led_shut = led_named("RGB_GREEN", "LED2")                # เขียว: Dev Kit RGB_GREEN / Eva LED2
 
 
 last_mag = 0.0

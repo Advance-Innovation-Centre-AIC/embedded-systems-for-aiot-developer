@@ -17,7 +17,7 @@ import ui
 import time
 
 # ตัวตนของทีม - แก้สามค่านี้เป็นของทีมตัวเองก่อนรัน
-DEVICE_ID = "eva-team03"
+DEVICE_ID = "team03"
 API_KEY = "<api key ของทีม>"
 BROKER = "mqtt.tesaiot.dev"
 

@@ -15,5 +15,5 @@
   <text x="100" y="672" font-family="IBM Plex Sans Thai, Noto Sans Thai, Thonburi, sans-serif"
         font-size="24" fill="#7c8aa8">AIoT in Action · Principle to Application · BENTO × TESAIoT</text>
   <text x="1210" y="672" text-anchor="end" font-family="Menlo, monospace"
-        font-size="24" fill="#a3c93a" opacity="0.75">Eva Kit</text>
+        font-size="24" fill="#a3c93a" opacity="0.75">Eva Kit · TESAIoT Dev Kit</text>
 </svg>

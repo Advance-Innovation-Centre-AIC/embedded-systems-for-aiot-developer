@@ -19,8 +19,8 @@ import time
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"          # IP ของเครื่องที่รัน broker ในแลน ไม่ใช่ localhost
-DEVICE_ID = "eva-team03"         # ใช้ตัวเดียวกันทั้งสองรอบ นั่นคือประเด็นของไฟล์นี้
-TOPIC = "bento/eva-team03/telemetry"
+DEVICE_ID = "team03"         # ใช้ตัวเดียวกันทั้งสองรอบ นั่นคือประเด็นของไฟล์นี้
+TOPIC = "bento/team03/telemetry"
 
 COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD = 0x171B22

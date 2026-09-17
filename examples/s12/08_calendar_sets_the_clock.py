@@ -23,8 +23,8 @@
 #          ด้วย lv_calendar_get_pressed_date() ที่ตอบไม่ผ่านเมื่อไม่ได้แตะวัน
 #          จึงรู้ได้เฉพาะตอนคนแตะ "วัน" ไม่ใช่ตอนคนพลิกดูเดือน
 #
-# บน Eva Kit: machine.RTC มีอยู่จริง (modmachine.c) ต่างจาก machine.PWM กับ
-#   machine.ADC ที่ไม่มี - เรียกได้เลยโดยไม่ต้อง try/except
+# ทั้ง Eva Kit และ Dev Kit: machine.RTC มีอยู่จริง (พอร์ตเดียวกัน modmachine.c ไม่มีเงื่อนไข
+#   ตามบอร์ด) ต่างจาก machine.PWM กับ machine.ADC ที่ไม่มี - เรียกได้เลยโดยไม่ต้อง try/except
 
 import lcd
 import machine

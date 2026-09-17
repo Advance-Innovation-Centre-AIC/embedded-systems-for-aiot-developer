@@ -16,7 +16,7 @@ import ui
 
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
-DEVICE_ID = "eva-team03"
+DEVICE_ID = "team03"
 API_KEY = "<api key ของทีม>"
 MQTT_PASS = "<รหัสผ่าน MQTT ของทีม>"
 BROKER = "<ชื่อโฮสต์ของแพลตฟอร์ม>"

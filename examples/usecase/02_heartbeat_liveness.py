@@ -17,13 +17,26 @@ import lcd
 import time
 import ui
 
-HB_LED = 2
+# ไฟหัวใจหาตามชื่อ ไม่ใช่ตามเลข - เลขดัชนีของ gpio.led() ต่างกันตามบอร์ดและอาจเปลี่ยนอีก
+# สีฟ้าทั้งสองบอร์ด: Dev Kit = RGB_BLUE / Eva = RGB_RED (บน Eva ชื่อ RGB_RED คือดวงสีฟ้า
+# ตารางมีแค่ LED1=แดง LED2=เขียว RGB_RED=ฟ้า - ชื่อกับสีไม่ตรงกัน เป็นของแปลกที่รู้กัน)
+HB_LED = ("RGB_BLUE", "RGB_RED")
 # ตารางจังหวะ: (ติด/ดับ, กี่มิลลิวินาที) - แก้ตารางนี้ก็ได้จังหวะใหม่ทันที
 PATTERN = ((1, 80), (0, 120), (1, 80), (0, 900))
 SAMPLE_MS = 60     # ส่งจุดขึ้นกราฟทุกกี่มิลลิวินาที (50 จุดเต็มจอใน 3 วินาที)
 LOOP_GAIN = 6      # คูณจำนวนรอบลูปก่อนวาด ให้เส้นสูงพอมองเห็น
 
-led = gpio.led(HB_LED)
+
+def led_named(*names, fallback=0):
+    """หา LED จากชื่อในตารางเฟิร์มแวร์ - เลขดัชนีต่างกันตามบอร์ด ชื่อไม่ต่าง"""
+    table = gpio.board_info()["led_names"]
+    for n in names:
+        if n in table:
+            return gpio.led(table.index(n))
+    return gpio.led(fallback)
+
+
+led = led_named(*HB_LED)
 led.off()
 
 lcd.clear()

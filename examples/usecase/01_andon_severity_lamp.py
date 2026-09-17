@@ -18,9 +18,23 @@ import sensors
 import time
 import ui
 
-LAMP_OK = 1        # LED2 สีเขียว   - เดินเครื่องปกติ
-LAMP_WARN = 2      # ดวงที่สาม      - เฝ้าดู ยังไม่ต้องหยุด
-LAMP_FAULT = 0     # LED1 สีแดง     - ต้องเข้าแก้
+# ไฟล์นี้ต้องการ "สี" ไม่ใช่ "เลขดัชนี" จึงหาดวงจากชื่อที่บอร์ดรายงาน
+# บอร์ดที่รายงานดวง RGB ครบสามสี (Dev Kit: RGB_RED / RGB_BLUE / RGB_GREEN) เชื่อชื่อได้ตรง ๆ
+# และเลขดัชนีของมันอาจถูกจัดใหม่ในเฟิร์มแวร์รุ่นหน้า ชื่อจึงเป็นที่เดียวที่ควรยึด
+# Eva Kit รายงานชื่อ RGB_RED เพียงดวงเดียว และดวงนั้นส่องสีน้ำเงินจริง ชื่อจึงใช้ไม่ได้
+# ต้องใช้ดัชนีที่วัดจากบอร์ดแทน: 0 = แดง  1 = เขียว  2 = น้ำเงิน
+LED_NAMES = gpio.board_info()["led_names"]
+
+
+def lamp(rgb_name, eva_index):
+    if "RGB_GREEN" in LED_NAMES and "RGB_BLUE" in LED_NAMES:
+        return LED_NAMES.index(rgb_name)
+    return eva_index
+
+
+LAMP_OK = lamp("RGB_GREEN", 1)     # เขียว    - เดินเครื่องปกติ
+LAMP_WARN = lamp("RGB_BLUE", 2)    # น้ำเงิน  - เฝ้าดู ยังไม่ต้องหยุด
+LAMP_FAULT = lamp("RGB_RED", 0)    # แดง      - ต้องเข้าแก้
 
 WARN_UT = 40.0     # เบี่ยงเบนจากเส้นฐานกี่ ไมโครเทสลา ถึงเรียกว่าเฝ้าดู
 FAULT_UT = 120.0   # เบี่ยงเบนเท่าไหร่ถึงเรียกว่าผิดปกติจริง

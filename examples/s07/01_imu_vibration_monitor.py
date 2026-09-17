@@ -14,6 +14,9 @@
 #   ส่วน sensors.bmi270.* ใช้ได้เลยโดยไม่ต้อง init - มันอ่านจาก snapshot ที่ CM55
 #   ส่งมาทาง IPC (modsensors.c) หลังรีเซ็ต การอ่านครั้งแรกช้าได้ถึงราว 16 วินาที
 #   และอาจโยน OSError ระหว่างนั้น - rms_window() จึงดักไว้
+# บน Dev Kit: ไม่ต้องเรียก sensors.init() เช่นกัน - เฟิร์มแวร์ปลุก BMI270 ไว้ตั้งแต่บูต
+#   และ CM33 อ่านมันตรงจาก I2C ไม่ผ่านคอร์จอ โค้ดชุดเดียวกันนี้รันได้ทั้งสองบอร์ด
+#   ส่วนไฟจราจรสามสีหาตามชื่อ ไม่ใช่ตามเลข - ดู led_named() ข้างล่างว่าทำไม
 
 import gpio
 import lcd
@@ -39,6 +42,31 @@ COL_OK = 0x30A46C
 COL_WARN = 0xF5A623
 COL_BAD = 0xE5484D
 
+# ---- ไฟจราจรสามสี: หาตามชื่อ ไม่ใช่ตามเลข ---------------------------------------
+# เลขดัชนีของ gpio.led() ต่างกันตามบอร์ด และอาจเปลี่ยนอีก ชื่อในตาราง led_names ไม่เปลี่ยน
+# ตารางที่เฟิร์มแวร์รายงาน (modgpio.c วัดจริง 2026-09-16):
+#   Eva Kit : LED1=แดง  LED2=เขียว  RGB_RED=ฟ้า   <- ชื่อ RGB_RED บน Eva คือดวงสีฟ้า
+#             (ของแปลกที่รู้กัน ชื่อกับสีไม่ตรงกัน)
+#   Dev Kit : LED1 LED2 อยู่บน SoM มองไม่เห็นบนบอร์ดประกอบ  RGB_RED RGB_BLUE RGB_GREEN
+# จึงส่งชื่อเรียงให้ตัวแรกเป็นของ Dev Kit ตัวถัดไปเป็นของ Eva - ยกเว้นสีแดง ซึ่งทั้งสอง
+# บอร์ดมีทั้ง "RGB_RED" และ "LED1" ต้องดูก่อนว่าบอร์ดมี RGB ครบสามสีไหม
+LED_NAMES = gpio.board_info()["led_names"]
+HAS_RGB = "RGB_GREEN" in LED_NAMES          # Dev Kit จริง / Eva ไม่มีชื่อนี้
+
+
+def led_named(*names, fallback=0):
+    """หา LED จากชื่อในตารางเฟิร์มแวร์ - เลขดัชนีต่างกันตามบอร์ด ชื่อไม่ต่าง"""
+    for n in names:
+        if n in LED_NAMES:
+            return gpio.led(LED_NAMES.index(n))
+    return gpio.led(fallback)
+
+
+led_alarm = led_named("RGB_RED" if HAS_RGB else "LED1")    # แดง: Dev Kit RGB_RED / Eva LED1
+led_warn = led_named("RGB_BLUE", "RGB_RED")               # ฟ้า: Dev Kit RGB_BLUE / Eva RGB_RED
+led_normal = led_named("RGB_GREEN", "LED2")               # เขียว: Dev Kit RGB_GREEN / Eva LED2
+LAMPS = (led_alarm, led_warn, led_normal)
+
 
 def rms_window():  # หนึ่งหน้าต่าง = ค่า RMS หนึ่งค่า
     # เก็บส่วนที่เบี่ยงจากแรงโน้มถ่วง แล้วหารากที่สองของค่าเฉลี่ยกำลังสอง
@@ -47,7 +75,7 @@ def rms_window():  # หนึ่งหน้าต่าง = ค่า RMS ห
         try:
             ax, ay, az, _, _, _ = sensors.bmi270.motion()
         except OSError:
-            # หลังรีเซ็ต CM55 ยังไม่พร้อมตอบ นับตัวอย่างนี้เป็นศูนย์ ไม่ใช่ปล่อยให้ตาย
+            # อ่านรอบแรกยังไม่ได้ (เซนเซอร์ยังไม่พร้อม) นับตัวอย่างนี้เป็นศูนย์ ไม่ใช่ปล่อยให้ตาย
             time.sleep_ms(GAP_MS)
             continue
         d = math.sqrt(ax * ax + ay * ay + az * az) - GRAV
@@ -152,19 +180,19 @@ while window_n < 200:
     ratio_bar.value(int(ratio * 100))
     seg.text(str(round(ratio, 1)) + "x")
 
-    for n in range(3):
-        gpio.led(n).off()
+    for lamp in LAMPS:
+        lamp.off()
 
     if ratio >= ALARM_K:
-        gpio.led(0).on()
+        led_alarm.on()
         tag = "ต้องเข้าตรวจ"
         col = COL_BAD
     elif ratio >= WARN_K:
-        gpio.led(2).on()
+        led_warn.on()
         tag = "เฝ้าดู"
         col = COL_WARN
     else:
-        gpio.led(1).on()
+        led_normal.on()
         tag = "ปกติ"
         col = COL_OK
 
@@ -179,6 +207,6 @@ while window_n < 200:
     service_ui()
     window_n += 1
 
-for n in range(3):
-    gpio.led(n).off()
-lcd.print("<span class=muted>รายงานเป็นสัดส่วนกับเส้นฐาน จึงเทียบข้ามเครื่องได้</span>")
+for lamp in LAMPS:
+    lamp.off()
+lcd.print("<span class=muted>สัดส่วนกับเส้นฐาน เทียบข้ามเครื่อง</span>")
