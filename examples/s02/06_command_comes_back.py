@@ -31,7 +31,7 @@ import mqtt
 # แก้สามบรรทัดนี้ให้ตรงกับที่ผู้สอนแจกหน้าห้อง WIFI_SSID WIFI_PASS และ TEAM
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
-TEAM = "teamXX"                   # ผู้สอนแจก team01 ถึง team12 ต้องแก้ ไม่งั้นโปรแกรมไม่ยอมรัน
+TEAM = "teamXX"                   # ผู้สอนแจก team01 ถึง team19 ต้องแก้ ไม่งั้นโปรแกรมไม่ยอมรัน
 
 # สี่บรรทัดนี้ไม่ต้องแก้ ทั้งห้องใช้ชื่อชุดเดียวกับไฟล์ 05
 BROKER = "broker.hivemq.com"      # สำรอง: "test.mosquitto.org" ถ้าผู้สอนประกาศให้เปลี่ยน

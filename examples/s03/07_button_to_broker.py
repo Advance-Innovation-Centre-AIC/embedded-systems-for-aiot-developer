@@ -32,7 +32,7 @@ import mqtt
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "broker.hivemq.com"      # สำรอง: "test.mosquitto.org"
-TEAM = "teamXX"                   # ผู้สอนแจก team01 ถึง team12 ต้องแก้ ไม่งั้นโปรแกรมไม่ยอมรัน
+TEAM = "teamXX"                   # ผู้สอนแจก team01 ถึง team19 ต้องแก้ ไม่งั้นโปรแกรมไม่ยอมรัน
 
 # สองบรรทัดนี้ห้ามแก้ ทั้งห้องต้องใช้ชื่อชุดเดียวกัน หน้าเว็บถึงหาเราเจอ
 ROOT = "bento-aiot"
