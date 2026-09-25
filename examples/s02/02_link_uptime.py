@@ -17,8 +17,8 @@ import ui
 import wifi
 
 # แก้สองบรรทัดนี้ให้ตรงกับเครือข่ายที่ผู้สอนแจก
-WIFI_SSID = "AIoT-Class"
-WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
+WIFI_SSID = "bento-teamXX"            # ชื่อ Hotspot มือถือของทีม (WiFi คณะต้อง login บอร์ดใช้ไม่ได้)
+WIFI_PASS = "<รหัส Hotspot ของทีม>"     # อย่างน้อย 8 ตัว
 
 WATCH_MS = 30000     # เฝ้าดูลิงก์นานเท่าไร
 TICK_MS = 1000       # ถามซ้ำทุกกี่ ms

@@ -37,8 +37,8 @@ import wifi
 import tesaiot
 
 # แก้ให้ตรงกับที่ผู้สอนแจกหน้าห้อง
-WIFI_SSID = "AIoT-Class"
-WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
+WIFI_SSID = "bento-teamXX"            # ชื่อ Hotspot มือถือของทีม (WiFi คณะต้อง login บอร์ดใช้ไม่ได้)
+WIFI_PASS = "<รหัส Hotspot ของทีม>"     # อย่างน้อย 8 ตัว
 DEVICE_ID = "team03"
 
 # ชื่อ broker ของแพลตฟอร์มที่รับ TLS ผู้สอนแจกในคาบ 10 ปล่อยว่างไว้จนถึงวันนั้น

@@ -29,8 +29,8 @@ import wifi
 import mqtt
 
 # แก้สี่บรรทัดนี้ให้ตรงกับที่ผู้สอนแจกหน้าห้อง
-WIFI_SSID = "AIoT-Class"
-WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
+WIFI_SSID = "bento-teamXX"            # ชื่อ Hotspot มือถือของทีม (WiFi คณะต้อง login บอร์ดใช้ไม่ได้)
+WIFI_PASS = "<รหัส Hotspot ของทีม>"     # อย่างน้อย 8 ตัว
 BROKER = "broker.hivemq.com"      # สำรอง: "test.mosquitto.org"
 TEAM = "teamXX"                   # ผู้สอนแจก team01 ถึง team19 ต้องแก้ ไม่งั้นโปรแกรมไม่ยอมรัน
 
