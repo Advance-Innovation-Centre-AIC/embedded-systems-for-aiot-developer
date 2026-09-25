@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>อ่านค่าจากบอร์ด</title>
+<style>
+  :root { --bg: #f6f6f3; --card: #ffffff; --ink: #1d1d1b; --dim: #6b6b66; --ok: #1f7a4d; --bad: #b3261e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161615; --card: #232321; --ink: #ededea; --dim: #9a9a94; --ok: #5cc08c; --bad: #f08a80; }
+  }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  #values { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .box, #event { background: var(--card); border-radius: 10px; padding: 12px; overflow-wrap: anywhere; }
+  .name { color: var(--dim); font-size: 14px; overflow-wrap: anywhere; }
+  #status, #event { overflow-wrap: anywhere; }
+  .num { font-size: 40px; font-weight: 700; overflow-wrap: anywhere; }
+  button { font-size: 16px; padding: 10px 14px; margin: 4px 4px 0 0; }
+</style>
+</head>
+<body>
+<h1>บอร์ดของเรา</h1>
+<p>สถานะ: <b id="status">กำลังต่อ...</b></p>
+<div id="values"></div>
+<p>เหตุการณ์ล่าสุด:</p>
+<div id="event">(ยังไม่มี)</div>
+<p>
+  <button onclick="send({ cmd: 'beep' })">ส่งเสียงบี๊บ</button>
+  <button onclick="send({ cmd: 'led', n: 0, on: 1 })">เปิดไฟ LED 0</button>
+  <button onclick="send({ cmd: 'led', n: 0, on: 0 })">ปิดไฟ LED 0</button>
+</p>
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.16.0/dist/mqtt.min.js"
+        integrity="sha384-9WWboT9UtuPFRlOLq4FygQkcJxzYcpz8SXGkNyCEXM+44n14xzjNlrRKYZwuF/A6" crossorigin="anonymous"></script>
+<script>
+// ----- แก้ตรงนี้ -----
+const BROKER_URL = "wss://broker.hivemq.com:8884/mqtt";
+// สำรอง ถ้าตัวบนต่อไม่ได้: "wss://test.mosquitto.org:8081/mqtt"
+let TEAM = "teamXX";          // ทีมของคุณ ตามที่อาจารย์แจก เช่น "team05"
+const ROOT = "bento-aiot";    // ชื่อนำหน้าของทั้งห้อง ไม่ต้องแก้
+// ----------------------
+
+// ถ้าเปิดจากเว็บ ใส่ทีมท้ายลิงก์ได้เลย เช่น my_first_reader.html?team=team05
+const fromUrl = new URLSearchParams(location.search).get("team");
+if (fromUrl) TEAM = fromUrl;
+const statusEl = document.getElementById("status");
+// รับเฉพาะ team01..team99 (team00 เป็นบอร์ดของอาจารย์) ไม่ใช่ก็หยุดตรงนี้ ไม่ต่อโบรกเกอร์เลย
+if (!/^team\d{2}$/.test(TEAM) || TEAM === "team00") {
+  statusEl.textContent = "ยังไม่รู้ว่าคุณทีมไหน ใส่ ?team=team05 ต่อท้ายลิงก์ (เปลี่ยน 05 เป็นเลขทีมคุณ) หรือแก้ TEAM ในไฟล์";
+  statusEl.style.color = "var(--bad)";
+  throw new Error("TEAM not set");
+}
+// client id สุ่มใหม่ทุกครั้ง ถ้าซ้ำกับบอร์ด โบรกเกอร์จะเตะบอร์ดหลุด
+const client = mqtt.connect(BROKER_URL, { clientId: "web-" + Math.random().toString(16).slice(2, 10) });
+
+client.on("connect", () => {
+  statusEl.textContent = "ต่อแล้ว (" + ROOT + "/" + TEAM + ")";
+  statusEl.style.color = "var(--ok)";
+  client.subscribe(ROOT + "/" + TEAM + "/#");   // ฟังเฉพาะทีมเรา ไม่ฟัง # ของทั้งโบรกเกอร์
+});
+client.on("close", () => { statusEl.textContent = "หลุด กำลังต่อใหม่..."; statusEl.style.color = "var(--bad)"; });
+client.on("error", (err) => { statusEl.textContent = "ผิดพลาด: " + err.message; });
+
+client.on("message", (topic, payload) => {
+  const text = payload.toString();
+  let data = null;
+  try { data = JSON.parse(text); } catch (e) { /* ไม่ใช่ JSON ก็แสดงเป็นข้อความดิบ */ }
+  if (topic.endsWith("/telemetry")) showValues(data, text);
+  else if (topic.endsWith("/event")) document.getElementById("event").textContent = text.slice(0, 200);
+});
+
+// วาดกล่องหนึ่งกล่องต่อหนึ่ง key จะเป็น knob, az, presses หรืออะไรก็ได้
+function showValues(data, text) {
+  const values = document.getElementById("values");
+  values.replaceChildren();
+  if (data === null || typeof data !== "object") data = { raw: text };
+  for (const key of Object.keys(data).slice(0, 20)) {    // ไม่เกิน 20 ช่อง กันคนส่งมาเป็นพัน
+    const box = document.createElement("div"), name = document.createElement("div"), num = document.createElement("div");
+    box.className = "box"; name.className = "name"; num.className = "num";
+    name.textContent = key;
+    num.textContent = String(data[key]).slice(0, 40);   // textContent ปลอดภัย ใครส่งอะไรมาก็ไม่รันเป็นโค้ด
+    box.append(name, num);
+    values.append(box);
+  }
+}
+
+function send(obj) {
+  client.publish(ROOT + "/" + TEAM + "/cmd", JSON.stringify(obj));
+}
+
+/* ----- ตาคุณ -----
+ 1. ให้ตัวเลขเปลี่ยนเป็นสีแดงเมื่อค่าเกินเกณฑ์ เช่น knob เกิน 80
+    ใบ้: ใน showValues ถ้า key === "knob" && data[key] > 80 ให้ตั้ง num.style.color
+ 2. แสดงว่า "ข้อความล่าสุดมาเมื่อ N วินาทีก่อน" เพื่อรู้ว่าบอร์ดเงียบไปแล้ว
+    ใบ้: จำเวลาไว้ตอนได้ข้อความ แล้วใช้ setInterval อัปเดตทุกวินาที
+    หมายเหตุ: เฟิร์มแวร์เก็บข้อความค้างไว้ที่โบรกเกอร์ไม่ได้ (ไม่มี retain)
+    เปิดหน้าใหม่จะว่างจนกว่าบอร์ดจะส่งรอบถัดไป เป็นเรื่องปกติ
+ 3. เพิ่มปุ่มเปิด/ปิด LED ดวงอื่น เช่น n: 1
+*/
+</script>
+</body>
+</html>

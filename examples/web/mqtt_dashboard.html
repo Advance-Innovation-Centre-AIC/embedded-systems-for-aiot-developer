@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แดชบอร์ดทั้งห้อง</title>
+<style>
+  :root {
+    --bg: #f4f4f1; --card: #ffffff; --line: #deded8; --ink: #1d1d1b; --dim: #6b6b66;
+    --ok: #1f7a4d; --bad: #b3261e; --accent: #1f5fa8; --mono: ui-monospace, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #151514; --card: #222220; --line: #3a3a37; --ink: #ecece8; --dim: #9a9a94;
+            --ok: #5cc08c; --bad: #f08a80; --accent: #7fb0ea; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  h1 { font-size: 22px; margin: 0 0 12px; }
+  h2 { font-size: 17px; margin: 20px 0 8px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  select, input, button, textarea { font: inherit; font-size: 15px; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); max-width: 100%; }
+  button { cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  #status { font-weight: 600; }
+  #teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .team { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; transition: opacity .3s; }
+  .team.stale { opacity: .45; }
+  .team { min-width: 0; overflow-wrap: anywhere; }
+  .team h3 { margin: 0 0 6px; font-size: 18px; display: flex; justify-content: space-between; gap: 8px; }
+  #status, #sendMsg { overflow-wrap: anywhere; }
+  .seen { font-size: 13px; color: var(--dim); font-weight: normal; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 15px; }
+  .kv .k { color: var(--dim); }
+  .kv .v { font-weight: 600; font-family: var(--mono); overflow-wrap: anywhere; }
+  .ev { margin-top: 8px; font-size: 13px; color: var(--dim); font-family: var(--mono); overflow-wrap: anywhere; }
+  #log { background: var(--card); border: 1px solid var(--line); border-radius: 10px; height: 280px; overflow-y: auto;
+    font-family: var(--mono); font-size: 13px; padding: 8px; }
+  .row { padding: 3px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+  .row .t { color: var(--dim); }
+  .row .tp { color: var(--accent); }
+  .row.out .tp { color: var(--ok); }
+  textarea { width: 100%; min-height: 70px; font-family: var(--mono); }
+  #sendMsg { font-size: 14px; }
+  .empty { color: var(--dim); }
+</style>
+</head>
+<body>
+<h1>แดชบอร์ดทั้งห้อง</h1>
+
+<div class="bar">
+  <label>โบรกเกอร์
+    <select id="broker">
+      <option value="wss://broker.hivemq.com:8884/mqtt">HiveMQ (หลัก)</option>
+      <option value="wss://test.mosquitto.org:8081/mqtt">Mosquitto (สำรอง)</option>
+      <option value="wss://broker.emqx.io:8084/mqtt">EMQX (สำรองที่ 2)</option>
+    </select>
+  </label>
+  <label>ROOT <input id="root" value="bento-aiot" size="12" autocomplete="off"></label>
+  <button id="connectBtn" class="primary">เชื่อมต่อ</button>
+  <span id="status">ยังไม่ได้ต่อ</span>
+</div>
+
+<h2>ทีม</h2>
+<div id="teams"><p class="empty">ยังไม่มีข้อมูล บอร์ดส่งค่าทุก 1-2 วินาที เปิดหน้าแล้วรอสักครู่</p></div>
+
+<h2>ส่งคำสั่ง</h2>
+<div class="bar">
+  <label>ทีม <input id="team" value="teamXX" size="8" list="teamList" autocomplete="off"></label>
+  <datalist id="teamList"></datalist>
+  <button data-cmd='{"cmd":"beep"}'>บี๊บ</button>
+  <label>LED <input id="ledN" type="number" value="0" min="0" max="7" style="width:4.5em"></label>
+  <button id="ledOn">เปิด</button>
+  <button id="ledOff">ปิด</button>
+</div>
+<div class="bar" style="margin-top:8px">
+  <input id="sayText" placeholder="ข้อความให้บอร์ดแสดง" style="flex:1; min-width:160px" maxlength="100">
+  <button id="sayBtn">ส่งข้อความ (say)</button>
+</div>
+<p style="margin:10px 0 4px">หรือพิมพ์ JSON เอง</p>
+<textarea id="freeJson" spellcheck="false">{"cmd":"led","n":1,"on":1}</textarea>
+<div class="bar" style="margin-top:6px">
+  <button id="freeBtn">ส่ง JSON</button>
+  <span id="sendMsg"></span>
+</div>
+
+<h2>ข้อความล่าสุด <span class="seen">(เก็บ 200 บรรทัดสุดท้าย)</span></h2>
+<div class="bar" style="margin-bottom:6px"><button id="clearLog">ล้าง</button>
+  <label><input id="pause" type="checkbox"> หยุดเลื่อน</label></div>
+<div id="log"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.16.0/dist/mqtt.min.js"
+        integrity="sha384-9WWboT9UtuPFRlOLq4FygQkcJxzYcpz8SXGkNyCEXM+44n14xzjNlrRKYZwuF/A6" crossorigin="anonymous"></script>
+<script>
+// โบรกเกอร์สาธารณะ ใครก็ส่งอะไรมาก็ได้
+// เพราะฉะนั้นทุกอย่างที่มาจากข้อความ ใส่หน้าเว็บด้วย textContent เท่านั้น ห้ามใช้ innerHTML
+const MAX_LOG = 200;          // เก็บ log กี่บรรทัด
+const MAX_SHOW = 300;         // ตัดข้อความยาวเกินกี่ตัวอักษร
+const STALE_SEC = 10;         // เงียบเกินกี่วินาทีถึงจะทำให้การ์ดจาง
+const TEAM_OK = /^team\d{2}$/;             // การ์ดรับเฉพาะชื่อทีมแบบที่ผู้สอนแจก team00..team99
+const SEND_OK = /^(team\d{2}|all)$/;       // ส่งได้ถึงทีมเดียว หรือ all = ทุกบอร์ดในห้อง
+const ROOT_OK = /^[A-Za-z0-9_-]{1,40}$/;
+
+const $ = (id) => document.getElementById(id);
+let client = null;
+let root = "bento-aiot";
+const teams = new Map();      // ชื่อทีม -> { card, kv, ev, seen, last }
+// เปิดด้วย ?team=team05 จะเลือกทีมในช่องส่งคำสั่งให้เลย
+const qsTeam = new URLSearchParams(location.search).get("team");
+if (qsTeam && SEND_OK.test(qsTeam)) $("team").value = qsTeam;
+
+function clip(s) { return s.length > MAX_SHOW ? s.slice(0, MAX_SHOW) + " ...(ตัด)" : s; }
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function setStatus(text, color) { $("status").textContent = text; $("status").style.color = color || ""; }
+
+function connect() {
+  if (client) client.end(true);
+  root = $("root").value.trim() || "bento-aiot";
+  if (!ROOT_OK.test(root)) { setStatus("ROOT ใช้ได้แค่ a-z 0-9 _ -", "var(--bad)"); return; }
+  const url = $("broker").value;
+  setStatus("กำลังต่อ " + url + " ...");
+  // client id สุ่ม ไม่ให้ชนกับบอร์ดหรือแท็บอื่น
+  client = mqtt.connect(url, { clientId: "web-" + Math.random().toString(16).slice(2, 10), reconnectPeriod: 3000 });
+  client.on("connect", () => {
+    setStatus("ต่อแล้ว", "var(--ok)");
+    // ฟังเฉพาะ telemetry กับ event ของทุกทีม ไม่ subscribe '#'
+    client.subscribe([root + "/+/telemetry", root + "/+/event"]);
+  });
+  client.on("reconnect", () => setStatus("กำลังต่อใหม่...", "var(--bad)"));
+  client.on("close", () => setStatus("หลุด", "var(--bad)"));
+  client.on("error", (err) => setStatus("ผิดพลาด: " + String(err.message).slice(0, 120), "var(--bad)"));
+  client.on("message", onMessage);
+}
+
+function onMessage(topic, payload) {
+  const text = payload.toString();
+  addLog(topic, text, false);
+  const parts = topic.split("/");
+  if (parts.length !== 3 || parts[0] !== root || !TEAM_OK.test(parts[1])) return;
+  const t = getTeam(parts[1]);
+  t.last = Date.now();
+  let data = null;
+  try { data = JSON.parse(text); } catch (e) { /* ไม่ใช่ JSON */ }
+  if (parts[2] === "telemetry") {
+    t.kv.replaceChildren();
+    if (data === null || typeof data !== "object" || Array.isArray(data)) data = { raw: text };
+    let count = 0;
+    for (const key of Object.keys(data)) {
+      if (++count > 20) break;                 // กันคนส่ง key มาเป็นพัน
+      const v = typeof data[key] === "object" ? JSON.stringify(data[key]) : String(data[key]);
+      t.kv.append(el("span", "k", clip(key).slice(0, 24)), el("span", "v", clip(v).slice(0, 60)));
+    }
+  } else {
+    t.ev.textContent = "event: " + clip(text);
+  }
+  refreshSeen();
+}
+
+function getTeam(name) {
+  if (teams.has(name)) return teams.get(name);
+  if (teams.size === 0) $("teams").replaceChildren();
+  if (teams.size >= 60) return { kv: el("div"), ev: el("div"), seen: el("span") };   // กันการ์ดล้นจอ
+  const card = el("div", "team");
+  const h = el("h3");
+  const seen = el("span", "seen");
+  h.append(el("span", "", name), seen);
+  const kv = el("div", "kv");
+  const ev = el("div", "ev");
+  card.append(h, kv, ev);
+  card.addEventListener("click", () => { $("team").value = name; });
+  // เรียงการ์ดตามชื่อทีม
+  const after = [...teams.keys()].sort().find((k) => k > name);
+  $("teams").insertBefore(card, after ? teams.get(after).card : null);
+  const opt = el("option"); opt.value = name; $("teamList").append(opt);
+  const t = { card, kv, ev, seen, last: 0 };
+  teams.set(name, t);
+  return t;
+}
+
+function refreshSeen() {
+  const now = Date.now();
+  for (const t of teams.values()) {
+    if (!t.card) continue;
+    const sec = Math.round((now - t.last) / 1000);
+    t.seen.textContent = sec + " วินาทีก่อน";
+    t.card.classList.toggle("stale", sec > STALE_SEC);
+  }
+}
+setInterval(refreshSeen, 1000);
+
+function addLog(topic, text, outgoing) {
+  const row = el("div", outgoing ? "row out" : "row");
+  row.append(el("span", "t", new Date().toLocaleTimeString("th-TH") + " "),
+             el("span", "tp", (outgoing ? "ส่ง -> " : "") + clip(topic)), document.createTextNode(" " + clip(text)));
+  const log = $("log");
+  log.append(row);
+  while (log.childElementCount > MAX_LOG) log.firstElementChild.remove();
+  if (!$("pause").checked) log.scrollTop = log.scrollHeight;
+}
+
+function send(obj) {
+  const team = $("team").value.trim();
+  if (!SEND_OK.test(team)) { showSend("ใส่ทีมเป็น team ตามด้วยเลขสองหลัก เช่น team05 (หรือ all = ทุกบอร์ด)", true); return; }
+  if (!client || !client.connected) { showSend("ยังไม่ได้เชื่อมต่อ", true); return; }
+  const topic = root + "/" + team + "/cmd";
+  const text = JSON.stringify(obj);
+  // บอร์ดรับ payload ได้ไม่เกิน 255 ไบต์ ยาวกว่านั้นถูกตัด
+  if (new TextEncoder().encode(text).length > 255) { showSend("ยาวเกิน 255 ไบต์ บอร์ดจะได้ไม่ครบ", true); return; }
+  client.publish(topic, text);
+  addLog(topic, text, true);
+  showSend("ส่งแล้ว: " + text, false);
+}
+function showSend(msg, bad) { $("sendMsg").textContent = msg; $("sendMsg").style.color = bad ? "var(--bad)" : "var(--ok)"; }
+
+function ledN() { return Math.max(0, parseInt($("ledN").value, 10) || 0); }
+document.querySelectorAll("button[data-cmd]").forEach((b) =>
+  b.addEventListener("click", () => send(JSON.parse(b.dataset.cmd))));
+$("ledOn").addEventListener("click", () => send({ cmd: "led", n: ledN(), on: 1 }));
+$("ledOff").addEventListener("click", () => send({ cmd: "led", n: ledN(), on: 0 }));
+$("sayBtn").addEventListener("click", () => send({ cmd: "say", text: $("sayText").value }));
+$("freeBtn").addEventListener("click", () => {
+  let obj;
+  // ตรวจ JSON ก่อนส่ง ถ้าพิมพ์ผิดจะบอก ไม่ส่งของเสียออกไป
+  try { obj = JSON.parse($("freeJson").value); } catch (e) { showSend("JSON ไม่ถูกต้อง: " + e.message, true); return; }
+  if (obj === null || typeof obj !== "object" || Array.isArray(obj)) { showSend("ต้องเป็น object เช่น {\"cmd\":\"beep\"}", true); return; }
+  send(obj);
+});
+$("connectBtn").addEventListener("click", connect);
+$("clearLog").addEventListener("click", () => $("log").replaceChildren());
+connect();
+</script>
+</body>
+</html>

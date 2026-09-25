@@ -8,9 +8,17 @@
 #             ลูปจึงต้องถามซ้ำเรื่อย ๆ และห้ามหลับยาว เพราะกล่องรับมีช่องเดียว
 #             ข้อความใบที่สองที่มาถึงก่อนเราหยิบใบแรก จะทับใบแรกทิ้งไปเลย
 # ดูที่จอ   : สถานะสายอยู่บนสุด ตัวนับข้อความที่ได้รับ และคำสั่งล่าสุดตัวใหญ่
-#             พิมพ์ {"cmd":"beep"} ส่งเข้าหัวข้อที่จอบอก แล้วบอร์ดจะร้องทันที
+#             กดปุ่มส่งเสียงบนหน้าเว็บ examples/web/my_first_reader.html
+#             ซึ่งส่ง {"cmd":"beep"} เข้าหัวข้อที่จอบอก แล้วบอร์ดจะร้องทันที
 # กับดัก    : payload ที่ได้มาเป็น bytes ไม่ใช่ str ต้อง .decode() ก่อนเสมอ
 #             และคนส่งพิมพ์มั่วได้ ข้อความที่ไม่ใช่ JSON ต้องไม่ทำให้ทั้งโปรแกรมตาย
+#
+# วันนี้ broker คือ broker.hivemq.com ซึ่งเป็นของสาธารณะ ไม่มีรหัสผ่าน
+# ใครบนอินเทอร์เน็ตที่รู้ชื่อหัวข้อก็ส่งคำสั่งเข้ามาได้ ไม่ใช่แค่หน้าเว็บของทีม
+# การไม่เชื่อคนส่งในไฟล์นี้จึงไม่ใช่มารยาท มันคือสิ่งเดียวที่กั้นบอร์ดเราไว้
+#
+# สถานะการทดสอบ (2026-09-24): วัดเวลาไปกลับของ broker จาก Mac บนโต๊ะแล้ว
+# แต่ยังไม่มีใครรันไฟล์นี้บนบอร์ดกับ broker.hivemq.com และยังไม่ได้ลองจากเน็ตของมหาวิทยาลัย
 
 import gpio
 import json
@@ -20,14 +28,20 @@ import ui
 import wifi
 import mqtt
 
-# แก้ห้าบรรทัดนี้ให้ตรงกับที่ผู้สอนแจกหน้าห้อง
+# แก้สามบรรทัดนี้ให้ตรงกับที่ผู้สอนแจกหน้าห้อง WIFI_SSID WIFI_PASS และ TEAM
 WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
-BROKER = "192.168.1.50"
-DEVICE_ID = "team03"
-TOPIC_CMD = "bento/team03/cmd"
+TEAM = "teamXX"                   # ผู้สอนแจก team01 ถึง team12 ต้องแก้ ไม่งั้นโปรแกรมไม่ยอมรัน
 
-LISTEN_MS = 60000    # เปิดฟังนานเท่าไร
+# สี่บรรทัดนี้ไม่ต้องแก้ ทั้งห้องใช้ชื่อชุดเดียวกับไฟล์ 05
+BROKER = "broker.hivemq.com"      # สำรอง: "test.mosquitto.org" ถ้าผู้สอนประกาศให้เปลี่ยน
+ROOT = "bento-aiot"               # ชื่อนำหน้าของทั้งห้อง
+DEVICE_ID = "bento-aiot-" + TEAM  # client_id ต้องไม่ซ้ำกับใครบน broker ทั้งโลก
+TOPIC_CMD = ROOT + "/" + TEAM + "/cmd"
+
+# เปิดฟังนาน 15 นาที พอสำหรับเกมทั้งห้องสองเกมของคาบนี้ (ข้อความถึงบอร์ดหน้าห้อง
+# และส่งต่อข้อความรอบห้อง) ถ้าฟังสั้นกว่านี้ โซ่ส่งต่อจะขาดเงียบ ๆ ที่ทีมที่เริ่มรันก่อน
+LISTEN_MS = 900000
 POLL_MS = 100        # ถามกล่องรับถี่แค่ไหน ยิ่งห่างยิ่งเสี่ยงข้อความทับกัน
 
 # จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13
@@ -62,7 +76,8 @@ last_lbl = ui.Label("ยังไม่มีคำสั่งเข้าม�
 # ขยายเป็น 64 เพราะไอคอน 48 อ่านไม่ออกจากระยะยืน และมันคือสัญญาณหลักของจอนี้
 img = ui.Image("smiley", x=560, y=192, w=64, h=64, color=COL_DIM)
 
-# ป้ายหัวข้อวางเรียงแนวนอนกับค่าของมัน เพื่อเหลือแถวล่างไว้ให้บรรทัดสถานะสองใบ
+# ป้ายหัวข้อวางเรียงแนวนอนกับค่าของมัน
+# ค่ายาวสุดคือ "bento-aiot/team03/cmd" 21 ตัวอักษร ที่ขนาด 20 ราว 230 px จาก x=224 เพื่อเหลือแถวล่างไว้ให้บรรทัดสถานะสองใบ
 ui.Label("หัวข้อที่ฟังอยู่", x=24, y=272, color=COL_DIM, value=16)
 topic_lbl = ui.Label("ยังไม่ได้ subscribe", x=224, y=272, color=COL_DIM,
                      value=20)
@@ -90,6 +105,12 @@ def stop_here(screen_msg, log_msg):
     raise SystemExit
 
 
+# client_id สร้างจาก TEAM ถ้าใช้ชื่อทีมคนอื่น broker จะเตะบอร์ดของทีมนั้นหลุด
+# และเฟิร์มแวร์ไม่ต่อใหม่เอง จึงไม่ยอมรันจนกว่าจะแก้ teamXX เป็นเลขทีมจริง
+# team00 ผ่านได้ในไฟล์นี้ เพราะเป็นชื่อบอร์ดหน้าห้องของผู้สอนในกิจกรรม A1
+if len(TEAM) != 6 or TEAM[:4] != "team" or not TEAM[4:].isdigit():
+    stop_here("ยังไม่ได้ตั้งชื่อทีม", "แก้ TEAM เป็นเลขทีมของคุณก่อน เช่น team03")
+
 # --- ต่อ WiFi ---
 status.color(COL_WARN)
 status.text("กำลังต่อ WiFi จอจะนิ่งสักครู่")
@@ -98,9 +119,13 @@ lcd.print("กำลังต่อ WiFi", WIFI_SSID)
 
 if not wifi.connect(WIFI_SSID, WIFI_PASS):
     heard = False
-    for net in wifi.scan():
-        if net[0] == WIFI_SSID:
-            heard = True
+    try:
+        for net in wifi.scan():
+            if net[0] == WIFI_SSID:
+                heard = True
+    except OSError:
+        # scan() เองก็ล้มได้ ไม่ใช่เหตุให้โปรแกรมตายก่อนบอกเหตุผลบนจอ
+        pass
     if heard:
         why = "ได้ยินวง " + WIFI_SSID + " แต่ต่อไม่ผ่าน ตรวจรหัสผ่าน"
     else:
@@ -120,10 +145,13 @@ lcd.print("<span class=ok>ได้ IP", ip, "</span>")
 try:
     linked = mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID, keepalive=60)
 except OSError:
-    stop_here("broker ไม่ตอบ", "broker ที่ " + BROKER + " ไม่ตอบ")
+    # connect() โยน OSError เฉพาะตอนชั้น WiFi ของบอร์ดเองยังไม่พร้อม
+    stop_here("ต่อ broker ไม่ได้", "ชั้น WiFi ของบอร์ดไม่พร้อม ลองรันใหม่")
 
 if not linked:
-    stop_here("broker ปฏิเสธ", "ตรวจ IP ของ broker และพอร์ต 1883")
+    # เน็ตกันพอร์ต 1883 แปลงชื่อไม่ได้ หรือ broker ล่ม connect() คืน False ทั้งหมด
+    stop_here("broker ไม่ตอบ",
+              BROKER + " ไม่ตอบ: เน็ตกันพอร์ต 1883 หรือชื่อผิด")
 
 # --- ขอฟังหัวข้อ ---
 # subscribe() ต้องมาหลัง connect() เสมอ ขอฟังก่อนต่อคือขอกับคนที่ยังไม่ได้คุยด้วย
@@ -138,11 +166,11 @@ topic_lbl.text(TOPIC_CMD)
 status.color(COL_OK)
 status.text("พร้อมรับคำสั่งแล้ว")
 note.color(COL_DIM)
-note.text('ลองส่ง {"cmd":"beep"} เข้าหัวข้อข้างบน')
+note.text("กดปุ่มบนหน้าเว็บของทีม แล้วดูจอนี้")
 ui.poll()
 
 lcd.print("<span class=ok>ฟังหัวข้อ", TOPIC_CMD, "อยู่</span>")
-lcd.print('ลองส่ง {"cmd":"beep"} หรือ {"cmd":"led","n":0}')
+lcd.print('หน้าเว็บส่ง {"cmd":"beep"} หรือ {"cmd":"led","n":0,"on":1}')
 
 t0 = time.ticks_ms()
 got = 0
@@ -175,6 +203,17 @@ while True:
             img.icon("cross")
             img.color(COL_BAD)
             lcd.print("<span class=error>ได้ของที่ไม่ใช่ JSON:", raw, "</span>")
+            cmd = {}
+
+        # JSON ที่ถูกต้องอาจไม่ใช่ object ก็ได้ เช่น 5 null [] "x"
+        # ถ้าไม่กันไว้ บรรทัด .get() ข้างล่างจะโยน AttributeError แล้วโปรแกรมตาย
+        if not isinstance(cmd, dict):
+            bad = bad + 1
+            last_lbl.color(COL_BAD)
+            last_lbl.text("ไม่ใช่ JSON object")
+            img.icon("cross")
+            img.color(COL_BAD)
+            lcd.print("<span class=error>ได้ JSON ที่ไม่ใช่ object:", raw, "</span>")
             cmd = {}
 
         # .get() แทนการเข้าถึงคีย์ตรง ๆ เพราะ JSON ที่ถูกต้องแต่ไม่มีคีย์ cmd ก็มีได้
@@ -262,6 +301,7 @@ lcd.print("<span class=ok>ได้รับ", got, "ใบ | ใช้ไม่
 print("ได้รับ", got, "ใบ | ใช้ไม่ได้", bad, "ใบ")
 
 # ----- ตาคุณ แก้แล้วรันใหม่ -----
-# ตั้ง POLL_MS = 3000 แล้วรันใหม่ จากนั้นยิงคำสั่งเข้ามาสามใบรวดภายในวินาทีเดียว
+# ตั้ง POLL_MS = 3000 แล้วรันใหม่ จากนั้นกดปุ่มบนหน้าเว็บ examples/web/my_first_reader.html
+# สามครั้งรวดภายในวินาทีเดียว
 # แล้วนับว่าตัวเลขบนจอขึ้นกี่ใบ เทียบกับที่คุณส่งไปจริงสามใบ
 # ใบ้: กล่องรับมีช่องเดียว ใบที่มาถึงตอนที่ช่องยังไม่ว่าง ไม่ได้ไปต่อคิว มันทับของเดิม

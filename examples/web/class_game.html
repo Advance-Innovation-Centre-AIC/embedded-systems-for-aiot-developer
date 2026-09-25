@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เกมกดเร็วทั้งห้อง</title>
+<style>
+  :root {
+    --bg: #f4f4f1; --card: #ffffff; --line: #deded8; --ink: #1d1d1b; --dim: #6b6b66;
+    --ok: #1f7a4d; --bad: #b3261e; --warn: #9a5b00; --accent: #1f5fa8; --mono: ui-monospace, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #151514; --card: #222220; --line: #3a3a37; --ink: #ecece8; --dim: #9a9a94;
+            --ok: #5cc08c; --bad: #f08a80; --warn: #f0b060; --accent: #7fb0ea; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+  h1 { font-size: 22px; margin: 0 0 12px; }
+  h2 { font-size: 17px; margin: 22px 0 8px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  select, input, button { font: inherit; font-size: 15px; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); max-width: 100%; }
+  button { cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  #status, #sendMsg { font-weight: 600; overflow-wrap: anywhere; }
+  .stage { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-top: 14px; }
+  .stage .top { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between; }
+  #roundNo { font-size: 40px; font-weight: 700; font-family: var(--mono); }
+  #phase { font-size: 24px; font-weight: 700; overflow-wrap: anywhere; }
+  #goBtn { font-size: 22px; padding: 14px 26px; }
+  .meter { height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; margin: 10px 0 4px; }
+  .meter > div { height: 100%; width: 0; background: var(--accent); transition: width .2s linear; }
+  .meter.goal > div { background: var(--ok); }
+  .small { font-size: 13px; color: var(--dim); overflow-wrap: anywhere; }
+  .board { display: grid; gap: 4px; }
+  .row { display: grid; grid-template-columns: 2.2em minmax(4.5em, 1fr) minmax(5em, 1.2fr) minmax(3.5em, .8fr) minmax(0, 1.6fr);
+         gap: 6px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  .row > span { min-width: 0; overflow-wrap: anywhere; }
+  .row.head { background: transparent; border: none; font-size: 13px; color: var(--dim); padding: 0 10px; }
+  .row .ms { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+  .row.win { border-color: var(--ok); border-width: 2px; }
+  .row .fs { color: var(--bad); font-weight: 600; }
+  .row .miss { color: var(--warn); font-weight: 600; }
+  .row .sus { color: var(--dim); font-style: italic; }
+  #wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+  .team { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; transition: opacity .3s; min-width: 0; }
+  .team.stale { opacity: .45; }
+  .team h3 { margin: 0 0 4px; font-size: 17px; display: flex; justify-content: space-between; gap: 6px; }
+  .team .big { font-family: var(--mono); font-size: 26px; font-weight: 700; }
+  .seen { font-size: 12px; color: var(--dim); font-weight: normal; }
+  .empty { color: var(--dim); }
+  @media (max-width: 520px) {
+    .row { grid-template-columns: 1.8em minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, .8fr); }
+    .row > span:nth-child(5) { grid-column: 2 / -1; font-size: 13px; }
+    .row.head > span:nth-child(5) { display: none; }
+    #roundNo { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+<h1>เกมกดเร็วทั้งห้อง</h1>
+
+<div class="bar">
+  <label>โบรกเกอร์
+    <select id="broker">
+      <option value="wss://broker.hivemq.com:8884/mqtt">HiveMQ (หลัก)</option>
+      <option value="wss://test.mosquitto.org:8081/mqtt">Mosquitto (สำรอง)</option>
+    </select>
+  </label>
+  <label>ROOT <input id="root" value="bento-aiot" size="12" autocomplete="off"></label>
+  <button id="connectBtn">เชื่อมต่อ</button>
+  <span id="status">ยังไม่ได้ต่อ</span>
+</div>
+
+<div class="stage">
+  <div class="top">
+    <div><span class="small">รอบที่</span> <span id="roundNo">0</span></div>
+    <button id="goBtn" class="primary" disabled>เริ่มรอบ</button>
+  </div>
+  <div id="phase">ต่อ broker ก่อน แล้วกดเริ่มรอบ</div>
+  <div class="meter"><div id="roundBar"></div></div>
+  <div class="bar">
+    <button id="resendBtn" disabled>ส่งคำสั่งรอบนี้ซ้ำ</button>
+    <span id="sendMsg" class="small"></span>
+  </div>
+  <p class="small">บอร์ดแต่ละทีมสุ่มเวลารอของตัวเอง 1.5 ถึง 4 วินาทีหลังได้คำสั่ง แล้วจับเวลาจากไฟติดถึงนิ้วกดบนบอร์ดเอง
+    จอนี้แค่เรียงผล ไม่ได้เป็นคนจับเวลา</p>
+</div>
+
+<h2>ผลรอบนี้</h2>
+<div id="results" class="board"><p class="empty">ยังไม่มีรอบ</p></div>
+
+<h2>สถิติทั้งวัน</h2>
+<div id="totals" class="board"><p class="empty">ยังไม่มีผล</p></div>
+
+<h2>ทั้งห้องร่วมกันกด</h2>
+<div class="bar">
+  <span>รวม <b id="sum">0</b> / </span>
+  <label><input id="goal" type="number" value="300" min="10" max="100000" style="width:6.5em"> ครั้ง</label>
+</div>
+<div class="meter goal"><div id="goalBar"></div></div>
+<p class="small">นับจากช่อง presses ใน telemetry ล่าสุดของทุกทีม บอร์ดที่รันโปรแกรมใหม่จะเริ่มนับจากศูนย์</p>
+
+<h2>ทุกทีมตอนนี้</h2>
+<div id="wall"><p class="empty">ยังไม่มีข้อมูล บอร์ดส่ง telemetry ทุก 2 วินาทีตอนไม่ได้แข่ง</p></div>
+
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.16.0/dist/mqtt.min.js"
+        integrity="sha384-9WWboT9UtuPFRlOLq4FygQkcJxzYcpz8SXGkNyCEXM+44n14xzjNlrRKYZwuF/A6" crossorigin="anonymous"></script>
+<script>
+// โบรกเกอร์สาธารณะ ใครก็ส่งอะไรมาก็ได้ ทุกอย่างจากข้อความใส่หน้าเว็บด้วย textContent เท่านั้น
+// กติกาชุดเดียวกับ examples/s03/08_class_race.py ถ้าแก้ต้องแก้ทั้งสองที่
+const WAIT_MIN_MS = 1500;
+const WAIT_SPAN_MS = 2500;
+const GO_TIMEOUT_MS = 3000;
+const MIN_REAL_MS = 100;          // บอร์ดไม่ส่ง ok ต่ำกว่านี้ (ต่ำกว่า 100 ms บอร์ดนับเป็นออกตัวก่อน)
+const NET_MARGIN_MS = 3000;       // เผื่อเวลาข้อความเดินทางไปกลับก่อนปิดรอบ
+const ROUND_MS = WAIT_MIN_MS + WAIT_SPAN_MS + GO_TIMEOUT_MS + NET_MARGIN_MS;
+const STALE_SEC = 10;
+const MAX_TEAMS = 40;
+const TEAM_OK = /^team\d{2}$/;            // รับเฉพาะชื่อทีมแบบที่ผู้สอนแจก
+const ROOT_OK = /^[A-Za-z0-9_-]{1,40}$/;
+
+const $ = (id) => document.getElementById(id);
+const qs = new URLSearchParams(location.search);
+if (qs.get("root")) $("root").value = qs.get("root");
+
+let client = null;
+let root = "bento-aiot";
+// เลขรอบที่ส่งไปบนสายเริ่มจากเลขสุ่ม ไม่ใช่ 1
+// บอร์ดไม่รับเลขรอบซ้ำกับรอบล่าสุด ถ้าเปิดหน้านี้ใหม่แล้วส่ง 1 อีกครั้ง บอร์ดที่เพิ่งเล่นรอบ 1 จะเงียบ
+const WIRE_BASE = 1 + Math.floor(Math.random() * 5000);
+let round = 0;                    // เลขรอบที่คนในห้องเห็น
+let wireR = 0;                    // เลขรอบที่ส่งจริง = WIRE_BASE + round
+let t0 = 0;                       // เวลาที่หน้านี้ส่งคำสั่งเริ่ม
+let open = false;
+let arrivals = 0;
+const results = new Map();        // ทีม -> ผลรอบนี้
+const totals = new Map();         // ทีม -> { best, rounds, fs, wins }
+const teams = new Map();          // ทีม -> การ์ดบนผนัง
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function setStatus(text, color) { $("status").textContent = text; $("status").style.color = color || ""; }
+function isInt(v, lo, hi) { return Number.isInteger(v) && v >= lo && v <= hi; }
+
+function connect() {
+  if (client) client.end(true);
+  root = $("root").value.trim() || "bento-aiot";
+  if (!ROOT_OK.test(root)) { setStatus("ROOT ใช้ได้แค่ a-z 0-9 _ -", "var(--bad)"); return; }
+  setStatus("กำลังต่อ ...");
+  client = mqtt.connect($("broker").value, { clientId: "web-" + Math.random().toString(16).slice(2, 10), reconnectPeriod: 3000 });
+  client.on("connect", () => {
+    setStatus("ต่อแล้ว", "var(--ok)");
+    $("goBtn").disabled = open;      // ต่อใหม่กลางรอบ ห้ามปลดปุ่ม ไม่งั้นกดซ้อนรอบได้
+    // ฟังแค่ event กับ telemetry ของทุกทีม ไม่ subscribe '#'
+    client.subscribe([root + "/+/event", root + "/+/telemetry"]);
+    if (!open) $("phase").textContent = "พร้อม กดเริ่มรอบได้";
+  });
+  client.on("reconnect", () => setStatus("กำลังต่อใหม่...", "var(--bad)"));
+  client.on("close", () => { setStatus("หลุด", "var(--bad)"); $("goBtn").disabled = true; });
+  client.on("error", (err) => setStatus("ผิดพลาด: " + String(err.message).slice(0, 120), "var(--bad)"));
+  client.on("message", onMessage);
+}
+
+function publishRace() {
+  if (!client || !client.connected) { $("sendMsg").textContent = "ยังไม่ได้เชื่อมต่อ"; return; }
+  client.publish(root + "/all/cmd", JSON.stringify({ cmd: "race", r: wireR }));
+  $("sendMsg").textContent = "ส่ง race r=" + wireR + " ไปที่ " + root + "/all/cmd";
+}
+
+function startRound() {
+  round += 1;
+  wireR = WIRE_BASE + round;
+  results.clear();
+  arrivals = 0;
+  t0 = Date.now();
+  open = true;
+  $("roundNo").textContent = String(round);
+  $("phase").textContent = "บอร์ดกำลังสุ่มเวลารอ อย่าเพิ่งกด";
+  $("phase").style.color = "var(--warn)";
+  $("goBtn").disabled = true;
+  $("resendBtn").disabled = false;
+  publishRace();
+  drawResults();
+}
+
+function closeRound() {
+  open = false;
+  $("resendBtn").disabled = true;
+  $("goBtn").disabled = !(client && client.connected);
+  $("phase").style.color = "";
+  const ranked = rankedResults();
+  const win = ranked.find((r) => r.kind === "ok");
+  $("phase").textContent = win ? "จบรอบ ทีมที่เร็วที่สุดคือ " + win.team + " " + win.ms + " ms" : "จบรอบ ไม่มีผลที่ใช้ได้";
+  for (const r of ranked) {
+    if (r.kind === "sus") continue;     // ผลที่สงสัยว่าปลอม ไม่เข้าสถิติทั้งวัน
+    const t = totals.get(r.team) || { best: null, rounds: 0, fs: 0, wins: 0 };
+    t.rounds += 1;
+    if (r.kind === "fs") t.fs += 1;
+    if (r.kind === "ok" && (t.best === null || r.ms < t.best)) t.best = r.ms;
+    if (win && r === win) t.wins += 1;
+    if (totals.size < MAX_TEAMS || totals.has(r.team)) totals.set(r.team, t);
+  }
+  drawTotals();
+}
+
+setInterval(() => {
+  if (!open) { $("roundBar").style.width = "0"; return; }
+  const el_ = Date.now() - t0;
+  $("roundBar").style.width = Math.min(100, (el_ / ROUND_MS) * 100) + "%";
+  if (el_ >= WAIT_MIN_MS && el_ < WAIT_MIN_MS + WAIT_SPAN_MS) $("phase").textContent = "ไฟจะติดเมื่อไรก็ได้ ของแต่ละทีมไม่พร้อมกัน";
+  if (el_ >= ROUND_MS) closeRound();
+}, 200);
+
+function onMessage(topic, payload) {
+  const parts = topic.split("/");
+  if (parts.length !== 3 || parts[0] !== root || !TEAM_OK.test(parts[1])) return;
+  const team = parts[1];
+  let data;
+  try { data = JSON.parse(payload.toString()); } catch (e) { return; }      // ไม่ใช่ JSON ทิ้ง
+  if (data === null || typeof data !== "object" || Array.isArray(data)) return;
+  if (data.id !== team) return;       // ชื่อในข้อความต้องตรงกับหัวข้อ
+  if (parts[2] === "event") onRace(team, data);
+  else if (parts[2] === "telemetry") onTelemetry(team, data);
+}
+
+function onRace(team, d) {
+  if (d.ev !== "race" || !open || d.r !== wireR || results.has(team)) return;
+  if (results.size >= MAX_TEAMS) return;
+  const arrivedMs = Date.now() - t0;
+  let r;
+  if (d.false === 1) {
+    r = { team, kind: "fs", ms: isInt(d.ms, -10000, 10000) ? d.ms : null };
+  } else if (d.miss === 1) {
+    r = { team, kind: "miss", ms: null };
+  } else if (isInt(d.ms, 0, GO_TIMEOUT_MS)) {
+    r = { team, kind: "ok", ms: d.ms };
+    // ผลที่มาถึงเร็วกว่า "เวลารอขั้นต่ำ + เวลาที่อ้าง" เป็นไปไม่ได้ทางกายภาพ
+    // น่าจะเป็นคนนอกพิมพ์ใส่หัวข้อของทีมนั้น ไม่เอาไปจัดอันดับ
+    if (arrivedMs < WAIT_MIN_MS + d.ms) { r.kind = "sus"; r.why = "มาถึงเร็วเกินจริง ไม่นับ"; }
+    // บอร์ดจริงไม่มีทางส่ง ok ที่ต่ำกว่า 100 ms ถ้าเห็นแปลว่ามีคนพิมพ์ปลอมมา
+    if (d.ms < MIN_REAL_MS) { r.kind = "sus"; r.why = "ต่ำกว่า 100 ms บอร์ดจริงไม่ส่งแบบนี้ ไม่นับ"; }
+  } else {
+    return;
+  }
+  arrivals += 1;
+  r.arrival = arrivals;
+  results.set(team, r);
+  drawResults();
+}
+
+function rankedResults() {
+  const order = { ok: 0, fs: 1, miss: 2, sus: 3 };
+  return [...results.values()].sort((a, b) =>
+    order[a.kind] - order[b.kind] || (a.kind === "ok" ? a.ms - b.ms : a.arrival - b.arrival));
+}
+
+function rowOf(cells, cls) {
+  const row = el("div", "row" + (cls ? " " + cls : ""));
+  for (const c of cells) row.append(c);
+  return row;
+}
+
+function drawResults() {
+  const box = $("results");
+  box.replaceChildren();
+  box.append(rowOf([el("span", "", "#"), el("span", "", "ทีม"), el("span", "", "เวลาบนบอร์ด"),
+                    el("span", "", "มาถึงลำดับ"), el("span", "", "หมายเหตุ")], "head"));
+  const ranked = rankedResults();
+  if (ranked.length === 0) { box.append(el("p", "empty", open ? "รอผลจากบอร์ด" : "ยังไม่มีผล")); return; }
+  let place = 0;
+  for (const r of ranked) {
+    let msText = "-", note = "", noteCls = "";
+    if (r.kind === "ok") { place += 1; msText = r.ms + " ms"; }
+    if (r.kind === "fs") { note = r.ms === null ? "ออกตัวก่อนไฟติด" : "เร็วกว่า 100 ms = เดาล่วงหน้า"; noteCls = "fs"; }
+    if (r.kind === "miss") { note = "ไม่กดภายใน 3 วินาที"; noteCls = "miss"; }
+    if (r.kind === "sus") { msText = r.ms + " ms"; note = r.why; noteCls = "sus"; }
+    box.append(rowOf([el("span", "", r.kind === "ok" ? String(place) : "-"), el("span", "", r.team),
+                      el("span", "ms", msText), el("span", "", String(r.arrival)), el("span", noteCls, note)],
+                     r.kind === "ok" && place === 1 ? "win" : ""));
+  }
+}
+
+function drawTotals() {
+  const box = $("totals");
+  box.replaceChildren();
+  box.append(rowOf([el("span", "", "#"), el("span", "", "ทีม"), el("span", "", "ดีที่สุด"),
+                    el("span", "", "ชนะ"), el("span", "", "เล่น / ออกตัวก่อน")], "head"));
+  const list = [...totals.entries()].sort((a, b) =>
+    (a[1].best === null) - (b[1].best === null) || (a[1].best || 0) - (b[1].best || 0));
+  let i = 0;
+  for (const [team, t] of list) {
+    i += 1;
+    box.append(rowOf([el("span", "", String(i)), el("span", "", team),
+                      el("span", "ms", t.best === null ? "-" : t.best + " ms"), el("span", "", String(t.wins)),
+                      el("span", "", t.rounds + " รอบ / " + t.fs)]));
+  }
+}
+
+function onTelemetry(team, d) {
+  const card = getCard(team);
+  if (!card) return;
+  card.last = Date.now();
+  if (isInt(d.presses, 0, 1000000)) card.presses = d.presses;
+  card.big.textContent = String(card.presses);
+  const best = isInt(d.best, 0, GO_TIMEOUT_MS) ? d.best + " ms" : "-";
+  const last = isInt(d.last, 0, GO_TIMEOUT_MS) ? d.last + " ms" : "-";
+  card.info.textContent = "ดีที่สุด " + best + " | ล่าสุด " + last;
+  drawSum();
+  refreshSeen();
+}
+
+function getCard(team) {
+  if (teams.has(team)) return teams.get(team);
+  if (teams.size >= MAX_TEAMS) return null;           // กันการ์ดล้นจอ
+  if (teams.size === 0) $("wall").replaceChildren();
+  const box = el("div", "team");
+  const h = el("h3");
+  const seen = el("span", "seen");
+  h.append(el("span", "", team), seen);
+  const big = el("div", "big", "0");
+  const info = el("div", "small", "");
+  box.append(h, el("div", "small", "กดไปแล้ว"), big, info);
+  const after = [...teams.keys()].sort().find((k) => k > team);
+  $("wall").insertBefore(box, after ? teams.get(after).box : null);
+  const card = { box, seen, big, info, presses: 0, last: 0 };
+  teams.set(team, card);
+  return card;
+}
+
+function drawSum() {
+  let sum = 0;
+  for (const c of teams.values()) sum += c.presses;
+  const goal = Math.max(1, parseInt($("goal").value, 10) || 300);
+  $("sum").textContent = String(sum);
+  $("goalBar").style.width = Math.min(100, (sum / goal) * 100) + "%";
+}
+
+function refreshSeen() {
+  const now = Date.now();
+  for (const c of teams.values()) {
+    const sec = Math.round((now - c.last) / 1000);
+    c.seen.textContent = sec + " วิ";
+    c.box.classList.toggle("stale", sec > STALE_SEC);
+  }
+}
+setInterval(refreshSeen, 1000);
+
+$("connectBtn").addEventListener("click", connect);
+$("goBtn").addEventListener("click", startRound);
+$("resendBtn").addEventListener("click", publishRace);
+$("goal").addEventListener("input", drawSum);
+connect();
+</script>
+</body>
+</html>
