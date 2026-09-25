@@ -10,11 +10,12 @@
     :root { --bg: #161615; --card: #232321; --ink: #ededea; --dim: #9a9a94; --ok: #5cc08c; --bad: #f08a80; }
   }
   body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
-  #values { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
-  .box, #event { background: var(--card); border-radius: 10px; padding: 12px; overflow-wrap: anywhere; }
+  h1 { font-size: 1.6em; margin: .2em 0 .4em; }
+  #values { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; align-items: start; }
+  .box, #event { background: var(--card); border-radius: 10px; padding: 10px 12px; overflow-wrap: break-word; min-width: 0; }
   .name { color: var(--dim); font-size: 14px; overflow-wrap: anywhere; }
   #status, #event { overflow-wrap: anywhere; }
-  .num { font-size: 40px; font-weight: 700; overflow-wrap: anywhere; }
+  .num { font-size: clamp(24px, 6vw, 32px); font-weight: 700; line-height: 1.2; overflow-wrap: break-word; }
   button { font-size: 16px; padding: 10px 14px; margin: 4px 4px 0 0; }
 </style>
 </head>
