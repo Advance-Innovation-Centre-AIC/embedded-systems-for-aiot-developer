@@ -15,7 +15,7 @@
 | ไฟล์ | โมเดล | ใช้ทำอะไร |
 |---|---|---|
 | [`motion_detection.py`](motion_detection.py) | Motion Detection (ในตัว) | สวิตช์ท่าทาง: วาดวงกลมกลางอากาศเพื่อเปิด/ปิดไฟ |
-| [`push_detection.py`](push_detection.py) | Push Detection (ในตัว) | ปุ่มไร้สัมผัส: ดันฝ่ามือเข้าหาเรดาร์ (ตัวอย่างเรดาร์ของ Infineon ใช้ระยะราว 60 ซม.) ใช้ได้เฉพาะ Dev Kit ที่มีเรดาร์ |
+| [`push_detection.py`](push_detection.py) | Push Detection (ในตัว) | ปุ่มไร้สัมผัส: ดันฝ่ามือเข้าหาเรดาร์ ([ตัวอย่างเรดาร์ของ Infineon](https://github.com/Infineon/mtb-example-psoc-edge-ml-deepcraft-deploy-radar) ใช้ระยะราว 60 ซม.) ใช้ได้เฉพาะ Dev Kit ที่มีเรดาร์ |
 | [`baby_cry_detection.py`](baby_cry_detection.py) | Baby Cry Detection (ในตัว) | เตือนเมื่อได้ยินเสียงเด็กร้อง |
 | [`cough_detection.py`](cough_detection.py) | Cough Detection (ในตัว) | นับเสียงไอในโรงเรือน |
 | [`alarm_detection.py`](alarm_detection.py) | Alarm Detection (ในตัว) | ฟังเสียงสัญญาณเตือนภัย ใช้เพื่อการเรียนเท่านั้น ห้ามใช้แทนอุปกรณ์ความปลอดภัยจริง |
@@ -39,4 +39,4 @@
   - SW6 (ปุ่มบน) = รับทราบการเตือน หรือทำหน้าที่ที่เขียนไว้ในหัวไฟล์
   - SW5 (ปุ่มล่าง) = หยุดชั่วคราว/ทำต่อ
   - แตะบนจอได้เหมือนกัน
-- **โมเดลทดลอง 3 ตัว** (Environment Sounds, Yes / No, Voice Commands) ยังเป็นรุ่นทดลอง อาจตอบผิดได้ เช่น ตอนทดสอบบนโต๊ะที่เงียบ Environment Sounds นับเสียงจามได้ 4 ครั้ง จึงเหมาะใช้สอนเรื่องความสับสนของโมเดลและการตั้งเกณฑ์ความมั่นใจ
+- **โมเดลทดลอง 3 ตัว** (Environment Sounds, Yes / No, Voice Commands) ยังเป็นรุ่นทดลอง อาจตอบผิดได้ เช่น ตอนทดสอบโดยไม่ได้เปิดเสียงใดๆ Environment Sounds นับเสียงจามได้ 4 ครั้ง จึงเหมาะใช้สอนเรื่องความสับสนของโมเดลและการตั้งเกณฑ์ความมั่นใจ
