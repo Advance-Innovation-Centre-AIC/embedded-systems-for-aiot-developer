@@ -20,6 +20,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to verify (empty = refresh only)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -52,7 +57,7 @@ jobs:
       - name: Verify every .hex in this release is now served
         run: |
           set -euo pipefail
-          tag='${{ github.event.release.tag_name }}'
+          tag='${{ github.event.release.tag_name || inputs.tag }}'
           [ -n "$tag" ] || { echo "no tag (manual run) — refresh done, nothing to verify"; exit 0; }
 
           api="https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
@@ -77,7 +82,7 @@ jobs:
           missing = dict(want)
           while time.time() < deadline and missing:
               try:
-                  with urllib.request.urlopen(f'{relay}/api/firmware', timeout=20) as r:
+                  with urllib.request.urlopen(f'{relay}/api/firmware?bundle=ide', timeout=20) as r:
                       served = json.load(r)
               except Exception as e:
                   print('relay unreachable:', e); time.sleep(10); continue
