@@ -24,6 +24,7 @@ WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"
 DEVICE_ID = "team03"
+CLIENT_ID = DEVICE_ID + "-%04x" % (time.ticks_ms() & 0xFFFF)   # ตัวท้ายสุ่มทุกครั้งที่รัน: รันใหม่ทันทีหลังหยุดก็ไม่ชน id ของรอบก่อน
 TOPIC = "bento/team03/telemetry"
 SEND_EVERY_MS = 3000
 CHART_MS = 300           # กราฟเดินตามลูปของจอ ไม่ได้เดินตามคาบส่ง
@@ -37,6 +38,9 @@ time.sleep_ms(200)
 
 ui.Label("คาบ 12 - จอต้องอยู่ได้เมื่อเน็ตหลุด", x=20, y=8, color=COL_TEXT,
          value=24)
+# ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
+led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_OK, value=0)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
 ui.Panel(x=20, y=44, w=652, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
 ui.Label("ค่าที่กำลังเฝ้าดู", x=40, y=52, color=COL_DIM, value=16)
@@ -61,51 +65,68 @@ ui.Label("เขียว = ค่าที่ส่งออกไปได้�
          value=16)
 ui.poll()
 
+
+def show_link(ok):
+    # ไฟกับป้ายเปลี่ยนพร้อมกันเสมอ เรียกทุกครั้งที่รู้ว่าสายต่ออยู่หรือหลุด
+    # ไม่เรียก ui.poll() ในนี้ เพราะจะกินเหตุการณ์สไลเดอร์ที่ลูปหลักรออ่านอยู่
+    led_mqtt.value(1 if ok else 0)
+    lbl_mqtt.text("MQTT: เชื่อมต่อแล้ว" if ok else "MQTT: ออฟไลน์")
+
 # ต่อเน็ตหลังจากสร้างจอเสร็จแล้ว ลำดับนี้ตั้งใจ - จอต้องพร้อมก่อนสิ่งที่อาจล้มเหลว
 online = False
-if wifi.connect(WIFI_SSID, WIFI_PASS):
-    online = mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID)
-value, missed = 25, 0
-# ค่าที่ปลายทางรู้จักล่าสุด ตกเป็นศูนย์เมื่อส่งไม่ออก เพราะปลายทางไม่รู้อะไรเลยจริง ๆ
-value_at_broker = 0
-t_send = time.ticks_ms()
-t_chart = time.ticks_ms()
+# ครอบตั้งแต่ต่อ broker จนจบลูป: หยุดกลางทางเมื่อไร finally ยังบอกลา broker ให้ ชื่อจึงไม่ค้างอีกนาที
+try:
+    if wifi.connect(WIFI_SSID, WIFI_PASS):
+        online = mqtt.connect(BROKER, port=1883, client_id=CLIENT_ID)
+    show_link(online)
+    value, missed = 25, 0
+    # ค่าที่ปลายทางรู้จักล่าสุด ตกเป็นศูนย์เมื่อส่งไม่ออก เพราะปลายทางไม่รู้อะไรเลยจริง ๆ
+    value_at_broker = 0
+    t_send = time.ticks_ms()
+    t_chart = time.ticks_ms()
 
-while True:
-    # ลูปของจอเดินของมันไปเรื่อย ๆ ไม่ว่าสายจะเป็นอย่างไร และกรองด้วย handle ด้วย
-    # ไม่ใช่ด้วยชนิดเหตุการณ์อย่างเดียว พอเพิ่ม widget ตัวที่สองแล้วจะแยกไม่ออกทันที
-    for ev in ui.poll():
-        if ev["handle"] == slider.id() and ev["type"] == "value_changed":
-            value = ev["value"]
-            seg.text(str(value))
+    while True:
+        # ลูปของจอเดินของมันไปเรื่อย ๆ ไม่ว่าสายจะเป็นอย่างไร และกรองด้วย handle ด้วย
+        # ไม่ใช่ด้วยชนิดเหตุการณ์อย่างเดียว พอเพิ่ม widget ตัวที่สองแล้วจะแยกไม่ออกทันที
+        for ev in ui.poll():
+            if ev["handle"] == slider.id() and ev["type"] == "value_changed":
+                value = ev["value"]
+                seg.text(str(value))
 
-    now = time.ticks_ms()
-    if time.ticks_diff(now, t_send) >= SEND_EVERY_MS:
-        t_send = now
-        online = mqtt.is_connected()
-        # ค่าที่ส่งไม่ออกถูกทิ้ง ไม่เก็บย้อนหลัง เพราะค่าที่ค้างมานานไม่มีประโยชน์
-        # ถ้าโจทย์ของทีมต้องการเก็บย้อนหลัง นี่คือจุดที่ต้องเปลี่ยน
-        body = json.dumps({"id": DEVICE_ID, "v": value})
-        sent = False
-        try:
-            sent = bool(online and mqtt.publish(TOPIC, body))
-        except OSError:
-            # หลุดระหว่างส่ง เดินต่อ ห้ามให้ทั้งโปรแกรมตายเพราะสายเส้นเดียว
-            online = False
-        if not sent:
-            missed += 1
-        value_at_broker = value if sent else 0
-        l_net.color(COL_OK if online else COL_BAD)
-        l_net.text("net: online" if online else "net: offline")
-        l_miss.color(COL_DIM if missed == 0 else COL_BAD)
-        l_miss.text("ส่งไม่ออก: " + str(missed))
+        now = time.ticks_ms()
+        if time.ticks_diff(now, t_send) >= SEND_EVERY_MS:
+            t_send = now
+            online = mqtt.is_connected()
+            # ค่าที่ส่งไม่ออกถูกทิ้ง ไม่เก็บย้อนหลัง เพราะค่าที่ค้างมานานไม่มีประโยชน์
+            # ถ้าโจทย์ของทีมต้องการเก็บย้อนหลัง นี่คือจุดที่ต้องเปลี่ยน
+            body = json.dumps({"id": DEVICE_ID, "v": value})
+            sent = False
+            try:
+                sent = bool(online and mqtt.publish(TOPIC, body))
+            except OSError:
+                # หลุดระหว่างส่ง เดินต่อ ห้ามให้ทั้งโปรแกรมตายเพราะสายเส้นเดียว
+                online = False
+            if not sent:
+                missed += 1
+            value_at_broker = value if sent else 0
+            l_net.color(COL_OK if online else COL_BAD)
+            l_net.text("net: online" if online else "net: offline")
+            show_link(online)
+            l_miss.color(COL_DIM if missed == 0 else COL_BAD)
+            l_miss.text("ส่งไม่ออก: " + str(missed))
 
-    # กราฟเดินตามลูปของจอ ไม่ได้เดินตามคาบส่ง เพราะจอเป็นของคนที่ยืนอยู่ตรงนี้
-    # เส้นฟ้าขยับทันทีที่ลากสไลเดอร์ ส่วนเส้นเขียวขยับได้เร็วสุดทุก SEND_EVERY_MS
-    # ช่องว่างระหว่างสองเส้นคือช่วงเวลาที่ปลายทางไม่รู้ว่าเกิดอะไรขึ้น
-    if time.ticks_diff(now, t_chart) >= CHART_MS:
-        t_chart = now
-        ch.set_next(s_local, value)
-        ch.set_next(s_sent, value_at_broker)
+        # กราฟเดินตามลูปของจอ ไม่ได้เดินตามคาบส่ง เพราะจอเป็นของคนที่ยืนอยู่ตรงนี้
+        # เส้นฟ้าขยับทันทีที่ลากสไลเดอร์ ส่วนเส้นเขียวขยับได้เร็วสุดทุก SEND_EVERY_MS
+        # ช่องว่างระหว่างสองเส้นคือช่วงเวลาที่ปลายทางไม่รู้ว่าเกิดอะไรขึ้น
+        if time.ticks_diff(now, t_chart) >= CHART_MS:
+            t_chart = now
+            ch.set_next(s_local, value)
+            ch.set_next(s_sent, value_at_broker)
 
-    time.sleep_ms(100)
+        time.sleep_ms(100)
+finally:
+    try:
+        mqtt.disconnect()              # ปิดการเชื่อมต่อทุกครั้ง แม้โปรแกรมถูกหยุดกลางทาง
+        show_link(False)               # ไฟ MQTT หรี่ลง: จบแล้ว ไม่ได้ต่ออยู่
+    except Exception:
+        pass

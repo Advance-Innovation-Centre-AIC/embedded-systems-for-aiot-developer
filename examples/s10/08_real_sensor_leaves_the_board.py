@@ -69,10 +69,17 @@ COL_CARD = 0x171B22
 COL_READ, COL_SENT = 0x4A9EFF, 0x30A46C
 COL_BAD = 0xE5484D
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("ค่าจริงจากโต๊ะนี้ ออกไปหาคนอื่น", x=20, y=12, color=COL_TEXT, value=24)
+# ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
+led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_SENT, value=0)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
 
 ui.Panel(x=20, y=52, w=332, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
 ui.Label("อุณหภูมิที่วัดได้ตอนนี้", x=36, y=64, color=COL_DIM, value=20)
@@ -93,63 +100,83 @@ ui.Label("เขียว = ส่งทุก 2 วิ", x=580, y=196, color=CO
 status = ui.Label("กำลังต่อ...", x=20, y=364, color=COL_DIM, value=20)
 ui.poll()
 
+
+def show_link(ok):
+    # ไฟกับป้ายเปลี่ยนพร้อมกันเสมอ เรียกทุกครั้งที่รู้ว่าสายต่ออยู่หรือหลุด
+    led_mqtt.value(1 if ok else 0)
+    lbl_mqtt.text("MQTT: เชื่อมต่อแล้ว" if ok else "MQTT: ออฟไลน์")
+
 lcd.clear()
 lcd.console("<h2>ค่าจริงออกจากบอร์ด</h2>")
 
-if not wifi.connect(WIFI_SSID, WIFI_PASS):
-    status.text("ต่อ WiFi ไม่ได้ - ตรวจชื่อวงกับรหัสผ่าน")
-    status.color(COL_BAD)
-    ui.poll()
-    raise SystemExit
+try:
+    if not wifi.connect(WIFI_SSID, WIFI_PASS):
+        status.text("ต่อ WiFi ไม่ได้ - ตรวจชื่อวงกับรหัสผ่าน")
+        status.color(COL_BAD)
+        ui.poll()
+        raise Stop
 
-mqtt.connect(BROKER, client_id=DEVICE_ID, username=MQTT_USER, password=MQTT_PASS)
-status.text("ต่อแล้ว ส่งทุก 2 วินาที")
-status.color(COL_SENT)
-ui.poll()
+    # ครอบตั้งแต่ต่อ broker จนจบลูป: หยุดกลางทางเมื่อไร finally ยังบอกลา broker ให้ ชื่อจึงไม่ค้างอีกนาที
+    try:
+        mqtt.connect(BROKER, client_id=DEVICE_ID, username=MQTT_USER, password=MQTT_PASS)
+        show_link(mqtt.is_connected())   # connect() บรรทัดบนไม่ได้เก็บค่าคืน จึงถามสายตรง ๆ
+        status.text("ต่อแล้ว ส่งทุก 2 วินาที")
+        status.color(COL_SENT)
+        ui.poll()
 
-sent = 0
-last_send = time.ticks_ms()
-last_value = None
+        sent = 0
+        last_send = time.ticks_ms()
+        last_value = None
 
-for _ in range(ROUNDS):
-    # snapshot() คืนทุกเซนเซอร์ในครั้งเดียว เราหยิบมาใช้ตัวเดียว - ที่เหลือ
-    # ไม่ได้เสียเปล่า เพราะการอ่านครั้งเดียวถูกกว่าการถามทีละตัวหลายครั้ง
-    snap = sensors.snapshot()
-    temp, _src = read_temp(snap)
-    if temp is not None:
-        last_value = temp
-        seg_now.text("{:.1f}".format(temp))
-        ch.set_next(s_read, int(temp))
+        for _ in range(ROUNDS):
+            # snapshot() คืนทุกเซนเซอร์ในครั้งเดียว เราหยิบมาใช้ตัวเดียว - ที่เหลือ
+            # ไม่ได้เสียเปล่า เพราะการอ่านครั้งเดียวถูกกว่าการถามทีละตัวหลายครั้ง
+            snap = sensors.snapshot()
+            temp, _src = read_temp(snap)
+            if temp is not None:
+                last_value = temp
+                seg_now.text("{:.1f}".format(temp))
+                ch.set_next(s_read, int(temp))
 
-    now = time.ticks_ms()
-    if last_value is not None and time.ticks_diff(now, last_send) >= SEND_MS:
-        last_send = now
-        payload = json.dumps({"device": DEVICE_ID,
-                              "temp_c": round(last_value, 1),
-                              "t_ms": now})
+            now = time.ticks_ms()
+            if last_value is not None and time.ticks_diff(now, last_send) >= SEND_MS:
+                last_send = now
+                payload = json.dumps({"device": DEVICE_ID,
+                                      "temp_c": round(last_value, 1),
+                                      "t_ms": now})
+                try:
+                    mqtt.publish(TOPIC, payload)
+                    sent = sent + 1
+                    seg_sent.text(str(sent))
+                    lcd.print("ส่งแล้ว", sent, "ครั้ง | ล่าสุด", round(last_value, 1), "C")
+                except OSError as e:
+                    # ลิงก์หลุดกลางทาง จอต้องบอก ไม่ใช่เงียบแล้วให้เดา
+                    status.text("ส่งไม่ออก: " + str(e))
+                    status.color(COL_BAD)
+                    show_link(False)
+
+            # เส้นเขียวถูกป้อนทุกรอบด้วยค่าที่ส่งไปล่าสุด จึงกลายเป็นขั้นบันได
+            # นี่คือภาพของคำว่า "จอเห็นบ่อยกว่าที่คลาวด์เห็น" ซึ่งจริงเสมอในงาน IoT
+            if last_value is not None:
+                ch.set_next(s_sent, int(last_value))
+
+            ui.poll()
+            time.sleep_ms(READ_MS)
+
+        mqtt.disconnect()
+    finally:
         try:
-            mqtt.publish(TOPIC, payload)
-            sent = sent + 1
-            seg_sent.text(str(sent))
-            lcd.print("ส่งแล้ว", sent, "ครั้ง | ล่าสุด", round(last_value, 1), "C")
-        except OSError as e:
-            # ลิงก์หลุดกลางทาง จอต้องบอก ไม่ใช่เงียบแล้วให้เดา
-            status.text("ส่งไม่ออก: " + str(e))
-            status.color(COL_BAD)
+            mqtt.disconnect()              # ปิดการเชื่อมต่อทุกครั้ง แม้โปรแกรมถูกหยุดกลางทาง
+            show_link(False)               # ไฟ MQTT หรี่ลง: จบแล้ว ไม่ได้ต่ออยู่
+        except Exception:
+            pass
 
-    # เส้นเขียวถูกป้อนทุกรอบด้วยค่าที่ส่งไปล่าสุด จึงกลายเป็นขั้นบันได
-    # นี่คือภาพของคำว่า "จอเห็นบ่อยกว่าที่คลาวด์เห็น" ซึ่งจริงเสมอในงาน IoT
-    if last_value is not None:
-        ch.set_next(s_sent, int(last_value))
-
+    status.text("จบรอบ - ส่งทั้งหมด " + str(sent) + " ครั้ง")
     ui.poll()
-    time.sleep_ms(READ_MS)
-
-mqtt.disconnect()
-status.text("จบรอบ - ส่งทั้งหมด " + str(sent) + " ครั้ง")
-ui.poll()
-lcd.print("<span class=ok>จบ - วัด", ROUNDS, "รอบ ส่ง", sent, "ครั้ง</span>")
-print("วัดกี่ครั้งกับส่งกี่ครั้งไม่เท่ากัน และไม่ควรเท่ากัน")
+    lcd.print("<span class=ok>จบ - วัด", ROUNDS, "รอบ ส่ง", sent, "ครั้ง</span>")
+    print("วัดกี่ครั้งกับส่งกี่ครั้งไม่เท่ากัน และไม่ควรเท่ากัน")
+except Stop:
+    pass
 
 # ตาคุณ
 # 1) เปลี่ยน SEND_MS เป็น 200 ให้เท่ากับ READ_MS แล้วนับว่า broker รับไหว

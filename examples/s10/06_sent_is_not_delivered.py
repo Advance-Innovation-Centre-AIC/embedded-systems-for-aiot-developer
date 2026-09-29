@@ -22,6 +22,7 @@ WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"
 DEVICE_ID = "team03"
+CLIENT_ID = DEVICE_ID + "-%04x" % (time.ticks_ms() & 0xFFFF)   # ตัวท้ายสุ่มทุกครั้งที่รัน: รันใหม่ทันทีหลังหยุดก็ไม่ชน id ของรอบก่อน
 
 # ส่งไปที่ topic ของตัวเอง แล้ว subscribe topic เดียวกัน ข้อความจึงวิ่งครบวง
 # broker -> กลับมาหาเรา นี่คือวิธีพิสูจน์การส่งถึงที่ถูกที่สุดที่ทำได้ในห้องเรียน
@@ -33,10 +34,17 @@ COL_CARD = 0x171B22
 COL_TRACK = 0x171B22         # สีรางของ ui.Bar - ตัวแท่งที่วิ่งเป็นสีของธีมเสมอ
 COL_OK, COL_BAD, COL_INFO = 0x30A46C, 0xE5484D, 0x4A9EFF
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("ที่บอกว่าส่ง กับ ที่กลับมาจริง", x=20, y=12, color=COL_TEXT, value=24)
+# ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
+led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_OK, value=0)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
 
 # ฝั่งซ้าย: ตัวเลขที่โปรแกรมของเราอ้าง
 ui.Panel(x=20, y=52, w=328, h=152, color=COL_CARD, min=COL_INFO, max=12, value=1)
@@ -58,77 +66,97 @@ ui.Label("ต้องนับที่ปลายทาง ไม่ใช่
          value=20)
 ui.poll()
 
+
+def show_link(ok):
+    # ไฟกับป้ายเปลี่ยนพร้อมกันเสมอ เรียกทุกครั้งที่รู้ว่าสายต่ออยู่หรือหลุด
+    led_mqtt.value(1 if ok else 0)
+    lbl_mqtt.text("MQTT: เชื่อมต่อแล้ว" if ok else "MQTT: ออฟไลน์")
+
 lcd.clear()
 lcd.console("<h2>คาบ 10 - ส่งแล้วถึงจริงไหม</h2>")
 
-if not wifi.connect(WIFI_SSID, WIFI_PASS):
-    l_note.color(COL_BAD)
-    l_note.text("ต่อ WiFi ไม่ได้")
-    ui.poll()
-    lcd.print("<span class=err>ต่อ WiFi ไม่ได้</span>")
-    raise SystemExit
-if not mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID):
-    l_note.color(COL_BAD)
-    l_note.text("ต่อ broker ไม่ได้")
-    ui.poll()
-    lcd.print("<span class=err>ต่อ broker ไม่ได้</span>")
-    raise SystemExit
-
-mqtt.subscribe(TOPIC_ECHO)
-l_note.text("ส่ง " + str(N) + " ใบไปที่ topic ของตัวเอง แล้วนั่งนับที่กลับมา")
-ui.poll()
-lcd.print("subscribe", TOPIC_ECHO, "แล้ว")
-
-claimed = 0     # จำนวนครั้งที่ publish() บอกว่าสำเร็จ
-seen = 0        # จำนวนใบที่เดินทางกลับมาถึงเราจริง
-
-for i in range(1, N + 1):
-    # บนบอร์ด publish() โยน OSError เมื่อยังไม่ได้ต่อ ส่วน emulator คืน False
-    # ต้องดักทั้งสองแบบ ตัวเลข claimed จึงจะเป็นตัวเลขที่เชื่อได้ว่านับถูก
-    try:
-        if mqtt.publish(TOPIC_ECHO, json.dumps({"seq": i})):
-            claimed += 1
-    except OSError:
-        lcd.print("<span class=err>สายหลุดที่ใบที่", i, "</span>")
-        break
-
-    seg_claim.text(str(claimed))
-    bar_claim.value(claimed)
-
-    # หลังส่งแต่ละใบ เปิดหน้าต่างรับสั้น ๆ แล้วเก็บของที่วิ่งกลับมา
-    # ต้องถามหลายครั้งในหน้าต่างนี้ เพราะบัฟเฟอร์มีช่องเดียว ถามครั้งเดียวจะพลาด
-    t0 = time.ticks_ms()
-    while time.ticks_diff(time.ticks_ms(), t0) < 400:
-        msg = mqtt.get_message()
-        if msg is not None:
-            seen += 1
-            seg_seen.text(str(seen))
-            bar_seen.value(seen)
+try:
+    if not wifi.connect(WIFI_SSID, WIFI_PASS):
+        l_note.color(COL_BAD)
+        l_note.text("ต่อ WiFi ไม่ได้")
         ui.poll()
-        time.sleep_ms(20)
+        lcd.print("<span class=err>ต่อ WiFi ไม่ได้</span>")
+        raise Stop
+    # ครอบตั้งแต่ต่อ broker จนจบลูป: หยุดกลางทางเมื่อไร finally ยังบอกลา broker ให้ ชื่อจึงไม่ค้างอีกนาที
+    try:
+        if not mqtt.connect(BROKER, port=1883, client_id=CLIENT_ID):
+            show_link(False)
+            l_note.color(COL_BAD)
+            l_note.text("ต่อ broker ไม่ได้")
+            ui.poll()
+            lcd.print("<span class=err>ต่อ broker ไม่ได้</span>")
+            raise Stop
+        show_link(True)
 
-diff = claimed - seen
-l_diff.text("ต่างกัน " + str(diff) + " ใบ")
+        mqtt.subscribe(TOPIC_ECHO)
+        l_note.text("ส่ง " + str(N) + " ใบไปที่ topic ของตัวเอง แล้วนั่งนับที่กลับมา")
+        ui.poll()
+        lcd.print("subscribe", TOPIC_ECHO, "แล้ว")
 
-if seen < claimed:
-    # ไม่ใช่บั๊กเสมอไป - ใบที่มาติดกันเร็วกว่าที่เราถามทันจะทับกันในบัฟเฟอร์ช่องเดียว
-    # บทเรียนคือ ตัวเลข "ส่งแล้ว" ที่ฝั่งเราไม่ใช่ตัวเลขเดียวกับ "ถึงแล้ว" ที่ฝั่งโน้น
-    l_diff.color(COL_BAD)
-    l_note.color(COL_BAD)
-    l_note.text("เลขสองข้างไม่ตรงกัน ฝั่งเราเชื่อไม่ได้")
-    lcd.print("<span class=warn>ต่างกัน", diff, "ใบ</span>")
-    # แยกสองบรรทัด เพราะ lcd.print ตัดทิ้งที่ 127 ไบต์ และไทยกินตัวละ 3 ไบต์
-    lcd.print("ใบที่มาเร็วกว่าที่เราถามทัน")
-    lcd.print("จึงทับกันในบัฟเฟอร์ช่องเดียว")
-else:
-    l_diff.color(COL_OK)
-    l_note.color(COL_OK)
-    l_note.text("รอบนี้ครบ แต่ QoS 0 ไม่ประกันว่ารอบหน้าจะครบ")
-    lcd.print("<span class=ok>ครบทุกใบในรอบนี้</span>")
+        claimed = 0     # จำนวนครั้งที่ publish() บอกว่าสำเร็จ
+        seen = 0        # จำนวนใบที่เดินทางกลับมาถึงเราจริง
 
-l_end.color(COL_TEXT)
-ui.poll()
-lcd.print("publish() บอกว่าสำเร็จ", claimed, "ครั้ง")
-lcd.print("วิ่งกลับมาถึงเราจริง", seen, "ใบ")
-lcd.print("ถ้าต้องการหลักฐานว่าถึงจริง")
-lcd.print("ต้องนับที่ปลายทาง ไม่ใช่ที่ต้นทาง")
+        for i in range(1, N + 1):
+            # บนบอร์ด publish() โยน OSError เมื่อยังไม่ได้ต่อ ส่วน emulator คืน False
+            # ต้องดักทั้งสองแบบ ตัวเลข claimed จึงจะเป็นตัวเลขที่เชื่อได้ว่านับถูก
+            try:
+                if mqtt.publish(TOPIC_ECHO, json.dumps({"seq": i})):
+                    claimed += 1
+            except OSError:
+                show_link(False)
+                lcd.print("<span class=err>สายหลุดที่ใบที่", i, "</span>")
+                break
+
+            seg_claim.text(str(claimed))
+            bar_claim.value(claimed)
+
+            # หลังส่งแต่ละใบ เปิดหน้าต่างรับสั้น ๆ แล้วเก็บของที่วิ่งกลับมา
+            # ต้องถามหลายครั้งในหน้าต่างนี้ เพราะบัฟเฟอร์มีช่องเดียว ถามครั้งเดียวจะพลาด
+            t0 = time.ticks_ms()
+            while time.ticks_diff(time.ticks_ms(), t0) < 400:
+                msg = mqtt.get_message()
+                if msg is not None:
+                    seen += 1
+                    seg_seen.text(str(seen))
+                    bar_seen.value(seen)
+                ui.poll()
+                time.sleep_ms(20)
+    finally:
+        try:
+            mqtt.disconnect()              # ปิดการเชื่อมต่อทุกครั้ง แม้โปรแกรมถูกหยุดกลางทาง
+            show_link(False)               # ไฟ MQTT หรี่ลง: จบแล้ว ไม่ได้ต่ออยู่
+        except Exception:
+            pass
+
+    diff = claimed - seen
+    l_diff.text("ต่างกัน " + str(diff) + " ใบ")
+
+    if seen < claimed:
+        # ไม่ใช่บั๊กเสมอไป - ใบที่มาติดกันเร็วกว่าที่เราถามทันจะทับกันในบัฟเฟอร์ช่องเดียว
+        # บทเรียนคือ ตัวเลข "ส่งแล้ว" ที่ฝั่งเราไม่ใช่ตัวเลขเดียวกับ "ถึงแล้ว" ที่ฝั่งโน้น
+        l_diff.color(COL_BAD)
+        l_note.color(COL_BAD)
+        l_note.text("เลขสองข้างไม่ตรงกัน ฝั่งเราเชื่อไม่ได้")
+        lcd.print("<span class=warn>ต่างกัน", diff, "ใบ</span>")
+        # แยกสองบรรทัด เพราะ lcd.print ตัดทิ้งที่ 127 ไบต์ และไทยกินตัวละ 3 ไบต์
+        lcd.print("ใบที่มาเร็วกว่าที่เราถามทัน")
+        lcd.print("จึงทับกันในบัฟเฟอร์ช่องเดียว")
+    else:
+        l_diff.color(COL_OK)
+        l_note.color(COL_OK)
+        l_note.text("รอบนี้ครบ แต่ QoS 0 ไม่ประกันว่ารอบหน้าจะครบ")
+        lcd.print("<span class=ok>ครบทุกใบในรอบนี้</span>")
+
+    l_end.color(COL_TEXT)
+    ui.poll()
+    lcd.print("publish() บอกว่าสำเร็จ", claimed, "ครั้ง")
+    lcd.print("วิ่งกลับมาถึงเราจริง", seen, "ใบ")
+    lcd.print("ถ้าต้องการหลักฐานว่าถึงจริง")
+    lcd.print("ต้องนับที่ปลายทาง ไม่ใช่ที่ต้นทาง")
+except Stop:
+    pass

@@ -27,6 +27,10 @@ COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD = 0x171B22
 COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x30A46C, 0xF5A623, 0xE5484D, 0x4A9EFF
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 ui.screen()
 time.sleep_ms(200)
 
@@ -52,89 +56,92 @@ lcd.clear()
 lcd.console("<h2>คาบ 11 - รอให้ต่อเสร็จจริง</h2>")
 lcd.print("กำลังต่อ WiFi", WIFI_SSID)
 
-# ขึ้นข้อความก่อนเรียก ไม่ใช่หลังเรียก เพราะ wifi.connect บล็อกยาว
-if not wifi.connect(WIFI_SSID, WIFI_PASS):
-    step.text("ต่อ WiFi ไม่ได้")
-    step.color(COL_BAD)
-    status.text("TLS วิ่งบน TCP ซึ่งวิ่งบน IP จบตรงนี้")
-    status.color(COL_BAD)
-    ui.poll()
-    lcd.print("<span class=error>ต่อ WiFi ไม่ได้ จบตรงนี้</span>")
-    raise SystemExit
-
-step.text("ได้ IP " + wifi.ip())
-step.color(COL_OK)
-ui.poll()
-lcd.print("ได้ IP", wifi.ip())
-
-# ตั้งตัวตนและปลายทางก่อนสั่งต่อ config_set แค่เก็บค่า ยังไม่ได้ต่ออะไรทั้งสิ้น
-tesaiot.config_set("device_id", DEVICE_ID)
-tesaiot.config_set("api_key", API_KEY)
-tesaiot.config_set("mqtt_pass", MQTT_PASS)
-tesaiot.config_set("broker", BROKER)
-
-# sni_hostname คือชื่อที่เดินไปก่อนการเข้ารหัส เซิร์ฟเวอร์ใช้มันเลือกใบรับรองที่จะยื่น
-# ต้องเป็นชื่อโฮสต์เดียวกับ broker ถ้าตั้งไม่ตรง การต่อจะล้มโดยไม่มีข้อความอะไรเลย
-tesaiot.config_set("sni_hostname", BROKER)
-
-# ตั้งโหมดแล้วอ่านกลับตรวจทันที ตามท่าที่ฝึกมาในไฟล์ 03
-tesaiot.config_set("tls_mode", "server_tls")
-mode = tesaiot.config()["tls_mode"]
-if mode != "serverTLS":
-    status.text("โหมดไม่ใช่ที่ขอไว้ ได้ " + mode + " แทน หยุดก่อน")
-    status.color(COL_BAD)
-    ui.poll()
-    lcd.print("<span class=error>โหมดไม่ตรง ได้", mode, "</span>")
-    raise SystemExit
-
-status.text("โหมดตรวจแล้ว: " + mode + " -> พอร์ต 8884")
-status.color(COL_INFO)
-ui.poll()
-lcd.print("โหมดตรวจแล้ว:", mode, "-> พอร์ต 8884")
-
-# วัดเวลาสองช่วงแยกกัน ช่วงแรกคือคำสั่ง ช่วงที่สองคือการเชื่อมต่อจริง
-t0 = time.ticks_ms()
-tesaiot.connect()
-t_call = time.ticks_diff(time.ticks_ms(), t0)
-seg_call.text(str(t_call))
-step.text("connect() คืนค่าแล้ว แต่ยังไม่ได้แปลว่าต่อแล้ว")
-step.color(COL_WARN)
-ui.poll()
-lcd.print("connect() คืนค่าใน", t_call, "ms")
-print("connect() คืนค่าภายใน", t_call, "ms  <- ยังไม่ได้แปลว่าต่อแล้ว")
-
-while not tesaiot.is_connected():
-    waited = time.ticks_diff(time.ticks_ms(), t0)
-
-    # ทางออกด้วยเวลา ต้องมาก่อนการรออีกรอบเสมอ
-    if waited > WAIT_LIMIT_MS:
-        step.text("ยังต่อไม่สำเร็จภายในเพดานเวลา ยอมแพ้")
+try:
+    # ขึ้นข้อความก่อนเรียก ไม่ใช่หลังเรียก เพราะ wifi.connect บล็อกยาว
+    if not wifi.connect(WIFI_SSID, WIFI_PASS):
+        step.text("ต่อ WiFi ไม่ได้")
         step.color(COL_BAD)
-        status.text("ไล่ตรวจ: broker - sni_hostname - api_key - เวลาของเครื่อง")
+        status.text("TLS วิ่งบน TCP ซึ่งวิ่งบน IP จบตรงนี้")
         status.color(COL_BAD)
         ui.poll()
-        lcd.print("<span class=error>ยอมแพ้ที่", WAIT_LIMIT_MS, "ms</span>")
-        lcd.print("ไล่ตรวจ broker - sni - api_key - นาฬิกา")
-        raise SystemExit
+        lcd.print("<span class=error>ต่อ WiFi ไม่ได้ จบตรงนี้</span>")
+        raise Stop
 
-    bar.value(waited)
-    wait_label.text("รออยู่ {} ms จากเพดาน {} ms".format(waited, WAIT_LIMIT_MS))
+    step.text("ได้ IP " + wifi.ip())
+    step.color(COL_OK)
     ui.poll()
-    time.sleep_ms(POLL_MS)
+    lcd.print("ได้ IP", wifi.ip())
 
-total = time.ticks_diff(time.ticks_ms(), t0)
-bar.value(total)        # แถบค้างไว้ตรงที่รอจริง ห่างจากเพดานอีกไกล
-seg_conn.text(str(total))
-wait_label.text("รอจริง {} ms จากเพดาน {} ms".format(total, WAIT_LIMIT_MS))
-gap_label.text("ต่างกัน {} ms".format(total - t_call))
-gap_label.color(COL_WARN)
-step.text("ต่อสำเร็จจริงแล้ว ตอนนี้ publish ได้")
-step.color(COL_OK)
-status.text("เลขสองตัวไม่เท่ากัน = คืนค่าแล้ว ไม่ใช่เสร็จ")
-status.color(COL_OK)
-ui.poll()
+    # ตั้งตัวตนและปลายทางก่อนสั่งต่อ config_set แค่เก็บค่า ยังไม่ได้ต่ออะไรทั้งสิ้น
+    tesaiot.config_set("device_id", DEVICE_ID)
+    tesaiot.config_set("api_key", API_KEY)
+    tesaiot.config_set("mqtt_pass", MQTT_PASS)
+    tesaiot.config_set("broker", BROKER)
 
-lcd.print("<span class=ok>ต่อสำเร็จจริงที่", total, "ms</span>")
-lcd.print("ต่างกัน", total - t_call, "ms คือเวลาที่ TLS จับมือ")
-print("ต่อสำเร็จจริงที่", total, "ms")
-print("ต่างกัน", total - t_call, "ms คือเวลาที่ TLS ใช้จับมือ")
+    # sni_hostname คือชื่อที่เดินไปก่อนการเข้ารหัส เซิร์ฟเวอร์ใช้มันเลือกใบรับรองที่จะยื่น
+    # ต้องเป็นชื่อโฮสต์เดียวกับ broker ถ้าตั้งไม่ตรง การต่อจะล้มโดยไม่มีข้อความอะไรเลย
+    tesaiot.config_set("sni_hostname", BROKER)
+
+    # ตั้งโหมดแล้วอ่านกลับตรวจทันที ตามท่าที่ฝึกมาในไฟล์ 03
+    tesaiot.config_set("tls_mode", "server_tls")
+    mode = tesaiot.config()["tls_mode"]
+    if mode != "serverTLS":
+        status.text("โหมดไม่ใช่ที่ขอไว้ ได้ " + mode + " แทน หยุดก่อน")
+        status.color(COL_BAD)
+        ui.poll()
+        lcd.print("<span class=error>โหมดไม่ตรง ได้", mode, "</span>")
+        raise Stop
+
+    status.text("โหมดตรวจแล้ว: " + mode + " -> พอร์ต 8884")
+    status.color(COL_INFO)
+    ui.poll()
+    lcd.print("โหมดตรวจแล้ว:", mode, "-> พอร์ต 8884")
+
+    # วัดเวลาสองช่วงแยกกัน ช่วงแรกคือคำสั่ง ช่วงที่สองคือการเชื่อมต่อจริง
+    t0 = time.ticks_ms()
+    tesaiot.connect()
+    t_call = time.ticks_diff(time.ticks_ms(), t0)
+    seg_call.text(str(t_call))
+    step.text("connect() คืนค่าแล้ว แต่ยังไม่ได้แปลว่าต่อแล้ว")
+    step.color(COL_WARN)
+    ui.poll()
+    lcd.print("connect() คืนค่าใน", t_call, "ms")
+    print("connect() คืนค่าภายใน", t_call, "ms  <- ยังไม่ได้แปลว่าต่อแล้ว")
+
+    while not tesaiot.is_connected():
+        waited = time.ticks_diff(time.ticks_ms(), t0)
+
+        # ทางออกด้วยเวลา ต้องมาก่อนการรออีกรอบเสมอ
+        if waited > WAIT_LIMIT_MS:
+            step.text("ยังต่อไม่สำเร็จภายในเพดานเวลา ยอมแพ้")
+            step.color(COL_BAD)
+            status.text("ไล่ตรวจ: broker - sni_hostname - api_key - เวลาของเครื่อง")
+            status.color(COL_BAD)
+            ui.poll()
+            lcd.print("<span class=error>ยอมแพ้ที่", WAIT_LIMIT_MS, "ms</span>")
+            lcd.print("ไล่ตรวจ broker - sni - api_key - นาฬิกา")
+            raise Stop
+
+        bar.value(waited)
+        wait_label.text("รออยู่ {} ms จากเพดาน {} ms".format(waited, WAIT_LIMIT_MS))
+        ui.poll()
+        time.sleep_ms(POLL_MS)
+
+    total = time.ticks_diff(time.ticks_ms(), t0)
+    bar.value(total)        # แถบค้างไว้ตรงที่รอจริง ห่างจากเพดานอีกไกล
+    seg_conn.text(str(total))
+    wait_label.text("รอจริง {} ms จากเพดาน {} ms".format(total, WAIT_LIMIT_MS))
+    gap_label.text("ต่างกัน {} ms".format(total - t_call))
+    gap_label.color(COL_WARN)
+    step.text("ต่อสำเร็จจริงแล้ว ตอนนี้ publish ได้")
+    step.color(COL_OK)
+    status.text("เลขสองตัวไม่เท่ากัน = คืนค่าแล้ว ไม่ใช่เสร็จ")
+    status.color(COL_OK)
+    ui.poll()
+
+    lcd.print("<span class=ok>ต่อสำเร็จจริงที่", total, "ms</span>")
+    lcd.print("ต่างกัน", total - t_call, "ms คือเวลาที่ TLS จับมือ")
+    print("ต่อสำเร็จจริงที่", total, "ms")
+    print("ต่างกัน", total - t_call, "ms คือเวลาที่ TLS ใช้จับมือ")
+except Stop:
+    pass

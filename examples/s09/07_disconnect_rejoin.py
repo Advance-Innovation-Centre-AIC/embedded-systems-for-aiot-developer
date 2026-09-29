@@ -32,6 +32,10 @@ COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD = 0x171B22
 COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 lcd.clear()
 lcd.console("<h2>คาบ 9 - สั่งให้เน็ตหลุด แล้วดูว่าอะไรเปลี่ยน</h2>")
 
@@ -94,62 +98,65 @@ ui.poll()
 ok = wifi.connect(WIFI_SSID, WIFI_PASS)
 print("connect() คืนค่า", ok)
 
-if not ok:
+try:
+    if not ok:
+        l_phase.color(COL_BAD)
+        l_phase.text("ต่อไม่ติด ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์")
+        l_note.text("ไฟล์นี้ต้องต่อติดก่อน จึงจะสาธิตการตัดได้")
+        ui.poll()
+        lcd.print("<span class=err>ต่อไม่ติด จบการทำงาน</span>")
+        raise Stop
+
+    l_phase.color(COL_OK)
+    up = refresh("2) ต่อแล้ว")
+    l_note.text("จำเลข IP ก้อนนี้ไว้ เดี๋ยวเทียบกับตอนหลุด")
+    ip_when_up = up["ip"]
+    time.sleep_ms(1500)
+
+    # --- จังหวะที่ 3: สั่งตัด ---
+    # disconnect() ไม่คืนอะไรกลับมา มันคืน None เสมอ
+    # จึงห้ามเอาไปใส่ใน if แบบ if wifi.disconnect(): เพราะจะไม่มีวันเป็นจริง
+    result = wifi.disconnect()
+    print("disconnect() คืนค่า", result, "(None เสมอ)")
+    lcd.print("สั่ง disconnect() แล้ว - ค่าที่คืนกลับมาคือ {}".format(result))
+    time.sleep_ms(600)
+
     l_phase.color(COL_BAD)
-    l_phase.text("ต่อไม่ติด ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์")
-    l_note.text("ไฟล์นี้ต้องต่อติดก่อน จึงจะสาธิตการตัดได้")
+    down = refresh("3) สั่งตัดแล้ว")
+    l_note.color(COL_BAD)
+    l_note.text("ip() เปลี่ยนจาก {} เป็น {}".format(ip_when_up, down["ip"]))
+    l_note2.color(COL_BAD)
+    l_note2.text("แต่ if wifi.ip(): ยังตอบ True อยู่ - อย่าใช้มันตัดสิน")
+
+    for i in range(DOWN_SECONDS):
+        l_phase.text("3) หลุดอยู่ เหลืออีก {} วินาที".format(DOWN_SECONDS - i))
+        ui.poll()
+        time.sleep_ms(1000)
+
+    # --- จังหวะที่ 4: ต่อกลับ ---
+    l_phase.color(COL_WARN)
+    l_phase.text("4) กำลังต่อกลับ")
     ui.poll()
-    lcd.print("<span class=err>ต่อไม่ติด จบการทำงาน</span>")
-    raise SystemExit
+    back = wifi.connect(WIFI_SSID, WIFI_PASS)
+    print("ต่อกลับคืนค่า", back)
 
-l_phase.color(COL_OK)
-up = refresh("2) ต่อแล้ว")
-l_note.text("จำเลข IP ก้อนนี้ไว้ เดี๋ยวเทียบกับตอนหลุด")
-ip_when_up = up["ip"]
-time.sleep_ms(1500)
+    l_phase.color(COL_OK if back else COL_BAD)
+    again = refresh("4) ต่อกลับแล้ว" if back else "4) ต่อกลับไม่สำเร็จ")
+    l_note.color(COL_DIM)
+    l_note2.color(COL_DIM)
 
-# --- จังหวะที่ 3: สั่งตัด ---
-# disconnect() ไม่คืนอะไรกลับมา มันคืน None เสมอ
-# จึงห้ามเอาไปใส่ใน if แบบ if wifi.disconnect(): เพราะจะไม่มีวันเป็นจริง
-result = wifi.disconnect()
-print("disconnect() คืนค่า", result, "(None เสมอ)")
-lcd.print("สั่ง disconnect() แล้ว - ค่าที่คืนกลับมาคือ {}".format(result))
-time.sleep_ms(600)
-
-l_phase.color(COL_BAD)
-down = refresh("3) สั่งตัดแล้ว")
-l_note.color(COL_BAD)
-l_note.text("ip() เปลี่ยนจาก {} เป็น {}".format(ip_when_up, down["ip"]))
-l_note2.color(COL_BAD)
-l_note2.text("แต่ if wifi.ip(): ยังตอบ True อยู่ - อย่าใช้มันตัดสิน")
-
-for i in range(DOWN_SECONDS):
-    l_phase.text("3) หลุดอยู่ เหลืออีก {} วินาที".format(DOWN_SECONDS - i))
+    # เลข IP รอบสองอาจไม่เท่ารอบแรก เพราะ DHCP ให้ยืมมาเป็นครั้ง ๆ ไม่ใช่ของเราถาวร
+    if again["ip"] == ip_when_up:
+        l_note.text("ได้ IP เดิม {} - เราเตอร์จำเราได้".format(again["ip"]))
+    else:
+        l_note.text("IP เปลี่ยน {} -> {} - DHCP ให้ยืมเป็นครั้ง ๆ".format(
+            ip_when_up, again["ip"]))
+    l_note2.text("สรุป: ถามสถานะด้วย is_connected() ไม่ใช่ด้วย if wifi.ip():")
     ui.poll()
-    time.sleep_ms(1000)
 
-# --- จังหวะที่ 4: ต่อกลับ ---
-l_phase.color(COL_WARN)
-l_phase.text("4) กำลังต่อกลับ")
-ui.poll()
-back = wifi.connect(WIFI_SSID, WIFI_PASS)
-print("ต่อกลับคืนค่า", back)
-
-l_phase.color(COL_OK if back else COL_BAD)
-again = refresh("4) ต่อกลับแล้ว" if back else "4) ต่อกลับไม่สำเร็จ")
-l_note.color(COL_DIM)
-l_note2.color(COL_DIM)
-
-# เลข IP รอบสองอาจไม่เท่ารอบแรก เพราะ DHCP ให้ยืมมาเป็นครั้ง ๆ ไม่ใช่ของเราถาวร
-if again["ip"] == ip_when_up:
-    l_note.text("ได้ IP เดิม {} - เราเตอร์จำเราได้".format(again["ip"]))
-else:
-    l_note.text("IP เปลี่ยน {} -> {} - DHCP ให้ยืมเป็นครั้ง ๆ".format(
-        ip_when_up, again["ip"]))
-l_note2.text("สรุป: ถามสถานะด้วย is_connected() ไม่ใช่ด้วย if wifi.ip():")
-ui.poll()
-
-print("บทเรียนของไฟล์นี้:")
-print("  1. disconnect() คืน None ไม่ใช่ True")
-print('  2. ip() ตอนหลุดคือ "0.0.0.0" ซึ่ง Python ถือว่าเป็นจริง')
-print("  3. คำถาม 'ต่ออยู่ไหม' มีคำตอบเดียวที่เชื่อได้คือ is_connected()")
+    print("บทเรียนของไฟล์นี้:")
+    print("  1. disconnect() คืน None ไม่ใช่ True")
+    print('  2. ip() ตอนหลุดคือ "0.0.0.0" ซึ่ง Python ถือว่าเป็นจริง')
+    print("  3. คำถาม 'ต่ออยู่ไหม' มีคำตอบเดียวที่เชื่อได้คือ is_connected()")
+except Stop:
+    pass

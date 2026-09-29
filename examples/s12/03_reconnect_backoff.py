@@ -18,6 +18,7 @@ WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"
 DEVICE_ID = "team03"
+CLIENT_ID = DEVICE_ID + "-%04x" % (time.ticks_ms() & 0xFFFF)   # ตัวท้ายสุ่มทุกครั้งที่รัน: รันใหม่ทันทีหลังหยุดก็ไม่ชน id ของรอบก่อน
 BACKOFF_START_MS = 2000     # ครั้งแรกรอสองวินาที
 BACKOFF_MAX_MS = 60000      # เพดาน หนึ่งนาที ไม่ปล่อยให้ยาวกว่านี้
 SCHEDULE_N = 7              # จำนวนครั้งที่เอามาวาดให้ดูเป็นตัวอย่าง
@@ -36,6 +37,9 @@ time.sleep_ms(200)
 # หัวเรื่องย่อจาก "ถอยห่างเพิ่มขึ้น แล้วรีเซ็ต" เพราะของเดิมยาว 94 ไบต์
 # ซึ่งเฉียดเพดาน 95 ไบต์ที่ตัวสร้าง ui.Label ตัดทิ้งเงียบ ๆ
 ui.Label("คาบ 12 - ถอยห่างแล้วรีเซ็ต", x=24, y=8, color=COL_TEXT, value=28)
+# ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
+led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_OK, value=0)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
 ui.Panel(x=24, y=56, w=744, h=168, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
 
@@ -88,62 +92,73 @@ def go_online():
     if not wifi.is_connected():
         if not wifi.connect(WIFI_SSID, WIFI_PASS):
             return False
-    return mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID)
+    return mqtt.connect(BROKER, port=1883, client_id=CLIENT_ID)
 
 
 def show_link(is_online):
     l_link.text("online" if is_online else "offline")
     l_link.color(COL_OK if is_online else COL_BAD)
+    # ไฟ MQTT มุมขวาบนเปลี่ยนที่นี่ที่เดียว จึงไม่มีทางบอกคนละเรื่องกับป้ายสาย
+    led_mqtt.value(1 if is_online else 0)
+    lbl_mqtt.text("MQTT: เชื่อมต่อแล้ว" if is_online else "MQTT: ออฟไลน์")
 
 
-online = go_online()
-backoff = BACKOFF_START_MS
-attempts = 0
-t_next = time.ticks_ms()
-show_link(online)
-lcd.print("<b>สถานะเริ่มต้น</b> {}".format("online" if online else "offline"))
+# ครอบตั้งแต่ต่อ broker จนจบลูป: หยุดกลางทางเมื่อไร finally ยังบอกลา broker ให้ ชื่อจึงไม่ค้างอีกนาที
+try:
+    online = go_online()
+    backoff = BACKOFF_START_MS
+    attempts = 0
+    t_next = time.ticks_ms()
+    show_link(online)
+    lcd.print("<b>สถานะเริ่มต้น</b> {}".format("online" if online else "offline"))
 
-while True:
-    now = time.ticks_ms()
+    while True:
+        now = time.ticks_ms()
 
-    # ตรวจว่ายังต่ออยู่จริงไหม สายที่เคยดีไม่ใช่หลักฐานของตอนนี้
-    if online and not mqtt.is_connected():
-        online = False
-        # ticks_add ไม่ใช่ + ธรรมดา เพราะตัวนับ ticks วนกลับเป็นศูนย์ได้
-        # บวกตรง ๆ แล้ววันที่มันวน เวลานัดหมายจะกลายเป็นอดีตหรืออนาคตไกลโพ้น
-        t_next = time.ticks_add(now, backoff)
-        show_link(False)
-        seg_backoff.text(str(backoff))
-        lcd.print("<span class=error>หลุด จะลองใหม่ในอีก {} ms</span>".format(backoff))
+        # ตรวจว่ายังต่ออยู่จริงไหม สายที่เคยดีไม่ใช่หลักฐานของตอนนี้
+        if online and not mqtt.is_connected():
+            online = False
+            # ticks_add ไม่ใช่ + ธรรมดา เพราะตัวนับ ticks วนกลับเป็นศูนย์ได้
+            # บวกตรง ๆ แล้ววันที่มันวน เวลานัดหมายจะกลายเป็นอดีตหรืออนาคตไกลโพ้น
+            t_next = time.ticks_add(now, backoff)
+            show_link(False)
+            seg_backoff.text(str(backoff))
+            lcd.print("<span class=error>หลุด จะลองใหม่ในอีก {} ms</span>".format(backoff))
 
-    if (not online) and time.ticks_diff(now, t_next) >= 0:
-        attempts += 1
-        seg_try.text(str(attempts))
-        online = go_online()
-        show_link(online)
+        if (not online) and time.ticks_diff(now, t_next) >= 0:
+            attempts += 1
+            seg_try.text(str(attempts))
+            online = go_online()
+            show_link(online)
+            if online:
+                # รีเซ็ตทันทีที่กลับมาได้ สามบรรทัดล่างคือหัวใจของทั้งไฟล์
+                lcd.print("<span class=ok>กลับมาที่ครั้งที่ {} รีเซ็ต {}</span>".format(
+                    attempts, BACKOFF_START_MS))
+                backoff = BACKOFF_START_MS
+                attempts = 0
+                seg_try.text("0")
+                seg_backoff.text(str(backoff))
+            else:
+                # คูณสองแต่ไม่เกินเพดาน min() คือสิ่งที่กันไม่ให้ระยะห่างวิ่งไปเป็นชั่วโมง
+                backoff = min(backoff * 2, BACKOFF_MAX_MS)
+                t_next = time.ticks_add(time.ticks_ms(), backoff)
+                seg_backoff.text(str(backoff))
+                lcd.print("<span class=warn>ยังไม่ได้ ครั้งที่ {} รออีก {} ms</span>".format(
+                    attempts, backoff))
+
+        # แถบนับถอยหลัง สายดีอยู่ก็ไม่มีอะไรให้รอ แถบจึงว่าง
         if online:
-            # รีเซ็ตทันทีที่กลับมาได้ สามบรรทัดล่างคือหัวใจของทั้งไฟล์
-            lcd.print("<span class=ok>กลับมาที่ครั้งที่ {} รีเซ็ต {}</span>".format(
-                attempts, BACKOFF_START_MS))
-            backoff = BACKOFF_START_MS
-            attempts = 0
-            seg_try.text("0")
-            seg_backoff.text(str(backoff))
+            bar_wait.value(0)
         else:
-            # คูณสองแต่ไม่เกินเพดาน min() คือสิ่งที่กันไม่ให้ระยะห่างวิ่งไปเป็นชั่วโมง
-            backoff = min(backoff * 2, BACKOFF_MAX_MS)
-            t_next = time.ticks_add(time.ticks_ms(), backoff)
-            seg_backoff.text(str(backoff))
-            lcd.print("<span class=warn>ยังไม่ได้ ครั้งที่ {} รออีก {} ms</span>".format(
-                attempts, backoff))
+            left = time.ticks_diff(t_next, now)
+            left = 0 if left < 0 else left
+            bar_wait.value(100 - int(left * 100 / backoff))
 
-    # แถบนับถอยหลัง สายดีอยู่ก็ไม่มีอะไรให้รอ แถบจึงว่าง
-    if online:
-        bar_wait.value(0)
-    else:
-        left = time.ticks_diff(t_next, now)
-        left = 0 if left < 0 else left
-        bar_wait.value(100 - int(left * 100 / backoff))
-
-    ui.poll()
-    time.sleep_ms(LOOP_MS)
+        ui.poll()
+        time.sleep_ms(LOOP_MS)
+finally:
+    try:
+        mqtt.disconnect()              # ปิดการเชื่อมต่อทุกครั้ง แม้โปรแกรมถูกหยุดกลางทาง
+        show_link(False)               # ไฟ MQTT หรี่ลง: จบแล้ว ไม่ได้ต่ออยู่
+    except Exception:
+        pass

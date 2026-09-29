@@ -29,8 +29,9 @@ ui.Label("Accel snapshot (m/s^2)", x=200, y=6, color=0x111111, value=20,
 bars = []
 for i in range(3):
     bars.append(ui.Bar(x=170 + i * 160, y=60, w=60, h=180, min=0, max=200,
-                       value=100, color=(0xF44336, 0x4CAF50, 0x2196F3)[i],
+                       value=0, color=(0xF44336, 0x4CAF50, 0x2196F3)[i],
                        parent=tab_bar))
+    bars[i].value(100)     # สร้างที่ 0 แล้วค่อยตั้งค่า: Bar ที่สร้างพร้อมค่าไม่เป็นศูนย์ทำให้จอว่างทั้งหน้า
     ui.Label("XYZ"[i], x=192 + i * 160, y=250, color=0x111111, value=20,
              parent=tab_bar)
 

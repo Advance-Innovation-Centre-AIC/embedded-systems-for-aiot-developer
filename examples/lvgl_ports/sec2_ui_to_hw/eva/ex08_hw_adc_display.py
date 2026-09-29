@@ -53,7 +53,8 @@ raw_l = ui.Label("Raw: 2048", x=LX + 215, y=158, color=GRN, value=14)
 
 # แถว 2 (ฟ้า): bar เปอร์เซ็นต์ ที่ CENTER(-55,0/+25) ของ C
 ui.Label("Percentage", x=LX, y=191, color=CYN, value=14)
-bar = ui.Bar(x=LX, y=211, w=200, h=18, min=0, max=100, value=50, color=CYN)
+bar = ui.Bar(x=LX, y=211, w=200, h=18, min=0, max=100, value=0, color=CYN)
+bar.value(50)          # สร้างที่ 0 แล้วค่อยตั้งค่า: Bar ที่สร้างพร้อมค่าไม่เป็นศูนย์ทำให้จอว่างทั้งหน้า
 pct_l = ui.Label("50%", x=LX + 215, y=211, color=CYN, value=14)
 
 # แถว 3 (เหลือง): แรงดัน ตัวโต ที่ CENTER(0,+80) ของ C

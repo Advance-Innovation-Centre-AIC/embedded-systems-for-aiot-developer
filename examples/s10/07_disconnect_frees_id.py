@@ -26,9 +26,16 @@ COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD = 0x171B22
 COL_OK, COL_BAD, COL_WARN = 0x30A46C, 0xE5484D, 0xF5A623
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 ui.screen()
 time.sleep_ms(200)
 ui.Label("บอกลาให้ถูกวิธี แล้วกลับมาใหม่", x=20, y=12, color=COL_TEXT, value=24)
+# ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
+led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_OK, value=0)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
 ui.Panel(x=20, y=52, w=652, h=192, color=COL_CARD, min=COL_DIM, max=12, value=1)
 st1 = ui.Label("1) ต่อรอบแรก           รอ...", x=36, y=68, color=COL_DIM, value=20)
 st2 = ui.Label("2) ส่งหนึ่งใบ          รอ...", x=36, y=100, color=COL_DIM, value=20)
@@ -53,75 +60,89 @@ def step(label, text, color):
     ui.poll()
 
 
+def show_link(ok):
+    # ไฟกับป้ายเปลี่ยนพร้อมกันเสมอ เรียกทุกครั้งที่รู้ว่าสายต่ออยู่หรือหลุด
+    led_mqtt.value(1 if ok else 0)
+    lbl_mqtt.text("MQTT: เชื่อมต่อแล้ว" if ok else "MQTT: ออฟไลน์")
+
+
 # --- ขั้นที่ 1: WiFi แล้วต่อ broker รอบแรก ---
 note.text("ต่อ WiFi ก่อน จอจะนิ่งครู่หนึ่ง")
 ui.poll()
-if not wifi.connect(WIFI_SSID, WIFI_PASS):
-    step(st1, "1) ต่อรอบแรก           WiFi ไม่ติด", COL_BAD)
-    note.color(COL_BAD)
-    note.text("ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์")
-    lcd.print("<span class=err>WiFi ไม่ติด</span>")
-    raise SystemExit
-
-lcd.print("WiFi ได้ IP {}".format(wifi.ip()))
-if not mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID):
-    step(st1, "1) ต่อรอบแรก           ต่อ broker ไม่ได้", COL_BAD)
-    note.color(COL_BAD)
-    note.text("ตรวจ BROKER ว่าเป็น IP ของเครื่องในแลนจริง")
-    lcd.print("<span class=err>ต่อ broker ไม่ได้</span>")
-    raise SystemExit
-
-step(st1, "1) ต่อรอบแรก           สำเร็จ", COL_OK)
-note.text("ต่อด้วย client_id = " + DEVICE_ID)
-lcd.print("<span class=ok>ต่อรอบแรกสำเร็จ</span>")
-time.sleep_ms(800)
-
-# --- ขั้นที่ 2: ส่งหนึ่งใบ เพื่อให้แน่ใจว่าเซสชันใช้งานได้จริง ---
-sent = mqtt.publish(TOPIC, json.dumps({"round": 1}))
-step(st2, "2) ส่งหนึ่งใบ          publish คืน {}".format(sent),
-     COL_OK if sent else COL_WARN)
-lcd.print("publish รอบแรกคืนค่า {}".format(sent))
-time.sleep_ms(800)
-
-# --- ขั้นที่ 3: บอกลา ---
-# ค่าที่คืนกลับมาคือ None เสมอ ไม่ใช่ True จึงห้ามเอาไปตัดสินใจใน if
-result = mqtt.disconnect()
-still = mqtt.is_connected()
-step(st3, "3) disconnect()  คืน {} is_connected {}".format(
-    result, still), COL_OK if not still else COL_BAD)
-note.text("ตัดแล้ว broker รู้ทันที ไม่ต้องรอ keepalive หมด")
-lcd.print("disconnect() คืน {} แล้ว is_connected() = {}".format(result, still))
-print("disconnect() คืนค่า", result, "(None เสมอ)")
-time.sleep_ms(1000)
-
-# --- ขั้นที่ 4: ต่อกลับด้วยชื่อเดิม ---
-# ถ้าขั้นนี้ผ่านทันที แปลว่าชื่อถูกคืนให้ว่างจริง
-# ถ้าไม่เคยเรียก disconnect() ขั้นนี้มักจะติด ๆ หลุด ๆ อยู่ราวหนึ่งนาที
-back = mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID)
-step(st4, "4) ต่อกลับชื่อเดิม     {}".format("สำเร็จ" if back else "ไม่สำเร็จ"),
-     COL_OK if back else COL_BAD)
-lcd.print("ต่อกลับด้วยชื่อเดิมคืนค่า {}".format(back))
-
-if back:
-    note.color(COL_OK)
-    note.text("ชื่อ {} ว่างทันทีหลังบอกลา".format(DEVICE_ID))
-    mqtt.publish(TOPIC, json.dumps({"round": 2}))
-    note2.text("ส่งรอบสองสำเร็จบนเซสชันใหม่")
-
-# --- ขั้นที่ 5: พิสูจน์ว่า publish หลังตัดโยน OSError ไม่ได้คืน False ---
-mqtt.disconnect()
 try:
-    mqtt.publish(TOPIC, json.dumps({"round": 3}))
-    step(st5, "5) publish หลังตัด     ไม่โยน error (ผิดคาด)", COL_WARN)
-except OSError as e:
-    # นี่คือพฤติกรรมที่ถูกต้อง ดักไว้เพื่อให้เห็นว่ามันเป็น error ไม่ใช่ค่า False
-    step(st5, "5) publish หลังตัด     OSError ตามคาด", COL_OK)
-    note2.text("publish ตอนไม่ได้ต่อ = OSError ไม่ใช่ False")
-    lcd.print("publish หลังตัดได้ OSError ตามคาด: {}".format(e))
-    print("publish หลังตัด โยน OSError:", e)
+    if not wifi.connect(WIFI_SSID, WIFI_PASS):
+        step(st1, "1) ต่อรอบแรก           WiFi ไม่ติด", COL_BAD)
+        note.color(COL_BAD)
+        note.text("ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์")
+        lcd.print("<span class=err>WiFi ไม่ติด</span>")
+        raise Stop
 
-ui.poll()
-print("สรุปสามข้อ:")
-print("  1. disconnect() คืน None ห้ามใส่ใน if")
-print("  2. บอกลาแล้ว client_id ว่างทันที ต่อใหม่ชื่อเดิมได้เลย")
-print("  3. publish ตอนไม่ได้ต่อ โยน OSError ไม่ได้คืน False")
+    lcd.print("WiFi ได้ IP {}".format(wifi.ip()))
+    if not mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID):
+        show_link(False)
+        step(st1, "1) ต่อรอบแรก           ต่อ broker ไม่ได้", COL_BAD)
+        note.color(COL_BAD)
+        note.text("ตรวจ BROKER ว่าเป็น IP ของเครื่องในแลนจริง")
+        lcd.print("<span class=err>ต่อ broker ไม่ได้</span>")
+        raise Stop
+
+    show_link(True)
+    step(st1, "1) ต่อรอบแรก           สำเร็จ", COL_OK)
+    note.text("ต่อด้วย client_id = " + DEVICE_ID)
+    lcd.print("<span class=ok>ต่อรอบแรกสำเร็จ</span>")
+    time.sleep_ms(800)
+
+    # --- ขั้นที่ 2: ส่งหนึ่งใบ เพื่อให้แน่ใจว่าเซสชันใช้งานได้จริง ---
+    sent = mqtt.publish(TOPIC, json.dumps({"round": 1}))
+    step(st2, "2) ส่งหนึ่งใบ          publish คืน {}".format(sent),
+         COL_OK if sent else COL_WARN)
+    lcd.print("publish รอบแรกคืนค่า {}".format(sent))
+    time.sleep_ms(800)
+
+    # --- ขั้นที่ 3: บอกลา ---
+    # ค่าที่คืนกลับมาคือ None เสมอ ไม่ใช่ True จึงห้ามเอาไปตัดสินใจใน if
+    result = mqtt.disconnect()
+    still = mqtt.is_connected()
+    show_link(still)                 # ไฟตาม is_connected() จริง: หรี่ทันทีที่บอกลา
+    step(st3, "3) disconnect()  คืน {} is_connected {}".format(
+        result, still), COL_OK if not still else COL_BAD)
+    note.text("ตัดแล้ว broker รู้ทันที ไม่ต้องรอ keepalive หมด")
+    lcd.print("disconnect() คืน {} แล้ว is_connected() = {}".format(result, still))
+    print("disconnect() คืนค่า", result, "(None เสมอ)")
+    time.sleep_ms(1000)
+
+    # --- ขั้นที่ 4: ต่อกลับด้วยชื่อเดิม ---
+    # ถ้าขั้นนี้ผ่านทันที แปลว่าชื่อถูกคืนให้ว่างจริง
+    # ถ้าไม่เคยเรียก disconnect() ขั้นนี้มักจะติด ๆ หลุด ๆ อยู่ราวหนึ่งนาที
+    back = mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID)
+    show_link(back)                  # ต่อกลับชื่อเดิมได้เมื่อไร ไฟ MQTT กลับมาเขียว
+    step(st4, "4) ต่อกลับชื่อเดิม     {}".format("สำเร็จ" if back else "ไม่สำเร็จ"),
+         COL_OK if back else COL_BAD)
+    lcd.print("ต่อกลับด้วยชื่อเดิมคืนค่า {}".format(back))
+
+    if back:
+        note.color(COL_OK)
+        note.text("ชื่อ {} ว่างทันทีหลังบอกลา".format(DEVICE_ID))
+        mqtt.publish(TOPIC, json.dumps({"round": 2}))
+        note2.text("ส่งรอบสองสำเร็จบนเซสชันใหม่")
+
+    # --- ขั้นที่ 5: พิสูจน์ว่า publish หลังตัดโยน OSError ไม่ได้คืน False ---
+    mqtt.disconnect()
+    show_link(False)
+    try:
+        mqtt.publish(TOPIC, json.dumps({"round": 3}))
+        step(st5, "5) publish หลังตัด     ไม่โยน error (ผิดคาด)", COL_WARN)
+    except OSError as e:
+        # นี่คือพฤติกรรมที่ถูกต้อง ดักไว้เพื่อให้เห็นว่ามันเป็น error ไม่ใช่ค่า False
+        step(st5, "5) publish หลังตัด     OSError ตามคาด", COL_OK)
+        note2.text("publish ตอนไม่ได้ต่อ = OSError ไม่ใช่ False")
+        lcd.print("publish หลังตัดได้ OSError ตามคาด: {}".format(e))
+        print("publish หลังตัด โยน OSError:", e)
+
+    ui.poll()
+    print("สรุปสามข้อ:")
+    print("  1. disconnect() คืน None ห้ามใส่ใน if")
+    print("  2. บอกลาแล้ว client_id ว่างทันที ต่อใหม่ชื่อเดิมได้เลย")
+    print("  3. publish ตอนไม่ได้ต่อ โยน OSError ไม่ได้คืน False")
+except Stop:
+    pass

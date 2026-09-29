@@ -38,6 +38,10 @@ COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 # อีกสองคีย์ (ssid, rssi) เป็นค่าคงที่ในซอร์ส จึงไม่อยู่ในรายการนี้
 KEYS = ("connected", "ip", "mode")
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 lcd.clear()
 lcd.console("<h2>คาบ 9 - อ่าน status() ครั้งเดียวต่อรอบ</h2>")
 
@@ -135,38 +139,41 @@ lcd.print("is_connected() = {} - [\"connected\"] = {}".format(
 print("is_connected() =", wifi.is_connected())
 print('status()["connected"] =', after["connected"])
 
-if not after["connected"]:
-    l_same.color(COL_BAD)
-    l_phase.color(COL_BAD)
-    l_phase.text("ยังไม่ได้ต่อ ข้ามรอบเฝ้าดู")
-    l_same.text("ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์")
-    ui.poll()
-    lcd.print("<span class=err>ยังไม่ได้ต่อ ข้ามรอบเฝ้าดู</span>")
-    raise SystemExit
-
-# เฝ้าดูหลายรอบ รอบละ "หนึ่งการอ่าน" เพื่อพิสูจน์ข้อที่ไฟล์นี้สอน
-# ถ้าลิงก์หลุดกลางทาง ทั้งสามค่าจะเปลี่ยนพร้อมกันในรอบเดียวกัน ไม่ใช่ทยอยเปลี่ยน
-l_same.color(COL_OK)
-lcd.print("<b>เฝ้าดู</b> ลองปิดเราเตอร์แล้วดูว่าสามค่าเปลี่ยนพร้อมกันไหม")
-last_ip = after["ip"]
-
-for i in range(WATCH_ROUNDS):
-    st = wifi.status()          # อ่านครั้งเดียว - บรรทัดนี้คือหัวใจของไฟล์
-    show(st, "เฝ้าดูรอบที่ {}/{}".format(i + 1, WATCH_ROUNDS))
-    l_same.text("รอบนี้อ่าน status() ไป 1 ครั้ง ใช้ค่า {} ตัว".format(len(KEYS)))
-
-    # จอเขียนทับที่เดิมได้ทุกรอบ แต่ log ต้องพิมพ์ "เมื่อค่าเปลี่ยน" ไม่ใช่ทุกรอบ
-    # ไม่งั้นบรรทัดที่สำคัญกว่าจะถูกดันหายไปจากหน้าจอคอนโซล
-    if st["ip"] != last_ip:
-        lcd.print("  รอบ {} IP เปลี่ยน {} -> {}".format(i + 1, last_ip, st["ip"]))
-        last_ip = st["ip"]
-    print("  รอบ", i + 1, "connected =", st["connected"], "ip =", st["ip"])
-
-    for _ in range(3):
+try:
+    if not after["connected"]:
+        l_same.color(COL_BAD)
+        l_phase.color(COL_BAD)
+        l_phase.text("ยังไม่ได้ต่อ ข้ามรอบเฝ้าดู")
+        l_same.text("ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์")
         ui.poll()
-        time.sleep_ms(160)
+        lcd.print("<span class=err>ยังไม่ได้ต่อ ข้ามรอบเฝ้าดู</span>")
+        raise Stop
 
-l_phase.text("จบการเฝ้าดู")
-l_same.text("ทุกแถวบนจอมาจากการอ่าน status() ครั้งเดียวกัน")
-ui.poll()
-print("กติกาข้อเดียวของไฟล์นี้: หนึ่งรอบ อ่าน status() หนึ่งครั้ง")
+    # เฝ้าดูหลายรอบ รอบละ "หนึ่งการอ่าน" เพื่อพิสูจน์ข้อที่ไฟล์นี้สอน
+    # ถ้าลิงก์หลุดกลางทาง ทั้งสามค่าจะเปลี่ยนพร้อมกันในรอบเดียวกัน ไม่ใช่ทยอยเปลี่ยน
+    l_same.color(COL_OK)
+    lcd.print("<b>เฝ้าดู</b> ลองปิดเราเตอร์แล้วดูว่าสามค่าเปลี่ยนพร้อมกันไหม")
+    last_ip = after["ip"]
+
+    for i in range(WATCH_ROUNDS):
+        st = wifi.status()          # อ่านครั้งเดียว - บรรทัดนี้คือหัวใจของไฟล์
+        show(st, "เฝ้าดูรอบที่ {}/{}".format(i + 1, WATCH_ROUNDS))
+        l_same.text("รอบนี้อ่าน status() ไป 1 ครั้ง ใช้ค่า {} ตัว".format(len(KEYS)))
+
+        # จอเขียนทับที่เดิมได้ทุกรอบ แต่ log ต้องพิมพ์ "เมื่อค่าเปลี่ยน" ไม่ใช่ทุกรอบ
+        # ไม่งั้นบรรทัดที่สำคัญกว่าจะถูกดันหายไปจากหน้าจอคอนโซล
+        if st["ip"] != last_ip:
+            lcd.print("  รอบ {} IP เปลี่ยน {} -> {}".format(i + 1, last_ip, st["ip"]))
+            last_ip = st["ip"]
+        print("  รอบ", i + 1, "connected =", st["connected"], "ip =", st["ip"])
+
+        for _ in range(3):
+            ui.poll()
+            time.sleep_ms(160)
+
+    l_phase.text("จบการเฝ้าดู")
+    l_same.text("ทุกแถวบนจอมาจากการอ่าน status() ครั้งเดียวกัน")
+    ui.poll()
+    print("กติกาข้อเดียวของไฟล์นี้: หนึ่งรอบ อ่าน status() หนึ่งครั้ง")
+except Stop:
+    pass

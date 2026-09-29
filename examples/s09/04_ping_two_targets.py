@@ -25,6 +25,10 @@ COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD = 0x171B22
 COL_OK, COL_WARN, COL_BAD, COL_INFO = 0x30A46C, 0xF5A623, 0xE5484D, 0x4A9EFF
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 lcd.clear()
 lcd.console("<h2>คาบ 9 - ยิงสองปลายทาง</h2>")
 
@@ -57,84 +61,87 @@ l_verdict = ui.Label("กำลังต่อ " + WIFI_SSID + " ... จอจ�
 ui.poll()
 
 lcd.print("กำลังต่อ", WIFI_SSID, "- อาจรอนาน")
-if not wifi.connect(WIFI_SSID, WIFI_PASS):
-    l_verdict.color(COL_BAD)
-    l_verdict.text("ต่อไม่สำเร็จ หยุดตรงนี้")
-    ui.poll()
-    lcd.print("<span class=err>ต่อไม่สำเร็จ หยุดตรงนี้</span>")
-    raise SystemExit
-
-ip = wifi.ip()
-
-# เกตเวย์ของวงแลนห้องเรียนและบ้านเกือบทั้งหมดคือเลข .1 ของวงเดียวกัน
-# ถ้าห้องนี้ไม่ได้ใช้ .1 ให้แก้บรรทัดนี้เป็นเลขจริงที่ผู้สอนบอก
-parts = ip.split(".")
-gateway = parts[0] + "." + parts[1] + "." + parts[2] + ".1"
-l_verdict.color(COL_DIM)
-l_verdict.text("IP เรา " + ip + " - ยิงเกตเวย์ " + gateway)
-ui.poll()
-lcd.print("IP", ip, "เกตเวย์", gateway)
-print("รอบ   เกตเวย์      อินเทอร์เน็ต")
-
-gw_lost = 0
-net_lost = 0
-gw_total = 0
-gw_count = 0
-
-for i in range(ROUNDS):
-    # ยิงเกตเวย์ก่อนเสมอ ลำดับนี้ทำให้อ่านผลได้ว่าขาดตรงช่วงไหนของเส้นทาง
-    ms_gw = wifi.ping(gateway, TIMEOUT_MS)
-    ms_net = wifi.ping(INTERNET_IP, TIMEOUT_MS)
-
-    if ms_gw < 0:
-        gw_lost += 1
-    else:
-        # เก็บเฉพาะรอบที่ตอบไว้เฉลี่ย ถ้าเอา -1 ไปรวมค่าเฉลี่ยจะเพี้ยนลงทันที
-        gw_total += ms_gw
-        gw_count += 1
-    if ms_net < 0:
-        net_lost += 1
-
-    # กราฟรับได้แต่จำนวนเต็ม รอบที่หายไปป้อน 0 ไม่ใช่ -1 ไม่งั้นเส้นจะดิ่งใต้แกน
-    ch.set_next(s_gw, ms_gw if ms_gw > 0 else 0)
-    ch.set_next(s_net, ms_net if ms_net > 0 else 0)
-    seg_gw.text("--" if ms_gw < 0 else str(ms_gw))
-    seg_net.text("--" if ms_net < 0 else str(ms_net))
-    seg_gw.color(COL_BAD if ms_gw < 0 else COL_OK)
-    seg_net.color(COL_BAD if ms_net < 0 else COL_INFO)
-    l_lost.text("{} / {}".format(gw_lost, net_lost))
-    l_lost.color(COL_BAD if (gw_lost + net_lost) > 0 else COL_TEXT)
-    l_round.text("{}/{}".format(i + 1, ROUNDS))
-
-    lcd.print("รอบ {} gw {} net {}".format(
-        i + 1,
-        "timeout" if ms_gw < 0 else str(ms_gw) + " ms",
-        "timeout" if ms_net < 0 else str(ms_net) + " ms"))
-    print("  {:<4} {:<12} {}".format(
-        i + 1,
-        "timeout" if ms_gw < 0 else str(ms_gw) + " ms",
-        "timeout" if ms_net < 0 else str(ms_net) + " ms"))
-
-    # แบ่ง sleep เป็นชิ้นเล็กแล้ว poll ทุกชิ้น จอจึงเดินต่อระหว่างรอ
-    for _ in range(2):
+try:
+    if not wifi.connect(WIFI_SSID, WIFI_PASS):
+        l_verdict.color(COL_BAD)
+        l_verdict.text("ต่อไม่สำเร็จ หยุดตรงนี้")
         ui.poll()
-        time.sleep_ms(150)
+        lcd.print("<span class=err>ต่อไม่สำเร็จ หยุดตรงนี้</span>")
+        raise Stop
 
-lcd.print("เสีย gw {} net {} จาก {} รอบ".format(gw_lost, net_lost, ROUNDS))
-print("เกตเวย์เสีย", gw_lost, "จาก", ROUNDS, " อินเทอร์เน็ตเสีย", net_lost)
-if gw_count > 0:
-    lcd.print("เกตเวย์ตอบเฉลี่ย {} ms จาก {} รอบ".format(gw_total // gw_count, gw_count))
-    print("เกตเวย์ตอบเฉลี่ย", gw_total // gw_count, "ms จาก", gw_count, "รอบที่ตอบ")
+    ip = wifi.ip()
 
-# นี่คือหัวใจของทั้งไฟล์: อ่านผลสองเส้นแล้วสรุปให้ได้ว่าปัญหาอยู่ที่ไหน
-if gw_lost == 0 and net_lost > 0:
-    l_verdict.color(COL_WARN)
-    l_verdict.text("ในบ้านปกติ ปัญหาอยู่เลยเราเตอร์ออกไป")
-elif gw_lost > 0:
-    l_verdict.color(COL_BAD)
-    l_verdict.text("เราเตอร์ยังไม่รอด ปัญหาที่คลื่นหรือวงแลน")
-else:
-    l_verdict.color(COL_OK)
-    l_verdict.text("เส้นทางโล่งทั้งสองช่วง")
-ui.poll()
-lcd.print("สรุป: ดูป้ายล่างสุดบนจอ")
+    # เกตเวย์ของวงแลนห้องเรียนและบ้านเกือบทั้งหมดคือเลข .1 ของวงเดียวกัน
+    # ถ้าห้องนี้ไม่ได้ใช้ .1 ให้แก้บรรทัดนี้เป็นเลขจริงที่ผู้สอนบอก
+    parts = ip.split(".")
+    gateway = parts[0] + "." + parts[1] + "." + parts[2] + ".1"
+    l_verdict.color(COL_DIM)
+    l_verdict.text("IP เรา " + ip + " - ยิงเกตเวย์ " + gateway)
+    ui.poll()
+    lcd.print("IP", ip, "เกตเวย์", gateway)
+    print("รอบ   เกตเวย์      อินเทอร์เน็ต")
+
+    gw_lost = 0
+    net_lost = 0
+    gw_total = 0
+    gw_count = 0
+
+    for i in range(ROUNDS):
+        # ยิงเกตเวย์ก่อนเสมอ ลำดับนี้ทำให้อ่านผลได้ว่าขาดตรงช่วงไหนของเส้นทาง
+        ms_gw = wifi.ping(gateway, TIMEOUT_MS)
+        ms_net = wifi.ping(INTERNET_IP, TIMEOUT_MS)
+
+        if ms_gw < 0:
+            gw_lost += 1
+        else:
+            # เก็บเฉพาะรอบที่ตอบไว้เฉลี่ย ถ้าเอา -1 ไปรวมค่าเฉลี่ยจะเพี้ยนลงทันที
+            gw_total += ms_gw
+            gw_count += 1
+        if ms_net < 0:
+            net_lost += 1
+
+        # กราฟรับได้แต่จำนวนเต็ม รอบที่หายไปป้อน 0 ไม่ใช่ -1 ไม่งั้นเส้นจะดิ่งใต้แกน
+        ch.set_next(s_gw, ms_gw if ms_gw > 0 else 0)
+        ch.set_next(s_net, ms_net if ms_net > 0 else 0)
+        seg_gw.text("--" if ms_gw < 0 else str(ms_gw))
+        seg_net.text("--" if ms_net < 0 else str(ms_net))
+        seg_gw.color(COL_BAD if ms_gw < 0 else COL_OK)
+        seg_net.color(COL_BAD if ms_net < 0 else COL_INFO)
+        l_lost.text("{} / {}".format(gw_lost, net_lost))
+        l_lost.color(COL_BAD if (gw_lost + net_lost) > 0 else COL_TEXT)
+        l_round.text("{}/{}".format(i + 1, ROUNDS))
+
+        lcd.print("รอบ {} gw {} net {}".format(
+            i + 1,
+            "timeout" if ms_gw < 0 else str(ms_gw) + " ms",
+            "timeout" if ms_net < 0 else str(ms_net) + " ms"))
+        print("  {:<4} {:<12} {}".format(
+            i + 1,
+            "timeout" if ms_gw < 0 else str(ms_gw) + " ms",
+            "timeout" if ms_net < 0 else str(ms_net) + " ms"))
+
+        # แบ่ง sleep เป็นชิ้นเล็กแล้ว poll ทุกชิ้น จอจึงเดินต่อระหว่างรอ
+        for _ in range(2):
+            ui.poll()
+            time.sleep_ms(150)
+
+    lcd.print("เสีย gw {} net {} จาก {} รอบ".format(gw_lost, net_lost, ROUNDS))
+    print("เกตเวย์เสีย", gw_lost, "จาก", ROUNDS, " อินเทอร์เน็ตเสีย", net_lost)
+    if gw_count > 0:
+        lcd.print("เกตเวย์ตอบเฉลี่ย {} ms จาก {} รอบ".format(gw_total // gw_count, gw_count))
+        print("เกตเวย์ตอบเฉลี่ย", gw_total // gw_count, "ms จาก", gw_count, "รอบที่ตอบ")
+
+    # นี่คือหัวใจของทั้งไฟล์: อ่านผลสองเส้นแล้วสรุปให้ได้ว่าปัญหาอยู่ที่ไหน
+    if gw_lost == 0 and net_lost > 0:
+        l_verdict.color(COL_WARN)
+        l_verdict.text("ในบ้านปกติ ปัญหาอยู่เลยเราเตอร์ออกไป")
+    elif gw_lost > 0:
+        l_verdict.color(COL_BAD)
+        l_verdict.text("เราเตอร์ยังไม่รอด ปัญหาที่คลื่นหรือวงแลน")
+    else:
+        l_verdict.color(COL_OK)
+        l_verdict.text("เส้นทางโล่งทั้งสองช่วง")
+    ui.poll()
+    lcd.print("สรุป: ดูป้ายล่างสุดบนจอ")
+except Stop:
+    pass

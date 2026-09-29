@@ -82,7 +82,7 @@ for i in range(shown):
     # เพราะ .color() ของ Bar ทาที่ "ราง" ไม่ใช่ส่วนที่เติม ถ้าดูแต่แท่งจะอ่านสลับได้
     ui.Label("{}. {}  {} dBm  {}".format(i + 1, ssid[:16], rssi, verdict_of(rssi)),
              x=20, y=y, color=col, value=16)
-    ui.Bar(x=20, y=y + 22, w=640, h=16, min=0, max=100, value=pct, color=col)
+    ui.Bar(x=20, y=y + 22, w=640, h=16, min=0, max=100, value=0, color=col).value(pct)   # สร้างที่ 0 แล้วค่อยตั้งค่า: Bar ที่สร้างพร้อมค่าไม่เป็นศูนย์ทำให้จอว่างทั้งหน้า
     ui.poll()
 
     lcd.print("{}. {} {} dBm {}%".format(i + 1, ssid[:18], rssi, pct))

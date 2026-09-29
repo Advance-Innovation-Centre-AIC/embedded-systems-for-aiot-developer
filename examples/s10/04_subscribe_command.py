@@ -18,6 +18,7 @@ WIFI_SSID = "AIoT-Class"
 WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 BROKER = "192.168.1.50"
 DEVICE_ID = "team03"
+CLIENT_ID = DEVICE_ID + "-%04x" % (time.ticks_ms() & 0xFFFF)   # ตัวท้ายสุ่มทุกครั้งที่รัน: รันใหม่ทันทีหลังหยุดก็ไม่ชน id ของรอบก่อน
 TOPIC_CMD = "bento/team03/command"
 
 NOTE_A4 = 69                # ui.tone รับ "โน้ต MIDI" 0-127 ไม่ใช่ความถี่เป็นเฮิรตซ์
@@ -27,10 +28,17 @@ COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD = 0x171B22
 COL_OK, COL_BAD, COL_INFO = 0x30A46C, 0xE5484D, 0x4A9EFF
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("รอคำสั่งจากข้างนอก", x=20, y=12, color=COL_TEXT, value=24)
+# ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
+led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_OK, value=0)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
 ui.Panel(x=20, y=52, w=652, h=132, color=COL_CARD, min=COL_DIM, max=12, value=1)
 ui.Label("topic ที่เฝ้าอยู่", x=36, y=64, color=COL_DIM, value=16)
 l_topic = ui.Label(TOPIC_CMD, x=36, y=88, color=COL_INFO, value=20)
@@ -47,88 +55,106 @@ ui.Label("มาที่ topic ข้างบน จาก MQTT Explorer", x=2
 alive = ui.Label("กำลังต่อเน็ต...", x=20, y=336, color=COL_DIM, value=20)
 ui.poll()
 
+
+def show_link(ok):
+    # ไฟกับป้ายเปลี่ยนพร้อมกันเสมอ เรียกทุกครั้งที่รู้ว่าสายต่ออยู่หรือหลุด
+    led_mqtt.value(1 if ok else 0)
+    lbl_mqtt.text("MQTT: เชื่อมต่อแล้ว" if ok else "MQTT: ออฟไลน์")
+
 lcd.clear()
 lcd.console("<h2>คาบ 10 - รับคำสั่ง</h2>")
 
-if not wifi.connect(WIFI_SSID, WIFI_PASS):
-    alive.color(COL_BAD)
-    alive.text("ต่อ WiFi ไม่ได้")
+try:
+    if not wifi.connect(WIFI_SSID, WIFI_PASS):
+        alive.color(COL_BAD)
+        alive.text("ต่อ WiFi ไม่ได้")
+        ui.poll()
+        lcd.print("<span class=err>ต่อ WiFi ไม่ได้</span>")
+        raise Stop
+    # ครอบตั้งแต่ต่อ broker จนจบลูป: หยุดกลางทางเมื่อไร finally ยังบอกลา broker ให้ ชื่อจึงไม่ค้างอีกนาที
+    if not mqtt.connect(BROKER, port=1883, client_id=CLIENT_ID):
+        show_link(False)
+        alive.color(COL_BAD)
+        alive.text("ต่อ broker ไม่ได้")
+        ui.poll()
+        lcd.print("<span class=err>ต่อ broker ไม่ได้</span>")
+        raise Stop
+    show_link(True)
+
+    # subscribe ครั้งเดียวก่อนเข้าลูป ไม่ต้องเรียกซ้ำทุกรอบ
+    # มันคืน False ถ้า broker ปฏิเสธ ซึ่งเกิดได้เมื่อบัญชีเราไม่มีสิทธิ์อ่าน topic นี้
+    if not mqtt.subscribe(TOPIC_CMD):
+        l_topic.color(COL_BAD)
+        alive.color(COL_BAD)
+        alive.text("broker ปฏิเสธการ subscribe")
+        ui.poll()
+        lcd.print("<span class=err>broker ปฏิเสธการ subscribe</span>")
+        raise Stop
+
+    l_topic.color(COL_OK)
+    alive.text("กำลังรอคำสั่ง")
     ui.poll()
-    lcd.print("<span class=err>ต่อ WiFi ไม่ได้</span>")
-    raise SystemExit
-if not mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID):
-    alive.color(COL_BAD)
-    alive.text("ต่อ broker ไม่ได้")
-    ui.poll()
-    lcd.print("<span class=err>ต่อ broker ไม่ได้</span>")
-    raise SystemExit
+    lcd.print("<span class=ok>รอคำสั่งที่</span>", TOPIC_CMD)
+    lcd.print('ลองส่ง {"cmd":"beep"} หรือ {"cmd":"count"} มาดู')
 
-# subscribe ครั้งเดียวก่อนเข้าลูป ไม่ต้องเรียกซ้ำทุกรอบ
-# มันคืน False ถ้า broker ปฏิเสธ ซึ่งเกิดได้เมื่อบัญชีเราไม่มีสิทธิ์อ่าน topic นี้
-if not mqtt.subscribe(TOPIC_CMD):
-    l_topic.color(COL_BAD)
-    alive.color(COL_BAD)
-    alive.text("broker ปฏิเสธการ subscribe")
-    ui.poll()
-    lcd.print("<span class=err>broker ปฏิเสธการ subscribe</span>")
-    raise SystemExit
+    counter = 0
+    ticks = 0
 
-l_topic.color(COL_OK)
-alive.text("กำลังรอคำสั่ง")
-ui.poll()
-lcd.print("<span class=ok>รอคำสั่งที่</span>", TOPIC_CMD)
-lcd.print('ลองส่ง {"cmd":"beep"} หรือ {"cmd":"count"} มาดู')
+    while True:
+        # ถามทุกรอบ ห้ามหลับยาว ยิ่งรอบห่างยิ่งมีโอกาสพลาดข้อความที่มาติด ๆ กัน
+        msg = mqtt.get_message()
 
-counter = 0
-ticks = 0
+        if msg is not None:
+            # msg เป็น tuple สองช่อง: topic เป็น str ส่วน payload เป็น bytes
+            topic, raw = msg
 
-while True:
-    # ถามทุกรอบ ห้ามหลับยาว ยิ่งรอบห่างยิ่งมีโอกาสพลาดข้อความที่มาติด ๆ กัน
-    msg = mqtt.get_message()
+            try:
+                cmd = json.loads(raw.decode())
+            except ValueError:
+                # คนส่งมั่วได้เสมอ ข้อความที่ไม่ใช่ JSON ต้องไม่ทำให้ทั้งโปรแกรมตาย
+                l_last.color(COL_BAD)
+                l_last.text("ไม่ใช่ JSON")
+                lcd.print("ได้ข้อความที่ไม่ใช่ JSON:", raw)
+                cmd = {}
 
-    if msg is not None:
-        # msg เป็น tuple สองช่อง: topic เป็น str ส่วน payload เป็น bytes
-        topic, raw = msg
+            # .get() แทนการเข้าถึงคีย์ตรง ๆ เพราะ JSON ที่ถูกต้องแต่ไม่มีคีย์ cmd ก็เป็นไปได้
+            action = cmd.get("cmd", "")
 
-        try:
-            cmd = json.loads(raw.decode())
-        except ValueError:
-            # คนส่งมั่วได้เสมอ ข้อความที่ไม่ใช่ JSON ต้องไม่ทำให้ทั้งโปรแกรมตาย
-            l_last.color(COL_BAD)
-            l_last.text("ไม่ใช่ JSON")
-            lcd.print("ได้ข้อความที่ไม่ใช่ JSON:", raw)
-            cmd = {}
+            if action == "beep":
+                # 880 คือความถี่ของ A4 ไม่ใช่หมายเลขโน้ต ใส่ 880 ลงไปจะถูกตัดทิ้ง
+                # เพราะช่วงที่รับได้คือ 0-127 กับดักเดียวกับที่คาบ 4 สอนไว้
+                ui.tone(NOTE_A4, ui.WAVE_SQUARE, 90, 150)
+                counter += 1
+                l_last.color(COL_OK)
+                l_last.text("beep")
+                lcd.print("ทำตามคำสั่ง beep")
+            elif action == "count":
+                counter += 1
+                l_last.color(COL_OK)
+                l_last.text("count")
+                lcd.print("ทำตามคำสั่ง count ->", counter)
+            else:
+                l_last.color(COL_BAD)
+                l_last.text("ไม่รู้จัก: " + str(action))
+                lcd.print("ไม่รู้จักคำสั่งนี้:", action)
 
-        # .get() แทนการเข้าถึงคีย์ตรง ๆ เพราะ JSON ที่ถูกต้องแต่ไม่มีคีย์ cmd ก็เป็นไปได้
-        action = cmd.get("cmd", "")
+            seg.text(str(counter))   # ส่งข้อความเพื่อคุมรูปแบบ seg.value(n) ได้จำนวนเต็ม
 
-        if action == "beep":
-            # 880 คือความถี่ของ A4 ไม่ใช่หมายเลขโน้ต ใส่ 880 ลงไปจะถูกตัดทิ้ง
-            # เพราะช่วงที่รับได้คือ 0-127 กับดักเดียวกับที่คาบ 4 สอนไว้
-            ui.tone(NOTE_A4, ui.WAVE_SQUARE, 90, 150)
-            counter += 1
-            l_last.color(COL_OK)
-            l_last.text("beep")
-            lcd.print("ทำตามคำสั่ง beep")
-        elif action == "count":
-            counter += 1
-            l_last.color(COL_OK)
-            l_last.text("count")
-            lcd.print("ทำตามคำสั่ง count ->", counter)
-        else:
-            l_last.color(COL_BAD)
-            l_last.text("ไม่รู้จัก: " + str(action))
-            lcd.print("ไม่รู้จักคำสั่งนี้:", action)
+        # จุดที่เต้นคือสัญญาณว่าลูปยังเดินอยู่ ไม่ใช่เครื่องแฮงก์
+        # ถ้าไม่มีสัญญาณแบบนี้ จอที่นิ่งกับจอที่ตายหน้าตาเหมือนกันเป๊ะ
+        ticks += 1
+        alive.text("กำลังรอคำสั่ง" + "." * (ticks % 4) + "   รอบที่ " + str(ticks))
 
-        seg.text(str(counter))   # ส่งข้อความเพื่อคุมรูปแบบ seg.value(n) ได้จำนวนเต็ม
+        # ui.poll() ต้องเรียกทุกรอบ ไม่งั้นจอค้างทั้งที่โปรแกรมยังเดิน
+        ui.poll()
 
-    # จุดที่เต้นคือสัญญาณว่าลูปยังเดินอยู่ ไม่ใช่เครื่องแฮงก์
-    # ถ้าไม่มีสัญญาณแบบนี้ จอที่นิ่งกับจอที่ตายหน้าตาเหมือนกันเป๊ะ
-    ticks += 1
-    alive.text("กำลังรอคำสั่ง" + "." * (ticks % 4) + "   รอบที่ " + str(ticks))
-
-    # ui.poll() ต้องเรียกทุกรอบ ไม่งั้นจอค้างทั้งที่โปรแกรมยังเดิน
-    ui.poll()
-
-    # 100 ms ต่อรอบคือถี่พอสำหรับคำสั่งที่คนกด และไม่กิน CPU จนเกินไป
-    time.sleep_ms(LOOP_MS)
+        # 100 ms ต่อรอบคือถี่พอสำหรับคำสั่งที่คนกด และไม่กิน CPU จนเกินไป
+        time.sleep_ms(LOOP_MS)
+except Stop:
+    pass
+finally:
+    try:
+        mqtt.disconnect()              # ปิดการเชื่อมต่อทุกครั้ง แม้โปรแกรมถูกหยุดกลางทาง
+        show_link(False)               # ไฟ MQTT หรี่ลง: จบแล้ว ไม่ได้ต่ออยู่
+    except Exception:
+        pass

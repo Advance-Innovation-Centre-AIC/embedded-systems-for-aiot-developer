@@ -18,6 +18,10 @@ WIFI_PASS = "<รหัสผ่านของห้องเรียน>"
 COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 lcd.clear()
 lcd.console("<h2>คาบ 9 - ต่อ WiFi</h2>")
 
@@ -57,42 +61,45 @@ elapsed = time.ticks_diff(time.ticks_ms(), t0)
 seg.text(str(elapsed))
 print("connect() ใช้เวลา", elapsed, "ms คืนค่า", ok)
 
-if not ok:
-    seg.color(COL_BAD)
-    l_state.color(COL_BAD)
-    l_state.text("ต่อไม่สำเร็จ ตรวจชื่อวงและรหัสผ่านอีกครั้ง")
-    ui.poll()
-    lcd.print("<span class=err>ต่อไม่สำเร็จใน", elapsed, "ms</span>")
-    lcd.print("ตรวจชื่อวงและรหัสผ่านอีกครั้ง")
-    raise SystemExit
-
-# ip() คืนสตริงเสมอ ไม่เคยคืน None
-# ตอนยังไม่ได้ต่อมันคืน "0.0.0.0" ซึ่งเป็นสตริงที่ if ถือว่าเป็นจริง
-# การเช็ก if wifi.ip(): จึงผ่านทั้งที่ยังไม่มีที่อยู่ ต้องเทียบกับ "0.0.0.0" ตรง ๆ
-ip = wifi.ip()
-seg.color(COL_OK)
-l_state.color(COL_OK)
-l_state.text("ต่อสำเร็จ - " + WIFI_SSID)
-l_ip.text(ip)
-ui.poll()
-lcd.print("<span class=ok>ต่อสำเร็จใน", elapsed, "ms</span>")
-lcd.print("IP:", ip)
-
-if ip == "0.0.0.0":
-    # เกิดได้เมื่อลิงก์ขึ้นแล้วแต่ DHCP ยังไม่แจกเลขให้ รอสักครู่แล้วอ่านซ้ำ
-    l_ip.color(COL_WARN)
-    l_note.color(COL_WARN)
-    l_note.text("ลิงก์ขึ้นแล้วแต่ยังไม่ได้เลข IP กำลังรอ DHCP")
-    ui.poll()
-    lcd.print("ยังไม่ได้เลข IP รอ DHCP อีกครู่")
-    for _ in range(10):
+try:
+    if not ok:
+        seg.color(COL_BAD)
+        l_state.color(COL_BAD)
+        l_state.text("ต่อไม่สำเร็จ ตรวจชื่อวงและรหัสผ่านอีกครั้ง")
         ui.poll()
-        time.sleep_ms(200)
-    ip = wifi.ip()
-    l_ip.text(ip)
-    lcd.print("อ่านซ้ำได้", ip)
+        lcd.print("<span class=err>ต่อไม่สำเร็จใน", elapsed, "ms</span>")
+        lcd.print("ตรวจชื่อวงและรหัสผ่านอีกครั้ง")
+        raise Stop
 
-l_note.text("ip()==\"0.0.0.0\" ต้องเทียบตรง ๆ อย่าเช็กแค่ if wifi.ip():")
-ui.poll()
-print("สรุป: ip =", wifi.ip(), "is_connected =", wifi.is_connected())
-lcd.print("สรุป ip =", wifi.ip(), "connected =", wifi.is_connected())
+    # ip() คืนสตริงเสมอ ไม่เคยคืน None
+    # ตอนยังไม่ได้ต่อมันคืน "0.0.0.0" ซึ่งเป็นสตริงที่ if ถือว่าเป็นจริง
+    # การเช็ก if wifi.ip(): จึงผ่านทั้งที่ยังไม่มีที่อยู่ ต้องเทียบกับ "0.0.0.0" ตรง ๆ
+    ip = wifi.ip()
+    seg.color(COL_OK)
+    l_state.color(COL_OK)
+    l_state.text("ต่อสำเร็จ - " + WIFI_SSID)
+    l_ip.text(ip)
+    ui.poll()
+    lcd.print("<span class=ok>ต่อสำเร็จใน", elapsed, "ms</span>")
+    lcd.print("IP:", ip)
+
+    if ip == "0.0.0.0":
+        # เกิดได้เมื่อลิงก์ขึ้นแล้วแต่ DHCP ยังไม่แจกเลขให้ รอสักครู่แล้วอ่านซ้ำ
+        l_ip.color(COL_WARN)
+        l_note.color(COL_WARN)
+        l_note.text("ลิงก์ขึ้นแล้วแต่ยังไม่ได้เลข IP กำลังรอ DHCP")
+        ui.poll()
+        lcd.print("ยังไม่ได้เลข IP รอ DHCP อีกครู่")
+        for _ in range(10):
+            ui.poll()
+            time.sleep_ms(200)
+        ip = wifi.ip()
+        l_ip.text(ip)
+        lcd.print("อ่านซ้ำได้", ip)
+
+    l_note.text("ip()==\"0.0.0.0\" ต้องเทียบตรง ๆ อย่าเช็กแค่ if wifi.ip():")
+    ui.poll()
+    print("สรุป: ip =", wifi.ip(), "is_connected =", wifi.is_connected())
+    lcd.print("สรุป ip =", wifi.ip(), "connected =", wifi.is_connected())
+except Stop:
+    pass

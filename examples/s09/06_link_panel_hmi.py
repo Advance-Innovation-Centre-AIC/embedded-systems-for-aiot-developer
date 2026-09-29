@@ -33,6 +33,10 @@ SLOW_MS = 200              # ช้ากว่านี้ถือว่าต
 COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 # สร้าง widget ให้ครบก่อนเข้าลูป การสร้างกลางลูปทั้งกินเวลาและกินโควตา 32 ตัว
 # พื้นที่วาดได้จริงกว้าง 792 สูง 398 - มุมขวาล่างราว x>690 y>340 มีปุ่ม Console ทับอยู่
 ui.screen()
@@ -49,62 +53,65 @@ ui.Label("แถบยาว = ตอบช้า - เต็มราง = ไ�
 l_note = ui.Label("กำลังต่อ...", x=60, y=276, color=COL_DIM, value=20)
 ui.poll()
 
-# ป้าย "กำลังต่อ..." ขึ้นก่อนบรรทัดนี้แล้ว เพราะระหว่าง connect() จอจะไม่อัปเดตเลย
-if not wifi.connect(WIFI_SSID, WIFI_PASS):
-    l_note.color(COL_BAD)
-    l_note.text("ต่อไม่สำเร็จ ตรวจชื่อวงและรหัสผ่าน")
-    ui.poll()
-    raise SystemExit
-
-# ชื่อวงมาจากตัวแปรของเราเอง ไม่ได้ถามบอร์ด เพราะบอร์ดตอบเรื่องนี้ไม่ได้
-# เขียนไว้ครั้งเดียวหลังต่อสำเร็จ เพราะมันไม่เปลี่ยนอีกตลอดการรันครั้งนี้
-l_ssid.text("SSID: " + WIFI_SSID)
-l_ssid.color(COL_OK)
-l_note.text("อัปเดตทุก 1 วินาที - ทุกตัวเลขบนจอนี้วัดมาจริง")
-
-while True:
-    # อ่านทีละอย่างตามลำดับ แล้วเขียนลงจอทันทีที่ได้ค่า
-    # ถ้าลิงก์หลุด ping() จะโยน OSError จึงต้องดักไว้ ไม่ใช่ปล่อยให้โปรแกรมตาย
-    up = wifi.is_connected()
-    ip = wifi.ip()
-    l_ip.text("IP: " + ip)
-
-    if not up or ip == "0.0.0.0":
-        # ลิงก์หลุดแล้วจอต้องบอกว่าหลุด ไม่ใช่ค้างค่าล่าสุดไว้เฉย ๆ
-        # จอที่ค้างค่าเก่าอันตรายกว่าจอว่าง เพราะคนอ่านจะเชื่อว่ามันยังจริง
-        l_ip.color(COL_BAD)
-        l_ping.color(COL_BAD)
-        l_ping.text("ping 8.8.8.8: ลิงก์หลุด")
-        bar.color(COL_BAD)
-        bar.value(PING_TIMEOUT_MS)
+try:
+    # ป้าย "กำลังต่อ..." ขึ้นก่อนบรรทัดนี้แล้ว เพราะระหว่าง connect() จอจะไม่อัปเดตเลย
+    if not wifi.connect(WIFI_SSID, WIFI_PASS):
         l_note.color(COL_BAD)
-        l_note.text("ลิงก์หลุด - ตัวเลขที่เห็นเป็นของรอบก่อนหน้า")
-    else:
-        l_ip.color(COL_TEXT)
-        try:
-            ms = wifi.ping(PING_IP, PING_TIMEOUT_MS)
-        except OSError:
-            ms = -1
-
-        if ms < 0:
-            # ต่ออยู่แต่ปลายทางไม่ตอบ คือคนละอาการกับลิงก์หลุด และซ่อมคนละแบบ
-            l_ping.color(COL_WARN)
-            l_ping.text("ping 8.8.8.8: ไม่ตอบใน " + str(PING_TIMEOUT_MS) + " ms")
-            bar.color(COL_WARN)
-            bar.value(PING_TIMEOUT_MS)
-            l_note.color(COL_WARN)
-            l_note.text("ต่อวงได้ แต่ออกอินเทอร์เน็ตไม่ได้")
-        else:
-            col = COL_OK if ms <= GOOD_MS else (
-                COL_WARN if ms <= SLOW_MS else COL_BAD)
-            l_ping.color(col)
-            l_ping.text("ping 8.8.8.8: " + str(ms) + " ms")
-            bar.color(col)
-            bar.value(ms)
-            l_note.color(COL_OK)
-            l_note.text("ปกติ - อัปเดตทุก 1 วินาที")
-
-    # รอหนึ่งวินาทีแบบยัง poll อยู่ ถ้า sleep ก้อนเดียวยาว ๆ เฟิร์มแวร์จะซ่อน widget ทิ้ง
-    for _ in range(5):
+        l_note.text("ต่อไม่สำเร็จ ตรวจชื่อวงและรหัสผ่าน")
         ui.poll()
-        time.sleep_ms(200)
+        raise Stop
+
+    # ชื่อวงมาจากตัวแปรของเราเอง ไม่ได้ถามบอร์ด เพราะบอร์ดตอบเรื่องนี้ไม่ได้
+    # เขียนไว้ครั้งเดียวหลังต่อสำเร็จ เพราะมันไม่เปลี่ยนอีกตลอดการรันครั้งนี้
+    l_ssid.text("SSID: " + WIFI_SSID)
+    l_ssid.color(COL_OK)
+    l_note.text("อัปเดตทุก 1 วินาที - ทุกตัวเลขบนจอนี้วัดมาจริง")
+
+    while True:
+        # อ่านทีละอย่างตามลำดับ แล้วเขียนลงจอทันทีที่ได้ค่า
+        # ถ้าลิงก์หลุด ping() จะโยน OSError จึงต้องดักไว้ ไม่ใช่ปล่อยให้โปรแกรมตาย
+        up = wifi.is_connected()
+        ip = wifi.ip()
+        l_ip.text("IP: " + ip)
+
+        if not up or ip == "0.0.0.0":
+            # ลิงก์หลุดแล้วจอต้องบอกว่าหลุด ไม่ใช่ค้างค่าล่าสุดไว้เฉย ๆ
+            # จอที่ค้างค่าเก่าอันตรายกว่าจอว่าง เพราะคนอ่านจะเชื่อว่ามันยังจริง
+            l_ip.color(COL_BAD)
+            l_ping.color(COL_BAD)
+            l_ping.text("ping 8.8.8.8: ลิงก์หลุด")
+            bar.color(COL_BAD)
+            bar.value(PING_TIMEOUT_MS)
+            l_note.color(COL_BAD)
+            l_note.text("ลิงก์หลุด - ตัวเลขที่เห็นเป็นของรอบก่อนหน้า")
+        else:
+            l_ip.color(COL_TEXT)
+            try:
+                ms = wifi.ping(PING_IP, PING_TIMEOUT_MS)
+            except OSError:
+                ms = -1
+
+            if ms < 0:
+                # ต่ออยู่แต่ปลายทางไม่ตอบ คือคนละอาการกับลิงก์หลุด และซ่อมคนละแบบ
+                l_ping.color(COL_WARN)
+                l_ping.text("ping 8.8.8.8: ไม่ตอบใน " + str(PING_TIMEOUT_MS) + " ms")
+                bar.color(COL_WARN)
+                bar.value(PING_TIMEOUT_MS)
+                l_note.color(COL_WARN)
+                l_note.text("ต่อวงได้ แต่ออกอินเทอร์เน็ตไม่ได้")
+            else:
+                col = COL_OK if ms <= GOOD_MS else (
+                    COL_WARN if ms <= SLOW_MS else COL_BAD)
+                l_ping.color(col)
+                l_ping.text("ping 8.8.8.8: " + str(ms) + " ms")
+                bar.color(col)
+                bar.value(ms)
+                l_note.color(COL_OK)
+                l_note.text("ปกติ - อัปเดตทุก 1 วินาที")
+
+        # รอหนึ่งวินาทีแบบยัง poll อยู่ ถ้า sleep ก้อนเดียวยาว ๆ เฟิร์มแวร์จะซ่อน widget ทิ้ง
+        for _ in range(5):
+            ui.poll()
+            time.sleep_ms(200)
+except Stop:
+    pass

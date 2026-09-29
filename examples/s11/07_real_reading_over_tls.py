@@ -58,6 +58,10 @@ COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD = 0x171B22
 COL_OK, COL_BAD, COL_INFO = 0x30A46C, 0xE5484D, 0x4A9EFF
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 ui.screen()
 time.sleep_ms(200)
 
@@ -84,59 +88,62 @@ ui.poll()
 lcd.clear()
 lcd.console("<h2>ค่าจริงผ่านช่องเข้ารหัส</h2>")
 
-if not tesaiot.connect():
-    lbl_tls.text("ต่อไม่ได้ - รัน 01_config_store.py ก่อน")
-    lbl_tls.color(COL_BAD)
+try:
+    if not tesaiot.connect():
+        lbl_tls.text("ต่อไม่ได้ - รัน 01_config_store.py ก่อน")
+        lbl_tls.color(COL_BAD)
+        ui.poll()
+        raise Stop
+
+    led_tls.value(1)
+    lbl_tls.text("ช่องเข้ารหัสพร้อม - " + tesaiot.device_id())
+    lbl_tls.color(COL_OK)
     ui.poll()
-    raise SystemExit
 
-led_tls.value(1)
-lbl_tls.text("ช่องเข้ารหัสพร้อม - " + tesaiot.device_id())
-lbl_tls.color(COL_OK)
-ui.poll()
+    sent = 0
+    fails = 0
+    last_send = time.ticks_ms()
+    last_value = None
 
-sent = 0
-fails = 0
-last_send = time.ticks_ms()
-last_value = None
+    for _ in range(ROUNDS):
+        snap = sensors.snapshot()
+        _t, _src = read_temp(snap)
+        if _t is not None:
+            last_value = _t
+            seg_now.text("{:.1f}".format(last_value))
 
-for _ in range(ROUNDS):
-    snap = sensors.snapshot()
-    _t, _src = read_temp(snap)
-    if _t is not None:
-        last_value = _t
-        seg_now.text("{:.1f}".format(last_value))
+        now = time.ticks_ms()
+        waited = time.ticks_diff(now, last_send)
+        bar_next.value(waited if waited < SEND_MS else SEND_MS)
 
-    now = time.ticks_ms()
-    waited = time.ticks_diff(now, last_send)
-    bar_next.value(waited if waited < SEND_MS else SEND_MS)
+        if last_value is not None and waited >= SEND_MS:
+            last_send = now
+            try:
+                # publish(payload, topic) -- payload มาก่อน และต้องเป็น JSON สตริง
+                # เขียน publish("temp_c", 25.3) จะกลายเป็นการส่ง "temp_c" ขึ้นไป
+                # โดยใช้ 25.3 เป็น topic ซึ่งไม่ใช่สิ่งที่ตั้งใจเลย
+                tesaiot.publish(json.dumps({"temperature": round(last_value, 1)}))
+                sent = sent + 1
+                seg_sent.text(str(sent))
+                lcd.print("ส่งแล้ว", sent, "ครั้ง | ล่าสุด", round(last_value, 1), "C")
+            except OSError as e:
+                # ลิงก์เข้ารหัสหลุดกลางทาง จอต้องบอก ไม่ใช่เงียบ
+                fails = fails + 1
+                led_tls.value(0)
+                lbl_tls.text("ส่งไม่ออก: " + str(e))
+                lbl_tls.color(COL_BAD)
 
-    if last_value is not None and waited >= SEND_MS:
-        last_send = now
-        try:
-            # publish(payload, topic) -- payload มาก่อน และต้องเป็น JSON สตริง
-            # เขียน publish("temp_c", 25.3) จะกลายเป็นการส่ง "temp_c" ขึ้นไป
-            # โดยใช้ 25.3 เป็น topic ซึ่งไม่ใช่สิ่งที่ตั้งใจเลย
-            tesaiot.publish(json.dumps({"temperature": round(last_value, 1)}))
-            sent = sent + 1
-            seg_sent.text(str(sent))
-            lcd.print("ส่งแล้ว", sent, "ครั้ง | ล่าสุด", round(last_value, 1), "C")
-        except OSError as e:
-            # ลิงก์เข้ารหัสหลุดกลางทาง จอต้องบอก ไม่ใช่เงียบ
-            fails = fails + 1
-            led_tls.value(0)
-            lbl_tls.text("ส่งไม่ออก: " + str(e))
-            lbl_tls.color(COL_BAD)
+        ui.poll()
+        time.sleep_ms(200)
 
+    tesaiot.disconnect()
+    led_tls.value(0)
+    note.text("จบ - ส่งสำเร็จ " + str(sent) + " ครั้ง พลาด " + str(fails))
     ui.poll()
-    time.sleep_ms(200)
-
-tesaiot.disconnect()
-led_tls.value(0)
-note.text("จบ - ส่งสำเร็จ " + str(sent) + " ครั้ง พลาด " + str(fails))
-ui.poll()
-lcd.print("<span class=ok>จบ - สำเร็จ", sent, "| พลาด", fails, "</span>")
-print("การเข้ารหัสปกป้องเส้นทาง ไม่ได้ปกป้องความถูกต้องของค่า")
+    lcd.print("<span class=ok>จบ - สำเร็จ", sent, "| พลาด", fails, "</span>")
+    print("การเข้ารหัสปกป้องเส้นทาง ไม่ได้ปกป้องความถูกต้องของค่า")
+except Stop:
+    pass
 
 # ตาคุณ
 # 1) เปิด MQTT Explorer ที่ปลายทาง แล้วเทียบว่าเลขที่เห็นตรงกับเลขบนจอไหม

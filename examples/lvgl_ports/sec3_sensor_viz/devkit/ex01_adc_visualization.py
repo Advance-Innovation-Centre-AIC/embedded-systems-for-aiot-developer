@@ -30,7 +30,8 @@ ui.Label(t, x=cx(t, 14), y=8, color=0xFFFFFF, value=14)
 ui.Label("ADC Raw Value (0-4095):", x=20, y=42, color=0xCCCCCC, value=14)
 sld = ui.Slider(x=CX - 150, y=66, w=300, h=22, min=0, max=4095, value=2048)
 ui.Label("Percentage:", x=20, y=108, color=0xCCCCCC, value=14)
-bar = ui.Bar(x=CX - 150, y=133, w=300, h=25, min=0, max=100, value=50)
+bar = ui.Bar(x=CX - 150, y=133, w=300, h=25, min=0, max=100, value=0)
+bar.value(50)          # สร้างที่ 0 แล้วค่อยตั้งค่า: Bar ที่สร้างพร้อมค่าไม่เป็นศูนย์ทำให้จอว่างทั้งหน้า
 
 raw_l = ui.Label("Raw: 2048", x=CX - 100 - 34, y=224, color=0x00FF00, value=14)
 pct_l = ui.Label("Percent: 50%", x=CX + 100 - 42, y=224, color=0x00FFFF,

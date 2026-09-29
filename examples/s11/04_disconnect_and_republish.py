@@ -27,6 +27,10 @@ COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD = 0x171B22
 COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 ui.screen()
 time.sleep_ms(200)
 ui.Label("ปิดงานให้เรียบร้อย แล้วเปิดใหม่", x=20, y=12, color=COL_TEXT, value=24)
@@ -69,77 +73,80 @@ def wait_connected(limit_ms):
 # --- ขั้นที่ 1: WiFi แล้วตั้งตัวตน ---
 note.text("ต่อ WiFi ก่อน จอจะนิ่งครู่หนึ่ง")
 ui.poll()
-if not wifi.connect(WIFI_SSID, WIFI_PASS):
-    step(s1, "1) WiFi + ตั้งตัวตน    WiFi ไม่ติด", COL_BAD)
-    note.color(COL_BAD)
-    note.text("ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์")
-    raise SystemExit
+try:
+    if not wifi.connect(WIFI_SSID, WIFI_PASS):
+        step(s1, "1) WiFi + ตั้งตัวตน    WiFi ไม่ติด", COL_BAD)
+        note.color(COL_BAD)
+        note.text("ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์")
+        raise Stop
 
-tesaiot.config_set("device_id", DEVICE_ID)
-tesaiot.config_set("api_key", API_KEY)
-tesaiot.config_set("mqtt_pass", MQTT_PASS)
-tesaiot.config_set("broker", BROKER)
-tesaiot.config_set("sni_hostname", BROKER)
-cfg = tesaiot.config()
-step(s1, "1) WiFi + ตั้งตัวตน    IP {}".format(wifi.ip()), COL_OK)
-note.text("โหมด {} broker {}".format(cfg["tls_mode"], cfg["broker"]))
-lcd.print("ตั้งตัวตนแล้ว โหมด", cfg["tls_mode"])
+    tesaiot.config_set("device_id", DEVICE_ID)
+    tesaiot.config_set("api_key", API_KEY)
+    tesaiot.config_set("mqtt_pass", MQTT_PASS)
+    tesaiot.config_set("broker", BROKER)
+    tesaiot.config_set("sni_hostname", BROKER)
+    cfg = tesaiot.config()
+    step(s1, "1) WiFi + ตั้งตัวตน    IP {}".format(wifi.ip()), COL_OK)
+    note.text("โหมด {} broker {}".format(cfg["tls_mode"], cfg["broker"]))
+    lcd.print("ตั้งตัวตนแล้ว โหมด", cfg["tls_mode"])
 
-# --- ขั้นที่ 2: ต่อ แล้วรอจนต่อเสร็จจริง ---
-step(s2, "2) connect + รอจริง    กำลังรอ...", COL_WARN)
-tesaiot.connect()
-took = wait_connected(WAIT_MS)
+    # --- ขั้นที่ 2: ต่อ แล้วรอจนต่อเสร็จจริง ---
+    step(s2, "2) connect + รอจริง    กำลังรอ...", COL_WARN)
+    tesaiot.connect()
+    took = wait_connected(WAIT_MS)
 
-if took < 0:
-    step(s2, "2) connect + รอจริง    ไม่ติดใน 30 วินาที", COL_BAD)
-    note.color(COL_BAD)
-    note.text("ตรวจ broker sni_hostname และตัวตนของทีม")
-    lcd.print("<span class=err>ต่อไม่ติดใน 30 วินาที</span>")
-    raise SystemExit
+    if took < 0:
+        step(s2, "2) connect + รอจริง    ไม่ติดใน 30 วินาที", COL_BAD)
+        note.color(COL_BAD)
+        note.text("ตรวจ broker sni_hostname และตัวตนของทีม")
+        lcd.print("<span class=err>ต่อไม่ติดใน 30 วินาที</span>")
+        raise Stop
 
-step(s2, "2) connect + รอจริง    ต่อเสร็จใน {} ms".format(took), COL_OK)
-lcd.print("<span class=ok>ต่อเสร็จใน", took, "ms</span>")
+    step(s2, "2) connect + รอจริง    ต่อเสร็จใน {} ms".format(took), COL_OK)
+    lcd.print("<span class=ok>ต่อเสร็จใน", took, "ms</span>")
 
-# --- ขั้นที่ 3: ส่งใบแรก ---
-# payload มาก่อน topic ไม่ใส่ topic เฟิร์มแวร์ประกอบให้จาก device_id
-sent1 = tesaiot.publish(json.dumps({"round": 1}))
-step(s3, "3) publish รอบแรก      คืน {}".format(sent1),
-     COL_OK if sent1 else COL_WARN)
-lcd.print("publish รอบแรกคืนค่า", sent1)
-time.sleep_ms(1000)
+    # --- ขั้นที่ 3: ส่งใบแรก ---
+    # payload มาก่อน topic ไม่ใส่ topic เฟิร์มแวร์ประกอบให้จาก device_id
+    sent1 = tesaiot.publish(json.dumps({"round": 1}))
+    step(s3, "3) publish รอบแรก      คืน {}".format(sent1),
+         COL_OK if sent1 else COL_WARN)
+    lcd.print("publish รอบแรกคืนค่า", sent1)
+    time.sleep_ms(1000)
 
-# --- ขั้นที่ 4: ปิดให้เรียบร้อย ---
-# ตัวนี้คืน bool ไม่เหมือน mqtt.disconnect() ที่คืน None
-closed = tesaiot.disconnect()
-still = tesaiot.is_connected()
-step(s4, "4) disconnect()  คืน {} ต่ออยู่ {}".format(closed, still),
-     COL_OK if closed and not still else COL_BAD)
-note.color(COL_DIM)
-note.text("tesaiot.disconnect() คืน bool ส่วน mqtt คืน None")
-lcd.print("disconnect() คืน", closed, "แล้ว is_connected() =", still)
-print("tesaiot.disconnect() คืนค่า", closed, "(เป็น bool ไม่ใช่ None)")
-time.sleep_ms(1200)
+    # --- ขั้นที่ 4: ปิดให้เรียบร้อย ---
+    # ตัวนี้คืน bool ไม่เหมือน mqtt.disconnect() ที่คืน None
+    closed = tesaiot.disconnect()
+    still = tesaiot.is_connected()
+    step(s4, "4) disconnect()  คืน {} ต่ออยู่ {}".format(closed, still),
+         COL_OK if closed and not still else COL_BAD)
+    note.color(COL_DIM)
+    note.text("tesaiot.disconnect() คืน bool ส่วน mqtt คืน None")
+    lcd.print("disconnect() คืน", closed, "แล้ว is_connected() =", still)
+    print("tesaiot.disconnect() คืนค่า", closed, "(เป็น bool ไม่ใช่ None)")
+    time.sleep_ms(1200)
 
-# --- ขั้นที่ 5: ต่อกลับแล้วส่งอีกใบ ---
-step(s5, "5) ต่อกลับ + ส่งอีกใบ  กำลังรอ...", COL_WARN)
-tesaiot.connect()
-took2 = wait_connected(WAIT_MS)
+    # --- ขั้นที่ 5: ต่อกลับแล้วส่งอีกใบ ---
+    step(s5, "5) ต่อกลับ + ส่งอีกใบ  กำลังรอ...", COL_WARN)
+    tesaiot.connect()
+    took2 = wait_connected(WAIT_MS)
 
-if took2 < 0:
-    step(s5, "5) ต่อกลับ + ส่งอีกใบ  ต่อกลับไม่ติด", COL_BAD)
-    note2.color(COL_BAD)
-    note2.text("ปิดแล้วเปิดใหม่ต้องเว้นจังหวะให้ broker ตามทัน")
-else:
-    sent2 = tesaiot.publish(json.dumps({"round": 2}))
-    step(s5, "5) ต่อกลับ + ส่งอีกใบ  {} ms publish {}".format(took2, sent2),
-         COL_OK if sent2 else COL_WARN)
-    note2.color(COL_OK)
-    note2.text("ปิดแล้วเปิดใหม่ได้ ไม่ต้องรีเซ็ตบอร์ด")
-    lcd.print("<span class=ok>ต่อกลับใน", took2, "ms และส่งได้อีกใบ</span>")
+    if took2 < 0:
+        step(s5, "5) ต่อกลับ + ส่งอีกใบ  ต่อกลับไม่ติด", COL_BAD)
+        note2.color(COL_BAD)
+        note2.text("ปิดแล้วเปิดใหม่ต้องเว้นจังหวะให้ broker ตามทัน")
+    else:
+        sent2 = tesaiot.publish(json.dumps({"round": 2}))
+        step(s5, "5) ต่อกลับ + ส่งอีกใบ  {} ms publish {}".format(took2, sent2),
+             COL_OK if sent2 else COL_WARN)
+        note2.color(COL_OK)
+        note2.text("ปิดแล้วเปิดใหม่ได้ ไม่ต้องรีเซ็ตบอร์ด")
+        lcd.print("<span class=ok>ต่อกลับใน", took2, "ms และส่งได้อีกใบ</span>")
 
-ui.poll()
-print("")
-print("สรุปสามข้อของไฟล์นี้:")
-print("  1. tesaiot.disconnect() คืน bool ส่วน mqtt.disconnect() คืน None")
-print("  2. tesaiot.publish(payload) - payload มาก่อน ต่างจาก mqtt.publish(topic, payload)")
-print("  3. connect() คืนค่าทันที ต้องวนรอ is_connected() เองทุกครั้ง")
+    ui.poll()
+    print("")
+    print("สรุปสามข้อของไฟล์นี้:")
+    print("  1. tesaiot.disconnect() คืน bool ส่วน mqtt.disconnect() คืน None")
+    print("  2. tesaiot.publish(payload) - payload มาก่อน ต่างจาก mqtt.publish(topic, payload)")
+    print("  3. connect() คืนค่าทันที ต้องวนรอ is_connected() เองทุกครั้ง")
+except Stop:
+    pass

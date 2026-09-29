@@ -33,12 +33,13 @@ COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD, COL_OK, COL_WARN, COL_BAD, COL_RUN = (0x171B22, 0x30A46C, 0xF5A623,
                                                 0xE5484D, 0x4A9EFF)
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 
 def signal_of(rssi):
     # RSSI เป็น dBm ติดลบ: -90 dBm = แทบไม่เหลือ, -40 dBm = เต็มแท่ง
-    # คืนเปอร์เซ็นต์คุณภาพกับสีของแท่งพร้อมกัน เพราะมาจากตัวเลขเดียว แยกกันแล้วมีวันหลุดคู่
-    # สีของแท่งจงใจใช้ฟ้าตอนปกติ ไม่ใช่เขียว - สถานะปกติต้องเงียบ และสีจัดต้องสงวนไว้
-    # ให้เรื่องที่ผิดปกติเท่านั้น ไม่งั้นพอมีเรื่องจริง ตาจะแยกไม่ออกจากพื้นหลัง
     pct = (rssi - RSSI_FLOOR) * 100 // (RSSI_CEIL - RSSI_FLOOR)
     pct = 0 if pct < 0 else (100 if pct > 100 else pct)
     col = COL_RUN if rssi >= -60 else (COL_WARN if rssi >= -75 else COL_BAD)
@@ -47,7 +48,6 @@ def signal_of(rssi):
 
 def gateway_of(ip):
     # เกตเวย์ของวงแลนบ้านและห้องเรียนเกือบทั้งหมดคือเลข .1 ของวงเดียวกัน
-    # ถ้าเน็ตเวิร์กของห้องไม่ได้ใช้ .1 ให้ทีมแก้บรรทัดนี้เป็นเลขจริงที่ผู้สอนบอก
     p = ip.split(".")
     return p[0] + "." + p[1] + "." + p[2] + ".1"
 
@@ -58,11 +58,6 @@ def ms_text(name, ms):
 
 
 # --- ท่าที่ 1: วางหน้าจอสองแผง (ซ้าย = ตารางคลื่นรอบตัว, ขวา = สถานะลิงก์) ---
-# สร้าง widget ให้ครบก่อนเข้าลูป เพราะการสร้างกลางลูปทั้งกินเวลาและกินโควตาแฮนเดิล
-#
-# จอวาดได้จริง 792 x 398 หน้านี้จึงแบ่งเป็นสองแถบ: แถบหัวเรื่องสูง 96 พิกเซล
-# (หัวเรื่อง เลขประจำเครื่อง ป้ายสถานะ และปุ่มสแกน) แล้วแถบเนื้อหา 104 ถึง 392
-# ที่แบ่งเป็นสองคอลัมน์ ซ้ายตาราง ขวาการ์ดสถานะลิงก์
 ui.screen()
 time.sleep_ms(200)
 ui.Label("สถานะเครือข่ายของทีม", x=24, y=8, color=COL_TEXT, value=24)
@@ -70,15 +65,9 @@ l_ssid = ui.Label("SSID: -", x=336, y=12, color=COL_TEXT, value=20)
 l_ip = ui.Label("IP: -", x=24, y=48, color=COL_TEXT, value=20)
 l_tick = ui.Label("กำลังสแกน", x=336, y=48, color=COL_DIM, value=20)
 
-# ปุ่มสั่งสแกนใหม่ วางบนแถบหัวเรื่อง ไม่ใช่มุมขวาล่าง เพราะมุมนั้นเฟิร์มแวร์ถือไว้
-# ให้ปุ่ม Console - widget ที่ไปนั่งทับมัน จะถูกบังจนกดไม่โดน
 btn_scan = ui.Button("สแกนใหม่", x=552, y=8, w=216, h=88, color=0x3A4150, value=20)
 
 # ผลการสแกนคือตารางตั้งแต่ต้น จึงใช้ ui.Table ไม่ใช่ ui.Label เรียงกันเอง
-# แถวหนึ่งสูง 72 พิกเซลที่ฟอนต์ 20 และสูงเป็นสองเท่าทันทีที่ข้อความในช่องยาวเกิน
-# คอลัมน์แล้วตัดบรรทัด - ตั้ง col_width ให้พอกับข้อความที่ยาวที่สุด
-# ความสูง 288 = หัวตารางหนึ่งแถวบวกอีกสามแถว มากกว่านี้แถวล่างสุดจะถูกตัดเงียบ ๆ
-# และผลรวมความกว้างคอลัมน์ต้องน้อยกว่า w อยู่ราว 16 ไม่งั้นมีแถบเลื่อนคาอยู่ใต้ตาราง
 tbl = ui.Table(x=24, y=104, w=480, h=288, cols=4)
 tbl.col_width(0, 144)        # กว้างพอสำหรับชื่อ 12 ตัวอักษร ซึ่งเป็นเพดานที่เราตัดไว้
 tbl.col_width(1, 96)
@@ -86,7 +75,6 @@ tbl.col_width(2, 80)
 tbl.col_width(3, 128)        # "มีรหัส" คือข้อความที่ยาวที่สุดในคอลัมน์นี้        # "ความปลอดภัย" คือข้อความที่ยาวที่สุดในคอลัมน์นี้
 
 # การ์ดต้องถูกสร้าง "ก่อน" ของที่วางบนมันเสมอ LVGL วาดตามลำดับการสร้าง
-# การ์ดที่สร้างทีหลังจะทาทับป้ายที่สร้างไว้ก่อนจนหายไปทั้งใบ โดยไม่มี error สักบรรทัด
 ui.Panel(x=520, y=104, w=248, h=288, color=COL_CARD, min=COL_DIM, max=12, value=1)
 # ไฟสองดวงติดทีละดวงเสมอ ดวงที่ดับจะ "หรี่" ไม่ใช่ "หาย" - ไฟที่หายไปตอนดับ
 # แย่กว่าไฟที่หรี่ลง เพราะคนดูแยกไม่ออกว่าดับหรือจอเสีย
@@ -99,9 +87,6 @@ l_gw = ui.Label("เกตเวย์ -", x=536, y=224, color=COL_DIM, value=20
 l_net = ui.Label("อินเทอร์เน็ต -", x=536, y=256, color=COL_DIM, value=20)
 
 # มาตรวัด: ตัวเลข dBm ลอย ๆ ไม่บอกว่าแรงไหม ต้องมีพิสัยอยู่ข้าง ๆ เสมอ
-# ui.Scale คือไม้บรรทัด ไม่มีเข็มและไม่รับ .value() ตัวที่ขยับคือ ui.Bar ที่วางเหนือมัน
-# และค่านี้มาจากการสแกน ไม่ได้มาจาก wifi.status() ซึ่งคืน rssi = 0 ตายตัวเสมอ
-# ป้ายบรรทัดเดียวทำหน้าที่ทั้งชื่อและค่า เพราะการ์ดใบนี้ไม่มีที่พอให้สองบรรทัด
 l_rssi = ui.Label("ความแรง - dBm", x=536, y=288, color=COL_TEXT, value=20)
 bar_rssi = ui.Bar(x=536, y=320, w=152, h=12, color=COL_RUN,
                   min=RSSI_FLOOR, max=RSSI_CEIL, value=RSSI_FLOOR)
@@ -114,8 +99,6 @@ ui.poll()
 
 
 # --- ท่าที่ 2 + 3: สแกน เรียงจากแรงไปอ่อน แล้วเทลงตาราง ---
-# รวมสองท่าไว้ในฟังก์ชันเดียว เพราะปุ่ม "สแกนใหม่" ต้องเรียกซ้ำได้ทั้งชุด
-# ถ้าปล่อยไว้กลางไฟล์แบบเดิม ปุ่มจะเรียกได้แค่ครึ่งเดียวของงาน
 def rescan():
     # scan() บล็อกราว 3-10 วินาที (ย่าน 5 GHz นานกว่า เพราะช่องสัญญาณเยอะกว่ามาก)
     nets = wifi.scan()
@@ -125,8 +108,6 @@ def rescan():
     nets.sort(key=lambda net: net[1], reverse=True)
     print("found", len(nets), "networks")
 
-    # ล้างของเก่าก่อนเสมอ ไม่งั้นแถวของการสแกนรอบก่อนจะค้างอยู่ใต้แถวใหม่
-    # และคนอ่านจะแยกไม่ออกว่าแถวไหนของรอบนี้ ซึ่งแย่กว่าตารางว่าง
     tbl.clear_items()
     # หัวตารางสั้นเพราะช่องแคบ - หัวที่ยาวกว่าช่องจะถูกตัดบรรทัด แล้วแถวนั้น
     # สูงเป็นสองเท่าทันที ดันแถวล่างสุดตกขอบตารางไปโดยไม่มีอะไรฟ้อง
@@ -138,21 +119,15 @@ def rescan():
         ssid, rssi, security, channel = nets[i]
 
         # ตัดชื่อที่ 12 ตัวอักษรโดยตั้งใจ ชื่อที่ยาวกว่าคอลัมน์จะถูกตัดบรรทัด
-        # แล้วแถวนั้นสูงเป็นสองเท่าทันที ดันแถวสุดท้ายตกขอบจอไปเงียบ ๆ
-        # ราคาที่จ่ายคือสองวงที่ขึ้นต้นเหมือนกันจะดูเหมือนกันบนจอ ชื่อเต็มอยู่ที่ Console
-        # ช่องความปลอดภัยเขียนเป็นคำ ไม่ใช่ระบายสีอย่างเดียว ภาพขาวดำก็ยังอ่านออก
         tbl.add_row(ssid[:12], str(rssi), str(channel),
                     "เปิด" if security == 0 else "มีรหัส")
         ui.poll()
 
-    # มาตรวัดฝั่งขวาเล่าเรื่องวงของทีมเอง ไม่ใช่วงที่แรงที่สุด เพราะวงที่เราต้องใช้
-    # คือวงที่ต้องรู้ว่าแรงพอไหม ถ้าสแกนไม่เจอ ให้บอกตรง ๆ ว่าไม่เจอ อย่าเดาเลขให้
     for ssid, rssi, security, channel in nets:
         if ssid == WIFI_SSID:
             pct, col = signal_of(rssi)
             # ไม่เรียก bar_rssi.color() เพราะ .color() ของ Bar ไปลงที่ "ราง"
             # ไม่ใช่ "แถบที่เต็ม" - รางที่เปลี่ยนสีทำให้ดูเหมือนแถบเต็มทั้งที่ค่ายังน้อย
-            # จึงเอาสีไปไว้ที่ตัวเลขแทน ซึ่ง Label เปลี่ยนสีตัวอักษรได้ตรงตามที่สั่ง
             bar_rssi.value(rssi)
             l_rssi.color(col)
             l_rssi.text("ความแรง " + str(rssi) + " dBm (" + str(pct) + "%)")
@@ -165,84 +140,75 @@ def rescan():
 nets = rescan()
 
 # --- ท่าที่ 4: ต่อเข้าเครือข่ายของทีม ---
-# บอกผู้ใช้ก่อนเสมอว่ากำลังจะรอ ไม่งั้นจอนิ่ง ๆ 85 วินาทีจะดูเหมือนบอร์ดค้าง
-# ลำดับสองบรรทัดนี้สลับไม่ได้ และเหตุผลอยู่ที่ examples/s09/03_connect_says_first.py
-# ระหว่าง connect() ทำงาน ไม่มีอะไรบนจออัปเดตได้เลย ป้ายที่เขียนไว้หลังบรรทัดนั้น
-# จึงไม่มีทางได้ขึ้นในจังหวะที่คนต้องการอ่านมัน - ป้ายสถานะต้องมาก่อนงานที่บล็อกเสมอ
 l_tick.text("กำลังต่อ 85 วิ")
 ui.poll()
 # connect() รับสองอาร์กิวเมนต์ตามลำดับเท่านั้น และบล็อกจนกว่าจะรู้ผล
 ok = wifi.connect(WIFI_SSID, WIFI_PASS)
 
-if not ok:
-    l_ssid.color(COL_BAD)
-    l_ssid.text("ต่อไม่ติด")
-    l_tick.text("ตรวจ SSID/รหัสผ่าน")
-    ui.poll()
-    raise SystemExit
+try:
+    if not ok:
+        l_ssid.color(COL_BAD)
+        l_ssid.text("ต่อไม่ติด")
+        l_tick.text("ตรวจ SSID/รหัสผ่าน")
+        ui.poll()
+        raise Stop
 
-ip = wifi.ip()
-gw = gateway_of(ip)
-led_up.value(1)
-led_down.value(0)
-l_ssid.text("SSID: " + WIFI_SSID)
-l_ip.text("IP: " + ip)
-print("connected, ip =", ip, "gateway =", gw)
+    ip = wifi.ip()
+    gw = gateway_of(ip)
+    led_up.value(1)
+    led_down.value(0)
+    l_ssid.text("SSID: " + WIFI_SSID)
+    l_ip.text("IP: " + ip)
+    print("connected, ip =", ip, "gateway =", gw)
 
-# --- ท่าที่ 5: ลูปสถานะสด วัด ping สองปลายทาง และรับคำสั่งจากปุ่ม ---
-# ลูปเดินทุก 200 ms เพื่อรับนิ้ว แต่ ping เดินตามนาฬิกาของตัวเองทุก 3 วินาที
-# งานคนละจังหวะอยู่ในลูปเดียวกันได้ ถ้าแต่ละงานถามนาฬิกาเอง ไม่ใช่ใช้ sleep ยาว ๆ
-t_ping = time.ticks_ms() - PING_EVERY_MS   # ยิงรอบแรกทันที ไม่ต้องรอสามวินาที
-last_sec = -1                              # วินาทีที่เพิ่งเขียนลงจอ กันเขียนซ้ำถี่เกิน
-ms_gw, ms_net = -1, -1
+    # --- ท่าที่ 5: ลูปสถานะสด วัด ping สองปลายทาง และรับคำสั่งจากปุ่ม ---
+    t_ping = time.ticks_ms() - PING_EVERY_MS   # ยิงรอบแรกทันที ไม่ต้องรอสามวินาที
+    last_sec = -1                              # วินาทีที่เพิ่งเขียนลงจอ กันเขียนซ้ำถี่เกิน
+    ms_gw, ms_net = -1, -1
 
-while True:
-    now = time.ticks_ms()
-    # ถ้าลืมบรรทัดนี้ เฟิร์มแวร์จะซ่อน widget ทิ้งภายในราวสองวินาที
-    events = ui.poll()
+    while True:
+        now = time.ticks_ms()
+        # ถ้าลืมบรรทัดนี้ เฟิร์มแวร์จะซ่อน widget ทิ้งภายในราวสองวินาที
+        events = ui.poll()
 
-    for ev in events:
-        if ev["type"] == "clicked" and ev["handle"] == btn_scan.id():
-            # สแกนใหม่บล็อกยาว บอกก่อนแล้วค่อยเรียก เหมือนท่าที่ 4 ทุกประการ
-            l_tick.text("กำลังสแกน")
-            ui.poll()
-            nets = rescan()
-            t_ping = time.ticks_ms() - PING_EVERY_MS
-            last_sec = -1
+        for ev in events:
+            if ev["type"] == "clicked" and ev["handle"] == btn_scan.id():
+                # สแกนใหม่บล็อกยาว บอกก่อนแล้วค่อยเรียก เหมือนท่าที่ 4 ทุกประการ
+                l_tick.text("กำลังสแกน")
+                ui.poll()
+                nets = rescan()
+                t_ping = time.ticks_ms() - PING_EVERY_MS
+                last_sec = -1
 
-    if wifi.is_connected():
-        led_up.value(1)
-        led_down.value(0)
-        if time.ticks_diff(now, t_ping) >= PING_EVERY_MS:
-            t_ping = now
-            try:
-                # ping รับเฉพาะ IP เท่านั้น ใส่ชื่อโฮสต์จะได้ ValueError
-                # ยิงเกตเวย์ก่อนแล้วค่อยยิงอินเทอร์เน็ต ลำดับนี้ทำให้อ่านผลได้ว่าขาดตรงไหน
-                # examples/s09/04_ping_two_targets.py คือที่มาของการวัดสองปลายทาง
-                # เพราะคำว่า "เน็ตล่ม" ซ่อมอะไรไม่ได้เลย ต้องบอกให้ได้ว่าขาดก่อนหรือหลังเราเตอร์
-                ms_gw = wifi.ping(gw, PING_TIMEOUT_MS)
-                ms_net = wifi.ping(NET_TEST_IP, PING_TIMEOUT_MS)
-            except OSError:
-                # ping จะโยน OSError ถ้าลิงก์หลุดระหว่างทาง ถือว่าไม่มีคำตอบทั้งคู่
-                ms_gw, ms_net = -1, -1
-            # ตอบได้คือขาวเงียบ ๆ ตอบไม่ได้คือแดง - สีจัดสงวนไว้ให้เรื่องที่ผิดปกติ
-            l_gw.color(COL_TEXT if ms_gw >= 0 else COL_BAD)
-            l_net.color(COL_TEXT if ms_net >= 0 else COL_BAD)
-            l_gw.text(ms_text("เกตเวย์", ms_gw))
-            l_net.text(ms_text("อินเทอร์เน็ต", ms_net))
-    else:
-        led_up.value(0)
-        led_down.value(1)
-        # ค่าที่ค้างต้องบอกว่าตัวเองค้าง ไม่ใช่ปล่อยเลขเดิมไว้ให้คนเดินมาอ่านว่ายังสด
-        l_gw.color(COL_BAD)
-        l_net.color(COL_BAD)
-        l_gw.text("ลิงก์หลุด")
-        l_net.text("เลขล่าสุด ไม่ใช่ตอนนี้")
+        if wifi.is_connected():
+            led_up.value(1)
+            led_down.value(0)
+            if time.ticks_diff(now, t_ping) >= PING_EVERY_MS:
+                t_ping = now
+                try:
+                    # ping รับเฉพาะ IP เท่านั้น ใส่ชื่อโฮสต์จะได้ ValueError
+                    ms_gw = wifi.ping(gw, PING_TIMEOUT_MS)
+                    ms_net = wifi.ping(NET_TEST_IP, PING_TIMEOUT_MS)
+                except OSError:
+                    # ping จะโยน OSError ถ้าลิงก์หลุดระหว่างทาง ถือว่าไม่มีคำตอบทั้งคู่
+                    ms_gw, ms_net = -1, -1
+                l_gw.color(COL_TEXT if ms_gw >= 0 else COL_BAD)
+                l_net.color(COL_TEXT if ms_net >= 0 else COL_BAD)
+                l_gw.text(ms_text("เกตเวย์", ms_gw))
+                l_net.text(ms_text("อินเทอร์เน็ต", ms_net))
+        else:
+            led_up.value(0)
+            led_down.value(1)
+            l_gw.color(COL_BAD)
+            l_net.color(COL_BAD)
+            l_gw.text("ลิงก์หลุด")
+            l_net.text("เลขล่าสุด ไม่ใช่ตอนนี้")
 
-    # ตัวเลขที่คนต้องอ่าน เขียนใหม่ไม่เกินวินาทีละครั้ง และอยู่ตำแหน่งเดิมเสมอ
-    left = (PING_EVERY_MS - time.ticks_diff(now, t_ping)) // 1000
-    if left != last_sec:
-        last_sec = left
-        l_tick.text("วัดใหม่ใน " + str(left) + " วิ")
+        left = (PING_EVERY_MS - time.ticks_diff(now, t_ping)) // 1000
+        if left != last_sec:
+            last_sec = left
+            l_tick.text("วัดใหม่ใน " + str(left) + " วิ")
 
-    time.sleep_ms(200)
+        time.sleep_ms(200)
+except Stop:
+    pass

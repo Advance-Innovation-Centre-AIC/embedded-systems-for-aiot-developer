@@ -28,11 +28,18 @@ COL_CARD = 0x171B22
 COL_TRACK = 0x171B22         # สีรางของ ui.Bar - ตัวแท่งที่วิ่งเป็นสีของธีมเสมอ
 COL_OK, COL_BAD, COL_INFO = 0x30A46C, 0xE5484D, 0x4A9EFF
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 # วางจอให้ครบก่อนเริ่มต่อ ป้ายที่ยังไม่ถึงคิวเป็นสีเทา คนดูจึงรู้ว่าเหลืออีกกี่ขั้น
 ui.screen()
 time.sleep_ms(200)
 
 ui.Label("บันไดสามขั้นก่อนส่งได้", x=20, y=12, color=COL_TEXT, value=24)
+# ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
+led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_OK, value=0)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
 ui.Panel(x=20, y=52, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
 st_wifi = ui.Label("1) WiFi        รอ...", x=36, y=68, color=COL_DIM, value=20)
 st_broker = ui.Label("2) broker      รอ...", x=36, y=100, color=COL_DIM, value=20)
@@ -46,6 +53,12 @@ bar = ui.Bar(x=240, y=244, w=412, h=24, min=0, max=N, value=0, color=COL_TRACK)
 note = ui.Label("กำลังเริ่ม...", x=20, y=336, color=COL_DIM, value=20)
 ui.poll()
 
+
+def show_link(ok):
+    # ไฟกับป้ายเปลี่ยนพร้อมกันเสมอ เรียกทุกครั้งที่รู้ว่าสายต่ออยู่หรือหลุด
+    led_mqtt.value(1 if ok else 0)
+    lbl_mqtt.text("MQTT: เชื่อมต่อแล้ว" if ok else "MQTT: ออฟไลน์")
+
 lcd.clear()
 lcd.console("<h2>คาบ 10 - publish ครั้งแรก</h2>")
 
@@ -54,84 +67,98 @@ lcd.console("<h2>คาบ 10 - publish ครั้งแรก</h2>")
 st_wifi.text("1) WiFi        กำลังต่อ " + WIFI_SSID)
 ui.poll()
 lcd.print("1) กำลังต่อ WiFi", WIFI_SSID)
-if not wifi.connect(WIFI_SSID, WIFI_PASS):
-    st_wifi.color(COL_BAD)
-    st_wifi.text("1) WiFi        ต่อไม่ได้")
-    note.color(COL_BAD)
-    note.text("จบตรงนี้ ตรวจชื่อวงกับรหัสผ่าน")
+try:
+    if not wifi.connect(WIFI_SSID, WIFI_PASS):
+        st_wifi.color(COL_BAD)
+        st_wifi.text("1) WiFi        ต่อไม่ได้")
+        note.color(COL_BAD)
+        note.text("จบตรงนี้ ตรวจชื่อวงกับรหัสผ่าน")
+        ui.poll()
+        lcd.print("<span class=err>ต่อ WiFi ไม่ได้ จบตรงนี้</span>")
+        raise Stop
+    st_wifi.color(COL_OK)
+    st_wifi.text("1) WiFi        IP " + wifi.ip())
     ui.poll()
-    lcd.print("<span class=err>ต่อ WiFi ไม่ได้ จบตรงนี้</span>")
-    raise SystemExit
-st_wifi.color(COL_OK)
-st_wifi.text("1) WiFi        IP " + wifi.ip())
-ui.poll()
-lcd.print("<span class=ok>ได้ IP", wifi.ip(), "</span>")
+    lcd.print("<span class=ok>ได้ IP", wifi.ip(), "</span>")
 
-# ขั้นที่ 2 - MQTT แนะนำตัวกับ broker
-# client_id ต้องไม่ซ้ำกับใครบน broker เดียวกัน ถ้าซ้ำ broker จะเตะตัวเก่าออก
-# แล้วสองบอร์ดจะผลัดกันเตะกันไปมาทั้งคาบ โดยไม่มีข้อความเตือนที่ฝั่งเรา
-# keepalive=60 แปลว่าเงียบเกิน 60 วินาทีเมื่อไร broker มีสิทธิ์ตัดเราทิ้ง
-st_broker.text("2) broker      กำลังต่อ " + BROKER)
-ui.poll()
-lcd.print("2) กำลังต่อ broker", BROKER)
-ok = mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID,
-                  username=MQTT_USER, password=MQTT_PASS, keepalive=60)
-
-if not ok:
-    st_broker.color(COL_BAD)
-    st_broker.text("2) broker      ปฏิเสธ")
-    note.color(COL_BAD)
-    note.text("ตรวจ IP ของ broker และพอร์ต 1883")
+    # ขั้นที่ 2 - MQTT แนะนำตัวกับ broker
+    # client_id ต้องไม่ซ้ำกับใครบน broker เดียวกัน ถ้าซ้ำ broker จะเตะตัวเก่าออก
+    # แล้วสองบอร์ดจะผลัดกันเตะกันไปมาทั้งคาบ โดยไม่มีข้อความเตือนที่ฝั่งเรา
+    # keepalive=60 แปลว่าเงียบเกิน 60 วินาทีเมื่อไร broker มีสิทธิ์ตัดเราทิ้ง
+    st_broker.text("2) broker      กำลังต่อ " + BROKER)
     ui.poll()
-    lcd.print("<span class=err>ต่อ broker ไม่ได้</span>")
-    lcd.print("ตรวจ IP ของ broker และพอร์ต 1883")
-    raise SystemExit
-
-st_broker.color(COL_OK)
-st_broker.text("2) broker      ต่อแล้ว " + BROKER)
-st_pub.color(COL_OK)
-st_pub.text("3) publish     กำลังส่ง")
-note.text("ส่งทุก 2 วินาที ดูเลขเดินขึ้น")
-ui.poll()
-lcd.print("<span class=ok>ต่อ broker แล้ว</span>")
-
-# ขั้นที่ 3 - ส่งจริงสิบครั้ง ค่าที่ส่งคือตัวนับกับเวลาเดินเครื่อง
-# ตัวนับดีตรงที่ฝั่งรับเห็นทันทีว่าข้อความหายไประหว่างทางหรือไม่ เลขจะข้าม
-done = 0
-for i in range(1, N + 1):
-    payload = {"id": DEVICE_ID,
-               "count": i,
-               "uptime_s": time.ticks_ms() // 1000}
-
-    # publish() คืน True เมื่อส่งต่อให้ชั้นเครือข่ายสำเร็จ
-    # บนบอร์ด ถ้ายังไม่ได้ต่อ มันไม่คืน False - มันโยน OSError ออกมาเลย
-    # จึงต้องมีทั้ง try และการเช็กค่าที่คืนกลับ โค้ดจึงถูกทั้งบนบอร์ดและบน emulator
+    lcd.print("2) กำลังต่อ broker", BROKER)
+    # ครอบตั้งแต่ต่อ broker จนจบลูป: หยุดกลางทางเมื่อไร finally ยังบอกลา broker ให้ ชื่อจึงไม่ค้างอีกนาที
     try:
-        sent = mqtt.publish(TOPIC, json.dumps(payload))
-    except OSError:
-        st_pub.color(COL_BAD)
-        st_pub.text("3) publish     สายหลุดที่ใบที่ " + str(i))
-        ui.poll()
-        lcd.print("<span class=err>สายหลุดระหว่างส่ง หยุดที่ครั้งที่", i, "</span>")
-        break
+        ok = mqtt.connect(BROKER, port=1883, client_id=DEVICE_ID,
+                          username=MQTT_USER, password=MQTT_PASS, keepalive=60)
 
-    if not sent:
-        st_pub.color(COL_BAD)
-        st_pub.text("3) publish     ถูกปฏิเสธที่ใบที่ " + str(i))
-        ui.poll()
-        lcd.print("<span class=err>ใบที่", i, "ถูกปฏิเสธ</span>")
-        break
+        if not ok:
+            show_link(False)
+            st_broker.color(COL_BAD)
+            st_broker.text("2) broker      ปฏิเสธ")
+            note.color(COL_BAD)
+            note.text("ตรวจ IP ของ broker และพอร์ต 1883")
+            ui.poll()
+            lcd.print("<span class=err>ต่อ broker ไม่ได้</span>")
+            lcd.print("ตรวจ IP ของ broker และพอร์ต 1883")
+            raise Stop
 
-    done = i
-    seg.text(str(done))          # Seg7 รับข้อความ ไม่ใช่ตัวเลข
-    bar.value(done)
+        st_broker.color(COL_OK)
+        st_broker.text("2) broker      ต่อแล้ว " + BROKER)
+        show_link(True)
+        st_pub.color(COL_OK)
+        st_pub.text("3) publish     กำลังส่ง")
+        note.text("ส่งทุก 2 วินาที ดูเลขเดินขึ้น")
+        ui.poll()
+        lcd.print("<span class=ok>ต่อ broker แล้ว</span>")
+
+        # ขั้นที่ 3 - ส่งจริงสิบครั้ง ค่าที่ส่งคือตัวนับกับเวลาเดินเครื่อง
+        # ตัวนับดีตรงที่ฝั่งรับเห็นทันทีว่าข้อความหายไประหว่างทางหรือไม่ เลขจะข้าม
+        done = 0
+        for i in range(1, N + 1):
+            payload = {"id": DEVICE_ID,
+                       "count": i,
+                       "uptime_s": time.ticks_ms() // 1000}
+
+            # publish() คืน True เมื่อส่งต่อให้ชั้นเครือข่ายสำเร็จ
+            # บนบอร์ด ถ้ายังไม่ได้ต่อ มันไม่คืน False - มันโยน OSError ออกมาเลย
+            # จึงต้องมีทั้ง try และการเช็กค่าที่คืนกลับ โค้ดจึงถูกทั้งบนบอร์ดและบน emulator
+            try:
+                sent = mqtt.publish(TOPIC, json.dumps(payload))
+            except OSError:
+                st_pub.color(COL_BAD)
+                st_pub.text("3) publish     สายหลุดที่ใบที่ " + str(i))
+                show_link(False)
+                ui.poll()
+                lcd.print("<span class=err>สายหลุดระหว่างส่ง หยุดที่ครั้งที่", i, "</span>")
+                break
+
+            if not sent:
+                st_pub.color(COL_BAD)
+                st_pub.text("3) publish     ถูกปฏิเสธที่ใบที่ " + str(i))
+                ui.poll()
+                lcd.print("<span class=err>ใบที่", i, "ถูกปฏิเสธ</span>")
+                break
+
+            done = i
+            seg.text(str(done))          # Seg7 รับข้อความ ไม่ใช่ตัวเลข
+            bar.value(done)
+            ui.poll()
+            lcd.print("ส่งครั้งที่", i, "-> ok")
+            time.sleep_ms(2000)
+    finally:
+        try:
+            mqtt.disconnect()              # ปิดการเชื่อมต่อทุกครั้ง แม้โปรแกรมถูกหยุดกลางทาง
+            show_link(False)               # ไฟ MQTT หรี่ลง: จบแล้ว ไม่ได้ต่ออยู่
+        except Exception:
+            pass
+
+    st_pub.text("3) publish     ส่งแล้ว " + str(done) + " ใบ")
+    note.color(COL_OK if done == N else COL_BAD)
+    note.text("จบรอบ ส่งได้ " + str(done) + " จาก " + str(N) + " ใบ")
     ui.poll()
-    lcd.print("ส่งครั้งที่", i, "-> ok")
-    time.sleep_ms(2000)
-
-st_pub.text("3) publish     ส่งแล้ว " + str(done) + " ใบ")
-note.color(COL_OK if done == N else COL_BAD)
-note.text("จบรอบ ส่งได้ " + str(done) + " จาก " + str(N) + " ใบ")
-ui.poll()
-lcd.print("จบรอบทดสอบ ส่งได้", done, "จาก", N, "ใบ")
-lcd.print("ดูฝั่ง MQTT Explorer ว่าครบสิบข้อความไหม")
+    lcd.print("จบรอบทดสอบ ส่งได้", done, "จาก", N, "ใบ")
+    lcd.print("ดูฝั่ง MQTT Explorer ว่าครบสิบข้อความไหม")
+except Stop:
+    pass

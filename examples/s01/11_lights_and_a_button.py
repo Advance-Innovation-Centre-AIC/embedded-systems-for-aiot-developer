@@ -30,6 +30,10 @@ COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD = 0x171B22
 COL_OK, COL_WARN, COL_INFO = 0x30A46C, 0xF5A623, 0x4A9EFF
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 n_leds = gpio.num_leds()
 n_btns = gpio.num_buttons()
 
@@ -134,75 +138,78 @@ for pct in LADDER:
 bar.value(0)
 leds[SHOW].off()
 
-# --- ท่าที่ 3: รอปุ่ม ---
-if n_btns < 1:
-    # บอร์ดที่ไม่เปิดปุ่มให้ Python ก็มีอยู่ ต้องพูดออกไปตรง ๆ ไม่ใช่เงียบแล้วจบ
-    phase.text("ท่าที่ 3 - บอร์ดนี้ไม่มีปุ่มให้ Python")
+try:
+    # --- ท่าที่ 3: รอปุ่ม ---
+    if n_btns < 1:
+        # บอร์ดที่ไม่เปิดปุ่มให้ Python ก็มีอยู่ ต้องพูดออกไปตรง ๆ ไม่ใช่เงียบแล้วจบ
+        phase.text("ท่าที่ 3 - บอร์ดนี้ไม่มีปุ่มให้ Python")
+        phase.color(COL_DIM)
+        state_lbl.text("ข้ามท่านี้")
+        ui.poll()
+        lcd.print("<span class=warn>ไม่มีปุ่มให้ Python ข้ามท่าที่ 3</span>")
+        raise Stop
+
+    btn = gpio.button(0)
+
+    phase.text("ท่าที่ 3 - กดปุ่มบนบอร์ดได้เลย")
+    phase.color(COL_OK)
+    state_lbl.text("ปล่อยอยู่")
+    state_lbl.color(COL_DIM)
+
+    # ตัวพิมพ์บนแผ่นวงจรกับชื่อที่ .name() คืนไม่ใช่ชื่อเดียวกัน และบอร์ดต่างรุ่นพิมพ์ต่างกัน
+    # คนก้มดูบอร์ดกับคนมองโค้ดจะเรียกปุ่มเดียวกันคนละชื่อ จึงยึดชื่อจาก .name() เสมอ
+    note.text("ปุ่มผู้ใช้ตัวเดียว - โค้ดเรียก " + btn.name() + " ดัชนี 0")
+    ui.poll()
+    lcd.console("<span class=muted>--- รอปุ่ม ---</span>")
+    lcd.print("กดปุ่มผู้ใช้บนบอร์ด - โค้ดเรียกมันว่า", btn.name())
+
+    t0 = time.ticks_ms()
+    presses = 0
+    was_down = False
+
+    while True:
+        t_work = time.ticks_ms()
+        if time.ticks_diff(t_work, t0) >= WATCH_MS:
+            break
+
+        down = btn.is_pressed()
+
+        # นับเฉพาะ "ขอบขาลง" คือรอบที่เพิ่งเปลี่ยนจากปล่อยเป็นกด
+        # ถ้านับทุกรอบที่ is_pressed() เป็นจริง การกดค้างหนึ่งครั้งจะถูกนับเป็นร้อยครั้ง
+        if down != was_down:
+            was_down = down
+            if down:
+                presses = presses + 1
+                seg_cnt.text(str(presses))
+                state_lbl.text("กดอยู่")
+                state_lbl.color(COL_OK)
+                # ไฟตอบกลับทุกครั้งที่กด คนกดจะได้รู้ว่าบอร์ดได้ยินแล้ว
+                leds[SHOW].on()
+                lcd.print("<span class=ok>กดครั้งที่", presses, "</span>")
+            else:
+                state_lbl.text("ปล่อยอยู่")
+                state_lbl.color(COL_DIM)
+                leds[SHOW].off()
+
+        ui.poll()
+
+        work = time.ticks_diff(time.ticks_ms(), t_work)
+        left = POLL_MS - work
+        if left > 0:
+            time.sleep_ms(left)
+
+    leds[SHOW].off()
+    phase.text("จบแล้ว - กดไป " + str(presses) + " ครั้ง")
     phase.color(COL_DIM)
-    state_lbl.text("ข้ามท่านี้")
-    ui.poll()
-    lcd.print("<span class=warn>ไม่มีปุ่มให้ Python ข้ามท่าที่ 3</span>")
-    raise SystemExit
-
-btn = gpio.button(0)
-
-phase.text("ท่าที่ 3 - กดปุ่มบนบอร์ดได้เลย")
-phase.color(COL_OK)
-state_lbl.text("ปล่อยอยู่")
-state_lbl.color(COL_DIM)
-
-# ตัวพิมพ์บนแผ่นวงจรกับชื่อที่ .name() คืนไม่ใช่ชื่อเดียวกัน และบอร์ดต่างรุ่นพิมพ์ต่างกัน
-# คนก้มดูบอร์ดกับคนมองโค้ดจะเรียกปุ่มเดียวกันคนละชื่อ จึงยึดชื่อจาก .name() เสมอ
-note.text("ปุ่มผู้ใช้ตัวเดียว - โค้ดเรียก " + btn.name() + " ดัชนี 0")
-ui.poll()
-lcd.console("<span class=muted>--- รอปุ่ม ---</span>")
-lcd.print("กดปุ่มผู้ใช้บนบอร์ด - โค้ดเรียกมันว่า", btn.name())
-
-t0 = time.ticks_ms()
-presses = 0
-was_down = False
-
-while True:
-    t_work = time.ticks_ms()
-    if time.ticks_diff(t_work, t0) >= WATCH_MS:
-        break
-
-    down = btn.is_pressed()
-
-    # นับเฉพาะ "ขอบขาลง" คือรอบที่เพิ่งเปลี่ยนจากปล่อยเป็นกด
-    # ถ้านับทุกรอบที่ is_pressed() เป็นจริง การกดค้างหนึ่งครั้งจะถูกนับเป็นร้อยครั้ง
-    if down != was_down:
-        was_down = down
-        if down:
-            presses = presses + 1
-            seg_cnt.text(str(presses))
-            state_lbl.text("กดอยู่")
-            state_lbl.color(COL_OK)
-            # ไฟตอบกลับทุกครั้งที่กด คนกดจะได้รู้ว่าบอร์ดได้ยินแล้ว
-            leds[SHOW].on()
-            lcd.print("<span class=ok>กดครั้งที่", presses, "</span>")
-        else:
-            state_lbl.text("ปล่อยอยู่")
-            state_lbl.color(COL_DIM)
-            leds[SHOW].off()
-
+    state_lbl.text("ปิดรับแล้ว")
+    state_lbl.color(COL_DIM)
+    note.text("หลอด " + str(n_leds) + " ดวง ปุ่ม " + str(n_btns) + " ปุ่ม")
     ui.poll()
 
-    work = time.ticks_diff(time.ticks_ms(), t_work)
-    left = POLL_MS - work
-    if left > 0:
-        time.sleep_ms(left)
-
-leds[SHOW].off()
-phase.text("จบแล้ว - กดไป " + str(presses) + " ครั้ง")
-phase.color(COL_DIM)
-state_lbl.text("ปิดรับแล้ว")
-state_lbl.color(COL_DIM)
-note.text("หลอด " + str(n_leds) + " ดวง ปุ่ม " + str(n_btns) + " ปุ่ม")
-ui.poll()
-
-lcd.console("<span class=muted>------------------------</span>")
-lcd.print("<span class=ok>กดทั้งหมด", presses, "ครั้ง</span>")
+    lcd.console("<span class=muted>------------------------</span>")
+    lcd.print("<span class=ok>กดทั้งหมด", presses, "ครั้ง</span>")
+except Stop:
+    pass
 
 # ----- ตาคุณ แก้แล้วรันใหม่ -----
 # ตอนนี้ปุ่มแค่นับกับติดไฟดวงเดิมทุกครั้ง แก้ให้การกดแต่ละครั้งเลื่อนไปติดดวงถัดไป
