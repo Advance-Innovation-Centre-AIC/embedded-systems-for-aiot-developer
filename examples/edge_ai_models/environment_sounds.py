@@ -1,5 +1,5 @@
 # environment_sounds.py - Confusion Lab. Needs "Environment Sounds" (experimental) from the Edge AI Store.
-# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3 (2026-09-29). Eva Kit and BENTO Emulator: not tested yet.
+# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. Eva Kit and BENTO Emulator: not tested yet.
 # Tap a tile, then play that sound for 10 s. SW6 or ACK = chainsaw alarm. SW5 = pause.
 
 try:

@@ -1,5 +1,5 @@
 # home_sounds.py - Three-Sound Board. Needs HomeSounds from the Edge AI Store.
-# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3 (2026-09-29). Eva Kit and BENTO Emulator: not tested yet.
+# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. Eva Kit and BENTO Emulator: not tested yet.
 # Tap a tile = mute/unmute it. SW6 (upper) or ACK = acknowledge the tap alarm. SW5 (lower) = pause.
 
 try:

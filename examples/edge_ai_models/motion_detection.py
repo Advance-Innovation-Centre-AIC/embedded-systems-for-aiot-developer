@@ -1,5 +1,5 @@
 # motion_detection.py - Gesture Switch. Built-in model.
-# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3 (2026-09-29). Eva Kit and BENTO Emulator: not tested yet.
+# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. Eva Kit and BENTO Emulator: not tested yet.
 # A circle in the air flips the lamp. SW6 (upper) or tap = dwell. SW5 (lower) = pause/resume.
 
 try:

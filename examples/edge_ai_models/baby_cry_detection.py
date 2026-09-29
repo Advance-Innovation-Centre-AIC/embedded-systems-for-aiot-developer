@@ -1,5 +1,5 @@
 # baby_cry_detection.py - Cry Alert. Built-in model.
-# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3 (2026-09-29). Eva Kit and BENTO Emulator: not tested yet.
+# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. Eva Kit and BENTO Emulator: not tested yet.
 # SW6 (upper) or tap ACK = acknowledge the red alarm. SW5 (lower) = pause/resume.
 
 try:

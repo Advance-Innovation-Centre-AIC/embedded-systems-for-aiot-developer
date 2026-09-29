@@ -1,5 +1,5 @@
 # siren_detection_store.py - Siren A/B. Needs SirenDetection from the Edge AI Store.
-# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3 (2026-09-29). Eva Kit and BENTO Emulator: not tested yet.
+# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. Eva Kit and BENTO Emulator: not tested yet.
 # Play a siren clip, tap Swap, play it again. SW6/tap ACK = acknowledge, SW5 = pause.
 
 try:
