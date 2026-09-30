@@ -29,6 +29,10 @@ COL_CARD = 0x171B22
 COL_ACCENT = 0x4A9EFF
 COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 ui.screen()
 time.sleep_ms(200)
 
@@ -77,94 +81,97 @@ state.text("กำลังต่อเน็ต จอจะนิ่งสั�
 state.color(COL_WARN)
 ui.poll()
 
-if not wifi.connect(WIFI_SSID, WIFI_PASS):
-    ip_lbl.text("ต่อไม่ติด")
-    ip_lbl.color(COL_BAD)
-    link_lbl.text("ต่อไม่ติด")
-    link_lbl.color(COL_BAD)
-    state.text("ตรวจชื่อวงกับรหัสผ่านอีกครั้ง แล้วรันใหม่")
-    state.color(COL_BAD)
-    ui.poll()
-    lcd.print("<span class=error>ต่อไม่ติด - ยังไม่ได้เริ่มเฝ้าดู</span>")
-    raise SystemExit
-
-ip = wifi.ip()
-ip_lbl.text("IP " + ip)
-ip_lbl.color(COL_OK)
-lcd.print("<span class=ok>ต่อสำเร็จ IP", ip, "</span>")
-
-# --- ขั้นที่สอง: เฝ้าดู ถามซ้ำทุกรอบ ไม่เชื่อคำตอบเดิม ---
-state.text("กำลังเฝ้าดู - ลองปิด WiFi ที่เราเตอร์ดูได้")
-state.color(COL_DIM)
-
-t0 = time.ticks_ms()
-online_ms = 0
-drops = 0
-
-# -1 แปลว่า "ยังไม่เคยรู้สถานะมาก่อน" รอบแรกจึงนับเป็นการเปลี่ยนเสมอ
-# ถ้าตั้งต้นเป็น 1 ประวัติจะไม่มีบรรทัดแรกบอกว่าเริ่มต้นที่สถานะไหน
-last = -1
-
-while True:
-    t_work = time.ticks_ms()
-    elapsed = time.ticks_diff(t_work, t0)
-    if elapsed >= WATCH_MS:
-        break
-
-    # ถามใหม่ทุกรอบ นี่คือทั้งบทเรียนของไฟล์นี้
-    up = wifi.is_connected()
-    now = 1 if up else 0
-
-    # --- งานของจอ: ตอบว่าตอนนี้เป็นยังไง ทำทุกรอบ ---
-    if up:
-        online_ms = online_ms + TICK_MS
-        link_lbl.text("ต่ออยู่")
-        link_lbl.color(COL_OK)
-        seg.color(COL_OK)
-        chart.set_next(s_link, 100)
-    else:
-        link_lbl.text("หลุด")
+try:
+    if not wifi.connect(WIFI_SSID, WIFI_PASS):
+        ip_lbl.text("ต่อไม่ติด")
+        ip_lbl.color(COL_BAD)
+        link_lbl.text("ต่อไม่ติด")
         link_lbl.color(COL_BAD)
-        seg.color(COL_BAD)
-        chart.set_next(s_link, 0)
+        state.text("ตรวจชื่อวงกับรหัสผ่านอีกครั้ง แล้วรันใหม่")
+        state.color(COL_BAD)
+        ui.poll()
+        lcd.print("<span class=error>ต่อไม่ติด - ยังไม่ได้เริ่มเฝ้าดู</span>")
+        raise Stop
 
-    seg.text(str(online_ms // 1000))
+    ip = wifi.ip()
+    ip_lbl.text("IP " + ip)
+    ip_lbl.color(COL_OK)
+    lcd.print("<span class=ok>ต่อสำเร็จ IP", ip, "</span>")
 
-    # --- งานของลิ้นชัก: ตอบว่าที่ผ่านมาเกิดอะไร ทำเฉพาะตอนมีเรื่องให้เล่า ---
-    # ยิงทุกรอบเมื่อไร ลิ้นชักจะมีแต่บรรทัดเดิมซ้ำกันสามสิบบรรทัด
-    # แล้วคำถามว่า "หลุดตอนวินาทีที่เท่าไร" จะหาคำตอบไม่เจอในกองนั้น
-    if now != last:
-        last = now
+    # --- ขั้นที่สอง: เฝ้าดู ถามซ้ำทุกรอบ ไม่เชื่อคำตอบเดิม ---
+    state.text("กำลังเฝ้าดู - ลองปิด WiFi ที่เราเตอร์ดูได้")
+    state.color(COL_DIM)
+
+    t0 = time.ticks_ms()
+    online_ms = 0
+    drops = 0
+
+    # -1 แปลว่า "ยังไม่เคยรู้สถานะมาก่อน" รอบแรกจึงนับเป็นการเปลี่ยนเสมอ
+    # ถ้าตั้งต้นเป็น 1 ประวัติจะไม่มีบรรทัดแรกบอกว่าเริ่มต้นที่สถานะไหน
+    last = -1
+
+    while True:
+        t_work = time.ticks_ms()
+        elapsed = time.ticks_diff(t_work, t0)
+        if elapsed >= WATCH_MS:
+            break
+
+        # ถามใหม่ทุกรอบ นี่คือทั้งบทเรียนของไฟล์นี้
+        up = wifi.is_connected()
+        now = 1 if up else 0
+
+        # --- งานของจอ: ตอบว่าตอนนี้เป็นยังไง ทำทุกรอบ ---
         if up:
-            lcd.print("<span class=ok>" + str(elapsed // 1000) +
-                      " s  ลิงก์กลับมา  IP " + wifi.ip() + "</span>")
+            online_ms = online_ms + TICK_MS
+            link_lbl.text("ต่ออยู่")
+            link_lbl.color(COL_OK)
+            seg.color(COL_OK)
+            chart.set_next(s_link, 100)
         else:
-            drops = drops + 1
-            drop_lbl.text(str(drops))
-            drop_lbl.color(COL_BAD)
-            lcd.print("<span class=error>" + str(elapsed // 1000) +
-                      " s  ลิงก์หลุด</span>")
+            link_lbl.text("หลุด")
+            link_lbl.color(COL_BAD)
+            seg.color(COL_BAD)
+            chart.set_next(s_link, 0)
 
+        seg.text(str(online_ms // 1000))
+
+        # --- งานของลิ้นชัก: ตอบว่าที่ผ่านมาเกิดอะไร ทำเฉพาะตอนมีเรื่องให้เล่า ---
+        # ยิงทุกรอบเมื่อไร ลิ้นชักจะมีแต่บรรทัดเดิมซ้ำกันสามสิบบรรทัด
+        # แล้วคำถามว่า "หลุดตอนวินาทีที่เท่าไร" จะหาคำตอบไม่เจอในกองนั้น
+        if now != last:
+            last = now
+            if up:
+                lcd.print("<span class=ok>" + str(elapsed // 1000) +
+                          " s  ลิงก์กลับมา  IP " + wifi.ip() + "</span>")
+            else:
+                drops = drops + 1
+                drop_lbl.text(str(drops))
+                drop_lbl.color(COL_BAD)
+                lcd.print("<span class=error>" + str(elapsed // 1000) +
+                          " s  ลิงก์หลุด</span>")
+
+        ui.poll()
+
+        # ลูปเดินตรงจังหวะตามท่าเดียวกับ examples/s01/07_ticks_and_beat.py
+        work = time.ticks_diff(time.ticks_ms(), t_work)
+        left = TICK_MS - work
+        if left > 0:
+            time.sleep_ms(left)
+
+    # จบแล้วปล่อยค่าสุดท้ายค้างไว้ ไม่ล้างจอ คนดูจะได้อ่านทัน
+    pct_up = online_ms * 100 // WATCH_MS
+    state.text("จบแล้ว - ต่ออยู่ " + str(pct_up) + "% ของเวลาที่เฝ้าดู")
+    state.color(COL_OK if drops == 0 else COL_WARN)
+    # ป้ายใบนี้อยู่ครึ่งขวาของจอ ข้อความตอนจบจึงต้องสั้นกว่าตอนสร้าง ไม่ใช่ยาวกว่า
+    # ไม่งั้นมันจะยื่นพ้นขอบขวาไปโดยไม่มี error ให้จับ
+    hist_lbl.text("หลุด " + str(drops) + " ครั้ง - ดูในลิ้นชัก")
     ui.poll()
 
-    # ลูปเดินตรงจังหวะตามท่าเดียวกับ examples/s01/07_ticks_and_beat.py
-    work = time.ticks_diff(time.ticks_ms(), t_work)
-    left = TICK_MS - work
-    if left > 0:
-        time.sleep_ms(left)
-
-# จบแล้วปล่อยค่าสุดท้ายค้างไว้ ไม่ล้างจอ คนดูจะได้อ่านทัน
-pct_up = online_ms * 100 // WATCH_MS
-state.text("จบแล้ว - ต่ออยู่ " + str(pct_up) + "% ของเวลาที่เฝ้าดู")
-state.color(COL_OK if drops == 0 else COL_WARN)
-# ป้ายใบนี้อยู่ครึ่งขวาของจอ ข้อความตอนจบจึงต้องสั้นกว่าตอนสร้าง ไม่ใช่ยาวกว่า
-# ไม่งั้นมันจะยื่นพ้นขอบขวาไปโดยไม่มี error ให้จับ
-hist_lbl.text("หลุด " + str(drops) + " ครั้ง - ดูในลิ้นชัก")
-ui.poll()
-
-lcd.console("<span class=muted>------------------------</span>")
-lcd.print("<span class=ok>ต่ออยู่", pct_up, "% | หลุด", drops, "ครั้ง</span>")
-print("uptime", pct_up, "% | drops", drops, "| ip", wifi.ip())
+    lcd.console("<span class=muted>------------------------</span>")
+    lcd.print("<span class=ok>ต่ออยู่", pct_up, "% | หลุด", drops, "ครั้ง</span>")
+    print("uptime", pct_up, "% | drops", drops, "| ip", wifi.ip())
+except Stop:
+    pass
 
 # ----- ตาคุณ แก้แล้วรันใหม่ -----
 # ระหว่างที่โปรแกรมกำลังเฝ้าดู ให้เดินถือบอร์ดออกไปไกลจากเราเตอร์จนสุดห้อง

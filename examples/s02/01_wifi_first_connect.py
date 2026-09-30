@@ -22,6 +22,10 @@ COL_TEXT, COL_DIM = 0xE8EAED, 0x9AA3AF
 COL_CARD = 0x171B22
 COL_OK, COL_WARN, COL_BAD = 0x30A46C, 0xF5A623, 0xE5484D
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 ui.screen()
 time.sleep_ms(200)
 
@@ -68,53 +72,56 @@ seg.text(str(elapsed))
 step_lbl.text("กลับมาแล้ว - connect() คืนค่า " + str(ok))
 print("connect() ใช้เวลา", elapsed, "ms คืนค่า", ok)
 
-if not ok:
-    # ล้มเหลวก็ต้องพูด โปรแกรมที่พูดเฉพาะตอนสำเร็จจะเงียบสนิทในจังหวะที่คนอยากรู้ที่สุด
-    seg.color(COL_BAD)
-    state.text("ต่อไม่สำเร็จ")
-    state.color(COL_BAD)
-    note.text("ตรวจชื่อวงกับรหัสผ่านอีกครั้ง แล้วรันใหม่")
-    note.color(COL_BAD)
-    ui.poll()
-    lcd.print("<span class=error>ต่อไม่สำเร็จใน", elapsed, "ms</span>")
-    raise SystemExit
-
-seg.color(COL_OK)
-state.text("ต่อสำเร็จ - " + WIFI_SSID)
-state.color(COL_OK)
-
-# ip() คืนสตริงเสมอ ไม่เคยคืน None และตอนยังไม่มีที่อยู่มันคืน "0.0.0.0"
-# ซึ่งเป็นสตริงที่ if ถือว่าจริง การเขียน if wifi.ip(): จึงผ่านทั้งที่ยังไม่มีเลข
-# ต้องเทียบกับ "0.0.0.0" ตรง ๆ เท่านั้น
-ip = wifi.ip()
-ip_lbl.text(ip)
-
-if ip == "0.0.0.0":
-    ip_lbl.color(COL_WARN)
-    note.text("ลิงก์ขึ้นแล้วแต่ยังไม่ได้เลข IP กำลังรอ DHCP")
-    note.color(COL_WARN)
-    ui.poll()
-    lcd.print("<span class=warn>ยังไม่ได้เลข IP รอ DHCP</span>")
-
-    # รอเป็นรอบสั้น ๆ แล้วอ่านซ้ำ ดีกว่าหลับยาวรวดเดียวแล้วหวังว่าจะทัน
-    for _ in range(10):
+try:
+    if not ok:
+        # ล้มเหลวก็ต้องพูด โปรแกรมที่พูดเฉพาะตอนสำเร็จจะเงียบสนิทในจังหวะที่คนอยากรู้ที่สุด
+        seg.color(COL_BAD)
+        state.text("ต่อไม่สำเร็จ")
+        state.color(COL_BAD)
+        note.text("ตรวจชื่อวงกับรหัสผ่านอีกครั้ง แล้วรันใหม่")
+        note.color(COL_BAD)
         ui.poll()
-        time.sleep_ms(200)
+        lcd.print("<span class=error>ต่อไม่สำเร็จใน", elapsed, "ms</span>")
+        raise Stop
+
+    seg.color(COL_OK)
+    state.text("ต่อสำเร็จ - " + WIFI_SSID)
+    state.color(COL_OK)
+
+    # ip() คืนสตริงเสมอ ไม่เคยคืน None และตอนยังไม่มีที่อยู่มันคืน "0.0.0.0"
+    # ซึ่งเป็นสตริงที่ if ถือว่าจริง การเขียน if wifi.ip(): จึงผ่านทั้งที่ยังไม่มีเลข
+    # ต้องเทียบกับ "0.0.0.0" ตรง ๆ เท่านั้น
     ip = wifi.ip()
     ip_lbl.text(ip)
-    lcd.print("อ่านซ้ำได้", ip)
 
-# ถามยืนยันอีกทางหนึ่ง ค่าที่ connect() คืนมาบอกว่า "ตอนนั้นสำเร็จ"
-# ส่วน is_connected() บอกว่า "ตอนนี้ยังต่ออยู่ไหม" สองคำถามคนละเวลา
-conn_lbl.text("is_connected() ตอบว่า " + str(wifi.is_connected()))
-conn_lbl.color(COL_OK if wifi.is_connected() else COL_WARN)
-note.text("เอาเลข IP นี้ไปกรอกในใบงานได้เลย")
-note.color(COL_DIM)
-ui.poll()
+    if ip == "0.0.0.0":
+        ip_lbl.color(COL_WARN)
+        note.text("ลิงก์ขึ้นแล้วแต่ยังไม่ได้เลข IP กำลังรอ DHCP")
+        note.color(COL_WARN)
+        ui.poll()
+        lcd.print("<span class=warn>ยังไม่ได้เลข IP รอ DHCP</span>")
 
-lcd.print("<span class=ok>ต่อสำเร็จใน", elapsed, "ms</span>")
-lcd.print("<span class=ok>IP:", ip, "</span>")
-print("สรุป ip =", ip, "| is_connected =", wifi.is_connected())
+        # รอเป็นรอบสั้น ๆ แล้วอ่านซ้ำ ดีกว่าหลับยาวรวดเดียวแล้วหวังว่าจะทัน
+        for _ in range(10):
+            ui.poll()
+            time.sleep_ms(200)
+        ip = wifi.ip()
+        ip_lbl.text(ip)
+        lcd.print("อ่านซ้ำได้", ip)
+
+    # ถามยืนยันอีกทางหนึ่ง ค่าที่ connect() คืนมาบอกว่า "ตอนนั้นสำเร็จ"
+    # ส่วน is_connected() บอกว่า "ตอนนี้ยังต่ออยู่ไหม" สองคำถามคนละเวลา
+    conn_lbl.text("is_connected() ตอบว่า " + str(wifi.is_connected()))
+    conn_lbl.color(COL_OK if wifi.is_connected() else COL_WARN)
+    note.text("เอาเลข IP นี้ไปกรอกในใบงานได้เลย")
+    note.color(COL_DIM)
+    ui.poll()
+
+    lcd.print("<span class=ok>ต่อสำเร็จใน", elapsed, "ms</span>")
+    lcd.print("<span class=ok>IP:", ip, "</span>")
+    print("สรุป ip =", ip, "| is_connected =", wifi.is_connected())
+except Stop:
+    pass
 
 # ----- ตาคุณ แก้แล้วรันใหม่ -----
 # พิมพ์รหัสผ่านให้ผิดไปหนึ่งตัว แล้วรันใหม่ จับเวลาว่ากว่าจะรู้ว่าผิดใช้เวลากี่ ms

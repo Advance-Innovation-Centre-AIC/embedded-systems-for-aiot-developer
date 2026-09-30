@@ -295,7 +295,7 @@ seg.text(<span class="hljs-built_in">str</span>(elapsed))           <span class=
 <p>ป้ายที่สร้างไว้แต่ยังไม่ได้เคาะ จะไปโผล่ <strong>หลัง</strong> <code>connect()</code> จบ ซึ่งคือตอนที่ไม่มีใครต้องการมันแล้ว กฎ <code>ui.poll()</code> จากคาบที่แล้วกลายเป็นเรื่องเป็นเรื่องตายขึ้นมาตรงนี้</p>
 <p><code>time.ticks_ms()</code> กับ <code>ticks_diff()</code> เป็นคู่เดิมจากไฟล์ 07 ของคาบที่แล้ว ที่ต่างคือคราวนี้เราเอามันมาคร่อมบรรทัดที่ควบคุมไม่ได้ เพราะ &quot;นานจัง&quot; ไม่ใช่ข้อมูล ส่วน &quot;4218 ms&quot; เอาไปเทียบกันได้ทั้งระหว่างทีมและระหว่างรหัสถูกกับรหัสผิด</p>
 <blockquote>
-<p>ถ้า <code>ok</code> เป็น <code>False</code> ไฟล์นี้รายงานแล้ว <code>raise SystemExit</code> ทันที <strong>โปรแกรมที่พูดเฉพาะตอนสำเร็จ จะเงียบในจังหวะที่คนอยากรู้ที่สุด</strong></p>
+<p>ถ้า <code>ok</code> เป็น <code>False</code> ไฟล์นี้รายงานแล้ว <code>raise Stop</code> ทันที <strong>โปรแกรมที่พูดเฉพาะตอนสำเร็จ จะเงียบในจังหวะที่คนอยากรู้ที่สุด</strong></p>
 </blockquote>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11" data-paginate="true" data-theme="default" lang="C" data-marpit-pagination="11" style="--paginate:true;--theme:default;" data-marpit-pagination-total="38">
@@ -645,7 +645,7 @@ az = -<span class="hljs-number">99.0</span>                          <span class
 ...
 <span class="hljs-keyword">if</span> PLATFORM_BROKER == <span class="hljs-string">&quot;&quot;</span>:            <span class="hljs-comment"># วันนี้ยังว่าง: แสดงคลังค่าตั้งแล้วจบ ไม่เขียนแฟลช</span>
     ...
-    <span class="hljs-keyword">raise</span> SystemExit
+    <span class="hljs-keyword">raise</span> Stop
 tesaiot.config_set(<span class="hljs-string">&quot;broker&quot;</span>, PLATFORM_BROKER)   <span class="hljs-comment"># รับข้อความทั้งสองอาร์กิวเมนต์</span>
 ...
 tesaiot.connect()                    <span class="hljs-comment"># TLS พอร์ต 8883/8884 เสมอ ไม่อ่านคีย์ &quot;port&quot;</span>

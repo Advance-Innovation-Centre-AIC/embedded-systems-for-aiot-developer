@@ -26,6 +26,10 @@ COL_CARD = 0x171B22
 COL_ACCENT = 0x4A9EFF
 COL_WARN, COL_BAD = 0xF5A623, 0xE5484D
 
+class Stop(Exception):
+    # จบโปรแกรมแบบปกติ (SystemExit ทำให้บอร์ดเริ่มระบบใหม่ และอาจค้างจนต้องถอดสาย)
+    pass
+
 
 def percent_of(rssi):
     """แปลง rssi เป็น 0-100 ให้ตาอ่านง่าย -90 คือแทบไม่เหลือ -40 คือเต็มขีด"""
@@ -104,88 +108,91 @@ seg_n.text(str(len(nets)))
 seg_ms.text(str(took))
 lcd.print("สแกนเสร็จใน", took, "ms เจอ", len(nets), "วง")
 
-if len(nets) == 0:
-    # ผลว่างเปล่าไม่ใช่ความผิดพลาดของโค้ด แต่แปลว่าเสาอากาศไม่ได้ยินอะไรเลย
-    # เจอบ่อยเมื่อบอร์ดอยู่ในตู้เหล็กหรือห้องใต้ดิน พูดออกไปตรง ๆ ดีกว่าเงียบ
-    seg_n.color(COL_BAD)
-    status.color(COL_BAD)
-    status.text("ไม่เจอวงไหนเลย ลองย้ายบอร์ดออกที่โล่ง")
+try:
+    if len(nets) == 0:
+        # ผลว่างเปล่าไม่ใช่ความผิดพลาดของโค้ด แต่แปลว่าเสาอากาศไม่ได้ยินอะไรเลย
+        # เจอบ่อยเมื่อบอร์ดอยู่ในตู้เหล็กหรือห้องใต้ดิน พูดออกไปตรง ๆ ดีกว่าเงียบ
+        seg_n.color(COL_BAD)
+        status.color(COL_BAD)
+        status.text("ไม่เจอวงไหนเลย ลองย้ายบอร์ดออกที่โล่ง")
+        ui.poll()
+        lcd.print("<span class=error>ไม่เจอวงไหนเลย</span>")
+        raise Stop
+
+    # --- เรียงจากแรงไปอ่อน ---
+    # scan() คืนตามลำดับที่ชิปเจอ ไม่ได้เรียงให้ ถ้าอยากได้ "วงที่แรงที่สุด"
+    # ต้องเรียงเอง ช่องที่ 1 ของแต่ละ tuple คือ rssi และมันติดลบ
+    # ติดลบมากคืออ่อน จึงเรียงจากมากไปน้อยเพื่อให้ตัวแรงที่สุดมาอยู่หัวแถว
+    # key=lambda net: net[1] บอก sort ว่าให้ตัดสินด้วยช่องที่สอง ซึ่งคือ rssi
+    # และ .sort() เรียงในตัวมันเอง ไม่ได้คืน list ใหม่ออกมา
+    nets.sort(key=lambda net: net[1], reverse=True)
+    ranked = nets
+
+    open_count = 0
+    for i in range(len(ranked)):
+        ssid, rssi, security, channel = ranked[i]
+
+        # security เป็นตัวเลข 0 คือเปิดโล่ง ค่าอื่นคือมีการเข้ารหัส
+        # ไม่ต้องรู้ว่าเลขไหนคือ WPA2 หรือ WPA3 ก็ตัดสินใจได้ว่าวงไหนเปิดอยู่
+        if security == 0:
+            open_count = open_count + 1
+            lock = "เปิดโล่ง"
+        else:
+            lock = "มีรหัส"
+
+        # ชื่อวงเป็นข้อความที่คนอื่นตั้ง ยาวแค่ไหนก็ได้ และป้ายบนจอพาไปได้ 126 ไบต์
+        # ตัดให้สั้นก่อนเสมอ ไม่ใช่หวังว่าเพื่อนบ้านจะตั้งชื่อสั้น
+        short = ssid[:18] if len(ssid) > 0 else "(ไม่ประกาศชื่อ)"
+
+        if i < ROWS:
+            rows[i].color(color_of(rssi))
+            rows[i].text(str(i + 1) + ".  " + short + "   " + str(rssi) +
+                         " dBm   ch" + str(channel) + "   " + lock)
+
+        lcd.print(str(i + 1) + ". " + short + " " + str(rssi) + " dBm ch" +
+                  str(channel) + " " + lock)
+
+        # ตารางกว้าง ๆ แบบนี้คือสิ่งที่ print() มีไว้ทำ จอ 4.3 นิ้ววางไม่ลง
+        print("{:<24} {:>5} dBm  ch{:<4} {}".format(ssid[:24], rssi, channel, lock))
+
+    # --- วงที่ชนะ ---
+    top_ssid, top_rssi = ranked[0][0], ranked[0][1]
+    pct = percent_of(top_rssi)
+    bar.value(pct)
+    bar.color(color_of(top_rssi))
+    best_lbl.color(color_of(top_rssi))
+    best_lbl.text(top_ssid[:14] + "  " + str(top_rssi) + " dBm")
+
+    # สแกนสำเร็จคือเรื่องปกติ จึงกลับไปเงียบด้วยสีข้อความ ไม่ใช่ฉลองด้วยสีเขียว
+    # สีเขียวบนจอนี้ไม่มีที่ใช้เลย เพราะไม่มีอะไรในจอที่แปลว่า "ยืนยันแล้วว่าปกติ"
+    seg_n.color(COL_TEXT)
+    status.color(COL_TEXT)
+    status.text("เจอ " + str(len(nets)) + " วง | เปิดโล่ง " + str(open_count) +
+                " วง | แสดง " + str(ROWS) + " แถวแรก")
     ui.poll()
-    lcd.print("<span class=error>ไม่เจอวงไหนเลย</span>")
-    raise SystemExit
 
-# --- เรียงจากแรงไปอ่อน ---
-# scan() คืนตามลำดับที่ชิปเจอ ไม่ได้เรียงให้ ถ้าอยากได้ "วงที่แรงที่สุด"
-# ต้องเรียงเอง ช่องที่ 1 ของแต่ละ tuple คือ rssi และมันติดลบ
-# ติดลบมากคืออ่อน จึงเรียงจากมากไปน้อยเพื่อให้ตัวแรงที่สุดมาอยู่หัวแถว
-# key=lambda net: net[1] บอก sort ว่าให้ตัดสินด้วยช่องที่สอง ซึ่งคือ rssi
-# และ .sort() เรียงในตัวมันเอง ไม่ได้คืน list ใหม่ออกมา
-nets.sort(key=lambda net: net[1], reverse=True)
-ranked = nets
+    # --- กับดักของไฟล์นี้ พิสูจน์ด้วยตัวเลขจริง ไม่ใช่เชื่อคำอธิบาย ---
+    # status() คืน dict ห้าคีย์ สามคีย์แรกเป็นของจริง สองคีย์หลังเป็นของปลอม
+    st = wifi.status()
+    lcd.console("<span class=muted>--- wifi.status() ---</span>")
+    for k in st:
+        lcd.print("  " + k + " =", st[k])
 
-open_count = 0
-for i in range(len(ranked)):
-    ssid, rssi, security, channel = ranked[i]
+    # เทียบกันตรง ๆ ให้เห็นกับตา วงที่แรงที่สุดในห้องแรง top_rssi dBm
+    # แต่ status()["rssi"] ตอบ 0 เท่าเดิมเสมอ ไม่ว่าจะยืนตรงไหนของตึก
+    trap.color(COL_BAD)
+    trap.text("status() rssi = " + str(st["rssi"]) + " แต่ของจริง " +
+              str(top_rssi) + " dBm")
+    hint.color(COL_TEXT)
+    hint.text("mode = " + st["mode"] + " | ip = " + st["ip"])
+    ui.poll()
 
-    # security เป็นตัวเลข 0 คือเปิดโล่ง ค่าอื่นคือมีการเข้ารหัส
-    # ไม่ต้องรู้ว่าเลขไหนคือ WPA2 หรือ WPA3 ก็ตัดสินใจได้ว่าวงไหนเปิดอยู่
-    if security == 0:
-        open_count = open_count + 1
-        lock = "เปิดโล่ง"
-    else:
-        lock = "มีรหัส"
-
-    # ชื่อวงเป็นข้อความที่คนอื่นตั้ง ยาวแค่ไหนก็ได้ และป้ายบนจอพาไปได้ 126 ไบต์
-    # ตัดให้สั้นก่อนเสมอ ไม่ใช่หวังว่าเพื่อนบ้านจะตั้งชื่อสั้น
-    short = ssid[:18] if len(ssid) > 0 else "(ไม่ประกาศชื่อ)"
-
-    if i < ROWS:
-        rows[i].color(color_of(rssi))
-        rows[i].text(str(i + 1) + ".  " + short + "   " + str(rssi) +
-                     " dBm   ch" + str(channel) + "   " + lock)
-
-    lcd.print(str(i + 1) + ". " + short + " " + str(rssi) + " dBm ch" +
-              str(channel) + " " + lock)
-
-    # ตารางกว้าง ๆ แบบนี้คือสิ่งที่ print() มีไว้ทำ จอ 4.3 นิ้ววางไม่ลง
-    print("{:<24} {:>5} dBm  ch{:<4} {}".format(ssid[:24], rssi, channel, lock))
-
-# --- วงที่ชนะ ---
-top_ssid, top_rssi = ranked[0][0], ranked[0][1]
-pct = percent_of(top_rssi)
-bar.value(pct)
-bar.color(color_of(top_rssi))
-best_lbl.color(color_of(top_rssi))
-best_lbl.text(top_ssid[:14] + "  " + str(top_rssi) + " dBm")
-
-# สแกนสำเร็จคือเรื่องปกติ จึงกลับไปเงียบด้วยสีข้อความ ไม่ใช่ฉลองด้วยสีเขียว
-# สีเขียวบนจอนี้ไม่มีที่ใช้เลย เพราะไม่มีอะไรในจอที่แปลว่า "ยืนยันแล้วว่าปกติ"
-seg_n.color(COL_TEXT)
-status.color(COL_TEXT)
-status.text("เจอ " + str(len(nets)) + " วง | เปิดโล่ง " + str(open_count) +
-            " วง | แสดง " + str(ROWS) + " แถวแรก")
-ui.poll()
-
-# --- กับดักของไฟล์นี้ พิสูจน์ด้วยตัวเลขจริง ไม่ใช่เชื่อคำอธิบาย ---
-# status() คืน dict ห้าคีย์ สามคีย์แรกเป็นของจริง สองคีย์หลังเป็นของปลอม
-st = wifi.status()
-lcd.console("<span class=muted>--- wifi.status() ---</span>")
-for k in st:
-    lcd.print("  " + k + " =", st[k])
-
-# เทียบกันตรง ๆ ให้เห็นกับตา วงที่แรงที่สุดในห้องแรง top_rssi dBm
-# แต่ status()["rssi"] ตอบ 0 เท่าเดิมเสมอ ไม่ว่าจะยืนตรงไหนของตึก
-trap.color(COL_BAD)
-trap.text("status() rssi = " + str(st["rssi"]) + " แต่ของจริง " +
-          str(top_rssi) + " dBm")
-hint.color(COL_TEXT)
-hint.text("mode = " + st["mode"] + " | ip = " + st["ip"])
-ui.poll()
-
-lcd.print("<span class=error>status() rssi =", st["rssi"], "ซึ่งเป็นค่าตายตัว</span>")
-lcd.print("<span class=ok>ของจริงคือ", top_rssi, "dBm จาก scan()</span>")
-print("status() =", st)
-print("แรงที่สุด:", top_ssid, top_rssi, "dBm |", pct, "%")
+    lcd.print("<span class=error>status() rssi =", st["rssi"], "ซึ่งเป็นค่าตายตัว</span>")
+    lcd.print("<span class=ok>ของจริงคือ", top_rssi, "dBm จาก scan()</span>")
+    print("status() =", st)
+    print("แรงที่สุด:", top_ssid, top_rssi, "dBm |", pct, "%")
+except Stop:
+    pass
 
 # ----- ตาคุณ แก้แล้วรันใหม่ -----
 # เดินถือบอร์ดไปสุดห้องแล้วรันซ้ำ จดชื่อวงเดิมกับตัวเลข dBm ของมันทั้งสองจุด
