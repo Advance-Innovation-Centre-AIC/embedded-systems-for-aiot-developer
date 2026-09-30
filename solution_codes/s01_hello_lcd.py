@@ -119,7 +119,7 @@ led_done.value(1)
 # ภาษาไทยตัวละ 3 ไบต์ บรรทัดที่ดูสั้นบนจอคอมจึงกินโควตาเร็วกว่าที่ตาประเมิน
 used = len(TAIL.encode())
 ui.Label("ความยาวบรรทัดปิดท้าย จากเพดาน 127", x=400, y=240, color=COL_DIM, value=20)
-ui.Bar(x=408, y=272, w=332, h=16, color=COL_OK, min=0, max=BYTE_LIMIT, value=used)
+ui.Bar(x=408, y=272, w=332, h=16, color=COL_OK, min=0, max=BYTE_LIMIT, value=0).value(used)   # สร้างที่ 0 แล้วค่อยตั้งค่า: Bar ที่สร้างพร้อมค่าไม่เป็นศูนย์ทำให้จอว่างทั้งหน้า
 ui.Scale(x=408, y=288, w=332, h=44, color=COL_TEXT, min=0, max=BYTE_LIMIT)
 ui.Label(str(used) + " ไบต์", x=408, y=336, color=COL_TEXT, value=20)
 ui.poll()
