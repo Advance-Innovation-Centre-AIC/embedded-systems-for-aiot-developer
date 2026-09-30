@@ -89,74 +89,76 @@ lcd.print("เปิดไมค์ที่ความไว", SENS, "จา�
 
 # start() ทิ้งเสียงสองชุดแรกให้เองแล้ว เพราะชุดแรกหลังเปิดยังไม่นิ่ง
 mic.start(sens=SENS)
+try:
 
-status.color(COL_OK)
-status.text("พูดหรือตบมือใส่บอร์ดได้เลย")
-ui.poll()
-lcd.print("<span class=ok>ไมค์พร้อมแล้ว</span>")
-
-t0 = time.ticks_ms()
-loudest = 0
-claps = 0
-last_clap = -CLAP_GAP_MS
-
-while True:
-    t_work = time.ticks_ms()
-    if time.ticks_diff(t_work, t0) >= RUN_MS:
-        break
-
-    # เรียกครั้งนี้ = อ่านเสียงมาหนึ่งชุดจริง ๆ แล้วยุบเหลือเลขเดียว 0-100
-    # สเกลนี้เป็นสเกลของหู ไม่ใช่สเกลของเลข ห้องเงียบราว 7 พูดปกติราว 54
-    lv = mic.level()
-
-    # เรียกครั้งนี้ = อ่านอีกหนึ่งชุด ได้ค่าดิบสามตัวพร้อมกันในครั้งเดียว
-    # rms คือความดังเฉลี่ย นิ่งกว่า ส่วน peak คือยอดสูงสุด ใช้จับเสียงสั้น ๆ
-    # ทั้งคู่อยู่ในช่วง 0 ถึง 32768 ซึ่งเป็นสเกลเต็มของ 16 บิต
-    rms_v, peak_v, dc_v = mic.stats()
-
-    if lv > loudest:
-        loudest = lv
-        seg_max.text(str(loudest))
-
-    seg_now.text(str(lv))
-    seg_peak.text(str(peak_v))
-    bar.value(lv)
-    bar.color(COL_BAD if lv >= 85 else (COL_WARN if lv >= 45 else COL_OK))
-    dots.set_pixels(meter_bytes(lv))
-
-    # lag() ไม่ได้อ่านเสียงเพิ่ม มันแค่ถามว่าตอนนี้มีเสียงค้างรออยู่กี่ ms
-    # ถ้าเลขนี้ไต่ขึ้นเรื่อย ๆ แปลว่าลูปเราอ่านช้ากว่าที่ไมค์ผลิต
-    # แล้วทุกอย่างบนจอจะช้ากว่าความจริงเท่าเลขนี้ตลอดไป
-    lag_ms = mic.lag()
-    seg_lag.text(str(lag_ms))
-    seg_lag.color(COL_BAD if lag_ms > 200 else COL_INFO)
-
-    # นับตบมือจากค่ายอด ไม่ใช่จากค่าเฉลี่ย เพราะการตบมือคือเสียงสั้นและแรง
-    # ซึ่งค่าเฉลี่ยของทั้งชุดจะกลบมันไปเกือบหมด
-    now = time.ticks_ms()
-    if peak_v >= CLAP_PEAK and time.ticks_diff(now, last_clap) >= CLAP_GAP_MS:
-        last_clap = now
-        claps = claps + 1
-        seg_clap.text(str(claps))
-        status.color(COL_BAD)
-        status.text("ได้ยินเสียงตบมือ ครั้งที่ " + str(claps))
-        lcd.print("<span class=ok>ตบมือครั้งที่", claps, "- peak", peak_v,
-                  "</span>")
-    elif lv < 20:
-        status.color(COL_DIM)
-        status.text("ห้องเงียบ - ความดัง " + str(lv))
-    else:
-        status.color(COL_OK)
-        status.text("มีเสียง - ความดัง " + str(lv))
-
+    status.color(COL_OK)
+    status.text("พูดหรือตบมือใส่บอร์ดได้เลย")
     ui.poll()
+    lcd.print("<span class=ok>ไมค์พร้อมแล้ว</span>")
 
-    work = time.ticks_diff(time.ticks_ms(), t_work)
-    left = TICK_MS - work
-    if left > 0:
-        time.sleep_ms(left)
+    t0 = time.ticks_ms()
+    loudest = 0
+    claps = 0
+    last_clap = -CLAP_GAP_MS
 
-mic.stop()
+    while True:
+        t_work = time.ticks_ms()
+        if time.ticks_diff(t_work, t0) >= RUN_MS:
+            break
+
+        # เรียกครั้งนี้ = อ่านเสียงมาหนึ่งชุดจริง ๆ แล้วยุบเหลือเลขเดียว 0-100
+        # สเกลนี้เป็นสเกลของหู ไม่ใช่สเกลของเลข ห้องเงียบราว 7 พูดปกติราว 54
+        lv = mic.level()
+
+        # เรียกครั้งนี้ = อ่านอีกหนึ่งชุด ได้ค่าดิบสามตัวพร้อมกันในครั้งเดียว
+        # rms คือความดังเฉลี่ย นิ่งกว่า ส่วน peak คือยอดสูงสุด ใช้จับเสียงสั้น ๆ
+        # ทั้งคู่อยู่ในช่วง 0 ถึง 32768 ซึ่งเป็นสเกลเต็มของ 16 บิต
+        rms_v, peak_v, dc_v = mic.stats()
+
+        if lv > loudest:
+            loudest = lv
+            seg_max.text(str(loudest))
+
+        seg_now.text(str(lv))
+        seg_peak.text(str(peak_v))
+        bar.value(lv)
+        bar.color(COL_BAD if lv >= 85 else (COL_WARN if lv >= 45 else COL_OK))
+        dots.set_pixels(meter_bytes(lv))
+
+        # lag() ไม่ได้อ่านเสียงเพิ่ม มันแค่ถามว่าตอนนี้มีเสียงค้างรออยู่กี่ ms
+        # ถ้าเลขนี้ไต่ขึ้นเรื่อย ๆ แปลว่าลูปเราอ่านช้ากว่าที่ไมค์ผลิต
+        # แล้วทุกอย่างบนจอจะช้ากว่าความจริงเท่าเลขนี้ตลอดไป
+        lag_ms = mic.lag()
+        seg_lag.text(str(lag_ms))
+        seg_lag.color(COL_BAD if lag_ms > 200 else COL_INFO)
+
+        # นับตบมือจากค่ายอด ไม่ใช่จากค่าเฉลี่ย เพราะการตบมือคือเสียงสั้นและแรง
+        # ซึ่งค่าเฉลี่ยของทั้งชุดจะกลบมันไปเกือบหมด
+        now = time.ticks_ms()
+        if peak_v >= CLAP_PEAK and time.ticks_diff(now, last_clap) >= CLAP_GAP_MS:
+            last_clap = now
+            claps = claps + 1
+            seg_clap.text(str(claps))
+            status.color(COL_BAD)
+            status.text("ได้ยินเสียงตบมือ ครั้งที่ " + str(claps))
+            lcd.print("<span class=ok>ตบมือครั้งที่", claps, "- peak", peak_v,
+                      "</span>")
+        elif lv < 20:
+            status.color(COL_DIM)
+            status.text("ห้องเงียบ - ความดัง " + str(lv))
+        else:
+            status.color(COL_OK)
+            status.text("มีเสียง - ความดัง " + str(lv))
+
+        ui.poll()
+
+        work = time.ticks_diff(time.ticks_ms(), t_work)
+        left = TICK_MS - work
+        if left > 0:
+            time.sleep_ms(left)
+finally:
+    mic.stop()
+
 
 # จบแล้วปล่อยค่าสุดท้ายค้างไว้ ไม่ล้างจอ คนดูจะได้อ่านทัน
 dots.set_pixels(meter_bytes(0))

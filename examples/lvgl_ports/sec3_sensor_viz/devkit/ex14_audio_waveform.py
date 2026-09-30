@@ -46,45 +46,47 @@ else:
     _back_id = -1
 
 mic.start(sens=3)   # sens=4 อิ่มตัวจนคลื่นชนเพดาน (บทเรียน 2026-08-20)
-running = True
+try:
+    running = True
 
-lcd.print("sec3 ex14: live mic waveform - Pause freezes the trace")
-t0 = time.ticks_ms()
-while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
-    for ev in ui.poll():
-        if ev["type"] == "clicked":
-            if ev["handle"] == _back_id:
-                RUN_MS = 0
-            elif ev["handle"] == btn.id():
-                running = not running
-                btn.text("Pause" if running else "Play")
-    if running:
-        # PDM ring เสิร์ฟเสียงเก่าก่อน - ลูปช้ากว่า 16kHz จะตามหลังจริงถึง
-        # ~600ms; stats(fresh=True) ทิ้ง backlog เหลือหน้าต่างล่าสุด แล้ว
-        # raw() ที่ตามมาจึงได้เสียง "ตอนนี้" จริง ๆ (เหตุ real-time 2026-08-20)
-        mic.stats(fresh=True)
-        samples = dsp.s16(mic.raw(), 2)  # 128 จุด แกะใน C
-        m = sum(samples) // len(samples)
-        # สเกลคงที่ - ห้าม autogain: ตัวปรับอัตโนมัติจะขยายความเงียบจนเต็มจอ
-        # แล้วหดเสียงดังลงมาเท่ากัน ทำให้เบา/ดังดูไม่ต่าง (บทเรียน 2026-08-20)
-        # ±GAIN นับเป็นเต็มจอ: ห้องเงียบ (rms ~170) = เส้นเกือบนิ่ง
-        # เสียงพูด/ตบมือ = คลื่นเต็มตา แล้ว clamp กันทะลุ
-        i = 0
-        for v in samples:
-            d = ((v - m) * 40) // 2500
-            if d > 40:
-                d = 40
-            elif d < -40:
-                d = -40
-            ch.set_next(0, 50 + d)
-            i += 1
-            if i % 16 == 0:
-                time.sleep_ms(6)
-        lv = mic.level()
-        lvl_bar.value(lv)
-        lvl_l.text("Level: " + str(lv) + "%")
-    time.sleep_ms(80)
-mic.stop()
+    lcd.print("sec3 ex14: live mic waveform - Pause freezes the trace")
+    t0 = time.ticks_ms()
+    while time.ticks_diff(time.ticks_ms(), t0) < RUN_MS:
+        for ev in ui.poll():
+            if ev["type"] == "clicked":
+                if ev["handle"] == _back_id:
+                    RUN_MS = 0
+                elif ev["handle"] == btn.id():
+                    running = not running
+                    btn.text("Pause" if running else "Play")
+        if running:
+            # PDM ring เสิร์ฟเสียงเก่าก่อน - ลูปช้ากว่า 16kHz จะตามหลังจริงถึง
+            # ~600ms; stats(fresh=True) ทิ้ง backlog เหลือหน้าต่างล่าสุด แล้ว
+            # raw() ที่ตามมาจึงได้เสียง "ตอนนี้" จริง ๆ (เหตุ real-time 2026-08-20)
+            mic.stats(fresh=True)
+            samples = dsp.s16(mic.raw(), 2)  # 128 จุด แกะใน C
+            m = sum(samples) // len(samples)
+            # สเกลคงที่ - ห้าม autogain: ตัวปรับอัตโนมัติจะขยายความเงียบจนเต็มจอ
+            # แล้วหดเสียงดังลงมาเท่ากัน ทำให้เบา/ดังดูไม่ต่าง (บทเรียน 2026-08-20)
+            # ±GAIN นับเป็นเต็มจอ: ห้องเงียบ (rms ~170) = เส้นเกือบนิ่ง
+            # เสียงพูด/ตบมือ = คลื่นเต็มตา แล้ว clamp กันทะลุ
+            i = 0
+            for v in samples:
+                d = ((v - m) * 40) // 2500
+                if d > 40:
+                    d = 40
+                elif d < -40:
+                    d = -40
+                ch.set_next(0, 50 + d)
+                i += 1
+                if i % 16 == 0:
+                    time.sleep_ms(6)
+            lv = mic.level()
+            lvl_bar.value(lv)
+            lvl_l.text("Level: " + str(lv) + "%")
+        time.sleep_ms(80)
+finally:
+    mic.stop()
 print("sec3 ex14: done")
 
 
