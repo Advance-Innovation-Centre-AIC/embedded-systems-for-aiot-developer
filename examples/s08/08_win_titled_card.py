@@ -80,32 +80,35 @@ lcd.print("ซ้าย Win + content() = 2 แฮนเดิล / ขวา Pa
 lcd.print("ราคาเท่ากัน ต่างกันที่ใครเป็นคนจัดตำแหน่งหัวเรื่อง")
 
 mic.start(sens=SENS)
-lcd.print("เปิดไมค์ที่ความไว", SENS, "จาก 5 - พูดใส่บอร์ดได้เลย")
+try:
+    lcd.print("เปิดไมค์ที่ความไว", SENS, "จาก 5 - พูดใส่บอร์ดได้เลย")
 
-asked = 0
-level = 0
+    asked = 0
+    level = 0
 
-for i in range(ROUNDS):
-    level = mic.level()
+    for i in range(ROUNDS):
+        level = mic.level()
 
-    if i % SHOW_EVERY == 0:
-        # ทั้งสองการ์ดได้ค่าเดียวกัน ต่างกันแค่ที่ที่เอาไปเขียน
-        text = str(level)
-        win_val.text(text)
-        win_bar.value(level)
-        pan_val.text(text)
-        pan_bar.value(level)
+        if i % SHOW_EVERY == 0:
+            # ทั้งสองการ์ดได้ค่าเดียวกัน ต่างกันแค่ที่ที่เอาไปเขียน
+            text = str(level)
+            win_val.text(text)
+            win_bar.value(level)
+            pan_val.text(text)
+            pan_bar.value(level)
 
-        # ใบขวาเขียนค่าไว้บนหัวเรื่องได้ เพราะหัวเรื่องเป็น Label ของเราเอง
-        pan_head.text("ระดับเสียง " + text)
+            # ใบขวาเขียนค่าไว้บนหัวเรื่องได้ เพราะหัวเรื่องเป็น Label ของเราเอง
+            pan_head.text("ระดับเสียง " + text)
 
-        # ใบซ้ายสั่งอย่างเดียวกัน แล้วไม่มีอะไรเกิดขึ้น - นับไว้ให้เห็นเป็นตัวเลข
-        wn.text("ระดับเสียง " + text)
-        asked += 1
-        line.text("สั่งเปลี่ยนหัว Win " + str(asked) + " ครั้ง หัวยังเหมือนเดิม")
+            # ใบซ้ายสั่งอย่างเดียวกัน แล้วไม่มีอะไรเกิดขึ้น - นับไว้ให้เห็นเป็นตัวเลข
+            wn.text("ระดับเสียง " + text)
+            asked += 1
+            line.text("สั่งเปลี่ยนหัว Win " + str(asked) + " ครั้ง หัวยังเหมือนเดิม")
 
-    ui.poll()
-    time.sleep_ms(PERIOD_MS)
+        ui.poll()
+        time.sleep_ms(PERIOD_MS)
+finally:
+    mic.stop()
 
 lcd.print("<span class=warn>สั่งเปลี่ยนหัว Win", asked, "ครั้ง จอไม่ขยับ</span>")
 print("Win: text= ตอนสร้างเท่านั้น, .content() คือที่ของข้างใน")

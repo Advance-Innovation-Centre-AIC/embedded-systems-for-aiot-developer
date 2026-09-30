@@ -58,62 +58,64 @@ lcd.console("<h2>รูปคลื่นดิบ สามค่า และ�
 lcd.print("หน้าต่าง", SAMPLES, "ตัวอย่างที่ 16 kHz = 16 ms ของเวลาจริง")
 
 mic.start(sens=SENS, samples=SAMPLES)
-lbl_state.text("พูดใส่บอร์ดได้เลย")
-lcd.print("ไมค์พร้อม กดปุ่มซ้ายสลับ fresh แล้วเทียบแถบคิว")
+try:
+    lbl_state.text("พูดใส่บอร์ดได้เลย")
+    lcd.print("ไมค์พร้อม กดปุ่มซ้ายสลับ fresh แล้วเทียบแถบคิว")
 
-fresh = True
-slow = False
-loudest = 0
+    fresh = True
+    slow = False
+    loudest = 0
 
-for _ in range(1500):
-    t0 = time.ticks_ms()
+    for _ in range(1500):
+        t0 = time.ticks_ms()
 
-    # เรียกครั้งเดียวได้ครบสามค่า และทั้งสามมาจากหน้าต่างเดียวกันจริง ๆ
-    # ถ้าแยกเรียก rms() แล้ว peak() จะได้คนละหน้าต่าง และจ่ายค่าอ่านสองรอบ
-    rms, peak, dc = mic.stats(fresh=fresh)
+        # เรียกครั้งเดียวได้ครบสามค่า และทั้งสามมาจากหน้าต่างเดียวกันจริง ๆ
+        # ถ้าแยกเรียก rms() แล้ว peak() จะได้คนละหน้าต่าง และจ่ายค่าอ่านสองรอบ
+        rms, peak, dc = mic.stats(fresh=fresh)
 
-    # lag() ต้องอ่านหลัง stats() เพราะ fresh=True เพิ่งทิ้งของค้างไปเมื่อกี้
-    # อ่านก่อนจะได้ตัวเลขของรอบที่แล้ว ซึ่งตอบคนละคำถาม
-    queued = mic.lag()
+        # lag() ต้องอ่านหลัง stats() เพราะ fresh=True เพิ่งทิ้งของค้างไปเมื่อกี้
+        # อ่านก่อนจะได้ตัวเลขของรอบที่แล้ว ซึ่งตอบคนละคำถาม
+        queued = mic.lag()
 
-    # read() ไม่ทิ้งของค้าง รูปคลื่นจึงเก่ากว่าตัวเลขข้างบนได้ถ้าลูปช้า
-    # นั่นไม่ใช่บั๊ก มันคือสิ่งที่หัวไฟล์เตือนไว้ ให้ดูแถบคิวประกอบเสมอ
-    wave = mic.read(PLOT_N)
-    for v in wave:
-        ch.set_next(0, v if -8000 < v < 8000 else (8000 if v > 0 else -8000))
+        # read() ไม่ทิ้งของค้าง รูปคลื่นจึงเก่ากว่าตัวเลขข้างบนได้ถ้าลูปช้า
+        # นั่นไม่ใช่บั๊ก มันคือสิ่งที่หัวไฟล์เตือนไว้ ให้ดูแถบคิวประกอบเสมอ
+        wave = mic.read(PLOT_N)
+        for v in wave:
+            ch.set_next(0, v if -8000 < v < 8000 else (8000 if v > 0 else -8000))
 
-    if peak > loudest:
-        loudest = peak
+        if peak > loudest:
+            loudest = peak
 
-    lbl_rms.text("rms %d" % rms)
-    lbl_peak.text("peak %d" % peak)
-    lbl_dc.text("dc %d" % dc)
-    bar_lag.value(queued if queued < RING_MS else RING_MS)
-    lbl_lag.text("lag %d ms" % queued)
-    # คิวเกินครึ่งความจุ = สิ่งที่เห็นเป็นห้องเมื่อเสี้ยววินาทีที่แล้ว เตือนด้วยสี
-    lbl_lag.color(0x55DD55 if queued < RING_MS // 2 else 0xFF5555)
+        lbl_rms.text("rms %d" % rms)
+        lbl_peak.text("peak %d" % peak)
+        lbl_dc.text("dc %d" % dc)
+        bar_lag.value(queued if queued < RING_MS else RING_MS)
+        lbl_lag.text("lag %d ms" % queued)
+        # คิวเกินครึ่งความจุ = สิ่งที่เห็นเป็นห้องเมื่อเสี้ยววินาทีที่แล้ว เตือนด้วยสี
+        lbl_lag.color(0x55DD55 if queued < RING_MS // 2 else 0xFF5555)
 
-    took = time.ticks_diff(time.ticks_ms(), t0)
-    lbl_state.text("รอบนี้ %d ms | ยอดสูงสุด %d" % (took, loudest))
+        took = time.ticks_diff(time.ticks_ms(), t0)
+        lbl_state.text("รอบนี้ %d ms | ยอดสูงสุด %d" % (took, loudest))
 
-    for ev in ui.poll():
-        if ev["type"] != "clicked":
-            continue
-        if ev["handle"] == ID_FRESH:
-            fresh = not fresh
-            btn_fresh.text("fresh = True" if fresh else "fresh = False")
-            btn_fresh.color(0x2E7D32 if fresh else 0xC62828)
-            lcd.print("fresh = " + str(fresh) + " | คิวตอนนี้ " +
-                      str(queued) + " ms")
-        elif ev["handle"] == ID_SLOW:
-            slow = not slow
-            btn_slow.text("ถ่วงลูป 300 ms" if slow else "ลูปปกติ")
-            lcd.print("ลูปถ่วง" if slow else "ลูปปกติ")
+        for ev in ui.poll():
+            if ev["type"] != "clicked":
+                continue
+            if ev["handle"] == ID_FRESH:
+                fresh = not fresh
+                btn_fresh.text("fresh = True" if fresh else "fresh = False")
+                btn_fresh.color(0x2E7D32 if fresh else 0xC62828)
+                lcd.print("fresh = " + str(fresh) + " | คิวตอนนี้ " +
+                          str(queued) + " ms")
+            elif ev["handle"] == ID_SLOW:
+                slow = not slow
+                btn_slow.text("ถ่วงลูป 300 ms" if slow else "ลูปปกติ")
+                lcd.print("ลูปถ่วง" if slow else "ลูปปกติ")
 
-    if slow:
-        time.sleep_ms(SLOW_MS)
+        if slow:
+            time.sleep_ms(SLOW_MS)
+finally:
+    mic.stop()
 
-mic.stop()
 lbl_state.text("ปิดไมค์แล้ว")
 lcd.print("ยอด peak สูงสุดที่เจอ", loudest, "จาก 32768")
 lcd.print("<span class=muted>ปิด fresh แล้วถ่วงลูป คือวิธีเห็นคิว 625 ms เต็ม ๆ</span>")

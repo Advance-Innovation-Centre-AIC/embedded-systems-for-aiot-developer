@@ -49,83 +49,85 @@ lcd.console("<h2>สวิตช์ไฟตบมือ</h2>")
 lcd.print("วัดพื้นเสียง", FLOOR_WINS, "หน้าต่าง อยู่เงียบ ๆ ก่อน...")
 
 mic.start(sens=SENS)
+try:
 
-# พื้นเสียงคือค่าที่ดังที่สุดที่ห้องนี้ทำได้เองตอนไม่มีใครทำอะไร เกณฑ์ต้องอยู่
-# เหนือค่านั้น ไม่ใช่เหนือค่าเฉลี่ย เพราะเสียงพัดลมรอบเดียวที่แรงกว่าเฉลี่ยจะ
-# กลายเป็นการตบมือปลอมทันที ระหว่างวัดจึงต้องเงียบจริง ๆ
-floor = 0
-for _ in range(FLOOR_WINS):
-    p = mic.peak()
-    if p > floor:
-        floor = p
+    # พื้นเสียงคือค่าที่ดังที่สุดที่ห้องนี้ทำได้เองตอนไม่มีใครทำอะไร เกณฑ์ต้องอยู่
+    # เหนือค่านั้น ไม่ใช่เหนือค่าเฉลี่ย เพราะเสียงพัดลมรอบเดียวที่แรงกว่าเฉลี่ยจะ
+    # กลายเป็นการตบมือปลอมทันที ระหว่างวัดจึงต้องเงียบจริง ๆ
+    floor = 0
+    for _ in range(FLOOR_WINS):
+        p = mic.peak()
+        if p > floor:
+            floor = p
+        ui.poll()
+
+    thresh = max(MIN_THRESH, floor * K)
+    y_max = thresh * 2
+    busy.hide()
+    lcd.print("พื้นเสียง", floor, "| เกณฑ์", thresh)
+
+    # กราฟสร้างหลังได้เกณฑ์ เพราะแกน Y ตั้งจากเกณฑ์นั้น ถ้าสร้างก่อนจะต้องเดาสเกล
+    ch = ui.Chart(x=12, y=40, w=472, h=200, min=0, max=y_max)
+    s_peak = 0
+    s_thr = ch.add_series(0xFF5555)
+    ui.Label("ฟ้า = ค่าสูงสุดต่อหน้าต่าง", x=496, y=44, value=16, color=0x4A9EFF)
+    ui.Label("แดง = เกณฑ์ " + str(thresh), x=496, y=68, value=16, color=0xE5484D)
+
+    ui.Label("ตบไปแล้ว (ครั้ง)", x=496, y=104, value=16)
+    seg = ui.Seg7(x=496, y=128, w=180, h=44)
+    st = ui.Label("รอเสียงตบ", x=496, y=188, value=20, color=0x9AA3AF)
+
+    ui.Panel(x=12, y=256, w=472, h=72)
+    ui.Label("เกณฑ์นี้เป็นของห้องนี้เท่านั้น", x=340, y=264, value=20,
+             color=0xF5A623)
+    ui.Label("ย้ายห้องแล้วต้องรันใหม่", x=24, y=292, value=20, color=0xF5A623)
+    seg.text("0")
     ui.poll()
 
-thresh = max(MIN_THRESH, floor * K)
-y_max = thresh * 2
-busy.hide()
-lcd.print("พื้นเสียง", floor, "| เกณฑ์", thresh)
+    # ไฟที่มองเห็นได้ทั้งสองบอร์ด และเป็นสีเขียวทั้งคู่: Dev Kit = RGB_GREEN / Eva = LED2
+    # (บน Dev Kit led(0) คือ LED1 บน SoM ซึ่งบอร์ดประกอบแล้วมองไม่เห็น จึงไม่ใช้เลขตรง ๆ)
+    light = led_named("RGB_GREEN", "LED2")
+    light.off()
+    claps = 0
+    lit = False
+    last_hit = 0
 
-# กราฟสร้างหลังได้เกณฑ์ เพราะแกน Y ตั้งจากเกณฑ์นั้น ถ้าสร้างก่อนจะต้องเดาสเกล
-ch = ui.Chart(x=12, y=40, w=472, h=200, min=0, max=y_max)
-s_peak = 0
-s_thr = ch.add_series(0xFF5555)
-ui.Label("ฟ้า = ค่าสูงสุดต่อหน้าต่าง", x=496, y=44, value=16, color=0x4A9EFF)
-ui.Label("แดง = เกณฑ์ " + str(thresh), x=496, y=68, value=16, color=0xE5484D)
+    # ไม่ต้อง sleep เอง เพราะ peak() รอไมค์เติมชุดใหม่ให้อยู่แล้ว วัดจริงบนบอร์ด
+    # 14 ส.ค. 2026 ได้ราว 32 ms ต่อรอบ ซึ่งสั้นพอจะไม่พลาดเสียงตบที่กินเวลาหลายสิบ ms
+    #
+    # peak() เอาเฉพาะเสียงล่าสุด ทิ้งที่ค้างในคิวก่อนหน้า ซึ่งเป็นสิ่งที่ต้องการ
+    # ที่นี่: ถ้าไม่ทิ้ง ไมค์ผลิตเร็วกว่าลูปนี้อ่าน คิวจะเต็มที่ 625 ms แล้วทุกอย่าง
+    # ที่เห็นจะช้ากว่าความจริงครึ่งวินาที ตบมือแล้วไฟติดทีหลัง แลกกันคือถ้าตบตรง
+    # ช่วงที่ลูปกำลังวาดกราฟพอดี เสียงนั้นจะหลุดไป ลูปยิ่งเบายิ่งพลาดน้อย
+    for _ in range(1200):
+        p = mic.peak()
+        now = time.ticks_ms()
 
-ui.Label("ตบไปแล้ว (ครั้ง)", x=496, y=104, value=16)
-seg = ui.Seg7(x=496, y=128, w=180, h=44)
-st = ui.Label("รอเสียงตบ", x=496, y=188, value=20, color=0x9AA3AF)
+        ch.set_next(s_peak, p if p < y_max else y_max)
+        ch.set_next(s_thr, thresh)       # เส้นแนวนอน = เกณฑ์ ให้ตาเทียบได้ทันที
 
-ui.Panel(x=12, y=256, w=472, h=72)
-ui.Label("เกณฑ์นี้เป็นของห้องนี้เท่านั้น", x=340, y=264, value=20,
-         color=0xF5A623)
-ui.Label("ย้ายห้องแล้วต้องรันใหม่", x=24, y=292, value=20, color=0xF5A623)
-seg.text("0")
-ui.poll()
+        # ช่วงห้ามนับซ้ำมีไว้กันเสียงสะท้อนของการตบครั้งเดิม ไม่ใช่กันการตบสองครั้ง
+        if p >= thresh and time.ticks_diff(now, last_hit) > REFRACT_MS:
+            last_hit = now
+            claps += 1
+            lit = not lit
+            seg.text(str(claps))
+            if lit:
+                light.on()
+                st.text("ไฟติด")
+                st.color(0x55DD55)
+                lcd.print("<span class=ok>ตบครั้งที่ " + str(claps) +
+                          " - ไฟติด (" + str(p) + ")</span>")
+            else:
+                light.off()
+                st.text("ไฟดับ")
+                st.color(0x9AA0A6)
+                lcd.print("ตบครั้งที่ " + str(claps) + " - ไฟดับ (" + str(p) + ")")
 
-# ไฟที่มองเห็นได้ทั้งสองบอร์ด และเป็นสีเขียวทั้งคู่: Dev Kit = RGB_GREEN / Eva = LED2
-# (บน Dev Kit led(0) คือ LED1 บน SoM ซึ่งบอร์ดประกอบแล้วมองไม่เห็น จึงไม่ใช้เลขตรง ๆ)
-light = led_named("RGB_GREEN", "LED2")
-light.off()
-claps = 0
-lit = False
-last_hit = 0
+        ui.poll()
+finally:
+    mic.stop()
 
-# ไม่ต้อง sleep เอง เพราะ peak() รอไมค์เติมชุดใหม่ให้อยู่แล้ว วัดจริงบนบอร์ด
-# 14 ส.ค. 2026 ได้ราว 32 ms ต่อรอบ ซึ่งสั้นพอจะไม่พลาดเสียงตบที่กินเวลาหลายสิบ ms
-#
-# peak() เอาเฉพาะเสียงล่าสุด ทิ้งที่ค้างในคิวก่อนหน้า ซึ่งเป็นสิ่งที่ต้องการ
-# ที่นี่: ถ้าไม่ทิ้ง ไมค์ผลิตเร็วกว่าลูปนี้อ่าน คิวจะเต็มที่ 625 ms แล้วทุกอย่าง
-# ที่เห็นจะช้ากว่าความจริงครึ่งวินาที ตบมือแล้วไฟติดทีหลัง แลกกันคือถ้าตบตรง
-# ช่วงที่ลูปกำลังวาดกราฟพอดี เสียงนั้นจะหลุดไป ลูปยิ่งเบายิ่งพลาดน้อย
-for _ in range(1200):
-    p = mic.peak()
-    now = time.ticks_ms()
-
-    ch.set_next(s_peak, p if p < y_max else y_max)
-    ch.set_next(s_thr, thresh)       # เส้นแนวนอน = เกณฑ์ ให้ตาเทียบได้ทันที
-
-    # ช่วงห้ามนับซ้ำมีไว้กันเสียงสะท้อนของการตบครั้งเดิม ไม่ใช่กันการตบสองครั้ง
-    if p >= thresh and time.ticks_diff(now, last_hit) > REFRACT_MS:
-        last_hit = now
-        claps += 1
-        lit = not lit
-        seg.text(str(claps))
-        if lit:
-            light.on()
-            st.text("ไฟติด")
-            st.color(0x55DD55)
-            lcd.print("<span class=ok>ตบครั้งที่ " + str(claps) +
-                      " - ไฟติด (" + str(p) + ")</span>")
-        else:
-            light.off()
-            st.text("ไฟดับ")
-            st.color(0x9AA0A6)
-            lcd.print("ตบครั้งที่ " + str(claps) + " - ไฟดับ (" + str(p) + ")")
-
-    ui.poll()
-
-mic.stop()
 light.off()
 lcd.print("ตบทั้งหมด", claps, "ครั้ง | เกณฑ์ที่ใช้", thresh)
 lcd.print("<span class=muted>ลอง K = 1 แล้วดูว่าเสียงพิมพ์ผ่านไหม</span>")

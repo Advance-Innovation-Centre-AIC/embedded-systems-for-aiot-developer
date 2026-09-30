@@ -49,44 +49,46 @@ lcd.print("เปิดไมค์ที่ความไว", SENS, "จา�
 
 # start() ทิ้งสองชุดแรกให้เองแล้ว เพราะชุดแรกหลังเปิดยังไม่นิ่ง
 mic.start(sens=SENS)
-st.text("พูดใส่บอร์ดได้เลย")
-st.color(0x9AA0A6)
-lcd.print("ไมค์พร้อมแล้ว พูดหรือตบมือใส่บอร์ดดู")
+try:
+    st.text("พูดใส่บอร์ดได้เลย")
+    st.color(0x9AA0A6)
+    lcd.print("ไมค์พร้อมแล้ว พูดหรือตบมือใส่บอร์ดดู")
 
-loudest = 0
-loud = False
+    loudest = 0
+    loud = False
 
-for _ in range(900):
-    # level() คือ rms() แปลงเป็นเปอร์เซ็นต์ของสเกลเต็ม 16 บิต
-    lv = mic.level()
+    for _ in range(900):
+        # level() คือ rms() แปลงเป็นเปอร์เซ็นต์ของสเกลเต็ม 16 บิต
+        lv = mic.level()
 
-    if lv > loudest:
-        loudest = lv
-        lbl_max.text(str(lv))
+        if lv > loudest:
+            loudest = lv
+            lbl_max.text(str(lv))
 
-    # กราฟกินทุกรอบ เพราะรูปร่างของเส้นคือสิ่งที่ตัวเลขตัวเดียวบอกไม่ได้
-    ch.set_next(0, lv)
-    seg.text(str(lv))
-    bar.value(lv)
-    sub.text("ระดับ %d จาก 100 | ดังสุด %d" % (lv, loudest))
+        # กราฟกินทุกรอบ เพราะรูปร่างของเส้นคือสิ่งที่ตัวเลขตัวเดียวบอกไม่ได้
+        ch.set_next(0, lv)
+        seg.text(str(lv))
+        bar.value(lv)
+        sub.text("ระดับ %d จาก 100 | ดังสุด %d" % (lv, loudest))
 
-    # รายงานเฉพาะตอนสถานะเปลี่ยน ไม่ใช่ทุกรอบ ไม่งั้นคอนโซลจะท่วม
-    now_loud = lv >= QUIET
-    if now_loud != loud:
-        loud = now_loud
-        if loud:
-            st.text("มีเสียง")
-            st.color(0x55DD55)
-            lcd.print("<span class=ok>มีเสียง - ระดับ " + str(lv) + "</span>")
-        else:
-            st.text("ห้องเงียบ")
-            st.color(0x9AA0A6)
-            lcd.print("<span class=muted>กลับมาเงียบแล้ว</span>")
+        # รายงานเฉพาะตอนสถานะเปลี่ยน ไม่ใช่ทุกรอบ ไม่งั้นคอนโซลจะท่วม
+        now_loud = lv >= QUIET
+        if now_loud != loud:
+            loud = now_loud
+            if loud:
+                st.text("มีเสียง")
+                st.color(0x55DD55)
+                lcd.print("<span class=ok>มีเสียง - ระดับ " + str(lv) + "</span>")
+            else:
+                st.text("ห้องเงียบ")
+                st.color(0x9AA0A6)
+                lcd.print("<span class=muted>กลับมาเงียบแล้ว</span>")
 
-    ui.poll()
-    time.sleep_ms(PERIOD_MS)
+        ui.poll()
+        time.sleep_ms(PERIOD_MS)
+finally:
+    mic.stop()
 
-mic.stop()
 st.text("ปิดไมค์แล้ว")
 st.color(0x9AA0A6)
 lcd.print("ระดับสูงสุดที่เจอ", loudest, "จาก 100")
