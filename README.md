@@ -27,8 +27,8 @@
 | **1 · Existing UI-based Application** | 1–2 | รู้จักบอร์ดและทุกอย่างที่ Python สั่งได้ · ค่าที่วัดบนโต๊ะนี้ไปโผล่บนเครื่องคนอื่น |
 | **2 · UI-to-Hardware Interfacing** | 3–5 | GPIO + LCD · Touch UI ที่คุมไฟจริง · อนาล็อกและสัมผัส (pot, CapSense, ฟิลเตอร์) |
 | **3 · Sensor Visualization on HMI** | 6–8 | เครื่องวัดระดับดิจิทัลจาก IMU · กราฟ real-time · Mini-HMI Dashboard |
-| **4 · IoT Platform Connectivity** | 9–11 | WiFi และเครือข่าย · MQTT telemetry สองทาง · MQTTs ผ่าน TLS ขึ้น TESAIoT Platform |
-| **Capstone** | 12 | AIoT Mini-Product ครบวงจร + นำเสนอ 10 นาที |
+| **4 · IoT Platform Connectivity** | 9–10 | WiFi และเครือข่าย · MQTT telemetry สองทาง |
+| **5 · Edge AI on Device** | 11–12 | เลือก รัน อ่านผลโมเดล AI ด้วย `edge_ai` · ส่งผล AI ขึ้น MQTT และรับคำสั่งกลับ |
 
 เปิด [roadmap](https://advance-innovation-centre-aic.github.io/embedded-systems-for-aiot-developer/) เพื่อดูการ์ดของทั้ง 12 คาบ พร้อมภาพหน้าจอจริงของผลงานแต่ละคาบ
 
@@ -38,7 +38,7 @@
 
 | โฟลเดอร์ | คืออะไร |
 |---|---|
-| `session-01.html` … `session-12.html` | สไลด์ของแต่ละคาบ เปิดในเบราว์เซอร์ได้เลย |
+| `session-01.html` … `session-10.html`, `session-13.html` และ `session-14.html` (แสดงเป็นคาบ 11 และ 12) | สไลด์ของแต่ละคาบ เปิดในเบราว์เซอร์ได้เลย |
 | `roadmap.html` / `index.html` | หน้าแรก — การ์ด 12 คาบ พร้อมภาพหน้าจอจริง |
 | `examples/s01/` … `s12/` | ตัวอย่างประจำคาบ 98 ไฟล์ — ทุกไฟล์ถูกอ้างจากสไลด์อย่างน้อยหนึ่งครั้ง |
 | `examples/usecase/` | ตัวอย่างประยุกต์ที่ใบงานอ้างถึง |
