@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" width="1200" height="250" font-family="'Noto Sans Thai','Noto Sans',Segoe UI,sans-serif">
+  <rect width="1200" height="250" rx="14" fill="#0d1b2e"/>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#71C7EC"/></marker></defs>
+  <g font-size="22" fill="#fff" text-anchor="middle">
+    <rect x="20"  y="45" width="205" height="150" rx="12" fill="#16365c" stroke="#71C7EC" stroke-width="2"/>
+    <text x="122" y="90"  font-weight="700">DEEPCRAFT</text><text x="122" y="118" font-weight="700">Studio</text>
+    <text x="122" y="155" font-size="18" fill="#bcd">เทรนโมเดล</text>
+    <rect x="260" y="45" width="205" height="150" rx="12" fill="#16365c" stroke="#71C7EC" stroke-width="2"/>
+    <text x="362" y="90"  font-weight="700">Code Gen</text>
+    <text x="362" y="125" font-size="17" fill="#bcd">Infineon PSOC</text><text x="362" y="150" font-size="17" fill="#bcd">Edge M55/U55</text>
+    <rect x="500" y="45" width="205" height="150" rx="12" fill="#1d4d2b" stroke="#6ee08a" stroke-width="2"/>
+    <text x="602" y="90"  font-weight="700">5 ไฟล์</text>
+    <text x="602" y="125" font-size="17" fill="#cfe">.improj · .h5</text><text x="602" y="150" font-size="17" fill="#cfe">model.h · model.c · .npz</text>
+    <rect x="740" y="45" width="205" height="150" rx="12" fill="#16365c" stroke="#71C7EC" stroke-width="2"/>
+    <text x="842" y="85"  font-weight="700">Local Edge</text><text x="842" y="113" font-weight="700">AI Store</text>
+    <text x="842" y="150" font-size="17" fill="#bcd">Add a model</text><text x="842" y="173" font-size="17" fill="#bcd">ร้านแปลงให้เอง</text>
+    <rect x="980" y="45" width="205" height="150" rx="12" fill="#16365c" stroke="#71C7EC" stroke-width="2"/>
+    <text x="1082" y="100" font-weight="700">บอร์ด</text>
+    <text x="1082" y="135" font-size="17" fill="#bcd">NPU Ethos-U55</text><text x="1082" y="158" font-size="17" fill="#bcd">รันโมเดล</text>
+  </g>
+  <g stroke="#71C7EC" stroke-width="3" marker-end="url(#a)">
+    <line x1="227" y1="120" x2="257" y2="120"/><line x1="467" y1="120" x2="497" y2="120"/>
+    <line x1="707" y1="120" x2="737" y2="120"/><line x1="947" y1="120" x2="977" y2="120"/>
+  </g>
+  <text x="600" y="232" font-size="19" fill="#9fb3c8" text-anchor="middle">ไม่ต้องแปลงเป็น .tflite เอง — ร้านทำให้</text>
+</svg>

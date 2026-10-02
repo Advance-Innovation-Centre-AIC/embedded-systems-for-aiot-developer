@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" font-family="'Noto Sans Thai','Noto Sans',Segoe UI,sans-serif">
+  <rect width="1200" height="460" rx="14" fill="#0d1b2e"/>
+  <g font-size="24" fill="#e6edf3" font-family="ui-monospace,Menlo,Consolas,monospace">
+    <text x="30" y="52">HelpClassification/<tspan fill="#9fb3c8" font-family="'Noto Sans Thai',sans-serif" font-size="19">   ← โฟลเดอร์โปรเจกต์ DEEPCRAFT</tspan></text>
+    <text x="30"  y="104" fill="#ffd479">├─ HelpClassification.improj</text>
+    <text x="30"  y="156">└─ Models/<tspan fill="#9fb3c8" font-family="'Noto Sans Thai',sans-serif" font-size="19">   (บางโปรเจกต์ไม่มีชั้นนี้ — ไม่เป็นไร ร้านไม่สนโครงโฟลเดอร์)</tspan></text>
+    <text x="60"  y="204">└─ &lt;ชื่อโมเดล&gt;/</text>
+    <text x="90"  y="252" fill="#ffd479">├─ &lt;ชื่อโมเดล&gt;.h5</text>
+    <text x="90"  y="300">└─ Infineon/</text>
+    <text x="120" y="348" fill="#ffd479">├─ model.h</text>
+    <text x="120" y="388" fill="#ffd479">├─ model.c</text>
+    <text x="120" y="426" fill="#ffd479">└─ calibrationData.npz</text>
+  </g>
+  <g font-size="21" fill="#fff" font-family="'Noto Sans Thai','Noto Sans',sans-serif">
+    <g><circle cx="620" cy="96" r="16" fill="#e5484d"/><text x="620" y="103" text-anchor="middle" font-weight="700">1</text><text x="650" y="103">ต้องมี — ค่า sample rate, stride, ชื่อคลาส</text></g>
+    <g><circle cx="620" cy="244" r="16" fill="#e5484d"/><text x="620" y="251" text-anchor="middle" font-weight="700">2</text><text x="650" y="251">ต้องมี — ตัวโมเดลที่เทรนแล้ว</text></g>
+    <g><circle cx="620" cy="340" r="16" fill="#e5484d"/><text x="620" y="347" text-anchor="middle" font-weight="700">3</text><text x="650" y="347">ต้องมี — รหัสประจำโมเดล (GUID)</text></g>
+    <g><circle cx="620" cy="380" r="16" fill="#e5484d"/><text x="620" y="387" text-anchor="middle" font-weight="700">4</text><text x="650" y="387">โมเดลไมโครโฟนต้องมี</text></g>
+    <g><circle cx="620" cy="418" r="16" fill="#3fb950"/><text x="620" y="425" text-anchor="middle" font-weight="700">5</text><text x="650" y="425">ไม่บังคับ แต่ควรมี — ข้อมูลจริงสอบเทียบ int8</text></g>
+  </g>
+</svg>
