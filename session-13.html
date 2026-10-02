@@ -507,8 +507,8 @@
 </tr>
 <tr>
 <td><code>model.c</code></td>
-<td>โมเดลไมโครโฟน: ความยาว FFT · hop · window · stride ของฟีเจอร์เสียง (ค่าเหล่านี้อยู่ใน model.c ที่เดียว)</td>
-<td>โมเดลไมโครโฟนถูกปฏิเสธ <code>MODELC_REQUIRED</code></td>
+<td>โมเดลไมโครโฟน: ความยาว FFT · hop · window · stride ของฟีเจอร์เสียง (โปรเจกต์แบบ Speech Features มีค่าเหล่านี้ใน model.c ที่เดียว)</td>
+<td>ถ้า .improj ระบุขั้นตอนไว้ครบ (แบบหน่วยแยก) ร้านอ่านค่าจาก .improj ให้ แต่จะไม่ได้ตรวจเทียบกับโค้ด ถ้าโปรเจกต์ใช้บล็อก Speech Features ต้องมี model.c ไม่งั้นถูกปฏิเสธ <code>MODELC_REQUIRED</code></td>
 </tr>
 <tr>
 <td><code>calibrationData.npz</code></td>
@@ -546,7 +546,7 @@
 <tbody>
 <tr>
 <td><code>MODELC_REQUIRED</code></td>
-<td>โมเดลไมค์ แต่ไม่ได้ส่ง model.c</td>
+<td>โปรเจกต์แบบ Speech Features (หรือ stride อ่านจาก .improj ไม่ได้) แต่ไม่ได้ส่ง model.c</td>
 <td>ส่ง model.c จากโฟลเดอร์ Infineon</td>
 </tr>
 <tr>
@@ -589,12 +589,13 @@
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="28" data-paginate="true" data-theme="default" lang="en-US" data-marpit-pagination="28" style="--paginate:true;--theme:default;" data-marpit-pagination-total="30">
 <h2 id="%E0%B8%81%E0%B9%88%E0%B8%AD%E0%B8%99%E0%B8%81%E0%B8%94%E0%B8%AA%E0%B9%88%E0%B8%87--%E0%B9%80%E0%B8%8A%E0%B9%87%E0%B8%81%E0%B8%A5%E0%B8%B4%E0%B8%AA%E0%B8%95%E0%B9%8C-%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%82%E0%B9%89%E0%B8%AD%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B8%9E%E0%B8%B9%E0%B8%94%E0%B8%95%E0%B8%A3%E0%B8%87-%E0%B9%86">ก่อนกดส่ง — เช็กลิสต์ และข้อจำกัดที่พูดตรง ๆ</h2>
-<p><strong>เช็กลิสต์</strong> 5 ไฟล์มาจากโปรเจกต์เดียวกัน/Generate Code รอบเดียวกัน · โมเดลเสียงมี <code>model.c</code> · เสียง 16 kHz · ไม่เกิน 8 คลาส · ไม่มี Lambda</p>
+<p><strong>เช็กลิสต์</strong> 5 ไฟล์มาจากโปรเจกต์เดียวกัน/Generate Code รอบเดียวกัน · โมเดลเสียงแบบ Speech Features มี <code>model.c</code> (แบบอื่นส่งด้วยจะได้ตรวจเทียบ) · เสียง 16 kHz · ไม่เกิน 8 คลาส · ไม่มี Lambda</p>
 <p><strong>&quot;แปลงผ่าน&quot; ไม่เท่ากับ &quot;แม่นบนบอร์ด&quot;</strong></p>
 <ul>
 <li>โมเดลตัวอย่าง HelpClassification แปลงผ่านบนร้านจริงเมื่อ 2026-10-02 (ได้ 8,880 ไบต์ รันบน NPU 100%) แต่ชุดทดสอบอ้างอิง (golden) ครอบคลุมเสียงคลาส <code>unlabeled</code> คลาสเดียว ส่วน <code>Blackground</code> และ <code>Help</code> ยังไม่มีหลักฐาน</li>
 <li>ถ้าไม่ส่ง <code>calibrationData.npz</code> ร้านใช้ข้อมูลสังเคราะห์สอบเทียบ ความแม่นยำบนบอร์ดยังไม่ยืนยัน</li>
 <li>ขั้นเตรียมเสียงบนบอร์ด (mel) เราอ่านโค้ดเทียบแล้ว แต่ยังไม่ได้รันเทียบตัวเลขบนบอร์ดจริง</li>
+<li>ถ้าไม่ส่ง model.c ร้านตรวจไม่ได้ว่าโปรเจกต์กับโค้ดที่สร้างมาจากการ Generate Code คนละรอบหรือไม่</li>
 </ul>
 <p><strong>ทำเอง</strong> ลองโมเดลบนบอร์ดกับเสียงหรือการสั่นจริง ให้ครบ <strong>ทุกคลาส</strong> ก่อนบอกว่าใช้ได้ แล้วจดผลส่งผู้สอน</p>
 </section>

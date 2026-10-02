@@ -15,7 +15,7 @@
     <g><circle cx="620" cy="96" r="16" fill="#e5484d"/><text x="620" y="103" text-anchor="middle" font-weight="700">1</text><text x="650" y="103">ต้องมี — ค่า sample rate, stride, ชื่อคลาส</text></g>
     <g><circle cx="620" cy="244" r="16" fill="#e5484d"/><text x="620" y="251" text-anchor="middle" font-weight="700">2</text><text x="650" y="251">ต้องมี — ตัวโมเดลที่เทรนแล้ว</text></g>
     <g><circle cx="620" cy="340" r="16" fill="#e5484d"/><text x="620" y="347" text-anchor="middle" font-weight="700">3</text><text x="650" y="347">ต้องมี — รหัสประจำโมเดล (GUID)</text></g>
-    <g><circle cx="620" cy="380" r="16" fill="#e5484d"/><text x="620" y="387" text-anchor="middle" font-weight="700">4</text><text x="650" y="387">โมเดลไมโครโฟนต้องมี</text></g>
+    <g><circle cx="620" cy="380" r="16" fill="#e5484d"/><text x="620" y="387" text-anchor="middle" font-weight="700">4</text><text x="650" y="387">Speech Features ต้องมี · แบบอื่นส่งไว้ตรวจเทียบ</text></g>
     <g><circle cx="620" cy="418" r="16" fill="#3fb950"/><text x="620" y="425" text-anchor="middle" font-weight="700">5</text><text x="650" y="425">ไม่บังคับ แต่ควรมี — ข้อมูลจริงสอบเทียบ int8</text></g>
   </g>
 </svg>
