@@ -150,7 +150,7 @@
         col = COL_STORE <span class="hljs-keyword">if</span> m.get(<span class="hljs-string">&quot;builtin&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">False</span> <span class="hljs-keyword">else</span> (COL_BUILTIN <span class="hljs-keyword">if</span> m.get(<span class="hljs-string">&quot;builtin&quot;</span>) <span class="hljs-keyword">else</span> COL_DIM)
 </code></pre>
 <p><code>edge_ai.models()</code> คืนรายการ ลำดับ (index) คือตำแหน่งในรายการนี้</p>
-<p><strong>กับดัก:</strong> ลำดับไม่ใช่ชื่อถาวร เราวัดบน Dev Kit ว่า AnomalousVibration อยู่ลำดับ 8 แล้วย้ายไปลำดับ 10 หลังส่งโมเดลเพิ่มอีก 2 ตัว โปรแกรมจริงจึงต้องหาโมเดลด้วยชื่อทุกครั้ง</p>
+<p><strong>จำไว้:</strong> รายการโมเดลขึ้นกับสิ่งที่บอร์ดแต่ละตัวมีจริงในตอนนั้น บอร์ดของเพื่อนอาจมีโมเดลไม่เหมือนของเรา และถ้า deploy โมเดลเพิ่ม ลำดับก็เปลี่ยนตาม ลำดับจึงไม่ใช่ชื่อถาวร โปรแกรมควรหาโมเดลด้วยชื่อจากรายการของบอร์ดตัวนั้นทุกครั้ง</p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="8" data-paginate="true" data-theme="default" lang="en-US" data-marpit-pagination="8" style="--paginate:true;--theme:default;" data-marpit-pagination-total="31">
 <h2 id="%E0%B9%81%E0%B8%81%E0%B8%B0%E0%B9%82%E0%B8%84%E0%B9%89%E0%B8%94%E0%B8%88%E0%B8%A3%E0%B8%B4%E0%B8%87--02-%E0%B8%AB%E0%B8%B2%E0%B8%94%E0%B9%89%E0%B8%A7%E0%B8%A2%E0%B8%8A%E0%B8%B7%E0%B9%88%E0%B8%AD-%E0%B9%81%E0%B8%A5%E0%B9%89%E0%B8%A7-select--stop">แกะโค้ดจริง — 02 หาด้วยชื่อ แล้ว select / stop</h2>
