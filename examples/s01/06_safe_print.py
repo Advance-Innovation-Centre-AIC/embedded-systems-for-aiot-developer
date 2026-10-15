@@ -29,13 +29,13 @@ time.sleep_ms(200)
 ui.Label("พิมพ์ยาวเท่าไรก็ไม่หาย", x=20, y=12, color=COL_TEXT, value=24)
 ui.Panel(x=20, y=52, w=652, h=172, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
-ui.Label("ก้อนที่ปล่อยไปแล้ว", x=40, y=68, color=COL_DIM, value=16)
+ui.Label("ก้อนที่ปล่อยไปแล้ว", x=40, y=62, color=COL_DIM, value=20)
 seg = ui.Seg7(text="0", x=40, y=92, w=112, h=60, color=COL_OK)
 
-ui.Label("ขนาดก้อนล่าสุด (ไบต์)", x=248, y=68, color=COL_DIM, value=16)
+ui.Label("ขนาดก้อนล่าสุด (ไบต์)", x=248, y=62, color=COL_DIM, value=20)
 bar = ui.Bar(x=212, y=100, w=420, h=28, min=0, max=LIMIT, value=0)
-size_lbl = ui.Label("0 / 120 ไบต์ - เพดานจริง 127", x=212, y=136,
-                    color=COL_INFO, value=16)
+size_lbl = ui.Label("0 / 120 ไบต์ - เพดานจริง 127", x=212, y=134,
+                    color=COL_INFO, value=20)
 
 piece = ui.Label("ยังไม่ได้ปล่อยก้อนไหน", x=40, y=172, color=COL_TEXT, value=20)
 # ห้ามสร้าง Label ด้วยข้อความว่าง LVGL จะเติมคำว่า "Label" ให้เอง

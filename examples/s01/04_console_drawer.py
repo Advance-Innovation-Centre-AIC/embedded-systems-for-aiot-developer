@@ -36,7 +36,7 @@ time.sleep_ms(200)
 
 ui.Label("รายงานตรวจสอบบอร์ด", x=20, y=12, color=COL_TEXT, value=24)
 ui.Panel(x=20, y=52, w=652, h=112, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ผ่านแล้ว", x=40, y=64, color=COL_DIM, value=16)
+ui.Label("ผ่านแล้ว", x=40, y=62, color=COL_DIM, value=20)
 
 # Seg7 รับข้อความ ไม่ใช่ตัวเลข จึงเขียน "0/4" ตรง ๆ ได้เลย
 # seg.value(0) ใช้ได้ แต่ที่นี่ต้องการรูปแบบ "ผ่าน-รวม" จึงต้องเป็นข้อความ

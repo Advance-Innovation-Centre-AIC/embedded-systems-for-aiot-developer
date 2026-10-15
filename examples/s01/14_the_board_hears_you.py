@@ -51,18 +51,18 @@ time.sleep_ms(200)
 
 ui.Label("บอร์ดได้ยินเสียงคุณ", x=20, y=12, color=COL_TEXT, value=24)
 status = ui.Label("กำลังเปิดไมค์", x=20, y=48, color=COL_WARN, value=20)
-ui.Label("มิเตอร์จุด 8x8", x=480, y=52, color=COL_DIM, value=16)
+ui.Label("มิเตอร์จุด 8x8", x=480, y=48, color=COL_DIM, value=20)
 
 ui.Panel(x=20, y=80, w=432, h=192, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
 
-ui.Label("ความดังตอนนี้", x=36, y=88, color=COL_DIM, value=16)
+ui.Label("ความดังตอนนี้", x=36, y=84, color=COL_DIM, value=20)
 seg_now = ui.Seg7(text="0", x=36, y=112, w=172, h=60, color=COL_OK)
 
-ui.Label("ดังสุดที่เจอ", x=228, y=88, color=COL_DIM, value=16)
+ui.Label("ดังสุดที่เจอ", x=228, y=84, color=COL_DIM, value=20)
 seg_max = ui.Seg7(text="0", x=228, y=112, w=172, h=60, color=COL_WARN)
 
-ui.Label("แถบเดียวกัน", x=36, y=188, color=COL_DIM, value=16)
+ui.Label("แถบเดียวกัน", x=36, y=182, color=COL_DIM, value=20)
 
 # Bar ไม่รับ color= ตอนสร้าง ต้องเรียก .color() หลังสร้างถึงจะเปลี่ยนสีได้จริง
 bar = ui.Bar(x=36, y=212, w=392, h=28, min=0, max=100, value=0)
@@ -71,15 +71,15 @@ bar.color(COL_OK)
 # DotMatrix กำหนดจำนวนดวงด้วย cols= กับ rows= ไม่ใช่ด้วย w= กับ h=
 # ส่วน w กับ h เป็นตัวบอกระยะห่างของดวง เพดานคือ 16x16
 dots = ui.DotMatrix(x=480, y=80, w=180, h=180, cols=8, rows=8)
-ui.Label("จ่อปากใกล้ ๆ แล้วพูด", x=480, y=268, color=COL_DIM, value=16)
+ui.Label("จ่อปากใกล้ ๆ แล้วพูด", x=480, y=266, color=COL_DIM, value=20)
 
-ui.Label("คิวค้าง (ms)", x=20, y=284, color=COL_DIM, value=16)
+ui.Label("คิวค้าง (ms)", x=20, y=278, color=COL_DIM, value=20)
 seg_lag = ui.Seg7(text="0", x=20, y=308, w=140, h=48, color=COL_INFO)
 
-ui.Label("ตบมือ (ครั้ง)", x=192, y=284, color=COL_DIM, value=16)
+ui.Label("ตบมือ (ครั้ง)", x=192, y=278, color=COL_DIM, value=20)
 seg_clap = ui.Seg7(text="0", x=192, y=308, w=140, h=48, color=COL_OK)
 
-ui.Label("ยอด peak", x=380, y=284, color=COL_DIM, value=16)
+ui.Label("ยอด peak", x=380, y=278, color=COL_DIM, value=20)
 seg_peak = ui.Seg7(text="0", x=380, y=308, w=160, h=48, color=COL_WARN)
 ui.poll()
 

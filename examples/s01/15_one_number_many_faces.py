@@ -15,7 +15,7 @@
 #             และบรรทัด ui.list() บอกว่าตอนนี้จอมี widget อยู่กี่ตัว จากเพดาน 64
 # กับดัก    : seg.value(50) ได้ 50 ไม่ใช่ 50.0 - ทศนิยมต้องส่งเป็นข้อความ
 #             ส่วน Slider Arc Bar Switch รับเฉพาะ .value() ไม่รับ .text()
-#             Checkbox รับทั้งสองอย่าง และต้องใช้ .text() ถ้าข้อความเป็นภาษาไทย
+#             Checkbox รับทั้งสองอย่าง แต่ชื่อภาษาไทยต้องเป็นป้าย 20 px แยกข้างกล่อง
 #             ชนิดไหนรับอะไร ไม่มีทางรู้จากการรันแล้วดูว่ามี error ไหม เพราะไม่มี
 
 import lcd
@@ -70,7 +70,7 @@ img = ui.Image(ICON_UP, x=704, y=104, w=48, h=48, color=COL_OK)
 
 ui.Label("Arc", x=40, y=184, color=COL_DIM, value=16)
 ui.Label("Compass", x=144, y=184, color=COL_DIM, value=16)
-ui.Label("Seg7 กับ Bar", x=248, y=184, color=COL_DIM, value=16)
+ui.Label("Seg7 กับ Bar", x=248, y=180, color=COL_DIM, value=20)
 ui.Label("Slider", x=416, y=184, color=COL_DIM, value=16)
 ui.Label("Spinner", x=608, y=184, color=COL_DIM, value=16)
 ui.Label("Image", x=696, y=184, color=COL_DIM, value=16)
@@ -81,16 +81,15 @@ btn = ui.Button("แตะฟังเสียง", x=320, y=248, w=152, h=88, 
                 value=20)
 sw = ui.Switch(x=504, y=248, w=88, h=88)
 
-# กับดักที่เห็นได้จากภาพอย่างเดียว: ข้อความไทยที่ใส่ตอนสร้าง Checkbox จะออกมา
-# เป็นกล่องเปล่าเรียงกัน เพราะทางสร้างของมันไม่ได้เลือกฟอนต์ไทยให้ ต่างจาก
-# Button ที่เลือกให้ ทางแก้คือสร้างด้วย ASCII ไว้ก่อน แล้วส่งข้อความไทยตาม
-# ด้วย .text() ซึ่งเป็นคนละเส้นทางและเลือกฟอนต์ไทยให้ถูกต้อง
-chk = ui.Checkbox("over HI", x=624, y=248, w=144, h=88, color=COL_TEXT)
-chk.text("เกินเกณฑ์บน")
+# กับดักที่เห็นได้จากภาพอย่างเดียว: ตัวหนังสือของ Checkbox เองออกมา 16 px เสมอ
+# ตอนสร้าง (value= ของมันแปลว่าติ๊กไว้ก่อน ไม่ใช่ขนาด) และไทยที่เล็กกว่า 20 px
+# เส้นขาดบนจอบอร์ด ทางแก้คือสร้างช่องติ๊กเปล่า ๆ แล้ววางป้ายไทย 20 px ไว้ข้างกล่อง
+chk = ui.Checkbox(" ", x=624, y=248, w=144, h=88, color=COL_TEXT)
+ui.Label("เกินเกณฑ์บน", x=652, y=242, color=COL_TEXT, value=20)
 
 ui.Label("Chart", x=24, y=344, color=COL_DIM, value=16)
-count_lbl = ui.Label("ยังไม่ได้นับ widget", x=112, y=344, color=COL_DIM,
-                     value=16)
+count_lbl = ui.Label("ยังไม่ได้นับ widget", x=112, y=340, color=COL_DIM,
+                     value=20)
 ui.Label("Switch Checkbox", x=504, y=344, color=COL_DIM, value=16)
 ui.poll()
 

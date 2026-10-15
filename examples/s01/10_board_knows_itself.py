@@ -34,14 +34,14 @@ time.sleep_ms(200)
 ui.Label("บอร์ดตอบเองว่ามีอะไร", x=20, y=12, color=COL_TEXT, value=24)
 ui.Panel(x=20, y=52, w=652, h=104, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
-ui.Label("ชื่อบอร์ด", x=40, y=64, color=COL_DIM, value=16)
+ui.Label("ชื่อบอร์ด", x=40, y=58, color=COL_DIM, value=20)
 ui.Label(info["name"], x=40, y=92, color=COL_INFO, value=24)
 
-ui.Label("หลอด", x=440, y=64, color=COL_DIM, value=16)
+ui.Label("หลอด", x=440, y=58, color=COL_DIM, value=20)
 seg_led = ui.Seg7(text=str(info["leds"]), x=440, y=88, w=72, h=56,
                   color=COL_OK)
 
-ui.Label("ปุ่ม", x=540, y=64, color=COL_DIM, value=16)
+ui.Label("ปุ่ม", x=540, y=58, color=COL_DIM, value=20)
 seg_btn = ui.Seg7(text=str(info["buttons"]), x=540, y=88, w=72, h=56,
                   color=COL_OK)
 
@@ -63,7 +63,7 @@ for i in range(4):
     cells.append(ui.Label("รอถาม", x=380, y=256 + i * 26, color=COL_DIM,
                           value=20))
 
-note = ui.Label("ยังไม่ได้ถามอะไรเลย", x=20, y=368, color=COL_DIM, value=16)
+note = ui.Label("ยังไม่ได้ถามอะไรเลย", x=20, y=366, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

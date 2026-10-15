@@ -56,10 +56,10 @@ ui.Label("เขียนกฎตัดระดับเอง แล้วใ
          color=COL_TEXT, value=24)
 ui.Panel(x=20, y=52, w=652, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
-ui.Label("ผ่านแล้ว", x=40, y=64, color=COL_DIM, value=16)
+ui.Label("ผ่านแล้ว", x=40, y=58, color=COL_DIM, value=20)
 seg_ok = ui.Seg7(text="0", x=40, y=88, w=152, h=52, color=COL_OK)
 
-ui.Label("ยังไม่ผ่าน", x=232, y=64, color=COL_DIM, value=16)
+ui.Label("ยังไม่ผ่าน", x=232, y=58, color=COL_DIM, value=20)
 seg_bad = ui.Seg7(text="0", x=232, y=88, w=152, h=52, color=COL_BAD)
 
 bar = ui.Bar(x=412, y=100, w=232, h=28, min=0, max=len(CASES), value=0)
@@ -75,7 +75,7 @@ row6 = ui.Label("รอตรวจ", x=20, y=312, color=COL_DIM, value=20)
 rows = (row1, row2, row3, row4, row5, row6)
 
 result_lbl = ui.Label("ยังไม่ได้ตรวจ", x=20, y=348, color=COL_DIM, value=20)
-ui.Label("แก้แล้วรันใหม่ได้เรื่อย ๆ", x=300, y=352, color=COL_DIM, value=16)
+ui.Label("แก้แล้วรันใหม่ได้เรื่อย ๆ", x=300, y=348, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

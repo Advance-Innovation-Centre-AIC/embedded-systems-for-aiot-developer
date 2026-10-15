@@ -66,10 +66,10 @@ ui.Label("จอสถานะ - จอกับลิ้นชักคนล�
 ui.Panel(x=24, y=56, w=744, h=144, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
 
-ui.Label("ค่าล่าสุด", x=40, y=72, color=COL_DIM, value=16)
+ui.Label("ค่าล่าสุด", x=40, y=70, color=COL_DIM, value=20)
 seg = ui.Seg7(text="0", x=40, y=104, w=192, h=80, color=COL_OK)
 
-ui.Label("ระดับตอนนี้", x=264, y=72, color=COL_DIM, value=16)
+ui.Label("ระดับตอนนี้", x=264, y=70, color=COL_DIM, value=20)
 level_lbl = ui.Label("ปกติ", x=264, y=104, color=COL_OK, value=28)
 bar = ui.Bar(x=264, y=152, w=488, h=32, min=0, max=100, value=0)
 
@@ -79,10 +79,10 @@ chart = ui.Chart(x=24, y=240, w=744, h=96, color=COL_CARD, min=0, max=100)
 # ถ้าเอาเขียวมาลากเส้น ตาจะอ่านว่าทุกอย่างปกติแม้ตอนที่ค่าขึ้นถึงระดับต้องรีบดู
 s_value = chart.add_series(COL_ACCENT)
 
-clock_lbl = ui.Label("เวลาเดินไป 0 ms", x=24, y=352, color=COL_DIM, value=16)
-change_lbl = ui.Label("ยังไม่เปลี่ยนระดับ", x=256, y=352, color=COL_DIM,
-                      value=16)
-rounds_lbl = ui.Label("รอบที่ 0", x=576, y=352, color=COL_DIM, value=16)
+clock_lbl = ui.Label("เวลาเดินไป 0 ms", x=24, y=350, color=COL_DIM, value=20)
+change_lbl = ui.Label("ยังไม่เปลี่ยนระดับ", x=256, y=350, color=COL_DIM,
+                      value=20)
+rounds_lbl = ui.Label("รอบที่ 0", x=576, y=350, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

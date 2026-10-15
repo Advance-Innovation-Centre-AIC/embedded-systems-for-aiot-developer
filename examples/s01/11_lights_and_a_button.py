@@ -43,33 +43,33 @@ time.sleep_ms(200)
 ui.Label("ไฟจริงกับปุ่มจริง", x=20, y=12, color=COL_TEXT, value=24)
 ui.Panel(x=20, y=52, w=652, h=116, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
-ui.Label("ดวงที่สั่งอยู่", x=40, y=64, color=COL_DIM, value=16)
+ui.Label("ดวงที่สั่งอยู่", x=40, y=58, color=COL_DIM, value=20)
 seg_led = ui.Seg7(text="-", x=40, y=88, w=92, h=56, color=COL_OK)
 
-ui.Label("ชื่อของมัน", x=204, y=64, color=COL_DIM, value=16)
+ui.Label("ชื่อของมัน", x=204, y=58, color=COL_DIM, value=20)
 name_lbl = ui.Label("ยังไม่ได้สั่ง", x=180, y=92, color=COL_INFO, value=24)
 
-ui.Label("ความสว่างที่สั่ง", x=400, y=64, color=COL_DIM, value=16)
+ui.Label("ความสว่างที่สั่ง", x=400, y=58, color=COL_DIM, value=20)
 
 # Bar ไม่รับ color= ตอนสร้าง ตัวสร้างของ Bar ไม่ได้เอาค่านั้นไปใช้เลย
 # ต้องเรียก .color() หลังสร้างถึงจะเปลี่ยนสีได้จริง (ตรวจกับ ui_widget_mgr.c แล้ว)
 bar = ui.Bar(x=400, y=96, w=252, h=28, min=0, max=100, value=0)
 bar.color(COL_WARN)
-duty_lbl = ui.Label("duty() = 0", x=400, y=128, color=COL_DIM, value=16)
+duty_lbl = ui.Label("duty() = 0", x=400, y=128, color=COL_DIM, value=20)
 
 ui.Panel(x=20, y=180, w=652, h=104, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
-ui.Label("ปุ่มบนบอร์ด", x=40, y=192, color=COL_DIM, value=16)
+ui.Label("ปุ่มบนบอร์ด", x=40, y=186, color=COL_DIM, value=20)
 state_lbl = ui.Label("ยังไม่ถึงคิวปุ่ม", x=40, y=216, color=COL_DIM, value=28)
 
-ui.Label("กดไปแล้ว (ครั้ง)", x=380, y=192, color=COL_DIM, value=16)
+ui.Label("กดไปแล้ว (ครั้ง)", x=380, y=186, color=COL_DIM, value=20)
 seg_cnt = ui.Seg7(text="0", x=380, y=216, w=140, h=56, color=COL_INFO)
 
 phase = ui.Label("ท่าที่ 1 - ไล่ทีละดวง", x=20, y=296, color=COL_WARN,
                  value=20)
 note = ui.Label("ยังไม่เริ่ม", x=20, y=332, color=COL_DIM, value=20)
 ui.Label("มองที่บอร์ดด้วย ไม่ใช่มองแต่จอ", x=20, y=364, color=COL_DIM,
-         value=16)
+         value=20)
 ui.poll()
 
 lcd.clear()

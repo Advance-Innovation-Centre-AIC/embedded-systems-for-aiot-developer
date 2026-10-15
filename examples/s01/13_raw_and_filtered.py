@@ -56,7 +56,7 @@ s_med = chart.add_series(COL_WARN)
 ui.Panel(x=488, y=112, w=280, h=228, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
 
-ui.Label("ค่าดิบ x10", x=504, y=140, color=COL_DIM, value=16)
+ui.Label("ค่าดิบ x10", x=504, y=138, color=COL_DIM, value=20)
 seg_raw = ui.Seg7(text="0", x=632, y=128, w=120, h=48, color=COL_RAW)
 
 ui.Label("EMA x10", x=504, y=196, color=COL_DIM, value=16)
@@ -65,14 +65,15 @@ seg_ema = ui.Seg7(text="0", x=632, y=184, w=120, h=48, color=COL_OK)
 ui.Label("Median x10", x=504, y=252, color=COL_DIM, value=16)
 seg_med = ui.Seg7(text="0", x=632, y=240, w=120, h=48, color=COL_WARN)
 
-# ป้ายหัวช่องใช้ 16 ได้ แต่ตัวเลขที่คนต้องอ่านต้องไม่ต่ำกว่า 20
+# ป้ายหัวช่องอังกฤษล้วนใช้ 16 ได้ ป้ายที่มีภาษาไทยต้อง 20 ขึ้นไป (ไทยเล็กกว่านั้นเส้นขาดบนจอบอร์ด)
+# และตัวเลขที่คนต้องอ่านต้องไม่ต่ำกว่า 20
 # สามค่าบนใช้ Seg7 ซึ่งตายตัวที่ 28 อยู่แล้ว เหลือมุมเอียงที่เป็น Label ธรรมดา
-ui.Label("เอียง องศา", x=504, y=296, color=COL_DIM, value=16)
+ui.Label("เอียง องศา", x=504, y=292, color=COL_DIM, value=20)
 tilt_lbl = ui.Label("รอค่า", x=632, y=292, color=COL_TEXT, value=20)
 
-ui.Label("เทา = ค่าดิบ", x=24, y=324, color=COL_RAW, value=16)
-ui.Label("เขียว = EMA", x=176, y=324, color=COL_OK, value=16)
-ui.Label("ส้ม = Median", x=328, y=324, color=COL_WARN, value=16)
+ui.Label("เทา = ค่าดิบ", x=24, y=320, color=COL_RAW, value=20)
+ui.Label("เขียว = EMA", x=176, y=320, color=COL_OK, value=20)
+ui.Label("ส้ม = Median", x=328, y=320, color=COL_WARN, value=20)
 ui.poll()
 
 lcd.clear()

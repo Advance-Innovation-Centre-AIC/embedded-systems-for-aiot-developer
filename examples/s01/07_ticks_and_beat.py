@@ -29,13 +29,13 @@ ui.Label("จังหวะของลูป กับนาฬิกาที
          value=24)
 ui.Panel(x=20, y=52, w=652, h=100, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
-ui.Label("รอบที่", x=40, y=64, color=COL_DIM, value=16)
+ui.Label("รอบที่", x=40, y=58, color=COL_DIM, value=20)
 seg_round = ui.Seg7(text="0", x=40, y=88, w=112, h=56, color=COL_OK)
 
-ui.Label("คาบจริงรอบนี้ (ms)", x=192, y=64, color=COL_DIM, value=16)
+ui.Label("คาบจริงรอบนี้ (ms)", x=192, y=58, color=COL_DIM, value=20)
 seg_period = ui.Seg7(text="0", x=192, y=88, w=152, h=56, color=COL_OK)
 
-ui.Label("ช้าสะสม (ms)", x=400, y=64, color=COL_DIM, value=16)
+ui.Label("ช้าสะสม (ms)", x=400, y=58, color=COL_DIM, value=20)
 seg_drift = ui.Seg7(text="0", x=400, y=88, w=152, h=56, color=COL_WARN)
 
 # กราฟมีไว้เป็นเครื่องมือวัดของบทเรียนนี้ ไม่ได้มีไว้อวดว่าวาดกราฟได้
@@ -48,12 +48,12 @@ chart = ui.Chart(x=20, y=164, w=652, h=140, color=COL_CARD, min=0, max=CHART_MAX
 s_real = chart.add_series(COL_OK)
 s_target = chart.add_series(COL_WARN)
 
-ui.Label("เส้นเขียว = คาบจริงที่วัดได้", x=20, y=308, color=COL_DIM, value=16)
-ui.Label("เส้นส้ม = คาบที่ขอไว้", x=336, y=308, color=COL_DIM, value=16)
+ui.Label("เส้นเขียว = คาบจริงที่วัดได้", x=20, y=306, color=COL_DIM, value=20)
+ui.Label("เส้นส้ม = คาบที่ขอไว้", x=336, y=306, color=COL_DIM, value=20)
 
 phase_lbl = ui.Label("ท่าที่ 1 - สั่ง sleep เท่าเดิมทุกรอบ", x=20, y=336,
                      color=COL_WARN, value=20)
-note_lbl = ui.Label("ยังไม่เริ่มจับเวลา", x=20, y=368, color=COL_DIM, value=16)
+note_lbl = ui.Label("ยังไม่เริ่มจับเวลา", x=20, y=366, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

@@ -41,14 +41,14 @@ ui.Label("IMU  BMI270", x=36, y=88, color=COL_INFO, value=16)
 ax_lbl = ui.Label("ax  รอค่า", x=36, y=116, color=COL_TEXT, value=20)
 ay_lbl = ui.Label("ay  รอค่า", x=36, y=144, color=COL_TEXT, value=20)
 az_lbl = ui.Label("az  รอค่า", x=36, y=172, color=COL_TEXT, value=20)
-ui.Label("เอียงบอร์ดแล้วดู az", x=36, y=208, color=COL_DIM, value=16)
+ui.Label("เอียงบอร์ดแล้วดู az", x=36, y=208, color=COL_DIM, value=20)
 
 # --- การ์ดกลาง: แผ่นสัมผัส ---
 ui.Panel(x=276, y=80, w=240, h=180, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
 ui.Label("CapSense", x=292, y=88, color=COL_INFO, value=16)
 btn_lbl = ui.Label("ปุ่ม  รอค่า", x=292, y=116, color=COL_TEXT, value=20)
-ui.Label("แถบเลื่อน 0-100", x=292, y=152, color=COL_DIM, value=16)
+ui.Label("แถบเลื่อน 0-100", x=292, y=146, color=COL_DIM, value=20)
 
 # Bar ไม่รับ color= ตอนสร้าง ต้องเรียก .color() หลังสร้างถึงจะเปลี่ยนสีได้จริง
 slide_bar = ui.Bar(x=292, y=176, w=200, h=24, min=0, max=100, value=0)
@@ -58,7 +58,7 @@ slide_lbl = ui.Label("slider  รอค่า", x=292, y=208, color=COL_TEXT, va
 # --- การ์ดขวา: ลูกบิดหมุน ---
 ui.Panel(x=532, y=80, w=240, h=180, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
-ui.Label("ลูกบิด  pot", x=548, y=88, color=COL_INFO, value=16)
+ui.Label("ลูกบิด  pot", x=548, y=84, color=COL_INFO, value=20)
 
 # Arc ก็ไม่รับ color= ตอนสร้างเหมือนกัน และถ้าไม่ใส่ w จะได้ 150x150 มาเลย
 arc = ui.Arc(x=556, y=112, w=104, h=104, min=0, max=100, value=0)
@@ -71,7 +71,7 @@ seq_lbl = ui.Label("ตัวนับรอบ  ยังไม่ได้อ�
 state = ui.Label("กำลังขอค่าชุดแรกจาก CM55", x=20, y=308, color=COL_WARN,
                  value=20)
 ui.Label("เอียง แตะ หมุน แล้วดูสามการ์ดขยับพร้อมกัน", x=20, y=340,
-         color=COL_DIM, value=16)
+         color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()
