@@ -66,15 +66,15 @@ ch = ui.Chart(x=12, y=36, w=420, h=156, min=0, max=1800, color=0xE5484D)
 s_adc = 0
 s_real = ch.add_series(0x00BFFF)
 
-ui.Label("ฟ้า = แรงดันจริง", x=448, y=40, value=16, color=0x4A9EFF)
-ui.Label("แดง = ที่ ADC เห็น", x=448, y=64, value=16, color=0xE5484D)
+ui.Label("ฟ้า = แรงดันจริง", x=448, y=36, value=20, color=0x4A9EFF)
+ui.Label("แดง = ที่ ADC เห็น", x=448, y=64, value=20, color=0xE5484D)
 lbl_bits = ui.Label("16 บิต", x=448, y=92, value=24, color=0xF5A623)
-ui.Label("ขนาดขั้น (uV)", x=448, y=124, value=16)
+ui.Label("ขนาดขั้น (uV)", x=448, y=124, value=20)
 seg_step = ui.Seg7(x=600, y=144, w=152, h=40)
 
-lbl_note = ui.Label("กดเดินหน้าเพื่อลดจำนวนบิต", x=12, y=200, value=16)
+lbl_note = ui.Label("กดเดินหน้าเพื่อลดจำนวนบิต", x=12, y=194, value=20)
 # ความคลาดเคลื่อนที่วัดได้ กับครึ่งขั้นตามทฤษฎี วางบรรทัดเดียวกันเพื่อให้เทียบได้เลย
-lbl_err = ui.Label("ยังไม่ได้วัด", x=12, y=224, value=16, color=0xF5A623)
+lbl_err = ui.Label("ยังไม่ได้วัด", x=12, y=222, value=20, color=0xF5A623)
 
 btn_prev = ui.Button("< ย้อน", x=20, y=252, w=140, h=88, color=0x9AA3AF, value=20)
 btn_next = ui.Button("เดินหน้า >", x=176, y=252, w=160, h=88, color=0x4A9EFF,
@@ -86,7 +86,7 @@ btn_home = ui.Button("เริ่มใหม่", x=528, y=252, w=140, h=88, c
 ID_PREV, ID_NEXT = btn_prev.id(), btn_next.id()
 ID_PLAY, ID_HOME = btn_play.id(), btn_home.id()
 
-lbl_hint = ui.Label("กดเดินหน้าเพื่อลดจำนวนบิต", x=344, y=348, value=16,
+lbl_hint = ui.Label("กดเดินหน้าเพื่อลดจำนวนบิต", x=344, y=346, value=20,
                     color=0x9AA3AF)
 
 lcd.clear()

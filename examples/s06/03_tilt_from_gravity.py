@@ -49,7 +49,7 @@ ui.Label("dsp.tilt() = atan2 สองบรรทัด", x=24, y=24, value=24)
 
 # สามคอลัมน์เรียงจากซ้าย: ค่าดิบ - คำตอบเฟิร์มแวร์ - คำตอบที่เราคำนวณเอง
 # หัวคอลัมน์ใช้ 16 เพราะเป็นป้ายกำกับ ส่วนตัวเลขใช้ 20 เพราะเป็นค่าที่ต้องอ่าน
-ui.Label("ความเร่ง (m/s2)", x=24, y=64, value=16, color=COL_GRAY)
+ui.Label("ความเร่ง (m/s2)", x=24, y=62, value=20, color=COL_GRAY)
 lbl_ax = ui.Label("ax  ----", x=24, y=92, value=20)
 lbl_ay = ui.Label("ay  ----", x=24, y=120, value=20)
 lbl_az = ui.Label("az  ----", x=24, y=148, value=20)
@@ -61,7 +61,7 @@ lbl_roll = ui.Label("roll   ----", x=224, y=92, value=20, color=COL_ROLL)
 lbl_pitch = ui.Label("pitch  ----", x=224, y=120, value=20, color=COL_PITCH)
 
 # คอลัมน์ขวา: สูตรเดียวกันที่เราเขียนเอง ถ้าสองคอลัมน์นี้ไม่ตรงกัน แปลว่าเราเข้าใจผิด
-ui.Label("คำนวณเองด้วย atan2", x=456, y=64, value=16, color=COL_GRAY)
+ui.Label("คำนวณเองด้วย atan2", x=456, y=62, value=20, color=COL_GRAY)
 lbl_roll2 = ui.Label("roll   ----", x=456, y=92, value=20, color=COL_ROLL)
 lbl_pitch2 = ui.Label("pitch  ----", x=456, y=120, value=20, color=COL_PITCH)
 lbl_diff = ui.Label("ต่างกัน ----", x=456, y=148, value=20, color=COL_GRAY)
@@ -73,17 +73,17 @@ btn_exit = ui.Button("ออก", x=672, y=64, w=88, h=88, color=0x9AA3AF, value
 ch = ui.Chart(x=24, y=216, w=440, h=120, min=-90, max=90, color=COL_ROLL)
 s_roll = 0                       # ซีรีส์ 0 มาพร้อมกราฟ สีมาจาก color= ข้างบน
 s_pitch = ch.add_series(COL_PITCH)
-ui.Label("กราฟ: แดง roll / เขียว pitch", x=24, y=344, value=16, color=COL_GRAY)
+ui.Label("กราฟ: แดง roll / เขียว pitch", x=24, y=342, value=20, color=COL_GRAY)
 
 # แถวกับดัก: ค่าชุดเดียวกัน อ่านผิดลำดับ แล้วดูว่ามันหน้าตาน่าเชื่อแค่ไหน
 # การ์ดจบที่ y=340 พอดี ต่ำกว่านั้นคือมุมที่ปุ่มคอนโซลจองไว้
 ui.Panel(x=480, y=216, w=288, h=124)
-ui.Label("ถ้าแกะสลับลำดับ", x=496, y=232, value=16, color=0xF5A623)
+ui.Label("ถ้าแกะสลับลำดับ", x=496, y=230, value=20, color=0xF5A623)
 lbl_bad1 = ui.Label("pitch อ่านเป็น ----", x=496, y=260, value=20,
                     color=0xF5A623)
 lbl_bad2 = ui.Label("roll อ่านเป็น ----", x=496, y=292, value=20,
                     color=0xF5A623)
-ui.Label("ไม่มี error ให้เห็นเลย", x=480, y=344, value=16, color=0xE5484D)
+ui.Label("ไม่มี error ให้เห็นเลย", x=480, y=342, value=20, color=0xE5484D)
 id_exit = btn_exit.id()
 
 R2D = 180.0 / math.pi

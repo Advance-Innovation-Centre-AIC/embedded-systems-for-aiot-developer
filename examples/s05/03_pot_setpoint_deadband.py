@@ -75,16 +75,16 @@ s_rep = ch.add_series(COL_ACCENT)
 
 # เรียกเส้นด้วยรูปทรงของมัน ไม่ใช่ด้วยสี - จอที่อ่านออกเฉพาะตอนมีสีตกเกณฑ์ §S7.7.1
 # และรูปทรง "ต่อเนื่องเทียบกับขั้นบันได" คือสิ่งที่บทเรียนนี้ต้องการให้เห็นพอดี
-ui.Label("เส้นต่อเนื่อง = ค่าดิบจากลูกบิด", x=24, y=200, color=COL_TEXT,
-         value=16)
-ui.Label("เส้นขั้นบันได = ค่าที่รายงาน", x=24, y=232, color=COL_ACCENT,
-         value=16)
+ui.Label("เส้นต่อเนื่อง = ค่าดิบจากลูกบิด", x=24, y=198, color=COL_TEXT,
+         value=20)
+ui.Label("เส้นขั้นบันได = ค่าที่รายงาน", x=24, y=230, color=COL_ACCENT,
+         value=20)
 
-ui.Label("ตั้งไว้ (องศา C)", x=496, y=200, color=COL_DIM, value=16)
+ui.Label("ตั้งไว้ (องศา C)", x=496, y=198, color=COL_DIM, value=20)
 # Seg7 ไม่รับ value= - ฟอนต์ถูกตรึงไว้ที่ 28 ในเฟิร์มแวร์ ปรับได้แค่ h
 seg = ui.Seg7(x=496, y=232, w=192, h=56, color=COL_ACCENT)
 
-ui.Label("ตำแหน่งลูกบิด", x=24, y=264, color=COL_DIM, value=16)
+ui.Label("ตำแหน่งลูกบิด", x=24, y=262, color=COL_DIM, value=20)
 pot_bar = ui.Bar(x=24, y=304, w=320, h=32, min=0, max=100, value=0,
                  color=COL_ACCENT)
 pot_txt = ui.Label("0 %", x=376, y=304, color=COL_DIM, value=16)

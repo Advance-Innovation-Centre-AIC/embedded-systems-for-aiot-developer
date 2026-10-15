@@ -50,15 +50,15 @@ s_med = ch.add_series(0x30A46C)
 # คอลัมน์ขวา: ป้ายบอกสี แล้ว N แล้วตัวเลขสองตัว
 # ซ้าย-ขวาของ Seg7 สองตัวตรงกับป้าย SMA / Median ที่อยู่เหนือมัน คนที่แยกสี
 # ไม่ออกจึงยังบอกได้ว่าตัวไหนของใคร ตาม S7.7.1 ที่ห้ามสื่อสถานะด้วยสีอย่างเดียว
-ui.Label("ฟ้า = ค่าดิบ (มี spike)", x=472, y=76, value=16, color=0x4A9EFF)
-ui.Label("แดง = SMA", x=472, y=108, value=16, color=0xE5484D)
-ui.Label("เขียว = Median", x=608, y=108, value=16, color=0x30A46C)
+ui.Label("ฟ้า = ค่าดิบ (มี spike)", x=472, y=74, value=20, color=0x4A9EFF)
+ui.Label("แดง = SMA", x=472, y=106, value=20, color=0xE5484D)
+ui.Label("เขียว = Median", x=608, y=106, value=20, color=0x30A46C)
 lbl_win = ui.Label("N = -", x=472, y=140, value=24, color=0xF5A623)
-ui.Label("เบี่ยงสูงสุด (x100)", x=560, y=144, value=16)
+ui.Label("เบี่ยงสูงสุด (x100)", x=560, y=142, value=20)
 seg_mean = ui.Seg7(x=472, y=180, w=136, h=48, color=0xE5484D)
 seg_med = ui.Seg7(x=624, y=180, w=136, h=48, color=0x30A46C)
 
-lbl_note = ui.Label("กำลังคำนวณ", x=24, y=248, value=16)
+lbl_note = ui.Label("กำลังคำนวณ", x=24, y=246, value=20)
 bar_pos = ui.Bar(x=520, y=252, w=168, h=16, min=0, max=len(WINDOWS) - 1,
                  value=0)
 

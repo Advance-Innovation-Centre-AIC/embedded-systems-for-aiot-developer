@@ -53,9 +53,9 @@ ch = ui.Chart(x=12, y=40, w=472, h=232, min=0, max=Y_MAX)
 s_mag = 0                          # ซีรีส์ 0 เกิดพร้อมกราฟ สีฟ้าเริ่มต้น
 s_ff = ch.add_series(0xFFC107)
 s_hit = ch.add_series(0xFF5555)
-ui.Label("ฟ้า = ขนาดความเร่ง", x=496, y=44, value=16, color=0x4A9EFF)
-ui.Label("เหลือง = เกณฑ์ตกอิสระ", x=496, y=80, value=16, color=0xF5A623)
-ui.Label("แดง = เกณฑ์กระแทก", x=496, y=116, value=16, color=0xE5484D)
+ui.Label("ฟ้า = ขนาดความเร่ง", x=496, y=42, value=20, color=0x4A9EFF)
+ui.Label("เหลือง = เกณฑ์ตกอิสระ", x=496, y=78, value=20, color=0xF5A623)
+ui.Label("แดง = เกณฑ์กระแทก", x=496, y=114, value=20, color=0xE5484D)
 
 steps_ui = [
     ui.Label("1 ตกอิสระ", x=692, y=124, value=20, color=COL_OFF),
@@ -63,7 +63,7 @@ steps_ui = [
     ui.Label("3 นิ่ง", x=504, y=184, value=20, color=COL_OFF),
 ]
 
-ui.Label("แจ้งเตือน", x=496, y=240, value=16)
+ui.Label("แจ้งเตือน", x=496, y=238, value=20)
 seg = ui.Seg7(x=600, y=232, w=92, h=36)
 
 # สองป้ายแทนหนึ่งก้อน - ui.Label ตัดที่ 126 ไบต์ และไทยตัวละ 3 ไบต์

@@ -46,16 +46,17 @@ ui.Label("sensors: ใครตอบ ใครปฏิเสธ", x=24, y=24, 
 NAMES = ("snapshot()", "read_all()", "auto_status()", "auto_rate(200)",
          "init()", "scan()", "push()", "live_push()", "auto()")
 
-# เก้าแถวเรียงชิดกันเป็นตารางเดียว ระยะบรรทัด 22 คือความสูงของตัวอักษร 16 พอดี
+# เก้าแถวเรียงชิดกันเป็นตารางเดียว ระยะบรรทัด 27 พอดีกับตัวอักษรไทย 20 px
+# (ป้ายที่มีภาษาไทยต้อง 20 ขึ้นไป เล็กกว่านั้นเส้นขาดบนจอบอร์ด)
 # คอลัมน์นี้กว้างถึง x=440 คำตัดสินที่ยาวกว่านั้นจะไปทับคอลัมน์ขวา จึงต้องสั้น
 # ประโยคเต็มของแต่ละข้ออยู่ในคอนโซล ซึ่งไม่มีเพดานความกว้าง
 rows = []
 for i in range(9):
-    rows.append(ui.Label(NAMES[i] + "  ...", x=24, y=64 + i * 22, value=16,
+    rows.append(ui.Label(NAMES[i] + "  ...", x=24, y=60 + i * 27, value=20,
                          color=0x9AA3AF))
 
 # คอลัมน์ขวา: หลักฐานสามบรรทัด แล้วปุ่มสองตัว
-lbl_keys = ui.Label("คีย์ที่ snapshot คืนมา: ...", x=456, y=64, value=16,
+lbl_keys = ui.Label("คีย์ที่ snapshot คืนมา: ...", x=456, y=62, value=20,
                     color=0x4A9EFF)
 lbl_same = ui.Label("read_all = snapshot: ...", x=456, y=88, value=16,
                     color=0x4A9EFF)
@@ -67,10 +68,10 @@ btn_exit = ui.Button("ออก", x=456, y=272, w=232, h=88, color=0x9AA3AF,
                      value=20)
 
 # การ์ดใจความสำคัญอยู่ใต้ตาราง Panel ต้องมาก่อนสองบรรทัดที่วางบนมันเสมอ
-ui.Panel(x=24, y=276, w=408, h=88)
-ui.Label("แถวส้มไม่ใช่ความผิดพลาดของเรา", x=40, y=296, value=16,
+ui.Panel(x=24, y=306, w=408, h=72)
+ui.Label("แถวส้มไม่ใช่ความผิดพลาดของเรา", x=40, y=310, value=20,
          color=0xF5A623)
-ui.Label("ปฏิเสธเสียงดัง ดีกว่าบอร์ดค้างเงียบ", x=40, y=320, value=16,
+ui.Label("ปฏิเสธเสียงดัง ดีกว่าบอร์ดค้างเงียบ", x=40, y=338, value=20,
          color=0xF5A623)
 id_again = btn_again.id()
 id_exit = btn_exit.id()

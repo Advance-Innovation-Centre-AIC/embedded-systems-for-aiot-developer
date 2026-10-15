@@ -56,16 +56,16 @@ ch = ui.Chart(x=12, y=36, w=432, h=200, min=0, max=100)
 s_lin = 0                          # ซีรีส์ 0 เกิดพร้อมกราฟ สีฟ้าเริ่มต้น
 s_log = ch.add_series(0xFF5555)
 s_mark = ch.add_series(0xFFC107)   # สร้างทีหลังสุด จึงถูกวาดทับเส้นอื่น
-ui.Label("ฟ้า = เส้นตรง", x=456, y=40, value=16, color=0x4A9EFF)
-ui.Label("แดง = เส้นโค้ง ที่ใช้จริง", x=456, y=76, value=16, color=0xE5484D)
-ui.Label("เหลือง = จุดที่กำลังดู", x=456, y=112, value=16, color=0xF5A623)
+ui.Label("ฟ้า = เส้นตรง", x=456, y=38, value=20, color=0x4A9EFF)
+ui.Label("แดง = เส้นโค้ง ที่ใช้จริง", x=456, y=74, value=20, color=0xE5484D)
+ui.Label("เหลือง = จุดที่กำลังดู", x=456, y=110, value=20, color=0xF5A623)
 
 seg = ui.Seg7(x=456, y=148, w=120, h=36)
-lbl_pos = ui.Label("", x=600, y=112, value=20, color=0x30A46C)
-lbl_body = ui.Label("", x=456, y=148, value=16)
-ui.Label("ความดังจริงที่ส่งออก", x=456, y=192, value=16)
+lbl_pos = ui.Label("", x=640, y=112, value=20, color=0x30A46C)
+lbl_body = ui.Label("", x=456, y=146, value=20)
+ui.Label("ความดังจริงที่ส่งออก", x=456, y=190, value=20)
 vol_bar = ui.Bar(x=456, y=228, w=252, h=16, min=0, max=100, value=0)
-lbl_knob = ui.Label("", x=456, y=220, value=16, color=0x9AA3AF)
+lbl_knob = ui.Label("", x=456, y=218, value=20, color=0x9AA3AF)
 
 # แถบปุ่ม - เว้นมุมขวาล่างไว้ให้ปุ่ม Console ของหน้า Playground
 btn_prev = ui.Button("< ย้อน", x=20, y=252, w=140, h=88, color=0x9AA3AF,
@@ -79,7 +79,7 @@ btn_home = ui.Button("เริ่มใหม่", x=528, y=252, w=140, h=88, c
 ID_PREV, ID_NEXT = btn_prev.id(), btn_next.id()
 ID_PLAY, ID_HOME = btn_play.id(), btn_home.id()
 
-lbl_hint = ui.Label("", x=20, y=332, value=16, color=0x9AA3AF)
+lbl_hint = ui.Label("", x=20, y=344, value=20, color=0x9AA3AF)
 
 # ---- กวาดทั้งย่านก่อน ให้เห็นรูปทรงของเส้นก่อนเริ่มเดินทีละท่า ----------------
 for k in range(POINTS):

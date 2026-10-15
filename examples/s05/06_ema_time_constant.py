@@ -44,13 +44,13 @@ s_raw = 0
 s_prev = ch.add_series(0x6B7280)        # เงาของ alpha ขั้นที่แล้ว
 s_now = ch.add_series(0xFF5555)
 
-ui.Label("ฟ้า = ขั้นบันไดดิบ", x=448, y=40, value=16, color=0x4A9EFF)
-ui.Label("แดง = EMA ขั้นนี้", x=448, y=76, value=16, color=0xE5484D)
-ui.Label("เทา = alpha ขั้นที่แล้ว", x=448, y=112, value=16, color=0x9AA3AF)
+ui.Label("ฟ้า = ขั้นบันไดดิบ", x=448, y=38, value=20, color=0x4A9EFF)
+ui.Label("แดง = EMA ขั้นนี้", x=448, y=74, value=20, color=0xE5484D)
+ui.Label("เทา = alpha ขั้นที่แล้ว", x=448, y=110, value=20, color=0x9AA3AF)
 lbl_a = ui.Label("alpha = 1.00", x=448, y=148, value=24, color=0xF5A623)
 ui.Label("tau (ms)", x=616, y=140, value=16)
 seg_tau = ui.Seg7(x=616, y=176, w=152, h=40)
-lbl_note = ui.Label("กดเดินหน้าเพื่อลด alpha", x=12, y=212, value=16)
+lbl_note = ui.Label("กดเดินหน้าเพื่อลด alpha", x=12, y=210, value=20)
 
 btn_prev = ui.Button("< ย้อน", x=20, y=252, w=140, h=88, color=0x9AA3AF, value=20)
 btn_next = ui.Button("เดินหน้า >", x=176, y=252, w=160, h=88, color=0x4A9EFF,
@@ -62,7 +62,7 @@ btn_home = ui.Button("เริ่มใหม่", x=528, y=252, w=140, h=88, c
 ID_PREV, ID_NEXT = btn_prev.id(), btn_next.id()
 ID_PLAY, ID_HOME = btn_play.id(), btn_home.id()
 
-lbl_hint = ui.Label("กดเดินหน้าเพื่อลด alpha", x=344, y=348, value=16,
+lbl_hint = ui.Label("กดเดินหน้าเพื่อลด alpha", x=344, y=346, value=20,
                     color=0x9AA3AF)
 
 lcd.clear()
