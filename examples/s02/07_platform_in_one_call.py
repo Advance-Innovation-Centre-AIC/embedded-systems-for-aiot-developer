@@ -60,17 +60,17 @@ for i in range(3):
     cells.append(ui.Label("รออ่าน", x=360, y=116 + i * 28, color=COL_TEXT,
                           value=20))
 
-ui.Label("สถานะการต่อ", x=20, y=212, color=COL_DIM, value=16)
+ui.Label("สถานะการต่อ", x=20, y=208, color=COL_DIM, value=20)
 conn_lbl = ui.Label("ยังไม่ได้สั่งต่อ", x=20, y=236, color=COL_DIM, value=24)
 
-ui.Label("รอมาแล้ว (ms)", x=380, y=212, color=COL_DIM, value=16)
+ui.Label("รอมาแล้ว (ms)", x=380, y=208, color=COL_DIM, value=20)
 seg = ui.Seg7(text="0", x=532, y=232, w=152, h=52, color=COL_INFO)
 
 note = ui.Label("กำลังเริ่ม", x=20, y=300, color=COL_DIM, value=20)
 warn = ui.Label("ครึ่ง OPTIGA ของโมดูลนี้ปิดอยู่บนบอร์ดชุดนี้", x=20, y=332,
-                color=COL_WARN, value=16)
+                color=COL_WARN, value=20)
 ui.Label("ตั้งครั้งเดียว อยู่บนแฟลช ถอดไฟแล้วยังอยู่", x=20, y=364,
-         color=COL_DIM, value=16)
+         color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

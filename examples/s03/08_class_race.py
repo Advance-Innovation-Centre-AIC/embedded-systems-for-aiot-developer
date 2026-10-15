@@ -87,12 +87,12 @@ status = ui.Label("กำลังจะเริ่ม", x=344, y=16, color=COL
 # สองบรรทัดทางขวาเริ่มที่ x=224 เหมือนไฟล์ 07
 ui.Panel(x=24, y=56, w=744, h=120, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
-ui.Label("เวลาตอบสนอง (ms)", x=40, y=72, color=COL_DIM, value=16)
+ui.Label("เวลาตอบสนอง (ms)", x=40, y=70, color=COL_DIM, value=20)
 seg = ui.Seg7(text="-", x=40, y=104, w=144, h=56, color=COL_DIM)
-ui.Label("รอบ | ดีที่สุด", x=224, y=72, color=COL_DIM, value=16)
+ui.Label("รอบ | ดีที่สุด", x=224, y=70, color=COL_DIM, value=20)
 round_lbl = ui.Label("ยังไม่มีรอบ", x=224, y=104, color=COL_TEXT, value=20)
-count_lbl = ui.Label("กด 0 | ส่ง 0 | ส่งไม่ผ่าน 0 | คำสั่งเสีย 0", x=224, y=140,
-                     color=COL_DIM, value=16)
+count_lbl = ui.Label("กด 0 | ส่ง 0 | ส่งไม่ผ่าน 0 | คำสั่งเสีย 0", x=224, y=138,
+                     color=COL_DIM, value=20)
 
 # ป้ายใหญ่คือสัญญาณหลักของเกม คนกดมองป้ายนี้กับหลอดไฟ ไม่ได้มองตัวเลข
 # ขนาด 28 ยาวสุดคือ "ออกตัวก่อนไฟติด" 15 ตัว ราว 420 px ไม่ชนไอคอนที่ x=640
@@ -100,11 +100,11 @@ big = ui.Label("รอผู้สอนเริ่มรอบ", x=24, y=200, 
 img = ui.Image("smiley", x=640, y=192, w=64, h=64, color=COL_DIM)
 
 topic_lbl = ui.Label("ยังไม่ได้ต่อ broker", x=24, y=272, color=COL_DIM,
-                     value=16)
+                     value=20)
 note = ui.Label("กดปุ่มตอนว่าง = รอบซ้อม", x=24, y=312, color=COL_DIM,
                 value=20)
-ui.Label("ไฟติดแล้วค่อยกด " + btn.name(), x=24, y=352, color=COL_DIM,
-         value=16)
+ui.Label("ไฟติดแล้วค่อยกด " + btn.name(), x=24, y=348, color=COL_DIM,
+         value=20)
 ui.poll()
 
 lcd.clear()

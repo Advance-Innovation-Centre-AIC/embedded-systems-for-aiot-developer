@@ -62,27 +62,27 @@ status = ui.Label("กำลังจะเริ่ม", x=344, y=16, color=COL
 
 ui.Panel(x=24, y=56, w=744, h=120, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
-ui.Label("กดไปแล้ว (ครั้ง)", x=40, y=72, color=COL_DIM, value=16)
+ui.Label("กดไปแล้ว (ครั้ง)", x=40, y=70, color=COL_DIM, value=20)
 seg = ui.Seg7(text="0", x=40, y=104, w=144, h=56, color=COL_ACCENT)
-ui.Label("ส่งออกไปแล้ว", x=224, y=72, color=COL_DIM, value=16)
+ui.Label("ส่งออกไปแล้ว", x=224, y=70, color=COL_DIM, value=20)
 sent_lbl = ui.Label("event 0 | telemetry 0", x=224, y=104, color=COL_TEXT,
                     value=20)
-err_lbl = ui.Label("ส่งไม่ผ่าน 0 | คำสั่งเสีย 0", x=224, y=140, color=COL_DIM,
-                   value=16)
+err_lbl = ui.Label("ส่งไม่ผ่าน 0 | คำสั่งเสีย 0", x=224, y=138, color=COL_DIM,
+                   value=20)
 
 ui.Panel(x=24, y=192, w=744, h=128, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
-ui.Label("leds ที่ส่งออก (จากตัวแปร)", x=40, y=208, color=COL_DIM, value=16)
+ui.Label("leds ที่ส่งออก (จากตัวแปร)", x=40, y=204, color=COL_DIM, value=20)
 leds_lbl = ui.Label("leds = " + str(leds), x=40, y=232, color=COL_TEXT,
                     value=24)
-ui.Label("คำสั่งล่าสุดจากเว็บ", x=400, y=208, color=COL_DIM, value=16)
+ui.Label("คำสั่งล่าสุดจากเว็บ", x=400, y=204, color=COL_DIM, value=20)
 last_lbl = ui.Label("ยังไม่มี", x=400, y=232, color=COL_DIM, value=24)
 topic_lbl = ui.Label("ยังไม่ได้ต่อ broker", x=40, y=280, color=COL_DIM,
-                     value=16)
-az_lbl = ui.Label("az ยังไม่ได้อ่าน", x=400, y=280, color=COL_DIM, value=16)
+                     value=20)
+az_lbl = ui.Label("az ยังไม่ได้อ่าน", x=400, y=280, color=COL_DIM, value=20)
 
 # สร้างป้ายรับได้ 95 ไบต์ .text() รับได้ 126
-note = ui.Label("ห้ามส่งของลับ", x=24, y=336, color=COL_WARN, value=16)
+note = ui.Label("ห้ามส่งของลับ", x=24, y=334, color=COL_WARN, value=20)
 note.text("broker สาธารณะ พอร์ต 1883 ไม่เข้ารหัส ห้ามส่งของลับ")
 ui.poll()
 

@@ -51,25 +51,25 @@ status = ui.Label("กำลังจะเริ่ม", x=344, y=16, color=COL
 
 ui.Panel(x=24, y=56, w=744, h=120, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
-ui.Label("สถานะสาย", x=40, y=72, color=COL_DIM, value=16)
+ui.Label("สถานะสาย", x=40, y=70, color=COL_DIM, value=20)
 link_lbl = ui.Label("ยังไม่ได้ต่อ", x=40, y=104, color=COL_WARN, value=24)
 
-ui.Label("ได้รับแล้ว (ใบ)", x=520, y=72, color=COL_DIM, value=16)
+ui.Label("ได้รับแล้ว (ใบ)", x=520, y=70, color=COL_DIM, value=20)
 seg = ui.Seg7(text="0", x=520, y=104, w=144, h=56, color=COL_ACCENT)
 
-ui.Label("คำสั่งล่าสุดที่ได้รับ", x=24, y=192, color=COL_DIM, value=16)
+ui.Label("คำสั่งล่าสุดที่ได้รับ", x=24, y=190, color=COL_DIM, value=20)
 last_lbl = ui.Label("ยังไม่มีคำสั่งเข้ามา", x=24, y=224, color=COL_DIM,
                     value=24)
 
 img = ui.Image("smiley", x=560, y=192, w=64, h=64, color=COL_DIM)
 
-ui.Label("หัวข้อที่ฟังอยู่", x=24, y=272, color=COL_DIM, value=16)
+ui.Label("หัวข้อที่ฟังอยู่", x=24, y=272, color=COL_DIM, value=20)
 topic_lbl = ui.Label("ยังไม่ได้ subscribe", x=224, y=272, color=COL_DIM,
                      value=20)
 
 note = ui.Label("กำลังเริ่ม", x=24, y=312, color=COL_DIM, value=20)
-ui.Label("คำสั่งที่รู้จัก beep / led / say", x=24, y=352, color=COL_DIM,
-         value=16)
+ui.Label("คำสั่งที่รู้จัก beep / led / say", x=24, y=348, color=COL_DIM,
+         value=20)
 ui.poll()
 
 lcd.clear()

@@ -61,13 +61,13 @@ status = ui.Label("กำลังจะสแกน", x=304, y=16, color=COL_WA
 ui.Panel(x=24, y=56, w=744, h=176, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
 
-ui.Label("เจอกี่วง", x=40, y=72, color=COL_DIM, value=16)
+ui.Label("เจอกี่วง", x=40, y=70, color=COL_DIM, value=20)
 seg_n = ui.Seg7(text="--", x=40, y=104, w=112, h=56, color=COL_ACCENT)
 
-ui.Label("ใช้เวลา (ms)", x=192, y=72, color=COL_DIM, value=16)
+ui.Label("ใช้เวลา (ms)", x=192, y=70, color=COL_DIM, value=20)
 seg_ms = ui.Seg7(text="--", x=192, y=104, w=144, h=56, color=COL_ACCENT)
 
-ui.Label("แรงที่สุด", x=400, y=72, color=COL_DIM, value=16)
+ui.Label("แรงที่สุด", x=400, y=70, color=COL_DIM, value=20)
 best_lbl = ui.Label("รอผลสแกน", x=400, y=104, color=COL_TEXT, value=20)
 
 # Bar ไม่รับ color= ตอนสร้าง ต้องเรียก .color() หลังสร้างถึงจะเปลี่ยนสีได้จริง
@@ -79,7 +79,7 @@ bar.color(COL_DIM)
 trap = ui.Label("status() ให้ rssi ที่เป็นของปลอม", x=24, y=184,
                 color=COL_DIM, value=20)
 hint = ui.Label("ความแรงจริงมาจาก scan() เท่านั้น", x=400, y=184,
-                color=COL_DIM, value=16)
+                color=COL_DIM, value=20)
 
 # ห้าแถวสร้างไว้ครบตั้งแต่ตอนนี้ แล้วเดี๋ยวเขียนทับด้วยผลจริง
 # ถ้าไปสร้างข้างในลูปทีหลัง จำนวน widget จะขึ้นกับจำนวนวงที่บังเอิญเจอในห้องนั้น
@@ -87,7 +87,7 @@ hint = ui.Label("ความแรงจริงมาจาก scan() เท�
 # ระยะห่าง 32 คือขั้นต่ำของตัวอักษรขนาด 20 ซึ่งสูงราว 27 px รวมสระบนล่าง
 rows = []
 for i in range(ROWS):
-    rows.append(ui.Label("-", x=24, y=240 + i * 32, color=COL_DIM, value=16))
+    rows.append(ui.Label("-", x=24, y=240 + i * 32, color=COL_DIM, value=20))
 ui.poll()
 
 lcd.clear()

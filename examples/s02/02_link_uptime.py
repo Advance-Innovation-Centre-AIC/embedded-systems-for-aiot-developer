@@ -45,21 +45,21 @@ ip_lbl = ui.Label("ยังไม่ได้ต่อ", x=480, y=16, color=COL
 
 ui.Panel(x=24, y=56, w=744, h=160, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
-ui.Label("สถานะลิงก์", x=40, y=72, color=COL_DIM, value=16)
+ui.Label("สถานะลิงก์", x=40, y=70, color=COL_DIM, value=20)
 link_lbl = ui.Label("ยังไม่ได้ตรวจ", x=40, y=104, color=COL_DIM, value=28)
 
-ui.Label("หลุดไปแล้ว (ครั้ง)", x=456, y=72, color=COL_DIM, value=16)
+ui.Label("หลุดไปแล้ว (ครั้ง)", x=456, y=70, color=COL_DIM, value=20)
 # ตัวนับไม่ใช่สถานะ จึงเริ่มด้วยสีข้อความ ไม่ใช่สีเขียว - ถ้าทาเขียวไว้ตั้งแต่ต้น
 # ตาจะอ่านว่า "ยืนยันแล้วว่าปกติ" ทั้งที่ยังไม่ได้ตรวจอะไรเลยสักรอบ
 drop_lbl = ui.Label("0", x=456, y=104, color=COL_TEXT, value=28)
 
-ui.Label("ออนไลน์มาแล้ว (วินาที)", x=40, y=152, color=COL_DIM, value=16)
+ui.Label("ออนไลน์มาแล้ว (วินาที)", x=40, y=156, color=COL_DIM, value=20)
 seg = ui.Seg7(text="0", x=304, y=144, w=144, h=56, color=COL_DIM)
 
 # คำอธิบายเส้นวางไว้เหนือกราฟ ไม่ใช่ใต้กราฟ เพราะแถบล่างสุดเป็นที่ของบรรทัดสถานะ
 # และข้อความบอกด้วยคำว่า "สูง/ต่ำ" ไม่ใช่ด้วยชื่อสี จอขาวดำก็ยังอ่านออก (§S7.7.1)
 ui.Label("เส้นสูง = ต่ออยู่  เส้นต่ำ = หลุด", x=24, y=224, color=COL_DIM,
-         value=16)
+         value=20)
 hist_lbl = ui.Label("ประวัติอยู่ในลิ้นชัก Console", x=440, y=224, color=COL_DIM,
                     value=20)
 
@@ -67,7 +67,7 @@ hist_lbl = ui.Label("ประวัติอยู่ในลิ้นชั�
 chart = ui.Chart(x=24, y=256, w=744, h=80, color=COL_CARD, min=0, max=100)
 s_link = chart.add_series(COL_ACCENT)
 
-state = ui.Label("กำลังเริ่ม", x=24, y=352, color=COL_DIM, value=16)
+state = ui.Label("กำลังเริ่ม", x=24, y=348, color=COL_DIM, value=20)
 
 # เคาะให้ป้ายทั้งชุดขึ้นจอก่อนเข้าบรรทัดที่บล็อก ถ้าลืม คนดูจะเห็นจอว่างตลอดช่วงที่รอ
 ui.poll()

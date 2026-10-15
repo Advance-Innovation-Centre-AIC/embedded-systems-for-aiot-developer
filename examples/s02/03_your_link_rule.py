@@ -70,21 +70,21 @@ ui.Label("เขียนกฎว่าลิงก์แบบไหนใช�
 ui.Panel(x=24, y=56, w=744, h=128, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
 
-ui.Label("กฎคุณรายงาน", x=40, y=72, color=COL_DIM, value=16)
+ui.Label("กฎคุณรายงาน", x=40, y=70, color=COL_DIM, value=20)
 seg_got = ui.Seg7(text="0", x=40, y=104, w=144, h=64, color=COL_BAD)
 
 # เลขเป้าหมายไม่ใช่สถานะ จึงใช้สีข้อความ ไม่ใช่สีเขียว - เขียวแปลว่า "ยืนยันว่าปกติ"
 # ถ้าเลขนี้เขียวค้างไว้ตลอด ตาจะอ่านว่าผ่านแล้วทั้งที่ยังไม่ได้เริ่มตรวจ
-ui.Label("ควรรายงาน", x=280, y=72, color=COL_DIM, value=16)
+ui.Label("ควรรายงาน", x=280, y=70, color=COL_DIM, value=20)
 seg_want = ui.Seg7(text=str(WANT_REPORTS), x=280, y=104, w=144, h=64,
                    color=COL_TEXT)
 
-ui.Label("รอบที่", x=520, y=72, color=COL_DIM, value=16)
+ui.Label("รอบที่", x=520, y=70, color=COL_DIM, value=20)
 seg_round = ui.Seg7(text="0", x=520, y=104, w=144, h=64, color=COL_TEXT)
 
 # คำอธิบายเส้นบอกด้วยคำว่า สูง/ต่ำ ไม่ใช่ด้วยชื่อสี จอขาวดำก็ยังอ่านออก (§S7.7.1)
-ui.Label("เส้นสูง = ใช้ได้  เส้นต่ำ = ใช้ไม่ได้", x=24, y=192, color=COL_DIM,
-         value=16)
+ui.Label("เส้นสูง = ใช้ได้  เส้นต่ำ = ใช้ไม่ได้", x=24, y=194, color=COL_DIM,
+         value=20)
 
 # เส้นกราฟค่าเดียวใช้สีเน้นเสมอ เขียวสงวนไว้บอกว่า "ปกติ" อย่างเดียว
 chart = ui.Chart(x=24, y=232, w=744, h=72, color=COL_CARD, min=0, max=100)

@@ -58,11 +58,11 @@ st_wifi = ui.Label("1) WiFi      ยังไม่ถึงคิว", x=40, y=
 st_broker = ui.Label("2) broker    ยังไม่ถึงคิว", x=40, y=112, color=COL_DIM,
                      value=20)
 st_pub = ui.Label("3) publish   ยังไม่ถึงคิว", x=40, y=152, color=COL_DIM,
-                  value=16)
+                  value=20)
 
 ui.Panel(x=24, y=216, w=744, h=120, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
-ui.Label("ส่งไปแล้ว (ใบ)", x=40, y=232, color=COL_DIM, value=16)
+ui.Label("ส่งไปแล้ว (ใบ)", x=40, y=232, color=COL_DIM, value=20)
 seg = ui.Seg7(text="0", x=40, y=264, w=160, h=56, color=COL_ACCENT)
 
 ui.Label("ความคืบหน้า", x=248, y=232, color=COL_DIM, value=20)
@@ -71,7 +71,7 @@ bar.color(COL_ACCENT)
 payload_lbl = ui.Label("ยังไม่ได้ประกอบ payload", x=248, y=296, color=COL_DIM,
                        value=20)
 
-note = ui.Label("กำลังเริ่ม", x=24, y=352, color=COL_DIM, value=16)
+note = ui.Label("กำลังเริ่ม", x=24, y=348, color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

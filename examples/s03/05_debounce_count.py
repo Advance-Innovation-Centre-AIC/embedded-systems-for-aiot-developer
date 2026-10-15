@@ -39,7 +39,7 @@ l_diff = ui.Label("ส้ม = ดิบ | เขียว = กันเด้�
 
 # ค่าคงที่เขียนไว้บนจอ ไม่ใช่ในคอมเมนต์ เพราะคนที่กำลังกดปุ่มอยู่ไม่ได้เปิดโค้ดดูไปด้วย
 cfg = ui.Label("DEBOUNCE_MS กับ POLL_MS", x=20, y=188, color=COL_DIM,
-               value=16)
+               value=20)
 cfg.text("DEBOUNCE_MS = " + str(DEBOUNCE_MS) + " ms | POLL_MS = " +
          str(POLL_MS) + " ms")
 

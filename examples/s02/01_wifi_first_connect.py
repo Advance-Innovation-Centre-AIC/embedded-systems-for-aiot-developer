@@ -37,13 +37,13 @@ ui.Panel(x=24, y=56, w=744, h=128, color=COL_CARD, min=COL_CARD, max=12,
 
 # สามช่องในการ์ดวางห่างกันพอให้ป้ายที่ยาวขึ้นตอนรันไม่ไปทับช่องข้าง ๆ
 # ช่องสถานะยาวสุดคือ "ต่อสำเร็จ - <ชื่อวง>" ซึ่งกินราว 300 px ที่ตัวอักษร 24
-ui.Label("สถานะ", x=40, y=72, color=COL_DIM, value=16)
+ui.Label("สถานะ", x=40, y=70, color=COL_DIM, value=20)
 state = ui.Label("กำลังจะเริ่มต่อ", x=40, y=104, color=COL_WARN, value=20)
 
-ui.Label("เวลาที่ใช้ (ms)", x=376, y=72, color=COL_DIM, value=16)
+ui.Label("เวลาที่ใช้ (ms)", x=376, y=70, color=COL_DIM, value=20)
 seg = ui.Seg7(text="----", x=376, y=104, w=144, h=64, color=COL_WARN)
 
-ui.Label("IP ที่ได้", x=560, y=72, color=COL_DIM, value=16)
+ui.Label("IP ที่ได้", x=560, y=70, color=COL_DIM, value=20)
 ip_lbl = ui.Label("-", x=560, y=104, color=COL_TEXT, value=24)
 
 step_lbl = ui.Label("ป้ายนี้ขึ้นก่อน แล้วจอจะนิ่ง", x=24, y=208, color=COL_TEXT,

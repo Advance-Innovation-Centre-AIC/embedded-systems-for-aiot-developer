@@ -50,7 +50,7 @@ ui.Label("ปุ่มเดียว ไฟ " + str(N) + " ดวง", x=20, y=
 ui.Panel(x=20, y=52, w=652, h=PANEL_H, color=COL_CARD, min=COL_DIM, max=12,
          value=1)
 
-ui.Label("ดัชนีที่ติดอยู่", x=40, y=64, color=COL_DIM, value=16)
+ui.Label("ดัชนีที่ติดอยู่", x=40, y=62, color=COL_DIM, value=20)
 seg = ui.Seg7(text="-", x=40, y=92, w=64, h=44, color=COL_DIM)
 l_name = ui.Label("ยังไม่มีดวงไหนติด", x=112, y=96, color=COL_DIM, value=24)
 
@@ -60,21 +60,23 @@ for i in range(N):
                          color=COL_DIM, value=20))
 
 # ช่องตอนสร้าง widget รับ 95 ไบต์ รวมชื่อปุ่มแล้วบรรทัดนี้ 90 ไบต์ คำว่า "บนบอร์ด" จึงไม่มีที่
+# ป้ายที่มีภาษาไทยใช้ 20 px ขึ้นไป (ไทยเล็กกว่านั้นเส้นขาดบนจอบอร์ด) แถวจึงห่างกัน 32
 ui.Label("กดปุ่ม " + btn.name() + " เพื่อเลื่อนดวงถัดไป",
-         x=20, y=Y_HINT, color=COL_DIM, value=16)
+         x=20, y=Y_HINT, color=COL_DIM, value=20)
 # แยกเป็นสองใบทั้งสองก้อน - ui.Label ตัดที่ 126 ไบต์ ไทยหนึ่งตัวกิน 3 ไบต์
-ui.Label("current = (current + 1) % N", x=20, y=Y_HINT + 28, color=COL_DIM,
+# ใบอังกฤษล้วนใช้ 16 ได้ เลื่อนลง 6 ให้ฐานตัวอักษรตรงกับใบไทยข้าง ๆ
+ui.Label("current = (current + 1) % N", x=20, y=Y_HINT + 38, color=COL_DIM,
          value=16)
-ui.Label("ทำให้ดวงสุดท้ายวนกลับดวงแรกเอง", x=328, y=Y_HINT + 28, color=COL_DIM,
-         value=16)
-ui.Label("ทุกอย่างบนจอนี้อ่านจาก current", x=20, y=Y_HINT + 60, color=COL_WARN,
-         value=16)
-ui.Label("ไม่มีบรรทัดไหนถามหลอดเลย", x=360, y=Y_HINT + 60, color=COL_WARN,
-         value=16)
+ui.Label("ทำให้ดวงสุดท้ายวนกลับดวงแรกเอง", x=328, y=Y_HINT + 32, color=COL_DIM,
+         value=20)
+ui.Label("ทุกอย่างบนจอนี้อ่านจาก current", x=20, y=Y_HINT + 64, color=COL_WARN,
+         value=20)
+ui.Label("ไม่มีบรรทัดไหนถามหลอดเลย", x=360, y=Y_HINT + 64, color=COL_WARN,
+         value=20)
 
-# บรรทัดสถานะอยู่ที่ 336 เหมือนเดิมถ้ายังพ้นข้อความข้างบน (บรรทัดสุดท้ายจบที่ Y_HINT+82)
-# N=5 -> 344 จบที่ 371 ยังอยู่ในจอ 398
-st = ui.Label("กดปุ่มเพื่อเลื่อนไปดวงถัดไป", x=20, y=max(336, Y_HINT + 92),
+# บรรทัดสถานะอยู่ที่ 336 เหมือนเดิมถ้ายังพ้นข้อความข้างบน (บรรทัดสุดท้ายจบที่ Y_HINT+92)
+# N=5 -> 352 จบที่ 380 ยังอยู่ในจอ 398
+st = ui.Label("กดปุ่มเพื่อเลื่อนไปดวงถัดไป", x=20, y=max(336, Y_HINT + 100),
               color=COL_INFO, value=20)
 
 # ตัวแปรนี้คือความจริงของโปรแกรม ไม่ใช่ฮาร์ดแวร์
