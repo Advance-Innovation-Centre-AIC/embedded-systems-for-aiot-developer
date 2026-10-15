@@ -44,17 +44,17 @@ time.sleep_ms(200)
 ui.Label("ที่บอกว่าส่ง กับ ที่กลับมาจริง", x=20, y=12, color=COL_TEXT, value=24)
 # ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
 led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_OK, value=0)
-lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=628, y=8, color=COL_DIM, value=20)
 
 # ฝั่งซ้าย: ตัวเลขที่โปรแกรมของเราอ้าง
 ui.Panel(x=20, y=52, w=328, h=152, color=COL_CARD, min=COL_INFO, max=12, value=1)
-ui.Label("publish() บอกว่าสำเร็จ", x=36, y=64, color=COL_DIM, value=16)
+ui.Label("publish() บอกว่าสำเร็จ", x=36, y=62, color=COL_DIM, value=20)
 seg_claim = ui.Seg7(text="0", x=36, y=96, w=180, h=76, color=COL_INFO)
 bar_claim = ui.Bar(x=36, y=180, w=292, h=20, min=0, max=N, value=0, color=COL_TRACK)
 
 # ฝั่งขวา: ตัวเลขที่วัดได้จริง
 ui.Panel(x=356, y=52, w=316, h=152, color=COL_CARD, min=COL_OK, max=12, value=1)
-ui.Label("เดินทางกลับมาถึงเรา", x=372, y=64, color=COL_DIM, value=16)
+ui.Label("เดินทางกลับมาถึงเรา", x=372, y=62, color=COL_DIM, value=20)
 seg_seen = ui.Seg7(text="0", x=372, y=96, w=180, h=76, color=COL_OK)
 bar_seen = ui.Bar(x=372, y=180, w=288, h=20, min=0, max=N, value=0, color=COL_TRACK)
 

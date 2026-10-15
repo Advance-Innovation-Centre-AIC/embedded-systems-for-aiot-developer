@@ -41,9 +41,9 @@ ui.Panel(x=20, y=52, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
 mode_label = ui.Label("ยังไม่ได้ตั้งโหมด", x=40, y=64, color=COL_INFO, value=20)
 seg_sent = ui.Seg7(text="0", x=40, y=96, w=152, h=48, color=COL_OK)
 # คำอธิบายวางใต้ตัวเลข Seg7 สูง 48 จบที่ y=144 ป้ายจึงเริ่มที่ 146
-ui.Label("ส่งสำเร็จ (ครั้ง)", x=40, y=148, color=COL_DIM, value=16)
+ui.Label("ส่งสำเร็จ (ครั้ง)", x=40, y=144, color=COL_DIM, value=20)
 link_label = ui.Label("สาย: ยังไม่ได้ต่อ", x=360, y=100, color=COL_WARN, value=24)
-ui.Label("จังหวะการส่ง (ms ระหว่างสองครั้ง)", x=20, y=176, color=COL_DIM, value=16)
+ui.Label("จังหวะการส่ง (ms ระหว่างสองครั้ง)", x=20, y=174, color=COL_DIM, value=20)
 chart = ui.Chart(x=20, y=212, w=652, h=120, color=COL_CARD,
                  min=0, max=SEND_EVERY_MS * 2)
 series = chart.add_series(COL_OK)

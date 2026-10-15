@@ -79,7 +79,7 @@ time.sleep_ms(200)
 ui.Label("ค่าจริงจากโต๊ะนี้ ออกไปหาคนอื่น", x=20, y=12, color=COL_TEXT, value=24)
 # ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
 led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_SENT, value=0)
-lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=628, y=8, color=COL_DIM, value=20)
 
 ui.Panel(x=20, y=52, w=332, h=96, color=COL_CARD, min=COL_DIM, max=12, value=1)
 ui.Label("อุณหภูมิที่วัดได้ตอนนี้", x=36, y=64, color=COL_DIM, value=20)

@@ -44,10 +44,10 @@ ui.Label("คาบ 12 - heartbeat กับ alert", x=24, y=8, color=COL_TEXT, 
 ui.Panel(x=24, y=56, w=744, h=168, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
 
-ui.Label("สถานะ", x=40, y=72, color=COL_DIM, value=16)
+ui.Label("สถานะ", x=40, y=70, color=COL_DIM, value=20)
 l_state = ui.Label("OK", x=40, y=104, color=COL_OK, value=28)
 
-ui.Label("ค่าตอนนี้", x=184, y=72, color=COL_DIM, value=16)
+ui.Label("ค่าตอนนี้", x=184, y=70, color=COL_DIM, value=20)
 seg_val = ui.Seg7("0.0", x=184, y=104, w=128, h=56, color=COL_ACCENT)
 
 # ตัวนับสามตัววางเรียงกัน เพราะสิ่งที่ต้องเทียบคืออัตราส่วนของมัน ไม่ใช่ค่าเดี่ยว ๆ
@@ -59,10 +59,10 @@ seg_beat = ui.Seg7("0", x=328, y=104, w=112, h=56, color=COL_TEXT)
 ui.Label("alert", x=472, y=72, color=COL_DIM, value=16)
 seg_alert = ui.Seg7("0", x=472, y=104, w=112, h=56, color=COL_TEXT)
 
-ui.Label("กลั้นไว้", x=616, y=72, color=COL_DIM, value=16)
+ui.Label("กลั้นไว้", x=616, y=70, color=COL_DIM, value=20)
 seg_sup = ui.Seg7("0", x=616, y=104, w=112, h=56, color=COL_TEXT)
 
-ui.Label("ถึง heartbeat ใบถัดไป", x=40, y=172, color=COL_DIM, value=16)
+ui.Label("ถึง heartbeat ใบถัดไป", x=40, y=170, color=COL_DIM, value=20)
 bar_beat = ui.Bar(x=288, y=168, w=456, h=32, min=0, max=100, value=0)
 
 ch = ui.Chart(x=24, y=240, w=744, h=88, color=COL_CARD, min=0, max=CHART_MAX)
@@ -71,10 +71,10 @@ s_lim = ch.add_series(COL_BAD)
 
 # ข้อสังเกตยืนพื้นสองใบอยู่บรรทัดบน ส่วน l_foot เริ่มด้วยป้ายกำกับเส้นในกราฟ
 # แล้วถูกเขียนทับด้วยสรุปตอนจบ - ทั้งคู่กว้างพอ ๆ กัน จึงไม่ยื่นไปทับใคร
-ui.Label("beat เดินตามนาฬิกา", x=24, y=336, color=COL_DIM, value=16)
-ui.Label("alert เดินตามเหตุการณ์", x=256, y=336, color=COL_DIM, value=16)
-l_foot = ui.Label("เส้นแดงคือเกณฑ์ ALERT", x=24, y=368, color=COL_DIM,
-                  value=16)
+ui.Label("beat เดินตามนาฬิกา", x=24, y=334, color=COL_DIM, value=20)
+ui.Label("alert เดินตามเหตุการณ์", x=256, y=334, color=COL_DIM, value=20)
+l_foot = ui.Label("เส้นแดงคือเกณฑ์ ALERT", x=24, y=366, color=COL_DIM,
+                  value=20)
 ui.poll()
 
 lcd.clear()

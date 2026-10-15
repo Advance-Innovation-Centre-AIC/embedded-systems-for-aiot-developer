@@ -36,16 +36,16 @@ time.sleep_ms(200)
 
 ui.Label("คลังค่าตั้ง tesaiot.config()", x=20, y=12, color=COL_TEXT, value=24)
 ui.Panel(x=20, y=52, w=652, h=124, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("คีย์ที่อ่านกลับได้", x=40, y=64, color=COL_DIM, value=16)
+ui.Label("คีย์ที่อ่านกลับได้", x=40, y=62, color=COL_DIM, value=20)
 ui.Seg7(text=str(len(cfg)), x=40, y=88, w=152, h=72, color=COL_INFO)
 
-y = 82
+y = 60
 for k in KEY_ROWS:
     # คีย์ที่ยังว่างต้องอ่านออกว่า "ว่าง" ไม่ใช่หายไปเฉย ๆ เพราะบอร์ดที่ยังไม่ได้
     # provision จะมี device_id เป็นสตริงว่าง ไม่ใช่ไม่มีคีย์
     shown_value = cfg[k] if cfg[k] != "" else "(ยังไม่ตั้ง)"
-    ui.Label("{} = {}".format(k, shown_value), x=216, y=y, color=COL_TEXT, value=16)
-    y += 22
+    ui.Label("{} = {}".format(k, shown_value), x=216, y=y, color=COL_TEXT, value=20)
+    y += 26
 
 # คีย์ที่ตั้งค่าได้แต่อ่านกลับไม่ได้ - ความไม่สมมาตรแบบแรกของโมดูลนี้
 # เหตุผลคือรหัสผ่านไม่ควรหลุดออกมาทางที่อ่านง่าย ๆ แต่ผลข้างเคียงคือ
@@ -54,17 +54,17 @@ has_pass = "mqtt_pass" in cfg
 ui.Label("mqtt_pass อยู่ใน config() หรือไม่: {}".format(has_pass),
          x=20, y=188, color=COL_WARN, value=20)
 # สองป้ายในบรรทัดเดียว ให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยตัวละ 3 ไบต์
-ui.Label("ตั้งได้ด้วย config_set แต่อ่านตรง ๆ", x=20, y=216, color=COL_WARN,
-         value=16)
-ui.Label("ได้ KeyError -> ใช้ cfg.get()", x=416, y=216, color=COL_WARN,
-         value=16)
+ui.Label("ตั้งได้ด้วย config_set แต่อ่านตรง ๆ", x=20, y=214, color=COL_WARN,
+         value=20)
+ui.Label("ได้ KeyError -> ใช้ cfg.get()", x=416, y=214, color=COL_WARN,
+         value=20)
 
 ui.Panel(x=20, y=244, w=652, h=76, color=COL_CARD, min=COL_DIM, max=12, value=1)
 counts = []
 for title, keys in GROUPS:
     counts.append("{} {}".format(title, len(keys)))
-ui.Label(" - ".join(counts[:3]), x=40, y=260, color=COL_DIM, value=16)
-ui.Label(" - ".join(counts[3:]), x=40, y=288, color=COL_DIM, value=16)
+ui.Label(" - ".join(counts[:3]), x=40, y=258, color=COL_DIM, value=20)
+ui.Label(" - ".join(counts[3:]), x=40, y=288, color=COL_DIM, value=20)
 
 shown = 0
 for _title, keys in GROUPS:

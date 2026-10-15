@@ -37,10 +37,10 @@ l_c = ui.Label("3) หลังตั้งใหม่     -", x=40, y=164, col
 
 ui.Panel(x=20, y=216, w=652, h=112, color=COL_CARD, min=COL_DIM, max=12, value=1)
 l_n1 = ui.Label("-", x=40, y=232, color=COL_DIM, value=20)
-l_n2 = ui.Label("-", x=40, y=264, color=COL_DIM, value=16)
-l_n3 = ui.Label("-", x=40, y=292, color=COL_DIM, value=16)
-ui.Label("reset ล้างของจริง - reload แค่ย้อนกลับ", x=20, y=340, color=COL_DIM,
-         value=16)
+l_n2 = ui.Label("-", x=40, y=262, color=COL_DIM, value=20)
+l_n3 = ui.Label("-", x=40, y=290, color=COL_DIM, value=20)
+ui.Label("reset ล้างของจริง - reload แค่ย้อนกลับ", x=20, y=338, color=COL_DIM,
+         value=20)
 ui.poll()
 
 lcd.clear()

@@ -39,7 +39,7 @@ time.sleep_ms(200)
 ui.Label("คาบ 12 - ถอยห่างแล้วรีเซ็ต", x=24, y=8, color=COL_TEXT, value=28)
 # ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
 led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_OK, value=0)
-lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=628, y=8, color=COL_DIM, value=20)
 ui.Panel(x=24, y=56, w=744, h=168, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
 

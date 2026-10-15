@@ -48,17 +48,17 @@ ui.screen()
 ui.Label("ไฟหัวใจเต้น พิสูจน์ว่าลูปยังหมุน", x=12, y=8, value=24)
 ch = ui.Chart(x=12, y=44, w=472, h=212, min=0, max=110, color=0x4A9EFF)
 s_load = ch.add_series(0xFFA040)
-ui.Label("เส้นฟ้า = ระดับไฟหัวใจ", x=496, y=44, value=16, color=0x4A9EFF)
-ui.Label("เส้นส้ม = รอบลูปต่อ 60 ms", x=496, y=68, value=16, color=0xF5A623)
+ui.Label("เส้นฟ้า = ระดับไฟหัวใจ", x=496, y=40, value=20, color=0x4A9EFF)
+ui.Label("เส้นส้ม = รอบลูปต่อ 60 ms", x=496, y=68, value=20, color=0xF5A623)
 
-ui.Label("รอบลูปสะสม", x=496, y=104, value=16)
+ui.Label("รอบลูปสะสม", x=496, y=102, value=20)
 seg = ui.Seg7(x=496, y=132, w=200, h=40)
 seg.text("0")      # ตั้งค่าเริ่มต้นเอง ไม่งั้นจอขึ้น 0000 ตามค่าตั้งต้นของวิดเจ็ต
 
 ui.Panel(x=496, y=180, w=284, h=100, color=0x171B22, min=0x171B22, value=2)
-stp = ui.Label("ช่วงที่ 1/4", x=512, y=192, value=20, color=0x30A46C)
-dur = ui.Label("ติด 80 ms", x=512, y=224, value=16)
-cyc = ui.Label("รอบละ 1180 ms", x=512, y=248, value=16)
+stp = ui.Label("ช่วงที่ 1/4", x=512, y=188, value=20, color=0x30A46C)
+dur = ui.Label("ติด 80 ms", x=512, y=216, value=20)
+cyc = ui.Label("รอบละ 1180 ms", x=512, y=244, value=20)
 
 ui.Panel(x=12, y=292, w=472, h=44, color=0x171B22, min=0x171B22, value=2)
 st = ui.Label("ลูปยังหมุน - ไฟไม่ได้ยึดลูปไว้", x=24, y=304, value=20)

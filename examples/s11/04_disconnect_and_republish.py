@@ -43,9 +43,9 @@ s5 = ui.Label("5) ต่อกลับ + ส่งอีกใบ  รอ...", 
 
 ui.Panel(x=20, y=256, w=652, h=72, color=COL_CARD, min=COL_DIM, max=12, value=1)
 note = ui.Label("กำลังเริ่ม", x=40, y=272, color=COL_DIM, value=20)
-note2 = ui.Label("-", x=40, y=300, color=COL_DIM, value=16)
-ui.Label("tesaiot.publish รับ payload ก่อน topic", x=20, y=340, color=COL_DIM,
-         value=16)
+note2 = ui.Label("-", x=40, y=298, color=COL_DIM, value=20)
+ui.Label("tesaiot.publish รับ payload ก่อน topic", x=20, y=338, color=COL_DIM,
+         value=20)
 ui.poll()
 
 lcd.clear()

@@ -40,14 +40,14 @@ ui.Label("คาบ 12 - จอต้องอยู่ได้เมื่อ�
          value=24)
 # ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
 led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_OK, value=0)
-lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=628, y=8, color=COL_DIM, value=20)
 ui.Panel(x=20, y=44, w=652, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1)
 
-ui.Label("ค่าที่กำลังเฝ้าดู", x=40, y=52, color=COL_DIM, value=16)
+ui.Label("ค่าที่กำลังเฝ้าดู", x=40, y=50, color=COL_DIM, value=20)
 # ส่งเป็นข้อความเพื่อคุมรูปแบบเอง .value() ได้แต่จำนวนเต็ม
 seg = ui.Seg7("25", x=40, y=76, w=172, h=52, color=COL_TEXT)
 
-ui.Label("ลากเพื่อเปลี่ยนค่า", x=232, y=52, color=COL_DIM, value=16)
+ui.Label("ลากเพื่อเปลี่ยนค่า", x=232, y=50, color=COL_DIM, value=20)
 slider = ui.Slider(x=232, y=80, w=420, h=28, min=0, max=100, value=25)
 
 l_net = ui.Label("net: -", x=660, y=128, color=COL_DIM, value=20)
@@ -60,9 +60,9 @@ s_local = ch.add_series(COL_INFO)
 s_sent = ch.add_series(COL_OK)
 
 # สองป้ายในบรรทัดเดียว ให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยตัวละ 3 ไบต์
-l_foot = ui.Label("ฟ้า = ค่าบนจอ", x=20, y=348, color=COL_DIM, value=16)
-ui.Label("เขียว = ค่าที่ส่งออกไปได้จริง", x=180, y=348, color=COL_DIM,
-         value=16)
+l_foot = ui.Label("ฟ้า = ค่าบนจอ", x=20, y=346, color=COL_DIM, value=20)
+ui.Label("เขียว = ค่าที่ส่งออกไปได้จริง", x=180, y=346, color=COL_DIM,
+         value=20)
 ui.poll()
 
 

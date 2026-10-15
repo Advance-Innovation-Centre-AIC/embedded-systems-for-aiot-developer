@@ -45,20 +45,20 @@ ui.Panel(x=24, y=56, w=744, h=168, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
 
 # สองฝั่งวางเทียบกัน ระยะห่างเท่ากัน สีเดียวกัน ต่างกันแค่กฎที่ใช้ตัดสิน
-ui.Label("เชื่อทันที", x=40, y=72, color=COL_DIM, value=16)
+ui.Label("เชื่อทันที", x=40, y=70, color=COL_DIM, value=20)
 l_naive = ui.Label("OK", x=40, y=104, color=COL_OK, value=28)
-ui.Label("เปลี่ยนแล้ว", x=40, y=160, color=COL_DIM, value=16)
+ui.Label("เปลี่ยนแล้ว", x=40, y=158, color=COL_DIM, value=20)
 # ตัวนับสองตัวนี้เคยเป็นแดงกับเขียว ทั้งที่มันคือ "จำนวนครั้ง" ไม่ใช่สถานะ
 # สีสถานะที่เอามาแต่งตัวเลขทำให้ตาอ่านว่าฝั่งหนึ่งผิดฝั่งหนึ่งถูกตลอดเวลา
 # ทั้งที่บทเรียนคือให้เทียบตัวเลขกันเอง จึงใช้สีข้อความปกติทั้งคู่ (S7.7.2)
 seg_naive = ui.Seg7("0", x=176, y=152, w=88, h=56, color=COL_TEXT)
 
-ui.Label("ยืนยัน 3 รอบ", x=288, y=72, color=COL_DIM, value=16)
+ui.Label("ยืนยัน 3 รอบ", x=288, y=70, color=COL_DIM, value=20)
 l_conf = ui.Label("OK", x=288, y=104, color=COL_OK, value=28)
-ui.Label("เปลี่ยนแล้ว", x=288, y=160, color=COL_DIM, value=16)
+ui.Label("เปลี่ยนแล้ว", x=288, y=158, color=COL_DIM, value=20)
 seg_conf = ui.Seg7("0", x=424, y=152, w=88, h=56, color=COL_TEXT)
 
-ui.Label("ค่าตอนนี้", x=536, y=72, color=COL_DIM, value=16)
+ui.Label("ค่าตอนนี้", x=536, y=70, color=COL_DIM, value=20)
 seg_val = ui.Seg7("0.0", x=536, y=104, w=192, h=48, color=COL_ACCENT)
 ui.Label("streak", x=536, y=160, color=COL_DIM, value=16)
 bar_streak = ui.Bar(x=616, y=156, w=128, h=32, min=0, max=CONFIRM_N, value=0)
@@ -68,11 +68,11 @@ s_val = ch.add_series(COL_ACCENT)
 s_lim = ch.add_series(COL_BAD)
 
 # ป้ายกำกับเส้น - เส้นเกณฑ์แบนอยู่ที่ค่าคงที่ ป้ายจึงชี้เส้นได้แม้ภาพเป็นขาวดำ
-ui.Label("เส้นฟ้า = ค่าที่วัดได้", x=24, y=336, color=COL_ACCENT, value=16)
-ui.Label("เส้นแดง = เกณฑ์ ALERT", x=288, y=336, color=COL_BAD, value=16)
+ui.Label("เส้นฟ้า = ค่าที่วัดได้", x=24, y=334, color=COL_ACCENT, value=20)
+ui.Label("เส้นแดง = เกณฑ์ ALERT", x=288, y=334, color=COL_BAD, value=20)
 # ข้อสังเกตยืนพื้นอยู่ในตัว l_foot เอง แล้วถูกเขียนทับด้วยสรุปตอนจบ
-l_foot = ui.Label("ดูจังหวะที่ป้ายสองใบไม่ตรงกัน", x=24, y=368, color=COL_DIM,
-                  value=16)
+l_foot = ui.Label("ดูจังหวะที่ป้ายสองใบไม่ตรงกัน", x=24, y=366, color=COL_DIM,
+                  value=20)
 ui.poll()
 
 lcd.clear()

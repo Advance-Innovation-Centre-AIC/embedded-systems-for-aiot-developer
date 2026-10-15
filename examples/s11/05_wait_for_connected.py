@@ -36,13 +36,13 @@ time.sleep_ms(200)
 
 ui.Label("connect() คืนค่าก่อนต่อเสร็จ", x=20, y=12, color=COL_TEXT, value=24)
 ui.Panel(x=20, y=52, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("connect() คืนค่าใน (ms)", x=40, y=64, color=COL_DIM, value=16)
+ui.Label("connect() คืนค่าใน (ms)", x=40, y=62, color=COL_DIM, value=20)
 seg_call = ui.Seg7(text="----", x=40, y=88, w=180, h=68, color=COL_INFO)
-ui.Label("ต่อสำเร็จจริงที่ (ms)", x=360, y=64, color=COL_DIM, value=16)
+ui.Label("ต่อสำเร็จจริงที่ (ms)", x=360, y=62, color=COL_DIM, value=20)
 seg_conn = ui.Seg7(text="----", x=360, y=88, w=180, h=68, color=COL_OK)
 
-wait_label = ui.Label("เพดานเวลา {} ms".format(WAIT_LIMIT_MS), x=20, y=188,
-                      color=COL_DIM, value=16)
+wait_label = ui.Label("เพดานเวลา {} ms".format(WAIT_LIMIT_MS), x=20, y=186,
+                      color=COL_DIM, value=20)
 bar = ui.Bar(x=20, y=212, w=652, h=28, min=0, max=WAIT_LIMIT_MS, value=0)
 # สองป้ายในบรรทัดเดียว ให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยตัวละ 3 ไบต์
 gap_label = ui.Label("ช่องว่างระหว่างสองเลข", x=20, y=252, color=COL_DIM,

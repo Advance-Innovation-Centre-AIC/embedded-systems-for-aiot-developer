@@ -35,7 +35,7 @@ time.sleep_ms(200)
 ui.Label("บอกลาให้ถูกวิธี แล้วกลับมาใหม่", x=20, y=12, color=COL_TEXT, value=24)
 # ไฟ MQTT มุมขวาบน: เขียว = ต่อ broker อยู่ หรี่ = ออฟไลน์
 led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_OK, value=0)
-lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=628, y=8, color=COL_DIM, value=20)
 ui.Panel(x=20, y=52, w=652, h=192, color=COL_CARD, min=COL_DIM, max=12, value=1)
 st1 = ui.Label("1) ต่อรอบแรก           รอ...", x=36, y=68, color=COL_DIM, value=20)
 st2 = ui.Label("2) ส่งหนึ่งใบ          รอ...", x=36, y=100, color=COL_DIM, value=20)
@@ -45,9 +45,9 @@ st5 = ui.Label("5) publish หลังตัด     รอ...", x=36, y=204, co
 
 ui.Panel(x=20, y=256, w=652, h=72, color=COL_CARD, min=COL_DIM, max=12, value=1)
 note = ui.Label("กำลังเริ่ม", x=36, y=272, color=COL_DIM, value=20)
-note2 = ui.Label("-", x=36, y=300, color=COL_DIM, value=16)
-ui.Label("client_id เดิมถูกใช้ซ้ำทั้งสองรอบโดยตั้งใจ", x=20, y=340,
-         color=COL_DIM, value=16)
+note2 = ui.Label("-", x=36, y=298, color=COL_DIM, value=20)
+ui.Label("client_id เดิมถูกใช้ซ้ำทั้งสองรอบโดยตั้งใจ", x=20, y=338,
+         color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()
