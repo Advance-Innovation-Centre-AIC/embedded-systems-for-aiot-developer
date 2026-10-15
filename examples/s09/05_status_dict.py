@@ -59,15 +59,15 @@ for i in range(len(KEYS)):
                          color=COL_TEXT, value=20))
 
 # คำเตือนสองบรรทัด แยกกันเพราะรวมแล้วเกินเพดาน 126 ไบต์ ไทยกินตัวละ 3 ไบต์
-ui.Label("คีย์ ssid กับ rssi ยังไม่มีใครวัด", x=380, y=64, color=COL_DIM,
-         value=16)
-ui.Label("ซอร์สเขียนค่าไว้ตรง ๆ เป็น \"\" กับ 0", x=380, y=88, color=COL_DIM,
-         value=16)
+ui.Label("คีย์ ssid กับ rssi ยังไม่มีใครวัด", x=380, y=58, color=COL_DIM,
+         value=20)
+ui.Label("ซอร์สเขียนค่าไว้ตรง ๆ เป็น \"\" กับ 0", x=380, y=86, color=COL_DIM,
+         value=20)
 # ประโยคนี้ยาว 103 ไบต์ ยังอยู่ใต้เพดาน 126 ของตัวสร้าง จึงเป็นป้ายเดียวได้
 # ครึ่งหลังคือคำตอบว่าชื่อวงมาจากไหน ห้ามตัดทิ้งเพื่อความสั้น
-ui.Label("ชื่อวงที่ต่อ = สตริงที่เราส่งเข้า connect()", x=316, y=116,
-         color=COL_DIM, value=16)
-l_ssid = ui.Label("-", x=380, y=140, color=COL_OK, value=20)
+ui.Label("ชื่อวงที่ต่อ = สตริงที่เราส่งเข้า connect()", x=316, y=114,
+         color=COL_DIM, value=20)
+l_ssid = ui.Label("-", x=380, y=142, color=COL_OK, value=20)
 l_phase = ui.Label("รอบที่ 1 - ก่อนต่อ", x=20, y=216, color=COL_DIM, value=20)
 # ตัวสร้างกับ .text() รับได้เท่ากันคือ 126 ไบต์ ประโยคเต็มจึงวางที่ไหนก็ได้
 l_same = ui.Label("-", x=20, y=248, color=COL_DIM, value=20)

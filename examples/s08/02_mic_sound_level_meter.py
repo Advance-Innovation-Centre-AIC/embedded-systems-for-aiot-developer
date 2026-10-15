@@ -29,13 +29,13 @@ PERIOD_MS = 60     # อ่านถี่แค่ไหน ถี่กว่�
 ui.screen()
 ui.Label("เครื่องวัดระดับเสียง", x=12, y=8, value=24)
 ch = ui.Chart(x=12, y=40, w=472, h=200, min=0, max=100)
-ui.Label("ฟ้า = ความดัง 0-100", x=496, y=44, value=16, color=0x4A9EFF)
+ui.Label("ฟ้า = ความดัง 0-100", x=496, y=42, value=20, color=0x4A9EFF)
 
-ui.Label("ความดังตอนนี้", x=496, y=76, value=16)
+ui.Label("ความดังตอนนี้", x=496, y=74, value=20)
 seg = ui.Seg7(x=496, y=100, w=180, h=44)
-ui.Label("แถบ = ตัวเลขเดียวกัน", x=496, y=152, value=16)
+ui.Label("แถบ = ตัวเลขเดียวกัน", x=496, y=150, value=20)
 bar = ui.Bar(x=496, y=176, w=180, h=16, min=0, max=100)
-ui.Label("ดังที่สุดที่เจอ", x=496, y=204, value=16)
+ui.Label("ดังที่สุดที่เจอ", x=496, y=202, value=20)
 lbl_max = ui.Label("0", x=496, y=228, value=28, color=0xF5A623)
 
 ui.Panel(x=12, y=256, w=472, h=76)

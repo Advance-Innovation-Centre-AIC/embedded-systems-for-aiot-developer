@@ -40,7 +40,7 @@ ui.screen()
 ui.Label("สวิตช์ไฟตบมือ", x=12, y=8, value=24)
 # วางไว้แถบล่าง ไม่ใช่ใต้หัวเรื่อง เพราะพื้นที่บนคือรอยเท้าของกราฟที่จะสร้าง
 # หลังได้เกณฑ์แล้ว ป้ายชั่วคราวที่นั่งทับที่ของ widget ตัวถัดไปคือนิสัยที่พาไปชนจริง
-busy = ui.Label("กำลังวัดพื้นเสียง อยู่เงียบ ๆ", x=12, y=248, value=16,
+busy = ui.Label("กำลังวัดพื้นเสียง อยู่เงียบ ๆ", x=12, y=246, value=20,
                 color=0xF5A623)
 ui.poll()
 
@@ -70,10 +70,10 @@ try:
     ch = ui.Chart(x=12, y=40, w=472, h=200, min=0, max=y_max)
     s_peak = 0
     s_thr = ch.add_series(0xFF5555)
-    ui.Label("ฟ้า = ค่าสูงสุดต่อหน้าต่าง", x=496, y=44, value=16, color=0x4A9EFF)
-    ui.Label("แดง = เกณฑ์ " + str(thresh), x=496, y=68, value=16, color=0xE5484D)
+    ui.Label("ฟ้า = ค่าสูงสุดต่อหน้าต่าง", x=496, y=40, value=20, color=0x4A9EFF)
+    ui.Label("แดง = เกณฑ์ " + str(thresh), x=496, y=68, value=20, color=0xE5484D)
 
-    ui.Label("ตบไปแล้ว (ครั้ง)", x=496, y=104, value=16)
+    ui.Label("ตบไปแล้ว (ครั้ง)", x=496, y=102, value=20)
     seg = ui.Seg7(x=496, y=128, w=180, h=44)
     st = ui.Label("รอเสียงตบ", x=496, y=188, value=20, color=0x9AA3AF)
 

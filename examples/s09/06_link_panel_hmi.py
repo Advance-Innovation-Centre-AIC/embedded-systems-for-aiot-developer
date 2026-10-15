@@ -48,8 +48,8 @@ l_ip = ui.Label("IP: -", x=60, y=132, color=COL_TEXT, value=20)
 l_ping = ui.Label("ping 8.8.8.8: -", x=60, y=176, color=COL_TEXT, value=20)
 bar = ui.Bar(x=60, y=216, w=620, h=24, min=0, max=PING_TIMEOUT_MS, value=0,
              color=COL_DIM)
-ui.Label("แถบยาว = ตอบช้า - เต็มราง = ไม่ตอบเลย", x=60, y=244, color=COL_DIM,
-         value=16)
+ui.Label("แถบยาว = ตอบช้า - เต็มราง = ไม่ตอบเลย", x=60, y=242, color=COL_DIM,
+         value=20)
 l_note = ui.Label("กำลังต่อ...", x=60, y=276, color=COL_DIM, value=20)
 ui.poll()
 

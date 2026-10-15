@@ -55,7 +55,7 @@ lcd.console("<h2>คาบ 9 - จัดอันดับความแรง<
 ui.screen()
 time.sleep_ms(200)
 ui.Label("คาบ 9 - เรียงวงตามความแรง", x=20, y=12, color=COL_TEXT, value=24)
-ui.Label("อันดับ - ชื่อวง - dBm - คำตัดสิน", x=20, y=48, color=COL_DIM, value=16)
+ui.Label("อันดับ - ชื่อวง - dBm - คำตัดสิน", x=20, y=46, color=COL_DIM, value=20)
 
 # ป้ายนี้ต้องเกิดก่อน scan() เพราะระหว่างสแกนจอจะไม่ขยับเลย
 note = ui.Label("กำลังสแกน... รอสักครู่", x=20, y=316, color=COL_WARN, value=20)
@@ -81,8 +81,8 @@ for i in range(shown):
     # ความยาวของแท่งคือความแรง ส่วนสีคือคำตัดสิน ให้สีเดียวกันกับตัวหนังสือด้วย
     # เพราะ .color() ของ Bar ทาที่ "ราง" ไม่ใช่ส่วนที่เติม ถ้าดูแต่แท่งจะอ่านสลับได้
     ui.Label("{}. {}  {} dBm  {}".format(i + 1, ssid[:16], rssi, verdict_of(rssi)),
-             x=20, y=y, color=col, value=16)
-    ui.Bar(x=20, y=y + 22, w=640, h=16, min=0, max=100, value=0, color=col).value(pct)   # สร้างที่ 0 แล้วค่อยตั้งค่า: Bar ที่สร้างพร้อมค่าไม่เป็นศูนย์ทำให้จอว่างทั้งหน้า
+             x=20, y=y, color=col, value=20)
+    ui.Bar(x=20, y=y + 28, w=640, h=16, min=0, max=100, value=0, color=col).value(pct)   # สร้างที่ 0 แล้วค่อยตั้งค่า: Bar ที่สร้างพร้อมค่าไม่เป็นศูนย์ทำให้จอว่างทั้งหน้า
     ui.poll()
 
     lcd.print("{}. {} {} dBm {}%".format(i + 1, ssid[:18], rssi, pct))
@@ -95,9 +95,9 @@ if len(nets) > 0:
     note.color(color_of(nets[0][1]))
     note.text("แรงที่สุด: {}  {} dBm".format(nets[0][0][:18], nets[0][1]))
     # แยกสองป้ายให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยหนึ่งตัวกิน 3 ไบต์
-    ui.Label("เลือกวงด้วยชื่อ", x=20, y=344, color=COL_DIM, value=16)
-    ui.Label("ไม่ใช่เลือกวงที่แรงสุดอัตโนมัติ", x=180, y=344, color=COL_DIM,
-             value=16)
+    ui.Label("เลือกวงด้วยชื่อ", x=20, y=342, color=COL_DIM, value=20)
+    ui.Label("ไม่ใช่เลือกวงที่แรงสุดอัตโนมัติ", x=180, y=342, color=COL_DIM,
+             value=20)
     lcd.print("แรงที่สุดคือ", nets[0][0], "ที่", nets[0][1], "dBm")
     # lcd ตัดทิ้งที่ 127 ไบต์ ภาษาไทยตัวละ 3 ไบต์ บรรทัดหนึ่งจึงได้ราว 42 ตัว
     lcd.print("เลือกด้วยชื่อวง ไม่ใช่ด้วยความแรง")

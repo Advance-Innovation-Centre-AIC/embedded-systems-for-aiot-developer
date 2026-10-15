@@ -37,13 +37,13 @@ time.sleep_ms(200)
 ui.Label("คาบ 9 - ping เกตเวย์ กับ อินเทอร์เน็ต", x=20, y=12,
          color=COL_TEXT, value=24)
 ui.Panel(x=20, y=48, w=652, h=92, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("เกตเวย์ ms", x=40, y=60, color=COL_DIM, value=16)
+ui.Label("เกตเวย์ ms", x=40, y=58, color=COL_DIM, value=20)
 seg_gw = ui.Seg7(text="--", x=576, y=80, w=120, h=52, color=COL_OK)
-ui.Label("อินเทอร์เน็ต ms", x=192, y=60, color=COL_DIM, value=16)
+ui.Label("อินเทอร์เน็ต ms", x=192, y=58, color=COL_DIM, value=20)
 seg_net = ui.Seg7(text="--", x=576, y=140, w=120, h=52, color=COL_INFO)
-ui.Label("หายไป gw / net", x=352, y=60, color=COL_DIM, value=16)
+ui.Label("หายไป gw / net", x=352, y=58, color=COL_DIM, value=20)
 l_lost = ui.Label("0 / 0", x=352, y=84, color=COL_TEXT, value=24)
-ui.Label("รอบ", x=532, y=60, color=COL_DIM, value=16)
+ui.Label("รอบ", x=532, y=58, color=COL_DIM, value=20)
 l_round = ui.Label("0/" + str(ROUNDS), x=532, y=84, color=COL_TEXT, value=24)
 # min/max คือช่วงของแกนตั้ง ping ในบ้านอยู่หลักหน่วยถึงหลักสิบ ถ้าปล่อยเป็น 0-100
 # เส้นจะแบนติดขอบล่างจนอ่านความต่างไม่ออก
@@ -51,9 +51,9 @@ ch = ui.Chart(x=20, y=200, w=652, h=152, color=COL_CARD, min=0, max=CHART_MAX_MS
 s_gw = ch.add_series(COL_OK)
 s_net = ch.add_series(COL_INFO)
 # แยกสองป้ายให้อยู่ในเพดาน 126 ไบต์ของ ui.Label - ไทยหนึ่งตัวกิน 3 ไบต์
-ui.Label("เขียว = เกตเวย์", x=20, y=360, color=COL_DIM, value=16)
-ui.Label("ฟ้า = อินเทอร์เน็ต (ms ต่อรอบ)", x=180, y=360, color=COL_DIM,
-         value=16)
+ui.Label("เขียว = เกตเวย์", x=20, y=358, color=COL_DIM, value=20)
+ui.Label("ฟ้า = อินเทอร์เน็ต (ms ต่อรอบ)", x=180, y=358, color=COL_DIM,
+         value=20)
 
 # ป้ายสรุปเกิดก่อน connect() เพราะ connect() บล็อก จอต้องพูดก่อนจะเงียบ
 l_verdict = ui.Label("กำลังต่อ " + WIFI_SSID + " ... จอจะนิ่งไปครู่หนึ่ง",

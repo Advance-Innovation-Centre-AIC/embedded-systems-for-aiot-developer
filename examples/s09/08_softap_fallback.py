@@ -51,9 +51,9 @@ ui.Panel(x=20, y=188, w=652, h=140, color=COL_CARD, min=COL_DIM, max=12, value=1
 rows = []
 for i in range(SHOW_ROWS):
     rows.append(ui.Label("-", x=40, y=200 + i * 32, color=COL_DIM, value=20))
-l_hint = ui.Label("-", x=40, y=296, color=COL_DIM, value=16)
-ui.Label("วิทยุมีชุดเดียว เป็น AP แล้วออกเน็ตไม่ได้", x=20, y=340,
-         color=COL_DIM, value=16)
+l_hint = ui.Label("-", x=40, y=294, color=COL_DIM, value=20)
+ui.Label("วิทยุมีชุดเดียว เป็น AP แล้วออกเน็ตไม่ได้", x=20, y=338,
+         color=COL_DIM, value=20)
 ui.poll()
 
 # --- สแกนก่อน แล้วค่อยตัดสินใจ ---

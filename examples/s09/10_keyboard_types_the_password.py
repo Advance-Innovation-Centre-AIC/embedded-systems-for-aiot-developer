@@ -59,7 +59,7 @@ ui.Label("ชื่อวง - จาก wifi.scan()", x=24, y=64, color=COL_DIM
 # ช่องซ้ายไม่สั่ง ONE_LINE จึงสูง 88 ตามที่ขอ - เทียบกับช่องขวาที่สั่ง แล้วดู
 # ความสูงบนจอ สองช่องนี้ขอ h=88 เท่ากันแต่ได้ไม่เท่ากัน
 ta_ssid = ui.Textarea(text="กำลังสแกน", x=24, y=96, w=328, h=88,
-                      color=COL_TEXT)
+                      color=COL_TEXT, value=20)
 
 ui.Label("รหัสผ่าน - พิมพ์เอง", x=384, y=64, color=COL_DIM, value=20)
 ta_pass = ui.Textarea(text="", x=384, y=96, w=304, h=88, color=COL_TEXT)

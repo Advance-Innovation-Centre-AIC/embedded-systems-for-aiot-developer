@@ -33,9 +33,9 @@ ui.Label("คาบ 9 - ต่อ WiFi แล้วบอกก่อนรอ",
 # มันคือสัญญากับผู้ใช้ว่า "ระบบยังมีชีวิตอยู่ กำลังทำงานที่ใช้เวลา"
 l_state = ui.Label("กำลังต่อ " + WIFI_SSID + " ... จอจะนิ่งไปครู่หนึ่ง",
                    x=40, y=68, color=COL_WARN, value=20)
-ui.Label("เวลาที่ใช้ (ms)", x=40, y=104, color=COL_DIM, value=16)
+ui.Label("เวลาที่ใช้ (ms)", x=40, y=102, color=COL_DIM, value=20)
 seg = ui.Seg7(text="----", x=40, y=128, w=180, h=60, color=COL_WARN)
-ui.Label("IP ที่ได้", x=260, y=104, color=COL_DIM, value=16)
+ui.Label("IP ที่ได้", x=260, y=102, color=COL_DIM, value=20)
 l_ip = ui.Label("-", x=260, y=132, color=COL_TEXT, value=24)
 
 # ลำดับสามขั้นนี้คือทั้งบทเรียน วางไว้บนจอให้อ่านได้ตลอดเวลาที่รัน
@@ -44,8 +44,8 @@ ui.Label("1) ป้าย \"กำลังต่อ\" ขึ้นจอ แล
 ui.Label("2) wifi.connect() บล็อก จอนิ่งตลอดช่วงนี้", x=40, y=260,
          color=COL_TEXT, value=20)
 ui.Label("3) กลับมาแล้วจึงเขียนผลลงจอ", x=40, y=288, color=COL_TEXT, value=20)
-l_note = ui.Label("ป้ายต้องขึ้นก่อนบรรทัดที่บล็อก", x=20, y=332, color=COL_DIM,
-                  value=16)
+l_note = ui.Label("ป้ายต้องขึ้นก่อนบรรทัดที่บล็อก", x=20, y=330, color=COL_DIM,
+                  value=20)
 ui.poll()
 
 lcd.print("กำลังต่อ", WIFI_SSID, "- อาจรอนาน")

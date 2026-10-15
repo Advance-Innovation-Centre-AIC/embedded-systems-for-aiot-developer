@@ -33,11 +33,11 @@ ui.screen()
 time.sleep_ms(200)
 ui.Label("คาบ 9 - ผลของ wifi.scan()", x=20, y=12, color=COL_TEXT, value=24)
 ui.Panel(x=20, y=52, w=652, h=120, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("จำนวนวงที่เจอ", x=40, y=68, color=COL_DIM, value=16)
+ui.Label("จำนวนวงที่เจอ", x=40, y=66, color=COL_DIM, value=20)
 seg = ui.Seg7(text="--", x=40, y=92, w=132, h=64, color=COL_INFO)
 l_first = ui.Label("วงแรก: -", x=200, y=92, color=COL_TEXT, value=20)
 bar = ui.Bar(x=200, y=124, w=440, h=24, min=0, max=100, value=0, color=COL_DIM)
-ui.Label("สี่แถวแรก ตามลำดับที่ชิปเจอ", x=20, y=184, color=COL_DIM, value=16)
+ui.Label("สี่แถวแรก ตามลำดับที่ชิปเจอ", x=20, y=182, color=COL_DIM, value=20)
 rows = []
 for i in range(ROWS):
     rows.append(ui.Label("-", x=40, y=212 + i * 30, color=COL_DIM, value=20))

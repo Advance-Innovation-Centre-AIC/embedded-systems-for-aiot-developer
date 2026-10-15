@@ -37,11 +37,11 @@ def magnitude():
 
 ui.screen()
 ui.Label("ตัวตรวจจับแม่เหล็ก", x=12, y=8, value=24)
-ui.Label("ฟ้า = เบี่ยงจากเส้นฐาน", x=496, y=44, value=16, color=0x4A9EFF)
-ui.Label("แดง = เกณฑ์ที่คำนวณได้", x=496, y=68, value=16, color=0xE5484D)
-ui.Label("เบี่ยงตอนนี้ (หน่วยบอร์ด)", x=496, y=100, value=16)
+ui.Label("ฟ้า = เบี่ยงจากเส้นฐาน", x=496, y=40, value=20, color=0x4A9EFF)
+ui.Label("แดง = เกณฑ์ที่คำนวณได้", x=496, y=68, value=20, color=0xE5484D)
+ui.Label("เบี่ยงตอนนี้ (หน่วยบอร์ด)", x=496, y=98, value=20)
 seg = ui.Seg7(x=496, y=124, w=180, h=44)
-ui.Label("เทียบเกณฑ์ (100% = ถึงเกณฑ์)", x=484, y=180, value=16)
+ui.Label("เทียบเกณฑ์ (100% = ถึงเกณฑ์)", x=484, y=178, value=20)
 bar = ui.Bar(x=496, y=216, w=180, h=16, min=0, max=100)
 
 ui.Panel(x=12, y=268, w=472, h=68)

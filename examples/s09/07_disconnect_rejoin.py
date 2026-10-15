@@ -52,10 +52,10 @@ l_trap = ui.Label("if wifi.ip(): -> -", x=40, y=168, color=COL_WARN, value=20)
 
 ui.Panel(x=20, y=216, w=652, h=112, color=COL_CARD, min=COL_DIM, max=12, value=1)
 l_phase = ui.Label("กำลังเริ่ม", x=40, y=232, color=COL_DIM, value=20)
-l_note = ui.Label("-", x=40, y=264, color=COL_DIM, value=16)
-l_note2 = ui.Label("-", x=40, y=292, color=COL_DIM, value=16)
-ui.Label("สี่บรรทัดบนอ่านจากจังหวะเดียวกันเสมอ", x=20, y=340,
-         color=COL_DIM, value=16)
+l_note = ui.Label("-", x=40, y=262, color=COL_DIM, value=20)
+l_note2 = ui.Label("-", x=40, y=290, color=COL_DIM, value=20)
+ui.Label("สี่บรรทัดบนอ่านจากจังหวะเดียวกันเสมอ", x=20, y=338,
+         color=COL_DIM, value=20)
 ui.poll()
 
 

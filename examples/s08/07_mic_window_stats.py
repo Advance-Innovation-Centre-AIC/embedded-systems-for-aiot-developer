@@ -31,13 +31,13 @@ ui.Label("รูปคลื่นดิบ สามค่า และคิ�
 # แกน Y กว้างพอสำหรับเสียงพูด ค่าที่ดังกว่านี้จะถูกหนีบก่อนป้อน ไม่ปล่อยให้ชนขอบเงียบ ๆ
 ch = ui.Chart(x=12, y=44, w=472, h=172, min=-8000, max=8000)
 
-ui.Label("rms peak dc จากครั้งเดียว", x=500, y=48, value=16,
+ui.Label("rms peak dc จากครั้งเดียว", x=500, y=46, value=20,
          color=0x9AA3AF)
 lbl_rms = ui.Label("rms 0", x=500, y=76, value=20, color=0x4A9EFF)
 lbl_peak = ui.Label("peak 0", x=500, y=108, value=20, color=0xF5A623)
 lbl_dc = ui.Label("dc 0", x=500, y=140, value=20, color=0x9AA3AF)
 
-ui.Label("คิวค้างอยู่กี่ ms (เต็มที่ 625)", x=448, y=224, value=16,
+ui.Label("คิวค้างอยู่กี่ ms (เต็มที่ 625)", x=448, y=222, value=20,
          color=0x9AA3AF)
 bar_lag = ui.Bar(x=500, y=196, w=252, h=20, min=0, max=RING_MS)
 lbl_lag = ui.Label("lag 0 ms", x=500, y=260, value=20, color=0x30A46C)
@@ -49,8 +49,8 @@ btn_slow = ui.Button("ลูปปกติ", x=248, y=260, w=220, h=88,
 ID_FRESH, ID_SLOW = btn_fresh.id(), btn_slow.id()
 
 lbl_state = ui.Label("กำลังเปิดไมค์", x=476, y=300, value=20)
-lbl_hint = ui.Label("fresh ปิดเมื่อไร คิวจะไต่ขึ้นจนเต็ม 625", x=12, y=356,
-                    value=16, color=0x9AA3AF)
+lbl_hint = ui.Label("fresh ปิดเมื่อไร คิวจะไต่ขึ้นจนเต็ม 625", x=12, y=354,
+                    value=20, color=0x9AA3AF)
 ui.poll()
 
 lcd.clear()
