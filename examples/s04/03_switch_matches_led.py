@@ -53,7 +53,7 @@ sw_ids = [s.id() for s in switches]
 # การ์ดสรุป ตัวเลขตัวโตอ่านได้จากระยะไกล บรรทัดข้าง ๆ ขยายความให้
 ui.Panel(x=24, y=224, w=360, h=112, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
-ui.Label("ไฟที่ติดอยู่ (ดวง)", x=40, y=240, color=COL_DIM, value=16)
+ui.Label("ไฟที่ติดอยู่ (ดวง)", x=40, y=238, color=COL_DIM, value=20)
 
 # ส่งเป็นข้อความเพราะเราคือคนที่รู้ว่าอยากได้รูปแบบไหน str() จึงจำเป็น
 # ขนาดตัวเลขของ Seg7 มาจาก h= ไม่ได้มาจาก value= อย่าง Label
@@ -66,13 +66,13 @@ status = ui.Label("ยังไม่ได้ตั้งค่าไฟ", x=16
 off_btn = ui.Button("ALL OFF", x=416, y=224, w=200, h=88, color=0x3A4150,
                     value=24)
 off_id = off_btn.id()
-ui.Label("สวิตช์จะเด้งกลับเอง", x=416, y=320, color=COL_DIM, value=16)
+ui.Label("สวิตช์จะเด้งกลับเอง", x=416, y=318, color=COL_DIM, value=20)
 
 # แถบล่างสุดสองช่อง ทั้งคู่ต้องจบก่อน x=690 เพราะมุมขวาล่างเป็นที่ของปุ่ม Console
-lesson = ui.Label("ทุกเส้นทางผ่าน set_led ทางเดียว", x=24, y=352,
-                  color=COL_DIM, value=16)
+lesson = ui.Label("ทุกเส้นทางผ่าน set_led ทางเดียว", x=24, y=350,
+                  color=COL_DIM, value=20)
 # ข้อความตอนสร้าง Label ถูกตัดที่ 95 ไบต์ ไทยตัวละ 3 ไบต์ จึงไม่เกิน 31 ตัว
-ui.Label("สั่ง gpio ตรง ๆ จอจะโกหก", x=400, y=352, color=COL_DIM, value=16)
+ui.Label("สั่ง gpio ตรง ๆ จอจะโกหก", x=400, y=350, color=COL_DIM, value=20)
 
 
 def set_led(i, on):

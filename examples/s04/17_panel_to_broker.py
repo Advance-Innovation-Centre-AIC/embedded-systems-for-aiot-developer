@@ -54,7 +54,7 @@ ui.Panel(x=24, y=56, w=744, h=128, color=COL_CARD, min=COL_CARD, max=12,
 btn = ui.Button("ส่ง event", x=40, y=72, w=200, h=88, color=COL_ACCENT,
                 value=24)
 btn_id = btn.id()
-ui.Label("ค่าที่ตั้ง 0-100", x=272, y=72, color=COL_DIM, value=16)
+ui.Label("ค่าที่ตั้ง 0-100", x=272, y=70, color=COL_DIM, value=20)
 sld = ui.Slider(x=272, y=120, w=320, h=24, color=COL_ACCENT, min=0, max=100,
                 value=50)
 sld_id = sld.id()
@@ -70,8 +70,8 @@ last_lbl = ui.Label("ยังไม่มีคำสั่งจากเว�
                     value=20)
 
 # จบก่อน x=690 มุมขวาล่างเป็นของปุ่ม Console
-note = ui.Label("หัวข้อ " + ROOT + "/" + TEAM + "/...", x=24, y=344,
-                color=COL_DIM, value=16)
+note = ui.Label("หัวข้อ " + ROOT + "/" + TEAM + "/...", x=24, y=342,
+                color=COL_DIM, value=20)
 ui.poll()
 
 lcd.clear()

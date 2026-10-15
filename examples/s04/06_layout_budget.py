@@ -47,8 +47,8 @@ time.sleep_ms(200)
 
 # นับเองตั้งแต่ตัวแรก การรู้ว่าใช้ไปกี่ตัวก่อนสร้าง ดีกว่ามาเจอ RuntimeError ทีหลัง
 ui.Label("งบประมาณของหน้าจอ", x=20, y=8, color=COL_TEXT, value=24)
-ui.Label("งบ widget ต่อหนึ่งหน้า", x=432, y=8, color=COL_DIM, value=16)
-counter = ui.Label("ใช้ไป 4 / งบ 32 (เพดาน 64)", x=432, y=44, color=COL_OK, value=16)
+ui.Label("งบ widget ต่อหนึ่งหน้า", x=432, y=6, color=COL_DIM, value=20)
+counter = ui.Label("ใช้ไป 4 / งบ 32 (เพดาน 64)", x=432, y=42, color=COL_OK, value=20)
 
 # Bar ทำให้ "งบประมาณ" กลายเป็นปริมาณที่ตามองเห็น ไม่ใช่แค่ตัวเลขในหัว
 # แถบเต็ม = ชนงบของคอร์ส ไม่ใช่ชนเพดานของบอร์ด
@@ -95,10 +95,10 @@ for r in range(ROWS):
 # แล้วคำนั้นค้างบนจอจนกว่าจะมีการเขียนทับครั้งแรก จึงต้องตั้งข้อความตั้งต้นเสมอ
 summary = ui.Label("ยังไม่ได้เทียบกับ ui.list()", x=20, y=284,
                    color=COL_TEXT, value=20)
-probe = ui.Label("ยังไม่ได้ตรวจเขตห้ามวาง", x=20, y=308, color=COL_WARN,
-                 value=16)
+probe = ui.Label("ยังไม่ได้ตรวจเขตห้ามวาง", x=20, y=302, color=COL_WARN,
+                 value=20)
 ceiling = ui.Label("ยังไม่ได้ลองสร้างตัวที่ 33", x=20, y=332, color=COL_DIM,
-                   value=16)
+                   value=20)
 spend(used + 3)
 
 # ลองสร้างตัวที่ 33 จริง ๆ หนึ่งครั้ง: งบ 32 เป็นเส้นที่คอร์สขีดเอง บอร์ดไม่รู้จัก

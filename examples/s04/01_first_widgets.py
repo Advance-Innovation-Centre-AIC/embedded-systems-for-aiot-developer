@@ -33,14 +33,14 @@ ui.Label("widget ตัวแรก", x=24, y=8, color=COL_TEXT, value=24)
 # การ์ดสูง 136 พอดีกับสองบรรทัด คือป้ายกำกับ 20 แล้วค่าตัวโตใต้มัน
 ui.Panel(x=24, y=56, w=744, h=136, color=COL_CARD, min=COL_CARD, max=12,
          value=1)
-ui.Label("แตะไปแล้ว (ครั้ง)", x=40, y=72, color=COL_DIM, value=16)
+ui.Label("แตะไปแล้ว (ครั้ง)", x=40, y=70, color=COL_DIM, value=20)
 
 # Seg7 คือตัวเลขตัวโต และมันรับ "ข้อความ" เท่านั้น str() จึงจำเป็น
 # ตัวนับไม่ใช่สถานะ จึงใช้สีเน้น ไม่ใช่สีเขียว - เขียวสงวนไว้แปลว่า "ปกติ"
 seg = ui.Seg7(text="0", x=40, y=104, w=192, h=72, color=COL_ACCENT)
 
 # คอลัมน์ขวาเริ่มที่ 264 เพราะ Seg7 กว้าง 192 จบที่ 232 แล้วเว้น 32
-ui.Label("ปุ่มที่แตะล่าสุด", x=264, y=72, color=COL_DIM, value=16)
+ui.Label("ปุ่มที่แตะล่าสุด", x=264, y=70, color=COL_DIM, value=20)
 last = ui.Label("ยังไม่มี", x=264, y=104, color=COL_TEXT, value=24)
 
 ui.Label("ทุก widget ต้องระบุ x= y= เสมอ", x=24, y=208, color=COL_DIM, value=20)
@@ -59,7 +59,7 @@ id_hello = b_hello.id()
 id_bye = b_bye.id()
 
 # แถบล่างสุดต้องจบก่อน x=690 เพราะมุมขวาล่างเป็นที่ของปุ่ม Console
-status = ui.Label("ยังไม่ได้แตะอะไร", x=24, y=352, color=COL_DIM, value=16)
+status = ui.Label("ยังไม่ได้แตะอะไร", x=24, y=350, color=COL_DIM, value=20)
 
 # บรรทัดเปิดเรื่องลงคอนโซล เขียนก่อนเข้าลูป คนเปิดลิ้นชักดูตอนไหนก็เจอ
 lcd.print("widget ตัวแรก - แตะปุ่มแล้วตัวนับบนจอจะเดิน")

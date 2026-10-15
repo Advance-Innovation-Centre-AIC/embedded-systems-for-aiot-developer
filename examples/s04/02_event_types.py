@@ -35,7 +35,10 @@ ui.Label("Slider", x=576, y=56, color=COL_DIM, value=20)
 # 24 + 160 + 32 + 120 + 32 + 176 + 32 + 192 = 768 พอดีขอบขวา
 btn = ui.Button("แตะฉัน", x=24, y=96, w=160, h=88, color=COL_ACCENT, value=24)
 sw = ui.Switch(x=216, y=96, w=120, h=88, color=COL_ACCENT)
-cb = ui.Checkbox("ติ๊กฉัน", x=368, y=96, w=176, h=88, color=COL_TEXT)
+# ตัวหนังสือของ Checkbox เองออกมา 16 px เสมอ ไทยเล็กขนาดนั้นเส้นขาดบนจอบอร์ด
+# จึงสร้างกล่องเปล่า แล้ววางชื่อไทย 20 px ไว้ข้างกล่องแทน
+cb = ui.Checkbox(" ", x=368, y=96, w=176, h=88, color=COL_TEXT)
+ui.Label("ติ๊กฉัน", x=396, y=90, color=COL_TEXT, value=20)
 sld = ui.Slider(x=576, y=96, w=192, h=24, color=COL_ACCENT, min=0, max=100,
                 value=30)
 

@@ -53,13 +53,13 @@ sld = ui.Slider(x=280, y=96, w=180, min=0, max=100, value=40)
 cb = ui.Checkbox("Checkbox", x=480, y=64, color=COL_TEXT)
 
 ui.Label("Dropdown", x=480, y=100, color=COL_DIM, value=16)
-dd = ui.Dropdown(text=CHOICE_TEXT, x=480, y=124, w=140)
+dd = ui.Dropdown(text=CHOICE_TEXT, x=480, y=124, w=140, value=20)
 
 ui.Label("Textarea", x=636, y=64, color=COL_DIM, value=16)
-ta = ui.Textarea(text="แตะแล้วพิมพ์", x=636, y=100, w=120, h=88)
+ta = ui.Textarea(text="แตะแล้วพิมพ์", x=636, y=100, w=120, h=88, value=20)
 
 # ป้ายหนึ่งใบที่ไม่รับอินพุตเลย เอาไว้พิสูจน์ว่า .value() ของมันตอบ 0
-plain = ui.Label("Label ไม่รับอินพุต", x=20, y=172, color=COL_DIM, value=16)
+plain = ui.Label("Label ไม่รับอินพุต", x=20, y=170, color=COL_DIM, value=20)
 
 # ตารางค้นกลับ handle -> ชื่อที่คนอ่านเข้าใจ dict ค้นได้ในก้าวเดียว
 NAME_OF = {
@@ -73,12 +73,12 @@ NAME_OF = {
 
 raw = ui.Label("ยังไม่มีเหตุการณ์เข้ามา", x=20, y=204, color=COL_INFO, value=24)
 mean = ui.Label("แตะของแถวบนทีละชิ้น", x=20, y=240, color=COL_DIM, value=20)
-poll_line = ui.Label("ยังไม่ได้ไล่ถาม value()", x=20, y=276, color=COL_WARN,
-                     value=16)
-ui.Label("Dropdown ส่งลำดับ ไม่ได้ส่งข้อความ", x=20, y=308, color=COL_DIM,
-         value=16)
+poll_line = ui.Label("ยังไม่ได้ไล่ถาม value()", x=20, y=272, color=COL_WARN,
+                     value=20)
+ui.Label("Dropdown ส่งลำดับ ไม่ได้ส่งข้อความ", x=20, y=302, color=COL_DIM,
+         value=20)
 ui.Label("value() ที่ตอบ 0 อาจแปลว่าตอบไม่ได้", x=20, y=332, color=COL_DIM,
-         value=16)
+         value=20)
 
 lcd.clear()
 lcd.console("<h2>หกชนิดที่รับอินพุตได้</h2>")

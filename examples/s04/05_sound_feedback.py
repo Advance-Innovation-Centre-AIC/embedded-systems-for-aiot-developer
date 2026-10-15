@@ -41,12 +41,12 @@ time.sleep_ms(200)
 ui.Label("เสียงตอบรับ - ให้จอเป็นพยานแทนหู", x=24, y=8, color=COL_TEXT, value=24)
 
 ui.Panel(x=24, y=48, w=656, h=112, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("เล่นเสียงไปแล้ว (ครั้ง)", x=40, y=60, color=COL_DIM, value=16)
+ui.Label("เล่นเสียงไปแล้ว (ครั้ง)", x=40, y=58, color=COL_DIM, value=20)
 
 # Seg7 รับข้อความ ไม่ใช่ตัวเลข str() จึงต้องมีทุกครั้ง
 seg = ui.Seg7(text="0", x=40, y=88, w=144, h=48, color=COL_ACCENT)
 
-ui.Label("เสียงล่าสุดที่สั่งไป", x=360, y=60, color=COL_DIM, value=16)
+ui.Label("เสียงล่าสุดที่สั่งไป", x=360, y=58, color=COL_DIM, value=20)
 last = ui.Label("ยังไม่มี", x=360, y=88, color=COL_TEXT, value=24)
 
 b_ok = ui.Button("ยืนยัน", x=24, y=176, w=216, h=88, color=COL_ACCENT)
@@ -59,8 +59,8 @@ id_note = b_note.id()
 
 status = ui.Label("แตะปุ่มแล้วฟัง พร้อมกับมองตัวนับ", x=24, y=280,
                   color=COL_DIM, value=20)
-ui.Label("ui.tone รับโน้ต MIDI 0-127 - 60=C4 - 69=A4", x=24, y=328,
-         color=COL_DIM, value=16)
+ui.Label("ui.tone รับโน้ต MIDI 0-127 - 60=C4 - 69=A4", x=24, y=326,
+         color=COL_DIM, value=20)
 
 if not HAS_SOUND:
     status.text("บอร์ดนี้ไม่มีชิปเสียง - ตัวนับจะไม่เดิน")

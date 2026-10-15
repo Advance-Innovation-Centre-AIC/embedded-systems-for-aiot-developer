@@ -53,9 +53,9 @@ target = ui.Button("เป้าหมาย", x=POS_A[0], y=POS_A[1],
 TARGET_ID = target.id()
 
 status = ui.Label("ยังไม่ได้สั่งอะไร", x=432, y=264, color=COL_INFO, value=20)
-census = ui.Label("ยังไม่ได้นับ", x=432, y=296, color=COL_DIM, value=16)
-ui.Label("ui.list() ใช้คีย์ id ส่วน poll ใช้ handle", x=168, y=332,
-         color=COL_WARN, value=16)
+census = ui.Label("ยังไม่ได้นับ", x=432, y=294, color=COL_DIM, value=20)
+ui.Label("ui.list() ใช้คีย์ id ส่วน poll ใช้ handle", x=168, y=330,
+         color=COL_WARN, value=20)
 
 ID_MOVE = b_move.id()
 ID_SIZE = b_size.id()
