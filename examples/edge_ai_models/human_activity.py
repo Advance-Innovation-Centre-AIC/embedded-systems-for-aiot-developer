@@ -1,5 +1,5 @@
 # human_activity.py - Activity Timeline. Needs HumanActivity from the Edge AI Store.
-# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. Eva Kit and BENTO Emulator: not tested yet.
+# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. BENTO Emulator (rc.10.2): real AI in the browser (Motion in = a recorded clip). Eva Kit: not tested yet.
 # Wear the board on your chest. SW6 (upper) or tap = minimum time. SW5 (lower) = pause/resume.
 
 try:

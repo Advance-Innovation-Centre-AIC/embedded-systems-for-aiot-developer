@@ -1,5 +1,5 @@
 # anomalous_vibration.py - Pump Health. Needs AnomalousVibration from the Edge AI Store.
-# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. Eva Kit and BENTO Emulator: not tested yet.
+# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. BENTO Emulator (rc.10.2): needs a board (shows the not-on-this-board card). Eva Kit: not tested yet.
 # Tape it to a guarded fan. Sliders set Alert/Danger. SW6/tap ACK = acknowledge, SW5 = pause.
 
 try:

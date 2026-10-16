@@ -1,5 +1,5 @@
 # yes_no.py - Voice Confirm. Needs "Yes / No" (experimental) from the Edge AI Store.
-# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. Eva Kit and BENTO Emulator: not tested yet.
+# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. BENTO Emulator (rc.10.2): real AI in the browser (Audio in = mic or a sound file). Eva Kit: not tested yet.
 # Tap Ask (or SW6, upper), then say yes or no within 5 s. SW5 (lower) = pause/resume.
 
 try:
