@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ผล AI สด</title>
+<meta name="description" content="คาบ 12 · ผล AI ขึ้น MQTT ทันที — หน้าเว็บอ่านผล AI ของบอร์ดจาก broker สาธารณะแบบสด และส่งคำสั่งเปลี่ยนโมเดลกลับไป">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231b5e20'/%3E%3Cpath d='M7 20h4l3-9 4 13 3-7h4' fill='none' stroke='%23ffd54f' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<!--
+  ai_dashboard.html - คาบ 12 "ผล AI ขึ้น MQTT ทันที"
+  อ่าน   : bento-aiot/<TEAM>/ai      (สถานะ: 01, 02, 03 และชุด HMI ของคาบ 11)
+           bento-aiot/<TEAM>/event   (เหตุการณ์ ai_alarm_start / ai_alarm_end ของ 02)
+           bento-aiot/<TEAM>/ai/cmd  (ฟังคำสั่งที่ตัวเองส่ง เพื่อยืนยันว่าถึง broker แล้ว)
+  ส่ง    : bento-aiot/<TEAM>/ai/cmd  {"cmd":"select","model":"..."} / {"cmd":"stop"} / {"cmd":"run"}
+           QoS 0 และไม่ retain - ถ้า retain คำสั่งจะกลับมาใหม่ทุกครั้งที่บอร์ดเริ่มโปรแกรม
+  กับดัก : broker สาธารณะไม่เข้ารหัส ใครก็ส่งเข้าหัวข้อนี้ได้ หน้านี้จึงใส่ทุกค่าลงจอเป็น "ข้อความ" เท่านั้น
+           (textContent) ไม่เคยแปลงค่าจาก broker เป็น HTML
+  ไลบรารี: mqtt.js 5.10.1 (cdnjs สำรอง jsdelivr) ตรวจไฟล์ด้วย SRI sha384
+-->
+<style>
+:root{
+  /* สีจากเด็ค sf-project-kickoff (สไลด์ 4 + ธีมเดียวกัน) */
+  --fg:#1f2328; --muted:#59636e; --cap:#78909c; --line:#d1d9e0; --zebra:#f6f8fa; --bg:#ffffff;
+  --green-dk:#1b5e20; --green:#2e7d32; --green-soft:#e8f5e9; --pair-bg:#f6faf5; --pair-line:#cfe3c9;
+  --red:#e53935; --red-soft:#ffebee; --amber:#f5a623; --amber-soft:#fff8e1; --cream:#fffdf5; --brown:#5d4037;
+  --tip-bg:#f1f8e9; --tip-line:#7cb342; --tip-fg:#33691e;
+  --k-machine:#1565c0; --k-safety:#e65100; --k-nursery:#6a1b9a; --k-voice:#1b5e20; --k-generic:#607d8b;
+  --nav-bg:rgba(13,17,23,.82); --nav-fg:#71c7ec; --code-bg:#0d1117; --code-fg:#e6edf3; --code-line:#30363d;
+  --grey:#90a4ae; --grey-soft:#eceff1;
+  --radius:12px;
+  --font:"IBM Plex Sans Thai","Noto Sans Thai",-apple-system,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.5;overflow-x:hidden}
+button,input,select{font:inherit;color:inherit}
+code,.mono{font-family:var(--mono);font-size:.92em}
+.wrap{max-width:1440px;margin:0 auto;padding:0 16px}
+@media (min-width:900px){.wrap{padding:0 28px}}
+
+/* ---------- หัวหน้า: ไล่สีแบบสไลด์ปก (.sec) ---------- */
+.hero{background:linear-gradient(135deg,#0f3d2e 0%,#1f6b3a 55%,#7cb342 100%);color:#fff;padding:18px 0 20px}
+.when{display:inline-block;background:rgba(0,0,0,.28);border-radius:999px;padding:.1em .8em;font-size:.88rem;font-weight:700}
+.hero h1{font-size:clamp(1.5rem,4.2vw,2.3rem);line-height:1.15;margin:.35em 0 .2em;font-weight:700}
+.lead{background:rgba(255,255,255,.15);border-left:6px solid #ffd54f;border-radius:10px;padding:.3em .8em;margin:.4em 0 .7em;font-weight:600;max-width:60em}
+.flow{display:flex;align-items:stretch;gap:8px;max-width:760px}
+.flow b{flex:1 1 0;min-width:0;background:#fff;color:var(--green-dk);border-radius:10px;padding:.4em .5em;text-align:center;font-size:.86rem;line-height:1.25;box-shadow:0 2px 8px rgba(0,0,0,.18);overflow-wrap:anywhere}
+.flow b small{display:block;font-weight:500;color:var(--muted);font-size:.78rem}
+.flow i{flex:0 0 auto;align-self:center;font-style:normal;font-weight:700;color:#ffd54f;font-size:1.2rem}
+
+/* ---------- แถบเชื่อมต่อ ---------- */
+.connect{margin-top:-14px;background:#fff;border:2px solid var(--pair-line);border-radius:var(--radius);box-shadow:0 4px 18px rgba(0,0,0,.10);padding:12px 14px;display:grid;gap:10px;grid-template-columns:1fr;position:relative}
+@media (min-width:760px){.connect{grid-template-columns:minmax(150px,200px) minmax(200px,280px) auto 1fr;align-items:end}}
+.field label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:2px}
+.field input,.field select{width:100%;height:42px;border:1.5px solid var(--line);border-radius:8px;padding:0 10px;background:#fff}
+.field input{font-family:var(--mono);letter-spacing:.02em}
+.field input:focus,.field select:focus,button:focus-visible{outline:3px solid #71c7ec;outline-offset:1px}
+.field input[aria-invalid="true"]{border-color:var(--red);background:var(--red-soft)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{height:42px;border-radius:8px;border:0;padding:0 16px;font-weight:700;cursor:pointer;background:var(--green-dk);color:#fff;white-space:nowrap}
+.btn:hover{background:var(--green)}
+.btn.ghost{background:#fff;color:var(--fg);border:1.5px solid var(--line)}
+.btn.ghost:hover{background:var(--zebra)}
+.btn.warn{background:var(--red)}
+.btn.warn:hover{background:#c62828}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.status{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;min-width:0}
+.pill{display:inline-flex;align-items:center;gap:8px;background:var(--nav-bg);color:var(--nav-fg);border:1px solid rgba(120,200,255,.42);border-radius:999px;padding:7px 14px;font-weight:700;font-size:.9rem;line-height:1}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--grey);flex:0 0 auto}
+.pill[data-c="online"] .dot{background:#3fb950;box-shadow:0 0 0 3px rgba(63,185,80,.25)}
+.pill[data-c="connecting"] .dot,.pill[data-c="reconnecting"] .dot{background:var(--amber);animation:blink 1s infinite}
+.pill[data-c="offline"] .dot,.pill[data-c="error"] .dot{background:var(--red)}
+.meta{font-size:.8rem;color:var(--cap);overflow-wrap:anywhere}
+.meta code{color:var(--muted)}
+
+/* ---------- ผังหลัก ---------- */
+.main{display:grid;gap:18px;margin:18px 0 8px;grid-template-columns:minmax(0,1fr);grid-template-areas:"cards" "cmd" "time" "kits" "raw"}
+@media (min-width:1100px){.main{grid-template-columns:minmax(0,1fr) 400px;grid-template-areas:"kits cmd" "cards cmd" "cards time" "raw time";align-items:start}}
+.a-kits{grid-area:kits}.a-cards{grid-area:cards}.a-cmd{grid-area:cmd}.a-time{grid-area:time}.a-raw{grid-area:raw}
+h2{font-size:1.15rem;margin:0 0 .45em;font-weight:600;line-height:1.3}
+h2 .sub{font-weight:400;color:var(--cap);font-size:.85rem}
+.cap{font-size:.8rem;color:var(--cap);line-height:1.35;margin:.4em 0 0}
+
+/* ---------- ตาราง 4 ชุด: แบบสไลด์ 4 ---------- */
+table.kits{width:100%;border-collapse:collapse;table-layout:fixed;font-size:.92rem;font-variant-numeric:tabular-nums}
+table.kits th{background:var(--green-dk);color:#fff;font-weight:600;padding:6px 12px;border:1px solid var(--line);text-align:left}
+table.kits td{padding:6px 12px;border:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+table.kits tbody tr:nth-child(2n){background:var(--zebra)}
+table.kits tbody tr{cursor:pointer}
+table.kits tbody tr:hover{background:var(--green-soft)}
+table.kits td small{display:block;color:var(--cap);font-size:.8rem}
+table.kits col.c1{width:56%}
+.now{font-weight:600}
+.now[data-s="never"]{color:var(--cap);font-weight:400}
+.now[data-s="off"]{color:var(--cap)}
+.now[data-s="alert"]{color:var(--red)}
+.now[data-s="ok"]{color:var(--green)}
+
+/* ---------- การ์ดของแต่ละชุด (แบบ .pair ของเด็ค) ---------- */
+.cards{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))}
+.card{--kit:var(--k-generic);background:var(--pair-bg);border:2px solid var(--pair-line);border-left:6px solid var(--kit);border-radius:var(--radius);padding:12px 14px 10px;min-width:0;transition:filter .3s,opacity .3s,box-shadow .3s}
+.card.k-machine{--kit:var(--k-machine)}.card.k-safety{--kit:var(--k-safety)}.card.k-nursery{--kit:var(--k-nursery)}.card.k-voice{--kit:var(--k-voice)}
+.card[data-state="alert"]:not(.off){background:#fff7f7;border-color:#f3b8b6;border-left-color:var(--red);box-shadow:0 0 0 3px rgba(229,57,53,.15)}
+.card.off{filter:grayscale(1);opacity:.62}
+.card-h{display:flex;align-items:flex-start;gap:10px}
+.card-t{flex:1 1 auto;min-width:0}
+.card-t b{display:block;color:var(--green-dk);font-size:1.02rem;line-height:1.25}
+.card-t .mdl{display:block;font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}
+.chip{display:inline-block;border-radius:999px;padding:1px 9px;color:#fff;font-size:.78rem;font-weight:700;background:var(--kit,var(--k-generic));font-family:var(--mono);line-height:1.6}
+.badge{flex:0 0 auto;border-radius:999px;padding:3px 11px;font-weight:700;font-size:.85rem;background:var(--grey-soft);color:#455a64;border:1.5px solid #cfd8dc;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge[data-k="normal"]{background:var(--green-soft);color:var(--green-dk);border-color:#a5d6a7}
+.badge[data-k="alert"]{background:var(--red);color:#fff;border-color:var(--red)}
+.badge[data-k="ack"]{background:var(--amber-soft);color:#8a5a00;border-color:var(--amber)}
+.card:not(.off)[data-state="alert"] .badge{animation:pulse 1.4s infinite}
+.lbl{font-size:clamp(1.9rem,6vw,2.6rem);font-weight:700;line-height:1.1;margin:.35em 0 0;overflow-wrap:anywhere;word-break:break-word}
+.card[data-state="alert"] .lbl{color:var(--red)}
+.lbl-th{min-height:1.4em;color:var(--muted);font-size:.95rem}
+.conf{display:flex;align-items:center;gap:10px;margin:.45em 0 .55em}
+.bar{flex:1 1 auto;height:12px;border-radius:999px;background:#e3e9ec;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--kit);border-radius:999px;transition:width .35s ease}
+.card[data-state="alert"] .bar i{background:var(--red)}
+.pct{flex:0 0 3.6em;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0}
+.stats div{background:#fff;border:1px solid var(--pair-line);border-radius:8px;padding:4px 6px;min-width:0}
+.stats dt{font-size:.72rem;color:var(--cap);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats dd small{font-weight:400;color:var(--cap);font-size:.72rem}
+.foot{font-size:.78rem;color:var(--cap);margin:.5em 0 0;overflow-wrap:anywhere}
+.offtag{display:none;background:var(--fg);color:#fff;border-radius:6px;padding:0 6px;font-weight:700;margin-right:4px}
+.card.off .offtag{display:inline-block}
+.ph{border:3px dashed var(--grey);border-radius:14px;padding:18px 16px;color:#546e7a;background:#f5f7f8;text-align:center;line-height:1.6}
+.ph b{color:var(--fg)}
+
+/* ---------- กล่องคำสั่ง ---------- */
+.panel{background:#fff;border:2px solid var(--pair-line);border-radius:var(--radius);padding:12px 14px}
+.panel .field{margin-bottom:8px}
+.cmdrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.cmdrow .btn{padding:0 8px;width:100%}
+.preview{margin:.6em 0 0;background:var(--code-bg);color:var(--code-fg);border:1px solid var(--code-line);border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:.8rem;line-height:1.45;overflow-wrap:anywhere;white-space:pre-wrap}
+.preview .k{color:#8b949e}
+.ack{margin:.6em 0 0;border-left:6px solid var(--grey);background:var(--grey-soft);border-radius:8px;padding:.35em .7em;font-size:.86rem;overflow-wrap:anywhere}
+.ack[data-k="wait"]{border-color:var(--amber);background:var(--amber-soft)}
+.ack[data-k="ok"]{border-color:var(--green);background:var(--green-soft)}
+.ack[data-k="bad"]{border-color:var(--red);background:var(--red-soft)}
+
+/* ---------- เส้นเวลา ---------- */
+.tl-h{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.tl-h label{font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer}
+.tl{list-style:none;margin:0;padding:0;max-height:560px;overflow-y:auto}
+.tl li{display:grid;grid-template-columns:4.6em minmax(0,1fr);gap:2px 8px;padding:6px 8px;border-left:5px solid var(--grey);background:var(--zebra);border-radius:6px;margin:0 0 5px;font-size:.86rem;line-height:1.35}
+.tl li .t{font-family:var(--mono);font-size:.76rem;color:var(--cap);padding-top:2px}
+.tl li .x{overflow-wrap:anywhere;min-width:0}
+.tl li .chip{margin-right:6px;font-size:.7rem}
+.tl li[data-k="alert"]{border-color:var(--red);background:var(--red-soft)}
+.tl li[data-k="ok"]{border-color:var(--green);background:var(--green-soft)}
+.tl li[data-k="ack"]{border-color:var(--amber);background:var(--amber-soft)}
+.tl li[data-k="cmd"]{border-color:#1e88e5;background:#e3f2fd}
+.tl li[data-k="warn"]{border-color:#8d6e63;background:#efebe9}
+.tl li[data-k="label"]{border-color:var(--tip-line);background:var(--tip-bg)}
+.tl li[data-k="sys"]{border-color:var(--grey)}
+.tl .empty{color:var(--cap);background:none;border:0;display:block}
+
+/* ---------- ข้อความดิบ + สัญญา ---------- */
+details{background:var(--pair-bg);border:2px solid var(--pair-line);border-radius:var(--radius);padding:8px 12px;margin-top:10px}
+summary{cursor:pointer;font-weight:600;color:var(--green-dk)}
+pre.code{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--code-line);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:.78rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;margin:.5em 0 0}
+pre.code .c{color:#8b949e}
+.totals{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--muted);margin-top:6px}
+.totals b{color:var(--fg);font-variant-numeric:tabular-nums}
+.warnbox{background:var(--red-soft);border-left:6px solid var(--red);border-radius:8px;padding:.35em .7em;font-size:.86rem;margin:.6em 0 0}
+.tip{background:var(--tip-bg);border-left:6px solid var(--tip-line);border-radius:8px;padding:.35em .7em;font-size:.86rem;color:var(--tip-fg);margin:.6em 0 0}
+footer{padding:10px 0 28px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@keyframes blink{50%{opacity:.35}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(229,57,53,.5)}50%{box-shadow:0 0 0 6px rgba(229,57,53,0)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:420px){
+  .flow b{font-size:.76rem;padding:.35em .3em}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cmdrow{grid-template-columns:1fr 1fr}
+  .cmdrow .btn:first-child{grid-column:1 / -1}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="when">คาบ 12 · ผล AI ขึ้น MQTT ทันที</span>
+    <h1>ผล AI สด · 4 ชุด Smart HMI</h1>
+    <div class="lead">บอร์ดส่งผล AI ขึ้น broker → หน้านี้ฟังหัวข้อของทีมแล้วแสดงทันที · ส่งคำสั่งเปลี่ยนโมเดลกลับไปได้</div>
+    <div class="flow" aria-hidden="true">
+      <b>บอร์ด<small>edge_ai → JSON</small></b><i>→</i>
+      <b>broker<small id="flowBroker">broker.hivemq.com</small></b><i>→</i>
+      <b>หน้าเว็บนี้<small>MQTT ผ่าน WebSocket</small></b>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="connect" aria-label="เชื่อมต่อ broker">
+    <div class="field">
+      <label for="team">ทีม (TEAM)</label>
+      <input id="team" inputmode="latin" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="6" placeholder="team05">
+    </div>
+    <div class="field">
+      <label for="broker">broker</label>
+      <select id="broker">
+        <option value="hivemq">broker.hivemq.com (หลัก)</option>
+        <option value="mosquitto">test.mosquitto.org (สำรอง)</option>
+      </select>
+    </div>
+    <div class="btns">
+      <button class="btn" id="connectBtn" type="button" disabled>เชื่อมต่อ</button>
+      <button class="btn ghost" id="disconnectBtn" type="button" disabled>ตัด</button>
+    </div>
+    <div class="status">
+      <span class="pill" id="connPill" data-c="loading" role="status" aria-live="polite"><span class="dot"></span><span id="connText">กำลังโหลดไลบรารี MQTT…</span></span>
+      <span class="meta" id="connMeta">ใส่ชื่อทีมแบบเดียวกับ TEAM ในโค้ดบอร์ด แล้วกดเชื่อมต่อ</span>
+    </div>
+  </section>
+
+  <main class="main">
+    <section class="a-kits" aria-labelledby="kitsH">
+      <h2 id="kitsH">4 ชุด Smart HMI · ตอนนี้เป็นอย่างไร <span class="sub">(กดแถวเพื่อเลื่อนไปที่การ์ด)</span></h2>
+      <table class="kits">
+        <colgroup><col class="c1"><col></colgroup>
+        <thead><tr><th>ชุด (ช่อง <code>kit</code>)</th><th>ตอนนี้</th></tr></thead>
+        <tbody id="kitRows"></tbody>
+      </table>
+      <p class="cap">ชุดและโมเดลตามตัวอย่าง Smart HMI ของคาบ 11 · ข้อความที่ไม่มีช่อง <code>kit</code> (ตัวอย่าง 01–03 ของคาบ 12) ขึ้นที่การ์ด “ทั่วไป” · เงียบเกิน 10 วินาที = ออฟไลน์ (บอร์ดส่ง heartbeat ทุก 2 วินาที)</p>
+    </section>
+
+    <section class="a-cards" aria-labelledby="cardsH">
+      <h2 id="cardsH">ผลล่าสุดของแต่ละชุด</h2>
+      <div class="cards" id="cards">
+        <div class="ph" id="placeholder">
+          <b>ยังไม่มีข้อความจากบอร์ด</b><br>
+          รันตัวอย่างบนบอร์ด (เช่น <code>examples/s14/01_ai_to_mqtt.py</code>) ที่ตั้ง <code>TEAM</code> เป็นทีมเดียวกับช่องด้านบน<br>
+          แล้วกดเชื่อมต่อ · หน้านี้ฟัง <code id="phTopic">bento-aiot/&lt;TEAM&gt;/ai</code>
+        </div>
+      </div>
+    </section>
+
+    <section class="a-cmd panel" aria-labelledby="cmdH">
+      <h2 id="cmdH">ส่งคำสั่งกลับไปที่บอร์ด <span class="sub">(ตัวอย่าง 03)</span></h2>
+      <div class="field">
+        <label for="modelSel">โมเดล</label>
+        <select id="modelSel"></select>
+      </div>
+      <div class="cmdrow">
+        <button class="btn" id="selBtn" type="button" disabled>เปลี่ยนโมเดล</button>
+        <button class="btn warn" id="stopBtn" type="button" disabled>หยุด</button>
+        <button class="btn ghost" id="runBtn" type="button" disabled>รัน</button>
+      </div>
+      <div class="preview" id="preview"><span class="k">หัวข้อ</span> bento-aiot/&lt;TEAM&gt;/ai/cmd</div>
+      <div class="ack" id="ack" data-k="idle">ยังไม่ได้ส่งคำสั่ง · ส่งแบบ QoS 0 และ<b>ไม่ retain</b> · ห่างกันอย่างน้อย 3 วินาที (บอร์ดไม่รับคำสั่งที่ถี่กว่านี้)</div>
+      <p class="cap">บอร์ดทำตามเฉพาะชื่อที่อยู่ใน <code>ALLOWED</code> และมีบนบอร์ดจริง · ทำเสร็จบอร์ดส่งสถานะที่ <code>…/ai</code> ทันที ช่อง <code>model</code> คือคำตอบว่าทำแล้ว (หยุดอยู่ = <code>""</code>)</p>
+    </section>
+
+    <section class="a-time panel" aria-labelledby="tlH">
+      <div class="tl-h">
+        <h2 id="tlH">เส้นเวลา <span class="sub">(50 รายการล่าสุด · ใหม่อยู่บน)</span></h2>
+        <label><input type="checkbox" id="showAll"> แสดงทุกข้อความ</label>
+      </div>
+      <ol class="tl" id="timeline"><li class="empty">ยังไม่มีเหตุการณ์</li></ol>
+      <div class="totals" id="totals"></div>
+    </section>
+
+    <section class="a-raw" aria-labelledby="rawH">
+      <h2 id="rawH">ข้อความดิบล่าสุด <span class="sub">(แสดงเป็นตัวอักษรเท่านั้น)</span></h2>
+      <pre class="code" id="raw"><span class="c">ยังไม่มีข้อความ</span></pre>
+      <div class="warnbox"><b>broker สาธารณะไม่เข้ารหัส</b> · ใครรู้ชื่อหัวข้อก็ส่งข้อความปลอมเข้ามาได้ หน้านี้จึงข้ามข้อความที่ไม่ใช่ JSON และใส่ทุกค่าลงจอเป็นตัวอักษร ไม่เคยแปลงเป็น HTML</div>
+      <details>
+        <summary>หน้าตาข้อความที่หน้านี้อ่าน</summary>
+<pre class="code"><span class="c"># bento-aiot/&lt;TEAM&gt;/ai  ตัวอย่าง 01 (ไม่มี kit → การ์ดทั่วไป)</span>
+{"id": "team05", "n": 12, "model": "AnomalousVibration", "label": "anomaly", "conf": 87}
+<span class="c"># ชุด HMI ของคาบ 11 เพิ่ม kit · state · events</span>
+{"id": "team05", "n": 40, "model": "AnomalousVibration", "label": "anomaly", "conf": 91,
+ "kit": "machine", "state": "alert", "events": 3}
+<span class="c"># ตัวอย่าง 02 ใช้ "alarm": 0/1 แทน state · 03 หยุดอยู่ = "model": "" และ "label": "-"</span>
+<span class="c"># bento-aiot/&lt;TEAM&gt;/event  ตัวอย่าง 02</span>
+{"id": "team05", "event": "ai_alarm_start", "model": "AnomalousVibration", "label": "anomaly", "conf": 91}</pre>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <p class="cap">BENTO : : Make Anything. · Embedded Systems for AIoT Developer · คาบ 12 · mqtt.js 5.10.1 · หน้าเดียว ไม่มีเซิร์ฟเวอร์ ไฟล์นี้เปิดจากเครื่องได้เลย</p>
+  </footer>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ---------- ค่าคงที่ ---------- */
+  const BROKERS = new Map([
+    ['hivemq',    { host: 'broker.hivemq.com',  url: 'wss://broker.hivemq.com:8884/mqtt' }],
+    ['mosquitto', { host: 'test.mosquitto.org', url: 'wss://test.mosquitto.org:8081/mqtt' }],
+  ]);
+  const MQTT_SRC = [
+    'https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.10.1/mqtt.min.js',
+    'https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js',
+  ];
+  const MQTT_SRI = 'sha384-u4uqeACkFcoKl57rBQJHVGDd1pqhW4w8X3WjTu1ZksPdxoLqdt34jpoNkJisE25W';
+  const OFFLINE_MS = 10000;     // เงียบเกินนี้ = ออฟไลน์ (heartbeat ของบอร์ดคือ 2 วินาที)
+  const CMD_GAP_MS = 3000;      // = CMD_GAP_MS ใน 03_command_selects_model.py
+  const CMD_COOLDOWN_MS = CMD_GAP_MS + 500;   // เผื่อเวลาเดินทางในเน็ตไม่เท่ากัน ไม่ให้บอร์ดตอบ "too soon"
+  const ACK_WAIT_MS = 15000;    // select() รอแกน AI ยืนยัน ช้าได้หลายวินาที
+  const ECHO_WAIT_MS = 10000;
+  const RATE_WINDOW_MS = 60000;
+  const MAX_BYTES = 1024;       // ข้อความของบอร์ดยาวราว 100 ไบต์
+  const MAX_STR = 48;
+  const TIMELINE_MAX = 50;
+  const MODELS_MAX = 20;
+  const ALLOWED_03 = ['AnomalousVibration', 'HumanActivity', 'Motion Detection'];
+  const KIT_ORDER = ['machine', 'safety', 'nursery', 'voice', 'generic'];
+  const KITS = new Map([
+    ['machine', { name: 'เฝ้าเครื่องจักร',     what: 'การสั่นผิดปกติ',                 model: 'AnomalousVibration' }],
+    ['safety',  { name: 'แผงสัญญาณเตือนภัย', what: 'เสียงไซเรน / เสียงสัญญาณเตือน', model: 'Siren Detection · Alarm Detection' }],
+    ['nursery', { name: 'เฝ้าห้องเด็ก',        what: 'เสียงเด็กร้อง',                  model: 'Baby Cry Detection' }],
+    ['voice',   { name: 'บ้านสั่งด้วยเสียง',    what: 'คำสั่งเสียง',                    model: 'Voice Commands' }],
+    ['generic', { name: 'ผล AI ทั่วไป',        what: 'ข้อความไม่มีช่อง kit',            model: 'ตัวอย่าง 01–03 ของคาบ 12' }],
+  ]);
+  // ป้ายจริงของโมเดลบนบอร์ด (จาก edge_ai.models()) → คำไทยสั้น ๆ
+  const LABEL_TH = new Map([
+    ['unlabeled', 'ไม่พบสิ่งที่เฝ้า'], ['unlabelled', 'ไม่พบสิ่งที่เฝ้า'], ['background', 'เสียงพื้นหลัง'],
+    ['anomaly', 'สั่นผิดปกติ'], ['sirens', 'เสียงไซเรน'], ['alarm', 'เสียงสัญญาณเตือน'],
+    ['baby_cry', 'เด็กร้อง'], ['crying_baby', 'เด็กร้อง'], ['cough', 'เสียงไอ'], ['water_tap', 'น้ำไหลจากก๊อก'],
+    ['left', 'ซ้าย'], ['right', 'ขวา'], ['up', 'ขึ้น'], ['down', 'ลง'], ['stop', 'หยุด'], ['go', 'ไป'],
+    ['yes', 'ใช่'], ['no', 'ไม่'], ['idle', 'นิ่ง'], ['circle', 'หมุนเป็นวง'], ['shaking', 'เขย่า'],
+    ['standing', 'ยืน'], ['running', 'วิ่ง'], ['walking', 'เดิน'], ['sitting', 'นั่ง'], ['jumping', 'กระโดด'],
+    ['-', 'ยังไม่มีผล'],
+  ]);
+  const STATE_TH = new Map([['normal', 'ปกติ'], ['alert', 'เตือน'], ['ack', 'รับทราบแล้ว']]);
+  const CONN_TH = new Map([
+    ['loading', 'กำลังโหลดไลบรารี MQTT…'], ['nolib', 'โหลดไลบรารี MQTT ไม่ได้'], ['idle', 'ยังไม่เชื่อมต่อ'],
+    ['connecting', 'กำลังเชื่อมต่อ…'], ['online', 'เชื่อมต่อแล้ว'], ['reconnecting', 'หลุด · กำลังต่อใหม่…'],
+    ['offline', 'หลุดการเชื่อมต่อ'], ['error', 'เชื่อมต่อไม่ได้'],
+  ]);
+
+  /* ---------- สถานะของหน้า ---------- */
+  const S = {
+    lib: false, client: null, conn: 'loading', team: null, broker: 'hivemq', clientId: '',
+    connectedAt: 0, totals: { msg: 0, bad: 0, retained: 0 }, cards: new Map(), timeline: [],
+    models: new Set(), modelsDirty: true, pending: null, lastCmdAt: -Infinity, raw: null,
+    showAll: false, dirty: true, tlDirty: true, warned: new Map(),
+  };
+  let T = { ai: '', event: '', cmd: '' };
+  const $ = id => document.getElementById(id);
+  const DEC = new TextDecoder('utf-8');
+
+  /* ---------- ตัวช่วย: ทุกค่าจาก broker ผ่านที่นี่ และลงจอด้วย textContent เท่านั้น ---------- */
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined && text !== null) e.textContent = String(text);
+    return e;
+  }
+  function clip(s, max = MAX_STR) {
+    s = String(s).replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, ' ');
+    return s.length > max ? s.slice(0, max) + '…' : s;
+  }
+  const str = (v, max) => (typeof v === 'string' ? clip(v, max) : null);
+  const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+  const int = v => (Number.isInteger(v) ? v : null);
+  const pad = x => String(x).padStart(2, '0');
+  const hms = t => { const d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); };
+  function ago(ms) {
+    if (ms < 1500) return 'เมื่อกี้';
+    const s = Math.round(ms / 1000);
+    if (s < 60) return s + ' วิ';
+    const m = Math.floor(s / 60);
+    return m < 60 ? m + ' นาที' : Math.floor(m / 60) + ' ชม.';
+  }
+  const teamOk = t => /^team[0-9]{2}$/.test(t) && t !== 'team00';    // กฎเดียวกับ team_ok() บนบอร์ด
+  function store(k, v) { try { localStorage.setItem('bento-s14-' + k, v); } catch (e) { /* โหมดส่วนตัว / ปิดที่เก็บ: ใช้ต่อได้ */ } }
+  function load(k) { try { return localStorage.getItem('bento-s14-' + k); } catch (e) { return null; } }
+  function randHex(n) {
+    const a = new Uint8Array(n);
+    try { crypto.getRandomValues(a); } catch (e) { for (let i = 0; i < n; i++) a[i] = Math.floor(Math.random() * 256); }
+    return Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /* ---------- เส้นเวลา ---------- */
+  function log(kind, kit, text) {
+    S.timeline.unshift({ t: Date.now(), kind, kit: kit || null, text: String(text) });
+    if (S.timeline.length > TIMELINE_MAX) S.timeline.length = TIMELINE_MAX;
+    S.tlDirty = true; schedule();
+  }
+  function warnOnce(key, text, everyMs = 10000) {      // กันข้อความเตือนซ้ำท่วมเส้นเวลา
+    const now = Date.now(), last = S.warned.get(key) || 0;
+    if (now - last < everyMs) return;
+    if (S.warned.size > 200) S.warned.clear();
+    S.warned.set(key, now); log('warn', null, text);
+  }
+  function bad(why, topic, text) {
+    S.totals.bad++;
+    warnOnce('bad:' + why, 'ข้ามข้อความ (' + why + ')' + (text ? ': ' + clip(text, 60) : '') + (topic ? ' · ' + topic : ''), 3000);
+    S.dirty = true; schedule();
+  }
+
+  /* ---------- การ์ด ---------- */
+  function getCard(kit) {
+    let c = S.cards.get(kit);
+    if (c) return c;
+    const k = KITS.get(kit);
+    c = { kit, model: null, label: null, conf: null, state: { key: 'none', text: 'ไม่มีสถานะ', src: '' }, events: null,
+          evCount: 0, n: null, missed: 0, resets: 0, times: [], lastSeen: 0, retainedOnly: true, msgs: 0, el: {} };
+    const a = el('article', 'card k-' + kit); a.id = 'card-' + kit; a.dataset.kit = kit; a.dataset.state = 'none';
+    const h = el('header', 'card-h');
+    const chip = el('span', 'chip', kit);
+    const t = el('div', 'card-t'); t.append(el('b', '', k.name), c.el.mdl = el('span', 'mdl', 'โมเดล —'));
+    h.append(chip, t, c.el.badge = el('span', 'badge', 'ไม่มีสถานะ'));
+    c.el.lbl = el('div', 'lbl', '—'); c.el.lblTh = el('div', 'lbl-th', '');
+    const conf = el('div', 'conf'); const bar = el('div', 'bar'); c.el.fill = el('i'); bar.append(c.el.fill);
+    bar.setAttribute('role', 'progressbar'); bar.setAttribute('aria-valuemin', '0'); bar.setAttribute('aria-valuemax', '100'); c.el.bar = bar;
+    conf.append(bar, c.el.pct = el('span', 'pct', '—'));
+    const dl = el('dl', 'stats');
+    const stat = (label) => { const d = el('div'); const dd = el('dd', '', '—'); d.append(el('dt', '', label), dd); dl.append(d); return dd; };
+    c.el.ev = stat('เหตุการณ์'); c.el.n = stat('ข้อความ #n'); c.el.rate = stat('ต่อนาที'); c.el.age = stat('ล่าสุด');
+    c.el.foot = el('p', 'foot');
+    a.append(h, c.el.lbl, c.el.lblTh, conf, dl, c.el.foot);
+    c.el.root = a;
+    S.cards.set(kit, c);
+    const box = $('cards'); const ph = $('placeholder'); if (ph) ph.remove();
+    const after = KIT_ORDER.slice(KIT_ORDER.indexOf(kit) + 1).map(x => S.cards.get(x)).find(x => x && x.el.root.isConnected);
+    box.insertBefore(a, after ? after.el.root : null);
+    return c;
+  }
+  function kitOf(obj) {
+    const v = obj.kit;
+    if (v === undefined || v === null) return 'generic';
+    if (typeof v === 'string' && KITS.has(v)) return v;
+    warnOnce('kit:' + clip(String(v), 20), 'ช่อง kit ไม่รู้จัก: ' + clip(typeof v === 'string' ? v : JSON.stringify(v), 30) + ' → แสดงที่การ์ดทั่วไป');
+    return 'generic';
+  }
+  function parseState(obj) {
+    if (typeof obj.state === 'string') {
+      const s = clip(obj.state, 16);
+      return STATE_TH.has(s) ? { key: s, text: STATE_TH.get(s), src: 'state' } : { key: 'other', text: s, src: 'state' };
+    }
+    if (obj.alarm === 0 || obj.alarm === 1 || typeof obj.alarm === 'boolean') {
+      return obj.alarm ? { key: 'alert', text: 'เตือน', src: 'alarm' } : { key: 'normal', text: 'ปกติ', src: 'alarm' };
+    }
+    return { key: 'none', text: 'ไม่มีสถานะ', src: '' };
+  }
+  function checkId(obj) {
+    if (obj.id === undefined) return;
+    const id = typeof obj.id === 'string' ? clip(obj.id, 24) : clip(JSON.stringify(obj.id), 24);
+    if (id !== S.team) warnOnce('id:' + id, 'ช่อง id = "' + id + '" ไม่ตรงกับทีม ' + S.team + ' · มีคนอื่นส่งเข้าหัวข้อนี้ หรือ TEAM ในโค้ดบอร์ดไม่ตรง');
+  }
+  function addModel(m) {
+    if (!m || S.models.has(m) || S.models.size >= MODELS_MAX) return;
+    S.models.add(m); S.modelsDirty = true;
+  }
+
+  /* ---------- รับข้อความ ---------- */
+  function onMessage(topic, payload, packet) {
+    S.totals.msg++;
+    const kind = topic === T.ai ? 'ai' : topic === T.event ? 'event' : topic === T.cmd ? 'cmd' : null;
+    if (!kind) return;
+    const retained = !!(packet && packet.retain);
+    if (!payload || payload.length > MAX_BYTES) return bad('ยาวเกิน ' + MAX_BYTES + ' ไบต์', topic);
+    const text = DEC.decode(payload);
+    if (kind !== 'cmd') S.raw = { topic, text, t: Date.now(), retained };
+    let obj;
+    try { obj = JSON.parse(text); } catch (e) { return bad('ไม่ใช่ JSON', topic, text); }
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return bad('ไม่ใช่ JSON object', topic, text);
+    try {
+      if (kind === 'ai') onStatus(obj, retained);
+      else if (kind === 'event') onEvent(obj, retained);
+      else onCmdSeen(text, obj, retained);
+    } catch (e) {
+      return bad('อ่านไม่ได้', topic, text);       // ข้อความแปลก ๆ ต้องไม่ทำให้หน้าล้ม
+    }
+    S.dirty = true; schedule();
+  }
+
+  function onStatus(obj, retained) {
+    checkId(obj);
+    const kit = kitOf(obj);
+    const c = getCard(kit);
+    const now = Date.now();
+    const model = typeof obj.model === 'string' ? clip(obj.model) : null;
+    const label = str(obj.label);
+    const confRaw = num(obj.conf);
+    const conf = confRaw === null ? null : Math.max(0, Math.min(100, Math.round(confRaw)));
+    const st = parseState(obj);
+    const n = int(obj.n);
+    if (retained) {
+      S.totals.retained++;
+      warnOnce('ret:ai', 'มีข้อความค้างแบบ retain บน ' + T.ai + ' · เป็นของเก่า ไม่ใช่ผลสด');
+    } else {
+      c.retainedOnly = false; c.lastSeen = now; c.msgs++; c.gen = (kit === 'generic');
+      c.times.push(now);
+      if (n !== null) {
+        if (c.n !== null) {
+          if (kit === 'generic' && n > c.n + 1 && n - c.n < 100000) c.missed += n - c.n - 1;   // 01-03: n counts messages; HMI kits: n is the AI result seq
+          else if (n < c.n) { c.resets++; log('sys', kit, 'n เริ่มนับใหม่ (' + c.n + ' → ' + n + ') · บอร์ดน่าจะเริ่มโปรแกรมใหม่'); }
+        }
+        c.n = n;
+      }
+    }
+    if (model !== c.model && c.model !== null) log('sys', kit, 'โมเดล ' + (c.model || '(หยุดอยู่)') + ' → ' + (model === '' ? '(หยุดอยู่)' : (model ?? 'ไม่ระบุ')));
+    if (label !== c.label) log('label', kit, 'ป้าย ' + (c.label ?? '—') + ' → ' + (label ?? '—') + (conf !== null ? ' (' + conf + '%)' : ''));
+    if (st.key !== c.state.key || st.text !== c.state.text) {
+      if (c.msgs > 1 || st.key === 'alert') {
+        const k = st.key === 'alert' ? 'alert' : st.key === 'normal' ? 'ok' : st.key === 'ack' ? 'ack' : 'sys';
+        log(k, kit, 'สถานะ ' + c.state.text + ' → ' + st.text + (st.src === 'alarm' ? ' (ช่อง alarm)' : ''));
+      }
+    }
+    if (S.showAll && !retained) log('msg', kit, '#' + (n ?? '?') + ' ' + (label ?? '—') + (conf !== null ? ' ' + conf + '%' : '') + (model ? ' · ' + model : ''));
+    c.model = model; c.label = label; c.conf = conf; c.state = st;
+    const ev = int(obj.events); c.events = ev;
+    if (model) addModel(model);
+    if (!retained) checkAck(model, now);
+  }
+
+  function onEvent(obj, retained) {
+    checkId(obj);
+    const kit = kitOf(obj);
+    const c = getCard(kit);
+    const ev = str(obj.event, 32) ?? '(ไม่มีช่อง event)';
+    const label = str(obj.label); const confRaw = num(obj.conf);
+    const tail = (label ? ' · ' + label : '') + (confRaw !== null ? ' ' + Math.max(0, Math.min(100, Math.round(confRaw))) + '%' : '');
+    if (retained) { warnOnce('ret:ev', 'มีเหตุการณ์ค้างแบบ retain บน ' + T.event + ' · เป็นของเก่า'); return; }
+    if (ev === 'ai_alarm_start') { c.evCount++; log('alert', kit, 'เริ่มเตือน (ai_alarm_start)' + tail); }
+    else if (ev === 'ai_alarm_end') log('ok', kit, 'หายเตือน (ai_alarm_end)' + tail);
+    else log('sys', kit, 'เหตุการณ์ ' + ev + tail);
+    if (typeof obj.model === 'string') addModel(clip(obj.model));
+  }
+
+  function onCmdSeen(text, obj, retained) {
+    if (retained) {
+      warnOnce('ret:cmd', 'มีคำสั่งค้างแบบ retain บน ' + T.cmd + ' · บอร์ดจะได้คำสั่งนี้ทุกครั้งที่เริ่มโปรแกรม · ล้างด้วย mosquitto_pub -r -n -t \'' + T.cmd + '\'', 60000);
+      return;
+    }
+    const p = S.pending;
+    if (p && !p.echoed && text === p.text && Date.now() - p.t < ECHO_WAIT_MS) {
+      p.echoed = Date.now();
+      log('cmd', null, 'broker ส่งคำสั่งกลับมาให้หน้านี้แล้ว (' + ((p.echoed - p.t) / 1000).toFixed(1) + ' วิ) = คำสั่งถึง broker');
+      return;
+    }
+    warnOnce('cmd:' + clip(text, 40), 'มีคำสั่งจากเครื่องอื่นบน …/ai/cmd: ' + clip(text, 80), 3000);
+  }
+
+  /* ---------- คำสั่ง ---------- */
+  function sendCmd(obj) {
+    if (!S.client || S.conn !== 'online') return;
+    const now = Date.now();
+    if (now - S.lastCmdAt < CMD_COOLDOWN_MS) return;
+    const text = JSON.stringify(obj);
+    S.lastCmdAt = now;
+    S.pending = { obj, text, t: now, echoed: 0, done: null };
+    S.client.publish(T.cmd, text, { qos: 0, retain: false }, err => {
+      if (err) { S.pending.done = 'err'; log('warn', null, 'ส่งคำสั่งไม่สำเร็จ: ' + clip(err.message || err, 60)); }
+      S.dirty = true; schedule();
+    });
+    log('cmd', null, 'ส่งคำสั่ง ' + text + ' (QoS 0 · ไม่ retain)');
+    render();                     // ปิดปุ่มทันที ไม่รอเฟรมถัดไป กันกดซ้ำ
+  }
+  function checkAck(model, now) {
+    const p = S.pending;
+    if (!p || p.done || model === null) return;
+    const o = p.obj;
+    const ok = (o.cmd === 'select' && model === o.model) || (o.cmd === 'stop' && model === '') || (o.cmd === 'run' && model !== '');
+    if (!ok) return;
+    p.done = 'ok'; p.doneAt = now;
+    log('ack', null, 'บอร์ดตอบแล้วใน ' + ((now - p.t) / 1000).toFixed(1) + ' วิ: model = ' + (model === '' ? '"" (หยุดอยู่)' : model));
+  }
+  function tickAck(now) {
+    const p = S.pending;
+    if (p && !p.done && now - p.t > ACK_WAIT_MS) {
+      p.done = 'timeout';
+      log('warn', null, 'ไม่เห็นบอร์ดตอบใน ' + ACK_WAIT_MS / 1000 + ' วินาที · บอร์ดอาจไม่ได้รัน 03, ชื่อโมเดลไม่อยู่ใน ALLOWED หรือคำสั่งถี่เกินไป');
+    }
+  }
+
+  /* ---------- เชื่อมต่อ ---------- */
+  function setConn(c, extra) {
+    S.conn = c; S.connExtra = extra || ''; S.dirty = true; schedule();
+  }
+  function resetData() {
+    for (const c of S.cards.values()) c.el.root.remove();
+    S.cards.clear(); S.timeline.length = 0; S.models.clear(); S.modelsDirty = true; S.pending = null; S.raw = null;
+    S.totals = { msg: 0, bad: 0, retained: 0 }; S.warned.clear(); S.tlDirty = true;
+    if (!$('placeholder')) {
+      const ph = el('div', 'ph'); ph.id = 'placeholder';
+      ph.append(el('b', '', 'ยังไม่มีข้อความจากบอร์ด'), document.createElement('br'),
+        document.createTextNode('รอข้อความที่ '), el('code', '', T.ai || 'bento-aiot/<TEAM>/ai'),
+        document.createElement('br'), document.createTextNode('ตรวจว่า TEAM ในโค้ดบอร์ดตรงกับช่องด้านบน และบอร์ดต่อ WiFi อยู่'));
+      $('cards').append(ph);
+    }
+  }
+  function connect() {
+    if (!S.lib) return;
+    const team = $('team').value.trim().toLowerCase();
+    $('team').value = team;
+    if (!teamOk(team)) {
+      $('team').setAttribute('aria-invalid', 'true');
+      setConn('idle', 'ชื่อทีมต้องเป็น team01 ถึง team99');
+      $('team').focus();
+      return;
+    }
+    $('team').removeAttribute('aria-invalid');
+    const bkey = BROKERS.has($('broker').value) ? $('broker').value : 'hivemq';
+    const b = BROKERS.get(bkey);
+    if (S.client) { const old = S.client; S.client = null; try { old.end(true); } catch (e) {} }
+    const teamChanged = team !== S.team;
+    S.team = team; S.broker = bkey;
+    T = { ai: 'bento-aiot/' + team + '/ai', event: 'bento-aiot/' + team + '/event', cmd: 'bento-aiot/' + team + '/ai/cmd' };
+    if (teamChanged) resetData();
+    const ph = $('phTopic'); if (ph) ph.textContent = T.ai;
+    store('team', team);         // จำแค่ทีม · broker เริ่มที่ HiveMQ ทุกครั้ง เพราะบอร์ดส่งไปที่นั่น
+    S.clientId = 'bento-web-' + team + '-' + randHex(4);      // ไม่ซ้ำกับบอร์ด (bento-ai-…) และไม่ซ้ำกันเองระหว่างแท็บ
+    $('flowBroker').textContent = b.host;
+    setConn('connecting');
+    let c;
+    try {
+      c = window.mqtt.connect(b.url, { clientId: S.clientId, clean: true, keepalive: 30, reconnectPeriod: 3000,
+                                       connectTimeout: 10000, protocolVersion: 4, resubscribe: false });
+    } catch (e) { setConn('error', clip(e.message || e, 80)); return; }
+    S.client = c;
+    c.on('connect', () => {
+      if (S.client !== c) return;
+      S.connectedAt = Date.now();
+      setConn('online');
+      c.subscribe([T.ai, T.event, T.cmd], { qos: 0 }, (err, granted) => {
+        if (S.client !== c) return;
+        if (err) { log('warn', null, 'subscribe ไม่สำเร็จ: ' + clip(err.message || err, 60)); return; }
+        const okN = (granted || []).filter(g => g.qos !== 128).length;
+        log('sys', null, 'เชื่อมต่อ ' + b.host + ' แล้ว · ฟัง ' + okN + ' หัวข้อของ ' + S.team);
+      });
+    });
+    c.on('reconnect', () => { if (S.client === c) setConn('reconnecting'); });
+    c.on('offline', () => { if (S.client === c) { setConn('offline'); log('sys', null, 'หลุดการเชื่อมต่อ broker'); } });
+    c.on('error', e => { if (S.client === c) { setConn('error', clip(e && e.message || e, 80)); warnOnce('connerr', 'เชื่อมต่อผิดพลาด: ' + clip(e && e.message || e, 80)); } });
+    c.on('message', (topic, payload, packet) => { if (S.client === c) onMessage(topic, payload, packet); });
+  }
+  function disconnect() {
+    if (!S.client) return;
+    const c = S.client; S.client = null;
+    try { c.end(); } catch (e) {}
+    setConn('idle', 'ตัดการเชื่อมต่อแล้ว');
+    log('sys', null, 'ตัดการเชื่อมต่อ');
+  }
+
+  /* ---------- วาดจอ (รวมหลายข้อความเป็นการวาดครั้งเดียว) ---------- */
+  let queued = false;
+  function schedule() { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; render(); }); } }
+
+  function renderCard(c, now) {
+    const off = c.retainedOnly || now - c.lastSeen > OFFLINE_MS;
+    const e = c.el;
+    e.root.classList.toggle('off', off);
+    e.root.dataset.state = c.state.key;
+    e.mdl.textContent = c.model === '' ? 'โมเดล: หยุดอยู่ (model = "")' : c.model === null ? 'โมเดล: ไม่ระบุ' : 'โมเดล ' + c.model;
+    e.badge.textContent = c.state.text; e.badge.dataset.k = c.state.key; e.badge.title = c.state.text;
+    const lab = c.label;
+    e.lbl.textContent = lab === null ? '—' : lab === '-' ? '—' : lab;
+    e.lblTh.textContent = lab !== null && LABEL_TH.has(lab) ? LABEL_TH.get(lab) : (lab === null ? 'ข้อความไม่มีช่อง label' : '');
+    e.fill.style.width = (c.conf ?? 0) + '%';
+    e.bar.setAttribute('aria-valuenow', String(c.conf ?? 0));
+    e.pct.textContent = c.conf === null ? '—' : c.conf + '%';
+    if (c.events !== null) { e.ev.textContent = String(c.events); e.ev.title = 'ช่อง events จากบอร์ด'; }
+    else if (c.evCount) { e.ev.textContent = String(c.evCount); e.ev.title = 'นับ ai_alarm_start ที่หน้านี้เห็นบน /event'; }
+    else { e.ev.textContent = '—'; e.ev.title = 'บอร์ดไม่ได้ส่งช่อง events'; }
+    e.n.textContent = c.n === null ? '—' : '#' + c.n;
+    while (c.times.length && now - c.times[0] > RATE_WINDOW_MS) c.times.shift();
+    e.rate.textContent = String(c.times.length);
+    e.age.textContent = c.retainedOnly ? 'ค้าง' : ago(now - c.lastSeen);
+    e.foot.textContent = '';
+    if (off) e.foot.append(el('span', 'offtag', 'ออฟไลน์'));
+    const bits = [];
+    if (c.retainedOnly) bits.push('มีแต่ข้อความค้าง (retain) ยังไม่เห็นข้อความสด');
+    else bits.push('เห็นล่าสุด ' + hms(c.lastSeen) + (off ? ' · เงียบเกิน ' + OFFLINE_MS / 1000 + ' วินาที' : ''));
+    bits.push(c.gen === false ? 'n = ลำดับผล AI ของบอร์ด (ไม่ใช่ตัวนับข้อความ)' : (c.missed ? 'ขาดหาย ' + c.missed + ' ข้อความ (ดูจาก n)' : 'n ต่อเนื่อง ไม่ขาด'));
+    if (c.resets) bits.push('เริ่มนับใหม่ ' + c.resets + ' ครั้ง');
+    if (c.state.src === 'alarm') bits.push('สถานะจากช่อง alarm');
+    if (c.events === null && c.evCount) bits.push('เหตุการณ์นับจาก /event');
+    e.foot.append(document.createTextNode(bits.join(' · ')));
+  }
+
+  function renderKits(now) {
+    const body = $('kitRows');
+    if (!body.childElementCount) {
+      for (const kit of KIT_ORDER) {
+        const k = KITS.get(kit);
+        const tr = el('tr'); tr.dataset.kit = kit;
+        const td1 = el('td'); const chip = el('span', 'chip', kit); chip.style.background = 'var(--k-' + kit + ')';
+        td1.append(chip, document.createTextNode(' '), el('b', '', k.name), el('small', '', k.what + ' · ' + k.model));
+        const td2 = el('td', 'now'); td2.dataset.s = 'never'; td2.textContent = 'ยังไม่เห็นข้อความ';
+        tr.append(td1, td2);
+        tr.addEventListener('click', () => { const c = S.cards.get(kit); if (c) c.el.root.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+        body.append(tr);
+      }
+    }
+    for (const tr of body.children) {
+      const c = S.cards.get(tr.dataset.kit), td = tr.lastChild;
+      if (!c) { td.dataset.s = 'never'; td.textContent = 'ยังไม่เห็นข้อความ'; continue; }
+      const off = c.retainedOnly || now - c.lastSeen > OFFLINE_MS;
+      const lab = c.label === null || c.label === '-' ? '—' : c.label;
+      if (off) { td.dataset.s = 'off'; td.textContent = 'ออฟไลน์ · ' + (c.retainedOnly ? 'มีแต่ข้อความค้าง' : 'เห็นล่าสุด ' + ago(now - c.lastSeen) + 'ที่แล้ว'); }
+      else { td.dataset.s = c.state.key === 'alert' ? 'alert' : 'ok'; td.textContent = 'ออนไลน์ · ' + lab + (c.conf !== null ? ' ' + c.conf + '%' : '') + ' · ' + c.state.text; }
+    }
+  }
+
+  function renderTimeline() {
+    const ol = $('timeline');
+    ol.textContent = '';
+    if (!S.timeline.length) { ol.append(el('li', 'empty', 'ยังไม่มีเหตุการณ์')); return; }
+    for (const it of S.timeline) {
+      const li = el('li'); li.dataset.k = it.kind;
+      const x = el('span', 'x');
+      if (it.kit) { const chip = el('span', 'chip', it.kit); chip.style.background = 'var(--k-' + it.kit + ')'; x.append(chip); }
+      x.append(document.createTextNode(it.text));
+      li.append(el('span', 't', hms(it.t)), x);
+      ol.append(li);
+    }
+  }
+
+  function renderModels() {
+    const sel = $('modelSel'); const keep = sel.value;
+    sel.textContent = '';
+    const seen = [...S.models];
+    if (seen.length) {
+      const g = document.createElement('optgroup'); g.label = 'โมเดลที่เห็นจากบอร์ด';
+      for (const m of seen) g.append(new Option(m, m));
+      sel.append(g);
+    }
+    const rest = ALLOWED_03.filter(m => !S.models.has(m));
+    if (rest.length) {
+      const g = document.createElement('optgroup'); g.label = 'ชื่อที่ตัวอย่าง 03 รับ (ALLOWED)';
+      for (const m of rest) g.append(new Option(m, m));
+      sel.append(g);
+    }
+    if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
+    S.modelsDirty = false;
+  }
+
+  function renderCmd(now) {
+    const online = S.conn === 'online' && !!S.client;
+    const wait = Math.max(0, CMD_COOLDOWN_MS - (now - S.lastCmdAt));
+    for (const id of ['selBtn', 'stopBtn', 'runBtn']) $(id).disabled = !online || wait > 0;
+    const m = $('modelSel').value;
+    const pv = $('preview'); pv.textContent = '';
+    pv.append(el('span', 'k', 'หัวข้อ '), document.createTextNode(T.cmd || 'bento-aiot/<TEAM>/ai/cmd'), document.createTextNode('\n'),
+              el('span', 'k', 'ส่ง   '), document.createTextNode(JSON.stringify({ cmd: 'select', model: m || '…' })));
+    const ack = $('ack'); const p = S.pending;
+    let k = 'idle', txt;
+    if (!online) txt = 'เชื่อมต่อ broker ก่อน จึงส่งคำสั่งได้';
+    else if (!p) txt = 'ยังไม่ได้ส่งคำสั่ง · QoS 0 ไม่ retain · ห่างกันอย่างน้อย 3 วินาที';
+    else {
+      const parts = ['ส่ง ' + p.text];
+      parts.push(p.echoed ? 'ถึง broker แล้ว' : 'รอ broker ส่งกลับ…');
+      if (p.done === 'ok') { k = 'ok'; parts.push('บอร์ดตอบแล้ว (ช่อง model ตรงกับคำสั่ง)'); }
+      else if (p.done === 'timeout') { k = 'bad'; parts.push('ไม่เห็นบอร์ดตอบใน ' + ACK_WAIT_MS / 1000 + ' วิ'); }
+      else if (p.done === 'err') { k = 'bad'; parts.push('ส่งไม่สำเร็จ'); }
+      else { k = 'wait'; parts.push('รอบอร์ดตอบ… ' + Math.ceil((now - p.t) / 1000) + ' วิ'); }
+      txt = parts.join(' → ');
+    }
+    if (online && wait > 0) txt += ' · ส่งได้อีกใน ' + Math.ceil(wait / 1000) + ' วิ';
+    ack.dataset.k = k; ack.textContent = txt;
+  }
+
+  function render() {
+    const now = Date.now();
+    const pill = $('connPill'); pill.dataset.c = S.conn;
+    $('connText').textContent = CONN_TH.get(S.conn) || S.conn;
+    const meta = $('connMeta');
+    if (S.team && S.conn !== 'loading' && S.conn !== 'nolib') {
+      meta.textContent = '';
+      meta.append(document.createTextNode('ฟัง '), el('code', '', 'bento-aiot/' + S.team + '/ai'), document.createTextNode(' · /event · /ai/cmd · client id '),
+                  el('code', '', S.clientId), document.createTextNode(S.connExtra ? ' · ' + S.connExtra : ''));
+    } else if (S.connExtra) meta.textContent = S.connExtra;
+    $('connectBtn').disabled = !S.lib;
+    $('connectBtn').textContent = S.client ? 'เชื่อมต่อใหม่' : 'เชื่อมต่อ';
+    $('disconnectBtn').disabled = !S.client;
+    for (const c of S.cards.values()) renderCard(c, now);
+    renderKits(now);
+    if (S.tlDirty) { renderTimeline(); S.tlDirty = false; }
+    if (S.modelsDirty) renderModels();
+    renderCmd(now);
+    const tot = $('totals'); tot.textContent = '';
+    const tb = (label, v) => { const s = el('span'); s.append(document.createTextNode(label + ' '), el('b', '', v)); tot.append(s); };
+    tb('รับทั้งหมด', S.totals.msg); tb('ข้ามเพราะผิดรูป', S.totals.bad); tb('ข้อความค้าง (retain)', S.totals.retained);
+    if (S.connectedAt && S.conn === 'online') tb('ต่ออยู่', ago(now - S.connectedAt));
+    const raw = $('raw');
+    if (S.raw && raw.dataset.t !== String(S.raw.t)) {
+      raw.dataset.t = String(S.raw.t); raw.textContent = '';
+      raw.append(el('span', 'c', '# ' + hms(S.raw.t) + ' · ' + S.raw.topic + (S.raw.retained ? ' · ค้าง (retain)' : '') + '\n'),
+                 document.createTextNode(clip(S.raw.text, 600)));
+    }
+    S.dirty = false;
+  }
+
+  /* ---------- โหลด mqtt.js (cdnjs ก่อน ไม่ได้ค่อย jsdelivr) ---------- */
+  function loadLib(i) {
+    if (window.mqtt && typeof window.mqtt.connect === 'function') return libReady();
+    if (i >= MQTT_SRC.length) { setConn('nolib', 'ต้องต่ออินเทอร์เน็ตเพื่อโหลด mqtt.js 5.10.1'); return; }
+    const s = document.createElement('script');
+    s.src = MQTT_SRC[i]; s.integrity = MQTT_SRI; s.crossOrigin = 'anonymous'; s.referrerPolicy = 'no-referrer';
+    s.onload = () => (window.mqtt && typeof window.mqtt.connect === 'function') ? libReady() : loadLib(i + 1);
+    s.onerror = () => loadLib(i + 1);
+    document.head.append(s);
+  }
+  function libReady() {
+    S.lib = true;
+    setConn('idle');
+    const q = new URLSearchParams(location.search);
+    const qt = (q.get('team') || '').trim().toLowerCase();
+    if (teamOk(qt) && $('team').value === qt) connect();            // ?team=team05 = เชื่อมต่อให้เลย
+  }
+
+  /* ---------- เริ่ม ---------- */
+  function init() {
+    const q = new URLSearchParams(location.search);
+    const qt = (q.get('team') || '').trim().toLowerCase();
+    const qb = q.get('broker');
+    $('team').value = teamOk(qt) ? qt : (teamOk(load('team') || '') ? load('team') : '');
+    const b = BROKERS.has(qb) ? qb : 'hivemq';                      // ?broker=mosquitto = ใช้ตัวสำรอง
+    $('broker').value = b; $('flowBroker').textContent = BROKERS.get(b).host;
+    S.showAll = load('showall') === '1'; $('showAll').checked = S.showAll;
+    $('connectBtn').addEventListener('click', connect);
+    $('disconnectBtn').addEventListener('click', disconnect);
+    $('team').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
+    $('team').addEventListener('input', () => $('team').removeAttribute('aria-invalid'));
+    $('broker').addEventListener('change', () => { $('flowBroker').textContent = BROKERS.get($('broker').value).host; });
+    $('showAll').addEventListener('change', () => { S.showAll = $('showAll').checked; store('showall', S.showAll ? '1' : '0'); });
+    $('modelSel').addEventListener('change', () => { S.dirty = true; schedule(); });
+    $('selBtn').addEventListener('click', () => { const m = $('modelSel').value; if (m) sendCmd({ cmd: 'select', model: m }); });
+    $('stopBtn').addEventListener('click', () => sendCmd({ cmd: 'stop' }));
+    $('runBtn').addEventListener('click', () => sendCmd({ cmd: 'run' }));
+    setInterval(() => { tickAck(Date.now()); render(); }, 1000);
+    render();
+    loadLib(0);
+  }
+  init();
+})();
+</script>
+</body>
+</html>
