@@ -124,8 +124,8 @@
 <p class="act">เลือก BENTO MicroPython — PSoC Edge Eval Kit v1.7.8</p>
 <ul>
 <li>อย่าเลือก <strong>Game Console</strong> ตัวนั้นเป็นเฟิร์มแวร์เกม คาบนี้ใช้ MicroPython</li>
-<li>ปุ่มล่างสุดจะขึ้น <strong>Waiting for Programmer to pair…</strong> จนกว่าแอป <strong>TESAIoT Programmer</strong> บนคอมจะจับคู่ ถ้ายังไม่มีแอปนี้ หน้าต่างจะพาไปติดตั้งก่อน (ทำครั้งเดียว)</li>
-<li>แฟลชเสร็จจะขึ้น <strong>Flash complete</strong> แล้วบอร์ดรีสตาร์ตเอง กลับไปดูเลขเวอร์ชันที่หน้า Home อีกครั้ง</li>
+<li>เปิดแอป <strong>TESAIoT Programmer</strong> บนคอม แล้ว <strong>สลับเป็นโหมด Remote</strong> ปุ่มล่างสุดจะขึ้น <strong>Waiting for Programmer to pair…</strong> จนกว่าแอปจะจับคู่ ถ้ายังไม่มีแอปนี้ หน้าต่างจะพาไปติดตั้งก่อน (ทำครั้งเดียว)</li>
+<li>รอจนหน้าต่างบอกว่าแฟลชเสร็จ แล้วดูเลขเวอร์ชันที่หน้า Home ของบอร์ดอีกครั้ง</li>
 </ul>
 </div>
 <div>
@@ -189,6 +189,7 @@
 <p><img src="img/s13_store_3_connect.png" alt="" /></p>
 <ul>
 <li><strong>ก่อนกด</strong> ถ้า BENTO IDE ต่อบอร์ดอยู่ ให้กด Disconnect ใน IDE ก่อน สาย USB หนึ่งเส้นใช้ได้ทีละโปรแกรม ถ้าลืม ร้านจะขึ้นว่า <em>Board in use by another program</em></li>
+<li>ข้อความยาวบนแถบ (Deploy sends your choice back to the IDE…) ใช้ตอนเปิดร้านจากใน IDE คาบนี้เราต่อบอร์ดกับร้านโดยตรงด้วยปุ่ม Connect a board</li>
 <li>ต่อบอร์ดของตัวเองแค่ตัวเดียวเข้ากับคอม จะได้ไม่เลือกผิดตัว</li>
 </ul>
 </section>
@@ -242,7 +243,7 @@
 <h2 id="deploy-%E0%B8%82%E0%B8%B1%E0%B9%89%E0%B8%99%E0%B8%97%E0%B8%B5%E0%B9%88-3-%E0%B8%88%E0%B8%B2%E0%B8%81-4--%E0%B8%A3%E0%B8%AD%E0%B9%83%E0%B8%AB%E0%B9%89%E0%B8%84%E0%B8%A3%E0%B8%9A-3-%E0%B8%82%E0%B8%B1%E0%B9%89%E0%B8%99-%E0%B8%AD%E0%B8%A2%E0%B9%88%E0%B8%B2%E0%B8%96%E0%B8%AD%E0%B8%94%E0%B8%AA%E0%B8%B2%E0%B8%A2">Deploy ขั้นที่ 3 จาก 4 — รอให้ครบ 3 ขั้น อย่าถอดสาย</h2>
 <p class="act">รอจนแถบเต็ม ใช้เวลาราว 10 วินาทีต่อโมเดล</p>
 <p><img src="img/s13_store_8_loading.png" alt="" /></p>
-<p>ระหว่างนี้บอร์ดจะรีสตาร์ต และจอขึ้นคำว่า <strong>Programming Mode</strong> นั่นคือการส่งไฟล์ ไม่ใช่บอร์ดเสีย เสร็จแล้วบอร์ดกลับมาที่หน้า Edge AI เอง</p>
+<p>ระหว่างนี้บอร์ดจะรีสตาร์ต และจอขึ้นคำว่า <strong>Programming Mode</strong> นั่นคือการส่งไฟล์ ไม่ใช่บอร์ดเสีย เสร็จแล้วบอร์ดกลับมาทำงานเอง</p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="20" data-paginate="true" data-class="step" data-theme="default" lang="en-US" class="step" data-marpit-pagination="20" style="--paginate:true;--class:step;--theme:default;" data-marpit-pagination-total="57">
 <h2 id="deploy-%E0%B8%82%E0%B8%B1%E0%B9%89%E0%B8%99%E0%B8%97%E0%B8%B5%E0%B9%88-4-%E0%B8%88%E0%B8%B2%E0%B8%81-4--%E0%B9%80%E0%B8%AA%E0%B8%A3%E0%B9%87%E0%B8%88%E0%B9%81%E0%B8%A5%E0%B9%89%E0%B8%A7">Deploy ขั้นที่ 4 จาก 4 — เสร็จแล้ว</h2>
@@ -258,7 +259,7 @@
 <p class="act">เปิดหน้า Edge AI แล้วเลือกโมเดลจากรายการในหน้านั้น</p>
 <p><img src="img/s13_board_edge_ai_card.png" alt="" style="height:400px;" /></p>
 <ul>
-<li>ส่งเสร็จ บอร์ดกลับมาที่หน้า Edge AI เอง ถ้าอยู่ที่หน้า Home ให้แตะการ์ด <strong>Edge AI</strong> สีม่วง (การ์ดสีเขียวถัดไปคือ Edge AI Creator เป็นคนละหน้า)</li>
+<li>ส่งเสร็จ ถ้าบอร์ดอยู่ที่หน้า Home ให้แตะการ์ด <strong>Edge AI</strong> สีม่วง (การ์ดสีเขียวถัดไปคือ Edge AI Creator เป็นคนละหน้า)</li>
 <li>ถ้ารายการยังเป็นของเดิม ให้ออกจากหน้า Edge AI แล้วเข้าใหม่</li>
 </ul>
 </section>
@@ -428,7 +429,7 @@
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="29" data-paginate="true" data-theme="default" lang="en-US" data-marpit-pagination="29" style="--paginate:true;--theme:default;" data-marpit-pagination-total="57">
 <h2 id="03-%E0%B8%95%E0%B9%88%E0%B8%AD--%E0%B8%81%E0%B8%B1%E0%B8%9A%E0%B8%94%E0%B8%B1%E0%B8%81%E0%B8%AA%E0%B8%B2%E0%B8%A1%E0%B8%82%E0%B9%89%E0%B8%AD%E0%B8%82%E0%B8%AD%E0%B8%87-result">03 ต่อ — กับดักสามข้อของ <code>result()</code></h2>
 <ol>
-<li>หลัง <code>select()</code> ผลแรกเป็น <code>None</code> เสมอ เพราะโมเดลยังไม่ตอบ ต้องตรวจก่อนใช้</li>
+<li>หลัง <code>select()</code> ผลแรกอาจเป็น <code>None</code> เพราะโมเดลยังไม่ตอบ ต้องตรวจก่อนใช้</li>
 <li><strong>ผลใหม่ดูจาก <code>seq</code> ที่เปลี่ยน</strong> อ่านถี่กว่าที่โมเดลตอบก็ได้ผลเดิมซ้ำ อย่านับว่าเป็นผลใหม่</li>
 <li>หลัง <code>stop()</code> ยังได้ผลเก่าค้างอยู่ ดูช่อง <code>running</code></li>
 </ol>
@@ -756,7 +757,7 @@
 <td><a class="code-link" href="https://github.com/Advance-Innovation-Centre-AIC/embedded-systems-for-aiot-developer/blob/main/examples/s13/06_hmi_machine.py" target="_blank" rel="noopener"><code>examples/s13/06_hmi_machine.py</code></a></td>
 <td><strong>โรงงาน</strong> ปั๊มหล่อเย็น P-101</td>
 <td>AnomalousVibration (Store) ไม่มีใช้ Motion Detection</td>
-<td>วางนิ่ง → เขย่าแรงค้าง 3 วินาที → วางนิ่ง → กด &quot;สร้างใบสั่งซ่อม&quot; → กด &quot;ซ่อมเสร็จ&quot;</td>
+<td>วางนิ่ง → เขย่าแรงค้าง 3 วินาที → วางนิ่ง → กด &quot;สร้างใบสั่งซ่อม&quot; → กด &quot;ซ่อมเสร็จ ปิดงาน&quot;</td>
 </tr>
 <tr>
 <td><a class="code-link" href="https://github.com/Advance-Innovation-Centre-AIC/embedded-systems-for-aiot-developer/blob/main/examples/s13/07_hmi_safety.py" target="_blank" rel="noopener"><code>examples/s13/07_hmi_safety.py</code></a></td>
@@ -819,7 +820,7 @@
 </div>
 <ul>
 <li><strong>เหตุหายเองก็ยังเตือนค้าง</strong> จนกว่ามีคนรับเรื่อง จอจริงต้องเป็นแบบนี้ ไม่งั้นเหตุสั้น ๆ จะหายไปโดยไม่มีใครรู้</li>
-<li><strong>06 กับ 07</strong> กลับ normal ได้ด้วยปุ่มเท่านั้น (ซ่อมเสร็จ / รีเซ็ต) และกดได้เมื่อเหตุหายแล้วเท่านั้น</li>
+<li><strong>06 กับ 07</strong> กลับ normal ได้ด้วยปุ่มเท่านั้น (ซ่อมเสร็จ ปิดงาน / รีเซ็ต) และกดได้เมื่อเหตุหายแล้วเท่านั้น</li>
 <li><strong>08</strong> กลับ normal เองเมื่อเด็กหยุดร้องหลังมีคนรับทราบแล้ว (<code>MANUAL_RESET = False</code>)</li>
 <li><strong>09</strong> ไม่ใช่เหตุ แต่เป็นคำสั่ง: left / right เลือกห้อง · up / down ปรับความสว่าง · go เปิด · stop ปิด คำเดียวกันต้องชนะ 3 ใน 5 ก่อนทำ และพูดค้างนับครั้งเดียว</li>
 </ul>
@@ -875,7 +876,7 @@
 </tr>
 </tbody>
 </table>
-<p>อยากออกแบบหน้าจอเอง เปิด BENTO HMI Studio จากแถบบนของ IDE แล้วเลือกแม่แบบที่ใกล้งานของทีม</p>
+<p>อยากออกแบบหน้าจอเอง เปิด BENTO HMI Studio จากแถบบนของ IDE แล้วดูแม่แบบที่ใกล้งานของทีม แม่แบบในภาพระบุว่ารองรับ Eva Kit Game Console และ TESAIoT Dev Kit ส่วนไฟล์ 06 ถึง 09 เราปรับให้รันบน Eva Kit 1.7.8 แล้ว</p>
 </div>
 <div>
 <p><img src="img/s13_hmi_studio_templates.png" alt="" style="height:520px;" /></p>
@@ -1041,7 +1042,7 @@
 <h2 id="%E0%B8%AA%E0%B8%96%E0%B8%B2%E0%B8%99%E0%B8%B0%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%97%E0%B8%94%E0%B8%AA%E0%B8%AD%E0%B8%9A--%E0%B8%9E%E0%B8%B9%E0%B8%94%E0%B8%95%E0%B8%A3%E0%B8%87-%E0%B9%86-%E0%B8%A7%E0%B9%88%E0%B8%B2%E0%B8%AD%E0%B8%B0%E0%B9%84%E0%B8%A3%E0%B8%9C%E0%B9%88%E0%B8%B2%E0%B8%99%E0%B9%81%E0%B8%A5%E0%B9%89%E0%B8%A7">สถานะการทดสอบ — พูดตรง ๆ ว่าอะไรผ่านแล้ว</h2>
 <ul>
 <li><strong>Eva Kit</strong> เฟิร์มแวร์ 1.7.8: ผ่าน (2026-10-15) ตัวอย่าง 00 ถึง 05</li>
-<li><strong>Dev Kit</strong> เฟิร์มแวร์ 2.4.3 ถึง 2.4.4: ตัวอย่าง 00 ถึง 05 ผ่าน 3 ใน 3 รอบทางปุ่ม Run ของ BENTO IDE</li>
+<li><strong>Dev Kit</strong> เฟิร์มแวร์ 2.4.3 ถึง 2.4.4: ตัวอย่าง 00 ถึง 05 ผ่าน 3 ใน 3 รอบทางปุ่ม Run ของ BENTO IDE · Smart HMI 06 ถึง 09 ยังไม่ได้ทดสอบบน Dev Kit</li>
 <li><strong>Smart HMI 06 ถึง 09</strong> Eva Kit เฟิร์มแวร์ 1.7.8 (2026-10-16): เปิดจอ หาโมเดลเจอ อ่านผลสดได้ ยังไม่ได้ลองให้เกิดเหตุจริง</li>
 <li><strong>Emulator:</strong> ตรวจบนคอมด้วยโมดูลของ Emulator มีเฉพาะโมเดลในตัว ผลเป็นผลจำลอง</li>
 </ul>
