@@ -7,8 +7,12 @@
 ## สถานะการทดสอบ
 
 - **ทดสอบแล้ว:** TESAIoT Dev Kit เฟิร์มแวร์ 2.4.2 รันด้วยปุ่ม Run ของ BENTO IDE ทุกไฟล์ผ่าน 3 ใน 3 รอบ ขณะทดสอบไม่มีเสียงหรือท่าทางกระตุ้น จึงยืนยันได้ว่าไฟล์รันและวาดหน้าจอครบ แต่ยังไม่ได้วัดความแม่นของแต่ละโมเดล
-- **ยังไม่ได้ทดสอบ:** Eva Kit และ BENTO Emulator
-- ทุกไฟล์ต้องใช้บอร์ดจริง
+- **ทดสอบแล้วบน BENTO Emulator** (ide.tesaiot.dev เวอร์ชัน 2026.10-rc.10.2, 17 ต.ค. 2026, เบราว์เซอร์ Chromium): ทุกไฟล์รันได้ ไม่มี error
+  - **รัน AI จริงในเบราว์เซอร์ 8 ไฟล์:** siren_detection_store, home_sounds, surface_mic, drill_material_mic, environment_sounds, yes_no, voice_commands (เลือกเสียงที่ Audio in ในแผง Edge AI: ไมโครโฟน ไฟล์เสียง หรือ Test siren) และ human_activity (เลือกข้อมูลการเคลื่อนไหวที่บันทึกไว้ใน Motion in) โมเดลเป็นไฟล์เดียวกับที่ Edge AI Store ส่งลงบอร์ด ก่อนคอมไพล์สำหรับ NPU
+  - **ผลจำลอง 5 ไฟล์:** alarm_detection, baby_cry_detection, cough_detection, motion_detection, siren_detection โมเดลในตัวของบอร์ดรันในเบราว์เซอร์ไม่ได้
+  - **ต้องใช้บอร์ดจริง 2 ไฟล์:** anomalous_vibration และ push_detection โดย Emulator จะแสดงการ์ดบอกให้ใช้บอร์ด
+  - ยังไม่ได้วัดความแม่นในเบราว์เซอร์ ไมโครโฟนของคอมพิวเตอร์ต่างจากไมโครโฟนบนบอร์ด
+- **ยังไม่ได้ทดสอบ:** Eva Kit
 
 ## รายการตัวอย่าง
 

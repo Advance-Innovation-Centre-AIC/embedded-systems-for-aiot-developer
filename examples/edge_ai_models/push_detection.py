@@ -1,5 +1,5 @@
 # push_detection.py - Touchless Button. Built-in model; needs the Dev Kit radar.
-# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. Eva Kit and BENTO Emulator: not tested yet.
+# Tested: TESAIoT Dev Kit, fw 2.4.2, IDE Run 3/3. BENTO Emulator (rc.10.2): needs a board (shows the not-on-this-board card). Eva Kit: not tested yet.
 # Push a palm toward the radar, about 60 cm away (Infineon's radar example). SW6 or tap = refractory 0.3/1/2 s. SW5 = pause/resume.
 # Runs Push at Hearing at 20%, Confirm at 30% (HMI Kit data: 60 cm pushes peaked at 21-39%, under the
 # Dev Kit's 40/65/30). NOT yet checked on a Dev Kit. The board's own numbers are put back at the end.
