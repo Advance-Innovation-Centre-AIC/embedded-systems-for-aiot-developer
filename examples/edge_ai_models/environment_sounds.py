@@ -251,7 +251,7 @@ def run(w, i, labels, n0):
     th = read_th(i)
     nl = len(labels)
     saw = labels.index("chainsaw") if "chainsaw" in labels else -1
-    b5, b6 = Button(0), Button(1)
+    b5, b6 = Button(1), Button(0)
     vs, eps = [Vote(K, N) for c in range(nl)], [Episode(c == saw) for c in range(nl)]
     mx = [[0] * nl for c in range(nl)]  # [truth][top class] per result
     truth, t_in, row0, top, paused, blink, nres = -1, 0, 0, 0, 0, 0, 0

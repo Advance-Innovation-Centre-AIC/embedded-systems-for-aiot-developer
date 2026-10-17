@@ -286,7 +286,7 @@ def run(w, i, labels, n0):
     set_th(i, 1, "enter", 20)  # teaching numbers (see the header)
     th = set_th(i, 1, "confirm", 30)  # exit follows enter down to 20
     ticks(w, th, 1)
-    b5, b6 = Button(0), Button(1)
+    b5, b6 = Button(1), Button(0)
     vote, ep = Vote(K, N), Episode(False)
     log, rf, near, last, paused, blink, peak = [], 1, 0, None, False, False, -1
     try:

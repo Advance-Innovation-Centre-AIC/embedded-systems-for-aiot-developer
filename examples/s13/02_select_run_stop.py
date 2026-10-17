@@ -66,7 +66,7 @@ def press(was):
     if buttons is None:
         return False, False
     try:
-        now = buttons.pressed(1)
+        now = buttons.pressed(0)
     except Exception:
         now = False
     return now and not was, now

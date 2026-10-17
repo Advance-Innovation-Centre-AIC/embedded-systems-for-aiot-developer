@@ -228,7 +228,7 @@ def run(w, i, labels, n0):
     if odd(labels):  # a model with other classes: a card, not wrong answers
         return
     th = read_th(i)[1]  # Confirm at, per class
-    b5, b6, d = Button(0), Button(1), Dwell(labels)
+    b5, b6, d = Button(1), Button(0), Dwell(labels)
     mop, paused, blink, tp = True, False, False, None
     start(w, i)
     drawn = polled = time.ticks_ms()

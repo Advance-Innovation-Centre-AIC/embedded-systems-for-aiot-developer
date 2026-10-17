@@ -249,7 +249,7 @@ def bars(w, top, labels, cf):
 def run(w, i, labels, n0):
     th = read_th(i)
     put(w["legend"], "Hearing at %d%% | Confirm at %d%%" % (th[0][1], th[1][1]))
-    b5, b6, ep = Button(0), Button(1), Episode(False)
+    b5, b6, ep = Button(1), Button(0), Episode(False)
     log, vs, wd, top, ask, on, note, na, ni = [], 0, "", None, None, False, " ", 0, 0
     paused, blink = False, False
     start(w, i)

@@ -263,7 +263,7 @@ def run(w, i, labels, n0):
     sp = labels.index("stop") if "stop" in labels else 0
     put(w["legend"], "Hearing at %d%% | Confirm at %d%%\nSafe stop: stop at %d%%, 1 of %d" % (
         th[0][1], th[1][1], th[0][sp], N))
-    b5, b6, ep, cart = Button(0), Button(1), Episode(False), Cart(w["dot"])
+    b5, b6, ep, cart = Button(1), Button(0), Episode(False), Cart(w["dot"])
     log, vs, wd, top, safe, paused, blink = [], 0, "", None, True, False, False
     start(w, i)
     drawn = polled = time.ticks_ms()

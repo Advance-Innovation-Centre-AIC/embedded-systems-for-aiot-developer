@@ -251,7 +251,7 @@ def run(w, i, labels, n0):
     th = read_th(i)
     nc = min(len(labels), 4)
     tap = labels.index("water_tap") if "water_tap" in labels[:nc] else -1
-    b5, b6 = Button(0), Button(1)
+    b5, b6 = Button(1), Button(0)
     vs, eps = [Vote(K, N) for c in range(nc)], [Episode(c == tap) for c in range(nc)]
     mute, last, t_on, paused, blink, nres, lat = [0] * nc, [""] * nc, None, 0, 0, 0, 0
     start(w, i)
