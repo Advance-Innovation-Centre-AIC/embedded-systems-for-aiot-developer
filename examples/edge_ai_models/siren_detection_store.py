@@ -269,7 +269,7 @@ def run(w, i, labels, n0):
     if not sides[1].m:
         put(w["c"][1][1], "not on this board")
         put(w["swap"], "B not on this board")
-    b5, b6 = Button(0), Button(1)
+    b5, b6 = Button(1), Button(0)
     k, paused, blink, peak = 0, False, False, -1
     start(w, i)
     drawn = polled = time.ticks_ms()

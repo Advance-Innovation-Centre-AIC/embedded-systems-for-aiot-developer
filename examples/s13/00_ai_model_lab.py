@@ -277,7 +277,7 @@ def main():
     w = build_screen(models)
     apply_model(w, models[cur])
     k, th, pend = tune_class(w, models[cur])
-    nxt, go = Button(0), Button(1)
+    nxt, go = Button(1), Button(0)
     st, last_seq, fresh, shown = Stats(), None, None, None
     hits, conf_on = 0, False
     drawn = polled = time.ticks_ms()

@@ -267,7 +267,7 @@ def draw(w, ep, th, peak, top, na, al, blink):
 # ---- 5) Main program ----
 def run(w, i, labels, n0):
     th = th0 = read_th(i)
-    b5, b6 = Button(0), Button(1)
+    b5, b6 = Button(1), Button(0)
     vote, ep = Vote(K, N), Episode(True)
     pend, na, top, al, paused, blink, peak = {}, 0, 0, False, False, False, -1
     start(w, i)

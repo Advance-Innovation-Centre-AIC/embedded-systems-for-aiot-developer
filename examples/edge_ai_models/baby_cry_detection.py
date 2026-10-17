@@ -266,7 +266,7 @@ def draw(w, ep, peak, blink, sec, on):
 def run(w, i, labels, n0):
     th = read_th(i)
     put(w["legend"], "Hearing at %d%% | Confirm at %d%%" % (th[0][1], th[1][1]))
-    b5, b6 = Button(0), Button(1)
+    b5, b6 = Button(1), Button(0)
     vote, cry = Vote(K, N), Episode(True)
     log, mn, paused, blink, peak, nres, lat, sec, c0 = [], MIN_S, False, False, -1, 0, 0, 0, None
     start(w, i)

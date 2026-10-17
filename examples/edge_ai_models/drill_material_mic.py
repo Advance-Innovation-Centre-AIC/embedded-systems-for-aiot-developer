@@ -273,7 +273,7 @@ def run(w, i, labels, n0):
     if odd(labels):  # a model with other classes: a card, not wrong answers
         return
     th, outs = read_th(i), [j for j, s in enumerate(labels) if s.endswith("_out")]
-    b5, b6, d = Button(0), Button(1), Dwell(labels)
+    b5, b6, d = Button(1), Button(0), Dwell(labels)
     vote, ep, cut, paused, blink, new = Vote(K, N), Episode(True), 1, False, False, False
     start(w, i)
     drawn = polled = time.ticks_ms()
