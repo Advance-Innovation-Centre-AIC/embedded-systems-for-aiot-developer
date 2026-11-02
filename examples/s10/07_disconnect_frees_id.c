@@ -56,6 +56,16 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+static const char BROKER[] =
+    "192.168.1.50"; /* IP ของเครื่องที่รัน broker ในแลน ไม่ใช่ localhost */
+static const char DEVICE_ID[] =
+    "team03"; /* ใช้ตัวเดียวกันทั้งสองรอบ นั่นคือประเด็นของไฟล์นี้ */
+static const char TOPIC[] = "bento/team03/telemetry";
+/* ---- end of settings ---- */
+
 /* The course palette, 0xRRGGBB. */
 enum {
     COL_TEXT = 0xE8EAED,
@@ -133,18 +143,15 @@ static void read_ip(char *text, uint32_t size)
  * as the binding's OSError does. */
 static bento_status_t join_wifi(bool *joined)
 {
-    /* Change these lines to the class network and the LAN broker. */
-    static const char wifi_ssid[] = "AIoT-Class";
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = wifi_ssid;
-    params.ssid_len = (uint32_t)strlen(wifi_ssid);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -205,14 +212,13 @@ static bool is_not_connected(bento_status_t status)
 static bento_status_t publish_round(const demo_t *demo,
                                     int32_t round_number, bool *sent)
 {
-    static const char topic[] = "bento/team03/telemetry";
     char payload[TEXT_BYTES];
     bento_status_t status;
 
     (void)snprintf(payload, sizeof(payload), "{\"round\": %d}",
                    (int)round_number);
     status = bento_mqtt_publish(
-        demo->client, topic, (uint32_t)strlen(topic),
+        demo->client, TOPIC, (uint32_t)strlen(TOPIC),
         (const uint8_t *)payload, (uint32_t)strlen(payload), 0U, 0U);
     *sent = (status == BENTO_OK);
     if (!*sent && !is_not_connected(status)) {
@@ -431,24 +437,21 @@ static void show_link(const demo_t *demo, bool connected)
              connected ? "MQTT: เชื่อมต่อแล้ว" : "MQTT: ออฟไลน์");
 }
 
-static const char DEVICE_ID[] = "team03"; /* the same both times */
-
 /* mqtt.connect(): *linked is its True or False. A client that
  * cannot even start (no radio) ends the program, as the binding's
  * OSError does. */
 static bento_status_t open_broker(demo_t *demo, bool *linked)
 {
-    static const char broker[] = "192.168.1.50"; /* not localhost */
     bento_mqtt_config_t config;
     bento_status_t status;
 
     bento_mqtt_config_init(&config);
-    config.host = broker;
-    config.host_len = (uint32_t)strlen(broker);
+    config.host = BROKER;
+    config.host_len = (uint32_t)strlen(BROKER);
     config.port = (uint16_t)BROKER_PORT;
     config.client_id = DEVICE_ID;
     config.client_id_len = (uint32_t)strlen(DEVICE_ID);
-    (void)printf("[MQTT] Connecting to %s:%d ...\r\n", broker,
+    (void)printf("[MQTT] Connecting to %s:%d ...\r\n", BROKER,
                  BROKER_PORT);
     status = bento_mqtt_open_start(&config, &demo->client);
     if (status == BENTO_OK) {
@@ -462,7 +465,7 @@ static bento_status_t open_broker(demo_t *demo, bool *linked)
     }
     *linked = (status == BENTO_OK);
     if (*linked) {
-        (void)printf("[MQTT] Connected to %s:%d as '%s'\r\n", broker,
+        (void)printf("[MQTT] Connected to %s:%d as '%s'\r\n", BROKER,
                      BROKER_PORT, DEVICE_ID);
     } else if ((status != BENTO_E_CANCELLED) && (demo->client != 0U)) {
         /* refused or timed out: False, and the binding deletes the
