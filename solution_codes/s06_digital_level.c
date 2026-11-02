@@ -66,8 +66,11 @@ enum {
     MS_PER_SECOND = 1000,
     FONT_TITLE = 24,
     FONT_BODY = 20,
-    NUMBER_BYTES = 40,
-    TEXT_BYTES = 96
+    NUMBER_BYTES =
+        37, /* "{:+.1f}": a sign and the 35 characters bento_fmt writes, NUL */
+    TEXT_BYTES = 96,
+    REFERENCE_BYTES =
+        101 /* "อ้างอิง R " ... "  P ": 28 bytes, two numbers of 36, NUL */
 };
 
 /* Every widget, in the order the original creates it. */
@@ -375,7 +378,7 @@ static void set_zero(level_t *level)
 {
     char roll[NUMBER_BYTES];
     char pitch[NUMBER_BYTES];
-    char text[TEXT_BYTES];
+    char text[REFERENCE_BYTES];
 
     level->roll_zero = level->roll_filtered;
     level->pitch_zero = level->pitch_filtered;
