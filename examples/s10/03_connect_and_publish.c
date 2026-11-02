@@ -38,6 +38,8 @@
  *  - `raise Stop` / `except Stop: pass` is the end of the status
  *    chain with 0. Stop during a sleep or a join ends the program with
  *    0, after the broker cleanup, as the original's finally does.
+ *  - In the BENTO Emulator, MQTT from C is not available yet: the program
+ *    says so and ends.
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -71,6 +73,7 @@ enum {
     COL_TRACK = 0x171B22, /* the bar's track; the bar is the theme's */
     COL_OK = 0x30A46C,
     COL_BAD = 0xE5484D,
+    COL_WARN = 0xF5A623,
     COL_INFO = 0x4A9EFF
 };
 
@@ -585,6 +588,21 @@ static void close_broker(const publish_screen_t *screen,
     show_link(screen, false);
 }
 
+/* The BENTO Emulator's C runtime has no MQTT yet (BENTO_E_UNSUPPORTED):
+ * the note line says so, and the console too. */
+static void tell_emulator(const publish_screen_t *screen)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+
+    show_step(screen, SLOT_NOTE, COL_WARN, note);
+    poll_ui(screen->ui);
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
+}
+
 static bento_status_t step_broker(const publish_screen_t *screen)
 {
     char line[TEXT_BYTES];
@@ -605,6 +623,9 @@ static bento_status_t step_broker(const publish_screen_t *screen)
     } else if (status == BENTO_OK) {
         tell_connected(screen);
         status = publish_all(screen, client, &done);
+    } else if (status == BENTO_E_UNSUPPORTED) {
+        tell_emulator(screen);
+        status = BENTO_E_CANCELLED; /* a normal end: main returns 0 */
     } else {
         /* Stop, or no MQTT on this firmware */
     }
