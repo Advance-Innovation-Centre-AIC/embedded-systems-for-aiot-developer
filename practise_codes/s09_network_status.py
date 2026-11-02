@@ -71,9 +71,9 @@ tbl.col_width(3, 128)        # "มีรหัส" คือข้อควา�
 # จะทาทับป้ายที่สร้างไว้ก่อนจนหายไปทั้งใบ โดยไม่มี error สักบรรทัด
 ui.Panel(x=520, y=104, w=248, h=288, color=COL_CARD, min=COL_DIM, max=12, value=1)
 led_up = ui.Led(x=536, y=112, w=48, h=48, color=COL_OK, value=0)
-ui.Label("ต่ออยู่", x=592, y=124, color=COL_DIM, value=16)
+ui.Label("ต่ออยู่", x=592, y=124, color=COL_DIM, value=20)
 led_down = ui.Led(x=536, y=168, w=48, h=48, color=COL_BAD, value=1)
-ui.Label("ยังไม่ต่อ", x=592, y=180, color=COL_DIM, value=16)
+ui.Label("ยังไม่ต่อ", x=592, y=180, color=COL_DIM, value=20)
 
 l_gw = ui.Label("เกตเวย์ -", x=536, y=224, color=COL_DIM, value=20)
 l_net = ui.Label("อินเทอร์เน็ต -", x=536, y=256, color=COL_DIM, value=20)
