@@ -58,20 +58,33 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
-enum { /* times, ms */
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* The exact name, looked up every run. */
+static const char MODEL[] = "SurfaceMic";
+/* false = deployed from the Store */
+static const bool BUILTIN = false;
+/* Hearing at, Confirm at, clear below (fallback), % */
+static const uint8_t DEF_THRESHOLDS[3] = {40U, 65U, 30U};
+enum {
     POLL_MS = 100,
-    DRAW_MS = 500,
-    DWELL_MS = 1000, /* on top before the robot changes what it does */
+    DRAW_MS = 500
+};
+/* [0] without board buttons (Eva Kit), [1] with them */
+static const char *const HELP[2] = {
+    "Run a vacuum near it",
+    "Run a vacuum near it - SW6 = Mop, SW5 = pause"};
+/* ms on top before the robot changes what it does */
+static const int32_t DWELLS[1] = {1000};
+/* also NEED: the classes this example needs */
+static const char *const CHIPS[3] = {"Air", "Floor", "Carpet"};
+/* ---- end of settings ---- */
+
+enum { /* times, ms */
     LOOP_MS = 20,
     LOAD_MS = 150,
     OP_POLL_MS = 20,
     FAIL_MS = 3000,
     MS_PER_SECOND = 1000
-};
-enum { /* fallback thresholds, %: Hearing at, Confirm at, clear below */
-    DEFAULT_ENTER = 40,
-    DEFAULT_CONFIRM = 65,
-    DEFAULT_EXIT = 30
 };
 enum { /* sizes */
     MAX_CLASSES = BENTO_EDGEAI_MAX_CLASSES,
@@ -101,16 +114,11 @@ enum { /* font sizes, px */
     HUGE_PX = 28
 };
 
-/* The exact name, looked up every run. */
 /* What the BENTO Emulator says: 119 bytes, within the 126 one
  * label takes; the label gets a width so it wraps. */
 static const char EMULATOR_TEXT[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
-static const char MODEL_NAME[] = "SurfaceMic";
 static const char NOT_SURE[] = "Not sure";
-/* Also the classes this example needs. */
-static const char *const CHIP_NAMES[CHIP_COUNT] = {"Air", "Floor",
-                                                   "Carpet"};
 
 /* A rectangle on the screen; -1 = the widget's own size. */
 typedef struct {
@@ -166,7 +174,7 @@ typedef struct {
     shown_t status;
 } screen_t;
 
-/* A class counts after DWELL_MS on top at Confirm at; -1 = Not sure. */
+/* A class counts after DWELLS[0] on top at Confirm at; -1 = Not sure. */
 typedef struct {
     int32_t accepted;
     int32_t candidate;
@@ -430,13 +438,10 @@ static int32_t compiled_count(void)
 /* BUILTIN true takes True or None; BUILTIN false takes only False. */
 static bool source_matches(int32_t index, int32_t compiled)
 {
-    const bool want_builtin =
-        false; /* false = deployed from the Store */
-    bool matches = want_builtin;
+    bool matches = BUILTIN;
 
     if (compiled >= 0) {
-        matches =
-            want_builtin ? (index < compiled) : (index >= compiled);
+        matches = BUILTIN ? (index < compiled) : (index >= compiled);
     }
     return matches;
 }
@@ -461,13 +466,13 @@ static void keep_model(model_t *model, uint32_t index,
     }
 }
 
-/* One row: counted, and kept when it is MODEL_NAME from the right
+/* One row: counted, and kept when it is MODEL from the right
  * source and nothing was found before. */
 static void consider_row(model_t *model, bool *found,
                          const bento_edgeai_model_info_t *info,
                          int32_t index, int32_t compiled)
 {
-    if (!*found && (strcmp(info->name, MODEL_NAME) == 0) &&
+    if (!*found && (strcmp(info->name, MODEL) == 0) &&
         source_matches(index, compiled)) {
         *found = true;
         keep_model(model, (uint32_t)index, info);
@@ -567,7 +572,7 @@ static bento_status_t missing_model(bento_ui_t *ui)
     (void)snprintf(text, sizeof(text),
                    "Deploy %s\nfrom edgeai-store.tesaiot.dev\n(sign in "
                    "with GitHub) on a Dev Kit.",
-                   MODEL_NAME);
+                   MODEL);
     return missing(ui, "Model not on this board", text);
 }
 
@@ -634,9 +639,8 @@ static bento_status_t add_chips(vacuum_t *vacuum)
         status =
             add_widget(vacuum->ui, &panel, &screen->chip_panel[i].id);
         if (status == BENTO_OK) {
-            status =
-                add_label(vacuum->ui, CHIP_NAMES[i], text_at, COLOR_DIM,
-                          MEDIUM_PX, &screen->chip_text[i].id);
+            status = add_label(vacuum->ui, CHIPS[i], text_at, COLOR_DIM,
+                               MEDIUM_PX, &screen->chip_text[i].id);
         }
     }
     if (status == BENTO_OK) {
@@ -732,9 +736,9 @@ static void read_thresholds(vacuum_t *vacuum)
     if (bento_edgeai_thresholds(vacuum->model.index, thresholds) !=
         BENTO_OK) {
         for (i = 0U; i < (uint32_t)MAX_CLASSES; i++) {
-            thresholds->enter[i] = (uint8_t)DEFAULT_ENTER;
-            thresholds->confirm[i] = (uint8_t)DEFAULT_CONFIRM;
-            thresholds->exit[i] = (uint8_t)DEFAULT_EXIT;
+            thresholds->enter[i] = DEF_THRESHOLDS[0];
+            thresholds->confirm[i] = DEF_THRESHOLDS[1];
+            thresholds->exit[i] = DEF_THRESHOLDS[2];
         }
     }
 }
@@ -781,14 +785,11 @@ static bento_status_t select_model(const vacuum_t *vacuum,
 /* start(): on resume, Stop if a model was added or removed meanwhile. */
 static bento_status_t start_model(vacuum_t *vacuum, bool check_count)
 {
-    static const char help_buttons[] =
-        "Run a vacuum near it - SW6 = Mop, SW5 = pause";
-    static const char help_touch[] = "Run a vacuum near it";
     char text[TEXT_BYTES];
     bento_status_t status = BENTO_OK;
     bento_status_t link = BENTO_OK;
 
-    (void)snprintf(text, sizeof(text), "Loading %s ...", MODEL_NAME);
+    (void)snprintf(text, sizeof(text), "Loading %s ...", MODEL);
     put_text(vacuum->ui, &vacuum->screen.status, text);
     put_color(vacuum->ui, &vacuum->screen.status, COLOR_WARN);
     drain_events(vacuum->ui);
@@ -801,13 +802,12 @@ static bento_status_t start_model(vacuum_t *vacuum, bool check_count)
     }
     if ((status == BENTO_OK) && !vacuum->stopped &&
         (link != BENTO_OK)) {
-        (void)snprintf(text, sizeof(text), "Cannot start %s",
-                       MODEL_NAME);
+        (void)snprintf(text, sizeof(text), "Cannot start %s", MODEL);
         raise_stop(vacuum, text);
     }
     if ((status == BENTO_OK) && !vacuum->stopped) {
         put_text(vacuum->ui, &vacuum->screen.status,
-                 vacuum->has_buttons ? help_buttons : help_touch);
+                 HELP[vacuum->has_buttons ? 1 : 0]);
         put_color(vacuum->ui, &vacuum->screen.status, COLOR_TEXT);
     }
     return status;
@@ -872,30 +872,30 @@ static bento_status_t check_classes(vacuum_t *vacuum, bool *odd)
     *odd = false;
     absent[0] = '\0';
     for (i = 0; i < CHIP_COUNT; i++) {
-        if (!has_label(&vacuum->model, CHIP_NAMES[i])) {
+        if (!has_label(&vacuum->model, CHIPS[i])) {
             (void)snprintf(&absent[used], sizeof(absent) - used, "%s%s",
-                           *odd ? ", " : "", CHIP_NAMES[i]);
+                           *odd ? ", " : "", CHIPS[i]);
             used = strlen(absent);
             *odd = true;
         }
     }
     if (*odd) {
-        (void)snprintf(text, sizeof(text), "%s has no class\n%s",
-                       MODEL_NAME, absent);
+        (void)snprintf(text, sizeof(text), "%s has no class\n%s", MODEL,
+                       absent);
         status = missing(
             vacuum->ui, "Model classes differ from this example", text);
     }
     return status;
 }
 
-/* The chip a class lights: its name among CHIP_NAMES, else none. */
+/* The chip a class lights: its name among CHIPS, else none. */
 static int32_t chip_of_label(const char *label)
 {
     int32_t chip = NO_CLASS;
     int32_t i;
 
     for (i = 0; i < CHIP_COUNT; i++) {
-        if (strcmp(label, CHIP_NAMES[i]) == 0) {
+        if (strcmp(label, CHIPS[i]) == 0) {
             chip = i;
         }
     }
@@ -939,7 +939,7 @@ static bool dwell_step(vacuum_t *vacuum, int32_t klass, uint8_t percent,
         dwell->since_ms = now_ms;
     }
     if ((klass != dwell->accepted) &&
-        (bento_time_ticks_diff(now_ms, dwell->since_ms) >= DWELL_MS)) {
+        (bento_time_ticks_diff(now_ms, dwell->since_ms) >= DWELLS[0])) {
         changed = true;
         dwell->accepted = klass;
         clock_text(clock, sizeof(clock));
@@ -1034,7 +1034,7 @@ static void draw_candidate(vacuum_t *vacuum, uint32_t now_ms)
     }
     if (elapsed_ms != 0) {
         seconds_text(elapsed_ms, elapsed);
-        seconds_text(DWELL_MS, needed);
+        seconds_text(DWELLS[0], needed);
         (void)snprintf(text, sizeof(text), "%s %s/%s s",
                        class_name(vacuum, dwell->candidate), elapsed,
                        needed);
