@@ -18,11 +18,6 @@
  * (embedded-systems-for-aiot-developer/solution_codes/s04b_layout_widgets.py).
  * Style: CLEAN_C.md.
  * Differs from the original:
- *   - The original calls pic.icon(0) with an int and dots.set_pixels()
- *     with a list. modui.c reads the icon's name as a str and the pixels
- *     through the buffer protocol, so on the board both raise TypeError.
- *     Here the icon is named "0" (str(0)) and the eight row bytes go as
- *     a byte array, which is what the lesson means.
  *   - Stop ends the program with BENTO_E_CANCELLED and main() returns 0,
  *     where MicroPython raises KeyboardInterrupt.
  */
@@ -233,6 +228,7 @@ static bento_status_t add_spinner(layout_t *layout)
 /* An Image shows an icon built into the firmware. */
 static bento_status_t add_picture(layout_t *layout)
 {
+    static const char icon_name[] = "heart";
     bento_ui_widget_args_t args;
     bento_ui_id_t picture;
     bento_status_t status;
@@ -246,10 +242,11 @@ static bento_status_t add_picture(layout_t *layout)
     status = bento_ui_image_create(layout->ui, &args, &picture);
     if (status == BENTO_OK) {
         /* a setter: MicroPython sends it and forgets it */
-        (void)bento_ui_image_icon(layout->ui, picture, "0", 1U);
+        (void)bento_ui_image_icon(layout->ui, picture, icon_name,
+                                  (uint32_t)strlen(icon_name));
         status = add_label(layout->ui, layout->tab_dots,
-                           "ui.Image + .icon(0)", PICTURE_TEXT_X,
-                           PICTURE_TEXT_Y, &NOTE_STYLE);
+                           "ui.Image + .icon(\"heart\")",
+                           PICTURE_TEXT_X, PICTURE_TEXT_Y, &NOTE_STYLE);
     }
     return status;
 }

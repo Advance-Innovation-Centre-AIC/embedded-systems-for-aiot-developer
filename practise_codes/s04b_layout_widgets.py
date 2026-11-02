@@ -67,10 +67,11 @@ dots = ui.DotMatrix(x=24, y=24, w=176, h=176, color=0x4A9EFF,
 ui.Spinner(x=252, y=56, w=80, h=80, parent=tab_dots)
 ui.Label("กำลังอ่านเซนเซอร์", x=232, y=148, color=COL_DIM, value=20,
          parent=tab_dots)
-# Image รับไอคอนที่คอมไพล์มากับเฟิร์มแวร์ ผ่าน .icon()
+# Image รับไอคอนที่คอมไพล์มากับเฟิร์มแวร์ ผ่าน .icon("ชื่อ")
+# ชื่อเป็นสตริง เช่น "heart" "star" "home" (ตัวเลขใช้ไม่ได้)
 pic = ui.Image(x=420, y=44, w=96, h=96, parent=tab_dots)
-pic.icon(0)
-ui.Label("ui.Image + .icon(0)", x=396, y=152, color=COL_DIM, value=20,
+pic.icon("heart")
+ui.Label('ui.Image + .icon("heart")', x=396, y=152, color=COL_DIM, value=20,
          parent=tab_dots)
 
 # ---------- แท็บ 3: Tileview ----------
@@ -93,7 +94,8 @@ for i in range(75):
     for _ev in ____:
         taps += 1
     # ไล่จุดทีละแถวให้เห็นว่า DotMatrix วาดได้จริง
-    dots.set_pixels([(i + k) % 8 for k in range(8)])
+    # หนึ่งไบต์ต่อแถว ต้องส่งเป็น bytearray (list ใช้ไม่ได้)
+    dots.set_pixels(bytearray([(i + k) % 8 for k in range(8)]))
     time.sleep_ms(400)
 
 print("s04b: แตะทั้งหมด", taps, "ครั้ง")
