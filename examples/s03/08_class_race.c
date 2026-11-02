@@ -94,6 +94,12 @@ static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
 static const char BROKER[] = "broker.hivemq.com";
 /* team01 to team19; unset, the program will not run */
 static const char TEAM[] = "teamXX";
+/* บรรทัดเหล่านี้ห้ามแก้ ทั้งห้องต้องใช้ชื่อชุดเดียวกัน หน้าเว็บถึงหาเราเจอ
+ * (do not change: the whole class must use the same names) */
+static const char ROOT[] = "bento-aiot";
+/* DEVICE_ID = bento-aiot-TEAM, TOPIC_CMD = ROOT/TEAM/cmd,
+ * TOPIC_ALL = ROOT/all/cmd, TOPIC_EVENT = ROOT/TEAM/event,
+ * TOPIC_STATE = ROOT/TEAM/telemetry, built in build_names() */
 /* ---- end of settings ---- */
 
 /* ---- JSON: what json.loads gives this program -------------------- */
@@ -2382,20 +2388,16 @@ static bento_status_t run_game(const race_screen_t *screen,
 
 static void build_names(names_t *names)
 {
-    /* leave it: the whole class uses the same root, so the web page
-     * finds every board */
-    static const char root[] = "bento-aiot";
-
     (void)snprintf(names->device_id, sizeof(names->device_id),
                    "bento-aiot-%s", TEAM);
     (void)snprintf(names->topic_cmd, sizeof(names->topic_cmd),
-                   "%s/%s/cmd", root, TEAM);
+                   "%s/%s/cmd", ROOT, TEAM);
     (void)snprintf(names->topic_all, sizeof(names->topic_all),
-                   "%s/all/cmd", root);
+                   "%s/all/cmd", ROOT);
     (void)snprintf(names->topic_event, sizeof(names->topic_event),
-                   "%s/%s/event", root, TEAM);
+                   "%s/%s/event", ROOT, TEAM);
     (void)snprintf(names->topic_state, sizeof(names->topic_state),
-                   "%s/%s/telemetry", root, TEAM);
+                   "%s/%s/telemetry", ROOT, TEAM);
 }
 
 /* The team check, the three steps, then the game. */
