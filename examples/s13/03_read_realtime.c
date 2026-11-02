@@ -53,6 +53,14 @@
 #include "bento_fmt.h"
 #include "bento_runtime.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+enum {
+    RUN_S = 20,   /* read this many seconds, then stop */
+    READ_MS = 50, /* faster than the model answers, on purpose */
+    DRAW_MS = 500 /* write the screen every ... ms */
+};
+/* ---- end of settings ---- */
+
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
@@ -67,9 +75,6 @@ enum {
 
 /* Timing. */
 enum {
-    RUN_MS = 20000, /* read for 20 s, then stop */
-    READ_MS = 50,   /* faster than the model answers, on purpose */
-    DRAW_MS = 500,
     SETTLE_MS = 150, /* let the cleared screen settle */
     OP_POLL_MS = 100,
     HOLD_POLLS = 50, /* the screen stays 50 x 200 ms to read */
@@ -410,7 +415,7 @@ static void draw_reads(reader_t *reader)
     set_text(reader->ui, reader->count_label, text);
 }
 
-/* RUN_MS of reads every READ_MS, the screen every DRAW_MS. */
+/* RUN_S of reads every READ_MS, the screen every DRAW_MS. */
 static bento_status_t read_for_a_while(reader_t *reader)
 {
     reading_t reading;
@@ -420,7 +425,8 @@ static bento_status_t read_for_a_while(reader_t *reader)
     reader->start_ms = bento_time_ticks_ms();
     while ((status == BENTO_OK) &&
            (bento_time_ticks_diff(bento_time_ticks_ms(),
-                                  reader->start_ms) < RUN_MS)) {
+                                  reader->start_ms) <
+            ((int32_t)RUN_S * (int32_t)MS_PER_S))) {
         const uint32_t now_ms = bento_time_ticks_ms();
 
         read_result(&reading);
