@@ -119,19 +119,19 @@ try:
 
         if last_value is not None and waited >= SEND_MS:
             last_send = now
-            try:
-                # publish(payload, topic) -- payload มาก่อน และต้องเป็น JSON สตริง
-                # เขียน publish("temp_c", 25.3) จะกลายเป็นการส่ง "temp_c" ขึ้นไป
-                # โดยใช้ 25.3 เป็น topic ซึ่งไม่ใช่สิ่งที่ตั้งใจเลย
-                tesaiot.publish(json.dumps({"temperature": round(last_value, 1)}))
+            # publish(payload, topic) -- payload มาก่อน และต้องเป็น JSON สตริง
+            # เขียน publish("temp_c", 25.3) จะกลายเป็นการส่ง "temp_c" ขึ้นไป
+            # โดยใช้ 25.3 เป็น topic ซึ่งไม่ใช่สิ่งที่ตั้งใจเลย
+            # publish() คืน True/False ไม่โยน error ต้องอ่านค่าที่คืนมาเอง
+            if tesaiot.publish(json.dumps({"temperature": round(last_value, 1)})):
                 sent = sent + 1
                 seg_sent.text(str(sent))
                 lcd.print("ส่งแล้ว", sent, "ครั้ง | ล่าสุด", round(last_value, 1), "C")
-            except OSError as e:
+            else:
                 # ลิงก์เข้ารหัสหลุดกลางทาง จอต้องบอก ไม่ใช่เงียบ
                 fails = fails + 1
                 led_tls.value(0)
-                lbl_tls.text("ส่งไม่ออก: " + str(e))
+                lbl_tls.text("ส่งไม่ออก: publish() คืน False")
                 lbl_tls.color(COL_BAD)
 
         ui.poll()

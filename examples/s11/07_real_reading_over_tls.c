@@ -28,9 +28,10 @@
  *  - tesaiot.connect() answers True for BENTO_OK and False for
  *    BENTO_E_FAILED; any other status ends the program, as a failed
  *    device_id() (OSError there) or sensors.snapshot() does;
- *  - tesaiot.publish() and disconnect() answer True or False and never
- *    raise (modtesaiot.c:727-731, 799-815), so the original's except OSError
- *    branch never runs and fails stays 0; their status is ignored here too;
+ *  - tesaiot.publish() answers True or False and never raises
+ *    (modtesaiot.c:799-815): True is BENTO_OK from bento_tesaiot_publish,
+ *    any other status is False, a miss; disconnect() answers True or False
+ *    too, and its status is ignored as the original ignores it;
  *  - hasattr(sensors, "sht40") plus try/except OSError is one status test
  *    of bento_sensors_sht40_temperature(); the global _TEMP_SRC is a member
  *    of the link state; json.dumps of the one-key dict is snprintf;
@@ -323,7 +324,7 @@ typedef enum {
 /* What the loop keeps between rounds. */
 typedef struct {
     int32_t sent;
-    int32_t fails; /* publish() never raises, so nothing adds to it */
+    int32_t fails;
     uint32_t last_send_ms;
     bool has_value;
     bento_real_t last_value;
@@ -544,19 +545,29 @@ static void send_reading(const tls_screen_t *screen,
     char rounded[BENTO_FMT_BUF_SIZE];
     char payload[TEXT_BYTES];
     char text[TEXT_BYTES];
+    bento_status_t status;
 
     format_tenth(rounded, (uint32_t)sizeof(rounded), state->last_value);
     (void)snprintf(payload, sizeof(payload), "{\"temperature\": %s}",
                    rounded);
-    /* True or False, never a raise: the original counts either */
-    (void)bento_tesaiot_publish(NULL, 0U, (const uint8_t *)payload,
-                                (uint32_t)strlen(payload), 0U, NULL);
-    state->sent = state->sent + 1;
-    (void)snprintf(text, sizeof(text), "%d", (int)state->sent);
-    set_text(screen, screen->seg_sent, text);
-    (void)snprintf(text, sizeof(text), "ส่งแล้ว %d ครั้ง | ล่าสุด %s C",
-                   (int)state->sent, rounded);
-    (void)bento_lcd_print(text);
+    status = bento_tesaiot_publish(NULL, 0U, (const uint8_t *)payload,
+                                   (uint32_t)strlen(payload), 0U, NULL);
+    if (status == BENTO_OK) {
+        state->sent = state->sent + 1;
+        (void)snprintf(text, sizeof(text), "%d", (int)state->sent);
+        set_text(screen, screen->seg_sent, text);
+        (void)snprintf(text, sizeof(text), "ส่งแล้ว %d ครั้ง | ล่าสุด %s C",
+                       (int)state->sent, rounded);
+        (void)bento_lcd_print(text);
+    } else {
+        /* the encrypted link dropped: the screen must say so, not stay quiet */
+        state->fails = state->fails + 1;
+        (void)bento_ui_set_value(screen->ui, screen->led_tls, 0);
+        set_text(screen, screen->tls_line,
+                 "ส่งไม่ออก: publish() คืน False");
+        (void)bento_ui_set_color(screen->ui, screen->tls_line,
+                                 (uint32_t)COLOR_BAD);
+    }
 }
 
 /* One round: measure, move the countdown bar, send when it is full. */
