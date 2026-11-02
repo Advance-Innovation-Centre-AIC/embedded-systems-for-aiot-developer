@@ -827,9 +827,10 @@ static void show_snapshot(const sense_screen_t *screen,
                           const bento_sensors_snapshot_t *snapshot,
                           const tally_t *tally)
 {
-    char counters[TEXT_BYTES] = "ตัวนับรอบ  ";
+    char counters[TEXT_BYTES];
     char state[TEXT_BYTES];
 
+    (void)snprintf(counters, sizeof(counters), "%s", "ตัวนับรอบ  ");
     if (snapshot->has_bmi270 != 0U) {
         show_motion(screen, snapshot, counters, sizeof(counters));
     }

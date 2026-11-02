@@ -252,6 +252,7 @@ static int32_t log2_q8(uint32_t value)
     uint32_t bits = 0U;
     uint32_t rest = value;
     uint32_t mantissa;
+    uint32_t q8;
 
     while (rest != 0U) {
         rest >>= 1U;
@@ -260,8 +261,9 @@ static int32_t log2_q8(uint32_t value)
     mantissa = (bits <= (uint32_t)Q8_BITS)
                    ? (value << ((uint32_t)Q8_BITS - bits))
                    : (value >> (bits - (uint32_t)Q8_BITS));
-    return (int32_t)(((bits - 1U) << (uint32_t)Q8_SHIFT) +
-                     (mantissa - (uint32_t)Q8_ONE));
+    q8 = ((bits - 1U) << (uint32_t)Q8_SHIFT) +
+         (mantissa - (uint32_t)Q8_ONE);
+    return (int32_t)q8;
 }
 
 /* level(): loudness 0 to 100 on the ear's scale. */
@@ -322,7 +324,7 @@ static void poll_once(bento_ui_t *ui)
 static void show_meter(const mic_screen_t *screen, int32_t level)
 {
     uint8_t rows[METER_SIZE];
-    int32_t lit = (level * METER_SIZE) / LEVEL_MAX;
+    int32_t lit = (level * (int32_t)METER_SIZE) / (int32_t)LEVEL_MAX;
     int32_t row;
 
     lit = (lit > METER_SIZE) ? METER_SIZE : lit;
