@@ -55,6 +55,17 @@ static const char WIFI_PASS[] = "<Hotspot password>";
 static const char TEAM[] = "teamXX";
 /* BROKER: test.mosquitto.org is the spare */
 static const char BROKER[] = "broker.hivemq.com";
+/* The rules and the rhythm, as the original sets them. */
+enum {
+    CONF_MIN = 60, /* a result less sure than this does not count */
+    CONFIRM_N = 3, /* wins needed ... */
+    WINDOW_N = 5,  /* ... among this many latest results */
+    ALIVE_EVERY_MS = 2000, /* sent again this often, change or not */
+    GAP_MS = 200,          /* never closer than this */
+    WIFI_WAIT_S = 5,       /* wait for the saved WiFi this long */
+    DRAW_MS = 500,         /* the screen is redrawn this often */
+    RUN_S = 300            /* the program runs this many seconds */
+};
 /* ---- end of settings ---- */
 
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
@@ -71,16 +82,8 @@ enum {
 
 /* The rule, sending, waiting and the screen's rhythm. */
 enum {
-    CONF_MIN = 60, /* a result less sure than this does not count */
-    CONFIRM_N = 3, /* wins needed ... */
-    WINDOW_N = 5,  /* ... among this many latest results */
-    ALIVE_EVERY_MS = 2000, /* sent again this often, change or not */
-    GAP_MS = 200,          /* never closer than this */
-    WIFI_WAIT_S = 5,       /* wait for the saved WiFi this long */
     WIFI_POLLS_PER_S = 10,
     WIFI_POLL_MS = 100,
-    DRAW_MS = 500,
-    RUN_S = 300,
     MS_PER_S = 1000,
     LOOP_MS = 100,
     SETTLE_MS = 150, /* let the cleared screen settle */
@@ -387,8 +390,9 @@ static bento_status_t wait_saved_wifi(bool *connected)
     int32_t poll;
 
     *connected = false;
-    for (poll = 0; (poll < (WIFI_WAIT_S * WIFI_POLLS_PER_S)) &&
-                   !*connected && (status == BENTO_OK);
+    for (poll = 0;
+         (poll < ((int32_t)WIFI_WAIT_S * (int32_t)WIFI_POLLS_PER_S)) &&
+         !*connected && (status == BENTO_OK);
          poll++) {
         if (bento_wifi_is_connected(connected) != BENTO_OK) {
             *connected = false; /* an unknown link counts as down */
@@ -744,7 +748,7 @@ static bento_status_t run_rounds(link_t *link)
     while (
         (status == BENTO_OK) &&
         (bento_time_ticks_diff(bento_time_ticks_ms(), link->start_ms) <
-         (RUN_S * MS_PER_S))) {
+         ((int32_t)RUN_S * (int32_t)MS_PER_S))) {
         const uint32_t now_ms = bento_time_ticks_ms();
 
         take_result(link);
