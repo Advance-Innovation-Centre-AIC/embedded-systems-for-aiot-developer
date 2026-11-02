@@ -91,11 +91,6 @@ enum {
     COLOR_END_TEXT = 0xFF6600
 };
 
-static const char FOOTER[] =
-    "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
-
-static const char *const AXIS_PREFIX[AXES] = {"X: ", "Y: ", "Z: "};
-
 /* The widgets the program changes after it has drawn the screen. */
 typedef struct {
     bento_ui_t *ui;
@@ -283,8 +278,11 @@ static bento_status_t build_screen(accel_screen_t *screen)
                               HINT_Y, COLOR_HINT, FONT_PX, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_centered(screen->ui, FOOTER, FOOTER_Y,
-                              COLOR_FOOTER, FONT_PX, &unused);
+        status =
+            add_centered(screen->ui,
+                         "(C) 2023-2026 AIC-EEC.com and BiiL Centre, "
+                         "Burapha University",
+                         FOOTER_Y, COLOR_FOOTER, FONT_PX, &unused);
     }
     return status;
 }
@@ -317,6 +315,7 @@ static void format_signed(char *text, size_t size, const char *prefix,
  * does too. */
 static void show_accel(const accel_screen_t *screen, const float *accel)
 {
+    static const char *const axis_prefix[AXES] = {"X: ", "Y: ", "Z: "};
     char text[AXIS_TEXT_BYTES];
     int32_t axis;
 
@@ -326,7 +325,7 @@ static void show_accel(const accel_screen_t *screen, const float *accel)
             chart_point(accel[axis], CHART_SCALE));
     }
     for (axis = 0; axis < AXES; axis++) {
-        format_signed(text, sizeof(text), AXIS_PREFIX[axis],
+        format_signed(text, sizeof(text), axis_prefix[axis],
                       accel[axis]);
         (void)bento_ui_set_text(screen->ui, screen->axis_labels[axis],
                                 text, (uint32_t)strlen(text));

@@ -93,13 +93,6 @@ enum {
     COLOR_END_TEXT = 0xFF6600
 };
 
-static const char FOOTER[] =
-    "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
-
-static const char SOURCE_TEXT[] = "(BMI270 die)";
-static const char START_MESSAGE[] =
-    "sec3 ex04: real temperature on a round gauge (BMI270 die)";
-
 /* The widgets the program changes after it has drawn the screen. */
 typedef struct {
     bento_ui_t *ui;
@@ -259,7 +252,7 @@ static bento_status_t build_screen(gauge_screen_t *screen)
                               FONT_BIG_PX, &screen->temp);
     }
     if (status == BENTO_OK) {
-        status = add_centered(screen->ui, SOURCE_TEXT, SOURCE_Y,
+        status = add_centered(screen->ui, "(BMI270 die)", SOURCE_Y,
                               COLOR_HINT, FONT_PX, &unused);
     }
     if (status == BENTO_OK) {
@@ -269,8 +262,11 @@ static bento_status_t build_screen(gauge_screen_t *screen)
                               HINT_Y, COLOR_HINT, FONT_PX, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_centered(screen->ui, FOOTER, FOOTER_Y,
-                              COLOR_FOOTER, FONT_PX, &unused);
+        status =
+            add_centered(screen->ui,
+                         "(C) 2023-2026 AIC-EEC.com and BiiL Centre, "
+                         "Burapha University",
+                         FOOTER_Y, COLOR_FOOTER, FONT_PX, &unused);
     }
     if (status == BENTO_OK) {
         (void)bento_ui_set_prop(screen->ui, screen->scale,
@@ -397,7 +393,8 @@ int main(void)
 
     /* lcd.print() ignores a console that is not ready (modlcd.c) */
     if (status == BENTO_OK) {
-        (void)bento_lcd_print(START_MESSAGE);
+        (void)bento_lcd_print("sec3 ex04: real temperature on a round "
+                              "gauge (BMI270 die)");
         status = run_loop(&screen);
     }
     if (status == BENTO_OK) {

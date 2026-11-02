@@ -141,9 +141,6 @@ enum {
     COLOR_END_TEXT = 0xFF6600
 };
 
-static const char FOOTER[] =
-    "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
-
 /* The samples of one read: 1280 bytes, too big for the 8 KB program
  * stack, so at file scope, zeroed by the loader and set again at the
  * start of main() (CLEAN_C.md C9, deviation BENTO-MISRA-E03/E04). */
@@ -373,8 +370,11 @@ static bento_status_t build_screen(scope_t *scope)
             INFO_Y, COLOR_INFO, FONT_PX, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_centered(scope->ui, FOOTER, FOOTER_Y, COLOR_FOOTER,
-                              FONT_PX, &unused);
+        status =
+            add_centered(scope->ui,
+                         "(C) 2023-2026 AIC-EEC.com and BiiL Centre, "
+                         "Burapha University",
+                         FOOTER_Y, COLOR_FOOTER, FONT_PX, &unused);
     }
     return status;
 }

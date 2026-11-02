@@ -128,11 +128,6 @@ enum {
     COLOR_END_TEXT = 0xFF6600
 };
 
-static const char FOOTER[] =
-    "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
-
-static const char *const TAB_NAMES[TABS] = {"Bar", "Area", "Scatter",
-                                            "Line"};
 static const uint32_t AXIS_COLORS[AXES] = {COLOR_X, COLOR_Y, COLOR_Z};
 
 /* A chart with its three series: series 0 comes with the chart. */
@@ -200,6 +195,8 @@ static bento_status_t clear_screen(bento_ui_t *ui)
  * setter, whose refusal MicroPython ignores (modui.c). */
 static bento_status_t add_tabs(bento_ui_t *ui, bento_ui_id_t *tabs)
 {
+    static const char *const tab_names[TABS] = {"Bar", "Area",
+                                                "Scatter", "Line"};
     bento_ui_widget_args_t args;
     bento_ui_id_t tabview;
     int32_t i;
@@ -213,8 +210,8 @@ static bento_status_t add_tabs(bento_ui_t *ui, bento_ui_id_t *tabs)
     status = bento_ui_tabview_create(ui, &args, &tabview);
     for (i = 0; (i < TABS) && (status == BENTO_OK); i++) {
         status =
-            bento_ui_add_tab(ui, tabview, TAB_NAMES[i],
-                             (uint32_t)strlen(TAB_NAMES[i]), &tabs[i]);
+            bento_ui_add_tab(ui, tabview, tab_names[i],
+                             (uint32_t)strlen(tab_names[i]), &tabs[i]);
     }
     for (i = 0; (i < TABS) && (status == BENTO_OK); i++) {
         (void)bento_ui_set_color(ui, tabs[i], COLOR_TAB);
@@ -393,7 +390,10 @@ static bento_status_t build_screen(dashboard_t *board)
         status = add_line_tab(board);
     }
     if (status == BENTO_OK) {
-        status = add_label(board->ui, FOOTER, &footer, &unused);
+        status = add_label(board->ui,
+                           "(C) 2023-2026 AIC-EEC.com and BiiL Centre, "
+                           "Burapha University",
+                           &footer, &unused);
     }
     return status;
 }

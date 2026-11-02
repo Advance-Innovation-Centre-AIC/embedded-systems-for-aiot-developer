@@ -119,11 +119,6 @@ enum {
     COLOR_END_TEXT = 0xFF6600
 };
 
-static const char FOOTER[] =
-    "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
-
-static const char *const TAB_NAMES[TABS] = {"ADC", "Accel", "Gyro"};
-static const char *const AXIS_NAMES[AXES] = {"X", "Y", "Z"};
 static const uint32_t AXIS_COLORS[AXES] = {COLOR_X, COLOR_Y, COLOR_Z};
 
 /* The widgets the program changes after it has drawn the screen. */
@@ -200,6 +195,7 @@ static bento_status_t clear_screen(bento_ui_t *ui)
  * setter, whose refusal MicroPython ignores (modui.c). */
 static bento_status_t add_tabs(bento_ui_t *ui, bento_ui_id_t *tabs)
 {
+    static const char *const tab_names[TABS] = {"ADC", "Accel", "Gyro"};
     bento_ui_widget_args_t args;
     bento_ui_id_t tabview;
     int32_t i;
@@ -213,8 +209,8 @@ static bento_status_t add_tabs(bento_ui_t *ui, bento_ui_id_t *tabs)
     status = bento_ui_tabview_create(ui, &args, &tabview);
     for (i = 0; (i < TABS) && (status == BENTO_OK); i++) {
         status =
-            bento_ui_add_tab(ui, tabview, TAB_NAMES[i],
-                             (uint32_t)strlen(TAB_NAMES[i]), &tabs[i]);
+            bento_ui_add_tab(ui, tabview, tab_names[i],
+                             (uint32_t)strlen(tab_names[i]), &tabs[i]);
     }
     for (i = 0; (i < TABS) && (status == BENTO_OK); i++) {
         (void)bento_ui_set_color(ui, tabs[i], COLOR_TAB);
@@ -311,6 +307,7 @@ static bento_status_t add_accel_tab(dashboard_t *board)
 /* One gyro axis: its arc at half, and its name under it. */
 static bento_status_t add_gyro_axis(dashboard_t *board, int32_t axis)
 {
+    static const char *const axis_names[AXES] = {"X", "Y", "Z"};
     const bento_ui_id_t tab = board->tabs[TAB_GYRO];
     const int32_t column = ARC_CENTER_X + ((axis - 1) * ARC_STEP);
     const label_style_t name = {(int16_t)(column + ARC_NAME_DX),
@@ -332,7 +329,7 @@ static bento_status_t add_gyro_axis(dashboard_t *board, int32_t axis)
     args.parent = tab;
     status = bento_ui_arc_create(board->ui, &args, &board->arcs[axis]);
     if (status == BENTO_OK) {
-        status = add_label(board->ui, AXIS_NAMES[axis], &name, &unused);
+        status = add_label(board->ui, axis_names[axis], &name, &unused);
     }
     return status;
 }
@@ -374,7 +371,10 @@ static bento_status_t build_screen(dashboard_t *board)
         status = add_gyro_tab(board);
     }
     if (status == BENTO_OK) {
-        status = add_label(board->ui, FOOTER, &footer, &unused);
+        status = add_label(board->ui,
+                           "(C) 2023-2026 AIC-EEC.com and BiiL Centre, "
+                           "Burapha University",
+                           &footer, &unused);
     }
     return status;
 }

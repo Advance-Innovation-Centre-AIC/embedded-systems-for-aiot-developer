@@ -137,9 +137,6 @@ enum {
     COLOR_END_TEXT = 0xFF6600
 };
 
-static const char FOOTER[] =
-    "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
-
 /* The widgets the program changes, and the generator's state. */
 typedef struct {
     bento_ui_t *ui;
@@ -436,8 +433,11 @@ static bento_status_t build_screen(scope_t *scope)
         status = add_strip(scope);
     }
     if (status == BENTO_OK) {
-        status = add_centered(scope->ui, FOOTER, FOOTER_Y, COLOR_FOOTER,
-                              FONT_PX, &unused);
+        status =
+            add_centered(scope->ui,
+                         "(C) 2023-2026 AIC-EEC.com and BiiL Centre, "
+                         "Burapha University",
+                         FOOTER_Y, COLOR_FOOTER, FONT_PX, &unused);
     }
     return status;
 }
