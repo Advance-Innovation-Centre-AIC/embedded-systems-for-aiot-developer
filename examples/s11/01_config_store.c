@@ -21,7 +21,7 @@
  * every later lookup reads; a missing key, KeyError in MicroPython, ends
  * the program with BENTO_E_INVALID_ARGUMENT; sorted(keys) is an insertion
  * sort with strcmp, which is code point order on UTF-8.
- * In the BENTO Emulator, MQTT from C is not available yet: the program says
+ * In the BENTO Emulator, the TESAIoT platform from C is not available yet: the program says
  * so and ends (every bento_tesaiot_* call answers BENTO_E_UNSUPPORTED there).
  */
 #include <stdbool.h>
@@ -156,8 +156,8 @@ static bento_status_t add_label(bento_ui_t *ui, const char *text,
  * screen and on the console; the program then ends with 0. */
 static bento_status_t show_emulator_note(bento_ui_t *ui)
 {
-    static const char note[] =
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    static const char note[] = "TESAIoT จาก C ยังไม่มีใน BENTO "
+                               "Emulator\nให้รันบน Dev Kit หรือ Eva Kit";
     bento_ui_widget_args_t args;
     bento_ui_id_t id;
 
@@ -169,10 +169,10 @@ static bento_status_t show_emulator_note(bento_ui_t *ui)
     args.w = CARD_W;
     args.color = (uint32_t)COLOR_WARN;
     args.font_px = FONT_TEXT;
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a Dev Kit or Eva "
-                 "Kit.\n",
-                 note);
+    (void)printf(
+        "TESAIoT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva "
+        "Kit / TESAIoT platform from C is not in the BENTO Emulator "
+        "yet: run it on a Dev Kit or Eva Kit.\n");
     return bento_ui_label_create(ui, &args, &id);
 }
 
