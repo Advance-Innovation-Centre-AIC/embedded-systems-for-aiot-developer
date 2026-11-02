@@ -52,9 +52,10 @@
  *     AttributeError nothing catches) ends the program.
  *   - Stop ends the program after the next sleep, where MicroPython
  *     raises KeyboardInterrupt.
- *   - In the BENTO Emulator, MQTT from C is not available yet: the
- *     program says so (a label in place of the mqtt_pass row, which
- *     was not set, and a printed line) and then runs as when the
+ *   - In the BENTO Emulator, the TESAIoT platform from C is not
+ *     available yet: the program says so (a label under the table,
+ *     where the mqtt_pass row would be, which was not set, and a
+ *     printed line) and then runs as when the
  *     platform cannot be reached: it waits the 30 s, lights the failed
  *     lamp and prints that 0 messages were sent.
  */
@@ -423,25 +424,27 @@ static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row,
     }
 }
 
-/* The BENTO Emulator has no MQTT from C yet: say so on the screen
+/* The BENTO Emulator has no TESAIoT platform from C yet: say so on the screen
  * and in the Console. */
 static bento_status_t add_emulator_notice(bento_ui_t *ui)
 {
     /* The line breaks are in the text: the Emulator does not wrap a
      * label at a width, so all of it stays on the screen. */
     static const widget_spec_t notice = {
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator\nให้รันบน Dev Kit หรือ Eva Kit",
+        "TESAIoT จาก C ยังไม่มีใน BENTO Emulator\nให้รันบน Dev Kit หรือ Eva "
+        "Kit",
         40,
-        316,
+        250,
         -1,
         -1,
         COLOR_TEXT,
         20};
     bento_ui_id_t unused = 0U;
 
-    (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ "
-                 "Eva Kit / MQTT from C is not in the BENTO Emulator "
-                 "yet: run it on a Dev Kit or Eva Kit.\n");
+    (void)printf(
+        "TESAIoT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva "
+        "Kit / TESAIoT platform from C is not in the BENTO Emulator "
+        "yet: run it on a Dev Kit or Eva Kit.\n");
     return add_label(ui, &notice, &unused);
 }
 
