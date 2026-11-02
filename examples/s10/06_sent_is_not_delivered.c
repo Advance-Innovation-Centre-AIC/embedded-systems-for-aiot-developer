@@ -56,6 +56,14 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+static const char BROKER[] = "192.168.1.50";
+static const char DEVICE_ID[] = "team03";
+static const char TOPIC_ECHO[] = "bento/team03/echo";
+/* ---- end of settings ---- */
+
 /* Counts, times and sizes. */
 enum {
     MESSAGES = 10,
@@ -460,14 +468,11 @@ static void show_results(const echo_screen_t *screen,
 /* Our own topic, subscribed too: each message goes round through
  * the broker and back to us, the cheapest proof of delivery a
  * classroom has. */
-static const char TOPIC_ECHO[] = "bento/team03/echo";
 
 /* wifi.connect(): *joined is its True or False. A refused or
  * timed-out join is False; any other failure ends the program. */
 static bento_status_t join_wifi(bool *joined)
 {
-    static const char wifi_ssid[] = "AIoT-Class";
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_wifi_connect_params_t params;
     uint32_t ip_v4 = 0U;
@@ -475,10 +480,10 @@ static bento_status_t join_wifi(bool *joined)
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = wifi_ssid;
-    params.ssid_len = (uint32_t)strlen(wifi_ssid);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -514,19 +519,18 @@ static bento_status_t join_wifi(bool *joined)
  * raise does. */
 static bento_status_t open_broker(echo_t *echo, bool *linked)
 {
-    static const char broker[] = "192.168.1.50";
     bento_mqtt_config_t config;
     bento_status_t status;
 
     bento_mqtt_config_init(&config);
-    config.host = broker;
-    config.host_len = (uint32_t)strlen(broker);
+    config.host = BROKER;
+    config.host_len = (uint32_t)strlen(BROKER);
     config.port = (uint16_t)BROKER_PORT;
     config.client_id = echo->client_id;
     config.client_id_len = (uint32_t)strlen(echo->client_id);
     status = bento_mqtt_open_start(&config, &echo->broker);
     if (status == BENTO_OK) { /* the binding raises before it prints */
-        (void)printf("[MQTT] Connecting to %s:%d ...\r\n", broker,
+        (void)printf("[MQTT] Connecting to %s:%d ...\r\n", BROKER,
                      BROKER_PORT);
         status = BENTO_E_IN_PROGRESS;
     }
@@ -538,7 +542,7 @@ static bento_status_t open_broker(echo_t *echo, bool *linked)
     }
     *linked = (status == BENTO_OK);
     if (*linked) {
-        (void)printf("[MQTT] Connected to %s:%d as '%s'\r\n", broker,
+        (void)printf("[MQTT] Connected to %s:%d as '%s'\r\n", BROKER,
                      BROKER_PORT, echo->client_id);
     } else if ((status != BENTO_E_CANCELLED) && (echo->broker != 0U)) {
         status = BENTO_OK;
@@ -728,7 +732,6 @@ static bento_status_t run_echo(const echo_screen_t *screen,
 
 int main(void)
 {
-    static const char device_id[] = "team03";
     echo_screen_t screen = {0};
     echo_t echo = {0};
     bool joined = false;
@@ -736,7 +739,7 @@ int main(void)
 
     /* a new id each run: a run right after Stop does not clash */
     (void)snprintf(echo.client_id, sizeof(echo.client_id), "%s-%04x",
-                   device_id,
+                   DEVICE_ID,
                    (unsigned int)(bento_time_ticks_ms() &
                                   (uint32_t)TICKS_LOW_MASK));
     screen.ui = bento_runtime_get_ui();
