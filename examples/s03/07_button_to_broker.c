@@ -76,6 +76,19 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* แก้สี่บรรทัดนี้ให้ตรงกับที่ผู้สอนแจก
+ * Set these four to what the teacher hands out. */
+/* the team's phone hotspot: faculty Wi-Fi needs a login */
+static const char WIFI_SSID[] = "bento-teamXX";
+/* 8 characters or more */
+static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
+/* the spare is "test.mosquitto.org" */
+static const char BROKER[] = "broker.hivemq.com";
+/* team01 to team19; unset, the program will not run */
+static const char TEAM[] = "teamXX";
+/* ---- end of settings ---- */
+
 /* The course palette, 0xRRGGBB. */
 enum {
     COL_TEXT = 0xE8EAED,
@@ -1648,17 +1661,6 @@ static void show_summary(const app_t *app)
     drain_events(screen);
 }
 
-/* Change these four lines to what the teacher hands out. */
-typedef struct {
-    const char *ssid;
-    const char *pass;
-} wifi_network_t;
-
-static const wifi_network_t NETWORK = {"bento-teamXX",
-                                       "<รหัส Hotspot ของทีม>"};
-static const char BROKER[] = "broker.hivemq.com";
-static const char TEAM[] = "teamXX"; /* team01 .. team19 */
-
 /* Do not change: the topic root. */
 static const char ROOT[] = "bento-aiot";
 
@@ -1698,10 +1700,10 @@ static bento_status_t join_wifi(bool *joined)
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = NETWORK.ssid;
-    params.ssid_len = (uint32_t)strlen(NETWORK.ssid);
-    params.pass = NETWORK.pass;
-    params.pass_len = (uint32_t)strlen(NETWORK.pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -1749,7 +1751,7 @@ static bento_status_t heard_network(bool *heard)
         }
     }
     for (i = 0U; (status == BENTO_OK) && (i < count); i++) {
-        if (strcmp(g_heard[i].ssid, NETWORK.ssid) == 0) {
+        if (strcmp(g_heard[i].ssid, WIFI_SSID) == 0) {
             *heard = true;
         }
     }
@@ -1769,8 +1771,7 @@ static bento_status_t step_wifi(app_t *app)
     set_color(screen, screen->status, COL_WARN);
     set_text(screen, screen->status, "กำลังต่อ WiFi จอจะนิ่งสักครู่");
     drain_events(screen);
-    (void)snprintf(line, sizeof(line), "1) กำลังต่อ WiFi %s",
-                   NETWORK.ssid);
+    (void)snprintf(line, sizeof(line), "1) กำลังต่อ WiFi %s", WIFI_SSID);
     lcd_line(line);
     status = join_wifi(&joined);
     if ((status == BENTO_OK) && !joined) {
@@ -1781,7 +1782,7 @@ static bento_status_t step_wifi(app_t *app)
         (void)snprintf(line, sizeof(line),
                        heard ? "ได้ยินวง %s แต่ต่อไม่ผ่าน ตรวจรหัสผ่าน"
                              : "ไม่ได้ยินวง %s ตรวจชื่อวง",
-                       NETWORK.ssid);
+                       WIFI_SSID);
         stop_here(app, "ต่อ WiFi ไม่ติด", line);
     }
     return status;
