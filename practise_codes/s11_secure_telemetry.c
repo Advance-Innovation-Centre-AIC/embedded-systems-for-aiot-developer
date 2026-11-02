@@ -65,10 +65,14 @@
 #include "bento_tesaiot.h"
 #include "bento_time.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
 static const char TEAM_NAME[] = "BentoBuilders";
 static const char DEVICE_ID[] =
-    "team03"; /* registered, under 31 chars */
+    "team03"; /* ต้องตรงกับที่ขึ้นทะเบียนไว้ และสั้นกว่า 31 ตัวอักษร */
+static const char API_KEY[] = "<api key ของทีม>";
+static const char MQTT_PASS[] = "<รหัสผ่าน MQTT 16 ตัว>";
 static const char BROKER[] = "<โฮสต์แพลตฟอร์ม>";
+/* ---- end of settings ---- */
 
 enum { /* times */
     SETTLE_MS = 200,
@@ -834,27 +838,21 @@ static bento_status_t warm_up_sensors(void)
 /* ท่าที่ 1: ตั้งค่าตัวตนของอุปกรณ์ (both blanks are empty, as in the .py) */
 static void set_identity(void)
 {
-    /* the team's own key and MQTT password: edit both before the run */
-    static const char api_key[] = "<api key ของทีม>";
-    static const char mqtt_pass[] = "<รหัสผ่าน MQTT 16 ตัว>";
-
     /* config_set() รับทีละคู่ (key, value) และเก็บไว้ในเฟิร์มแวร์ ไม่ได้ต่ออะไรทั้งสิ้น
      * เติม: เรียก bento_tesaiot_config_set() กับคีย์ "device_id" และค่า DEVICE_ID
-     *   แล้วอีกสองครั้งสำหรับ "api_key" (api_key) และ "mqtt_pass" (mqtt_pass)
+     *   แล้วอีกสองครั้งสำหรับ "api_key" (API_KEY) และ "mqtt_pass" (MQTT_PASS)
      * ตั้งค่าแล้วอยากตรวจว่าเข้าจริงไหม: examples/s11/01_config_store.py
      * เดินดูคลังค่าตั้งทั้ง 19 คีย์
      * และเตือนข้อที่จะทำให้เสียเวลาเปล่า - mqtt_pass ตั้งได้ แต่อ่านกลับไม่ได้
      * ถามหาคีย์ mqtt_pass ด้วย bento_tesaiot_config_get_field() บนบอร์ดจริงจะได้
      * BENTO_E_NOT_FOUND ไม่ใช่ค่าว่าง */
-    (void)DEVICE_ID; /* used once ท่าที่ 1 is filled in */
-    (void)api_key;   /* used once ท่าที่ 1 is filled in */
-    (void)mqtt_pass; /* used once ท่าที่ 1 is filled in */
+    (void)API_KEY;   /* used once ท่าที่ 1 is filled in */
+    (void)MQTT_PASS; /* used once ท่าที่ 1 is filled in */
 
     /* sni_hostname คือชื่อที่เดินไปก่อนการเข้ารหัส ต้องเป็นชื่อโฮสต์เดียวกับ broker
      * ถ้าตั้งไม่ตรง เซิร์ฟเวอร์จะยื่นใบรับรองผิดใบ แล้วการต่อจะล้มเงียบ ๆ โดยไม่มีข้อความ
      * เติม: เรียก bento_tesaiot_config_set() กับ "broker" และ BROKER
      *   แล้วครั้งถัดไปกับ "sni_hostname" และ BROKER */
-    (void)BROKER; /* used once ท่าที่ 1 is filled in */
 }
 
 int main(void)
