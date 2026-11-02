@@ -72,17 +72,21 @@
 #include "bento_tesaiot.h"
 #include "bento_time.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char TEAM_NAME[] = "BentoBuilders";
+static const char DEVICE_ID[] =
+    "team03"; /* ต้องตรงกับที่ขึ้นทะเบียนไว้ และสั้นกว่า 31 ตัวอักษร */
+static const char API_KEY[] = "<api key ของทีม>";
+static const char MQTT_PASS[] = "<รหัสผ่าน MQTT 16 ตัว>";
+static const char BROKER[] = "<โฮสต์แพลตฟอร์ม>";
+/* ---- end of settings ---- */
+
 /* Each multiply and add is rounded on its own, as MicroPython does. */
 #if defined(__clang__)
 #pragma STDC FP_CONTRACT OFF
 #elif defined(__GNUC__)
 #pragma GCC optimize("fp-contract=off")
 #endif
-
-static const char TEAM_NAME[] = "BentoBuilders";
-static const char DEVICE_ID[] =
-    "team03"; /* registered, under 31 chars */
-static const char BROKER[] = "<โฮสต์แพลตฟอร์ม>";
 
 enum { /* times */
     SETTLE_MS = 200,
@@ -98,7 +102,14 @@ enum { /* text sizes */
     VALUE_BYTES = (int32_t)BENTO_TESAIOT_CONFIG_VALUE_MAX + 1,
     KEY_BYTES = (int32_t)BENTO_TESAIOT_CONFIG_KEY_MAX + 1,
     NUMBER_BYTES = BENTO_FMT_BUF_SIZE,
-    PAYLOAD_BYTES = 160
+    PAYLOAD_BYTES = 160,
+    /* the proof line: its fixed text (58 bytes, Thai is 3 a letter),
+     * any int32_t (11) and any tls_mode value with the NUL; lcd.print
+     * shows its first 127 bytes, as the binding does */
+    PROOF_FIXED_BYTES = 58,
+    INT32_TEXT_BYTES = 11,
+    PROOF_LINE_BYTES =
+        PROOF_FIXED_BYTES + INT32_TEXT_BYTES + VALUE_BYTES
 };
 
 enum { /* layout that more than one widget shares */
@@ -387,16 +398,13 @@ static bento_status_t set_field(const char *key, const char *value)
  * the link fails without a word. */
 static bento_status_t set_identity(void)
 {
-    /* the team's own key and MQTT password: edit both before the run */
-    static const char api_key[] = "<api key ของทีม>";
-    static const char mqtt_pass[] = "<รหัสผ่าน MQTT 16 ตัว>";
     bento_status_t status = set_field("device_id", DEVICE_ID);
 
     if (status == BENTO_OK) {
-        status = set_field("api_key", api_key);
+        status = set_field("api_key", API_KEY);
     }
     if (status == BENTO_OK) {
-        status = set_field("mqtt_pass", mqtt_pass);
+        status = set_field("mqtt_pass", MQTT_PASS);
     }
     if (status == BENTO_OK) {
         status = set_field("broker", BROKER);
@@ -828,7 +836,7 @@ static bento_status_t send_payload(const tls_screen_t *screen,
                                    const char *payload)
 {
     char mode[VALUE_BYTES];
-    char text[TEXT_BYTES];
+    char text[PROOF_LINE_BYTES];
     bento_status_t status;
 
     /* answers True or False, which the original ignores */
