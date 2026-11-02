@@ -21,6 +21,8 @@
  * every later lookup reads; a missing key, KeyError in MicroPython, ends
  * the program with BENTO_E_INVALID_ARGUMENT; sorted(keys) is an insertion
  * sort with strcmp, which is code point order on UTF-8.
+ * In the BENTO Emulator, MQTT from C is not available yet: the program says
+ * so and ends (every bento_tesaiot_* call answers BENTO_E_UNSUPPORTED there).
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -146,6 +148,31 @@ static bento_status_t add_label(bento_ui_t *ui, const char *text,
     args.y = place->y;
     args.color = color;
     args.font_px = font_px;
+    return bento_ui_label_create(ui, &args, &id);
+}
+
+/* The BENTO Emulator's C runtime has no TESAIoT link yet: the first
+ * bento_tesaiot_* call answers BENTO_E_UNSUPPORTED there. Say so on the
+ * screen and on the console; the program then ends with 0. */
+static bento_status_t show_emulator_note(bento_ui_t *ui)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_widget_args_t args;
+    bento_ui_id_t id;
+
+    bento_ui_widget_args_init(&args);
+    args.text = note;
+    args.text_len = (uint32_t)strlen(note);
+    args.x = TITLE_X;
+    args.y = TITLE_Y;
+    args.w = CARD_W;
+    args.color = (uint32_t)COLOR_WARN;
+    args.font_px = FONT_TEXT;
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
     return bento_ui_label_create(ui, &args, &id);
 }
 
@@ -587,6 +614,13 @@ int main(void)
 
     (void)memset(config, 0, sizeof(*config));
     status = read_config(config);
+    if (status == BENTO_E_UNSUPPORTED) {
+        status = show_emulator_note(ui);
+        if (status == BENTO_OK) {
+            status =
+                BENTO_E_CANCELLED; /* nothing else can run: a quiet end */
+        }
+    }
     if (status == BENTO_OK) {
         has_pass = has_key(config, "mqtt_pass", &index);
         status = build_screen(ui, config, has_pass);
