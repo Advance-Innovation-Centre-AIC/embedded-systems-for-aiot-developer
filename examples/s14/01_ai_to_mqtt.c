@@ -711,6 +711,24 @@ static void draw_result(link_t *link)
     }
 }
 
+/* text[start:start + LINE_PART] into part (LINE_PART + 1 bytes): the
+ * slice of the original, cut on purpose. The JSON is ASCII, so bytes
+ * and letters are the same. */
+static void copy_slice(char *part, const char *text, size_t start)
+{
+    const size_t length = strlen(text);
+    size_t count = 0U;
+
+    if (start < length) {
+        count = length - start;
+    }
+    if (count > (size_t)LINE_PART) {
+        count = (size_t)LINE_PART;
+    }
+    (void)memcpy(part, &text[start], count);
+    part[count] = '\0';
+}
+
 static void draw_message(link_t *link)
 {
     char part[LINE_PART + 1];
@@ -722,11 +740,10 @@ static void draw_message(link_t *link)
                        "messages %" PRId32 " | reached broker %" PRId32,
                        link->messages, link->reached);
         set_text(link->ui, link->count_label, text);
-        (void)snprintf(part, sizeof(part), "%s", link->message);
+        copy_slice(part, link->message, 0U);
         set_text(link->ui, link->json_first, part);
         if (length > (size_t)LINE_PART) {
-            (void)snprintf(part, sizeof(part), "%s",
-                           &link->message[LINE_PART]);
+            copy_slice(part, link->message, (size_t)LINE_PART);
         } else {
             (void)snprintf(part, sizeof(part), " ");
         }
