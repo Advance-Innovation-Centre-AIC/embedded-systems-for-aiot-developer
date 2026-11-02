@@ -31,6 +31,7 @@
  * first, without writing the LED count as a number (hint: led_count
  * and %).
  */
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -398,11 +399,11 @@ static bento_status_t chase_one(const lights_t *lights, uint32_t led)
         status = bento_gpio_led_name(led, &name);
     }
     if (status == BENTO_OK) {
-        (void)snprintf(text, sizeof(text), "%lu", (unsigned long)led);
+        (void)snprintf(text, sizeof(text), "%" PRIu32, led);
         set_text(lights, lights->led_digits, text);
         set_text(lights, lights->led_name, name);
-        (void)snprintf(text, sizeof(text), "ติดดวงที่ %lu - %s",
-                       (unsigned long)led, name);
+        (void)snprintf(text, sizeof(text), "ติดดวงที่ %" PRIu32 " - %s",
+                       led, name);
         (void)bento_lcd_print(text);
         poll_once(lights->ui);
         status = sleep_checked(STEP_MS);
@@ -459,12 +460,12 @@ static bento_status_t ladder_step(const lights_t *lights, int32_t pct)
         status = bento_gpio_led_duty(lights->show, &duty);
     }
     if (status == BENTO_OK) {
-        (void)snprintf(text, sizeof(text), "duty() = %lu แต่หลอดดับแล้ว",
-                       (unsigned long)duty);
+        (void)snprintf(text, sizeof(text),
+                       "duty() = %" PRIu32 " แต่หลอดดับแล้ว", duty);
         set_text(lights, lights->duty, text);
         (void)snprintf(text, sizeof(text),
-                       "hold( %d , %d ) -> duty() %lu", (int)pct,
-                       HOLD_MS, (unsigned long)duty);
+                       "hold( %d , %d ) -> duty() %" PRIu32, (int)pct,
+                       HOLD_MS, duty);
         (void)bento_lcd_print(text);
         poll_once(lights->ui);
     }
@@ -482,12 +483,11 @@ static bento_status_t run_ladder(const lights_t *lights)
     uint32_t i;
 
     if (status == BENTO_OK) {
-        (void)snprintf(text, sizeof(text), "ท่าที่ 2 - ไล่ความสว่างดวงที่ %lu",
-                       (unsigned long)lights->show);
+        (void)snprintf(text, sizeof(text),
+                       "ท่าที่ 2 - ไล่ความสว่างดวงที่ %" PRIu32, lights->show);
         set_text(lights, lights->phase, text);
         set_color(lights, lights->phase, COLOR_INFO);
-        (void)snprintf(text, sizeof(text), "%lu",
-                       (unsigned long)lights->show);
+        (void)snprintf(text, sizeof(text), "%" PRIu32, lights->show);
         set_text(lights, lights->led_digits, text);
         set_text(lights, lights->led_name, name);
         set_text(lights, lights->note,
@@ -621,9 +621,9 @@ static void close_buttons(const lights_t *lights, int32_t presses)
     set_color(lights, lights->phase, COLOR_DIM);
     set_text(lights, lights->state, "ปิดรับแล้ว");
     set_color(lights, lights->state, COLOR_DIM);
-    (void)snprintf(text, sizeof(text), "หลอด %lu ดวง ปุ่ม %lu ปุ่ม",
-                   (unsigned long)lights->led_count,
-                   (unsigned long)lights->button_count);
+    (void)snprintf(text, sizeof(text),
+                   "หลอด %" PRIu32 " ดวง ปุ่ม %" PRIu32 " ปุ่ม",
+                   lights->led_count, lights->button_count);
     set_text(lights, lights->note, text);
     poll_once(lights->ui);
     (void)bento_lcd_console(
@@ -673,9 +673,8 @@ int main(void)
         (void)bento_lcd_clear();
         (void)bento_lcd_console("<h2>ไฟจริงกับปุ่มจริง</h2>");
         (void)snprintf(text, sizeof(text),
-                       "บอร์ดนี้มีหลอด %lu ดวง | ปุ่ม %lu ปุ่ม",
-                       (unsigned long)lights.led_count,
-                       (unsigned long)lights.button_count);
+                       "บอร์ดนี้มีหลอด %" PRIu32 " ดวง | ปุ่ม %" PRIu32 " ปุ่ม",
+                       lights.led_count, lights.button_count);
         (void)bento_lcd_print(text);
         status = prepare_leds(&lights);
     }
