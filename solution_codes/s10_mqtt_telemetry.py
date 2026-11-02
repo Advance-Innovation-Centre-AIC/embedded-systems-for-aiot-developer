@@ -63,39 +63,39 @@ STALE_MS = 12000       # เกินสองรอบส่งยังอ่�
 ui.screen()
 time.sleep_ms(200)
 ui.Label("MQTT Telemetry - คาบ 10", x=24, y=36, color=COL_TEXT, value=20)
-lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=24, y=72, color=COL_DIM, value=16)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=24, y=72, color=COL_DIM, value=20)
 
 led_wifi = ui.Led(x=328, y=16, w=48, h=48, color=COL_OK, value=0)
-ui.Label("WiFi", x=328, y=72, color=COL_DIM, value=16)
+ui.Label("WiFi", x=328, y=72, color=COL_DIM, value=20)
 led_mqtt = ui.Led(x=440, y=16, w=48, h=48, color=COL_OK, value=0)
-ui.Label("MQTT", x=440, y=72, color=COL_DIM, value=16)
+ui.Label("MQTT", x=440, y=72, color=COL_DIM, value=20)
 led_stale = ui.Led(x=552, y=16, w=48, h=48, color=COL_WARN, value=0)
-ui.Label("ค่าค้าง", x=552, y=72, color=COL_DIM, value=16)
+ui.Label("ค่าค้าง", x=552, y=72, color=COL_DIM, value=20)
 led_remote = ui.Led(x=664, y=16, w=48, h=48, color=COL_RUN, value=0)
-ui.Label("ไฟสั่งไกล", x=664, y=72, color=COL_DIM, value=16)
+ui.Label("ไฟสั่งไกล", x=664, y=72, color=COL_DIM, value=20)
 
 # การ์ด 1: ค่าที่จะส่งกับจำนวนใบที่ส่ง
 # สร้างการ์ดก่อนป้ายบนมัน ไม่งั้นการ์ดทับป้ายหายเงียบ ๆ
 ui.Panel(x=24, y=112, w=232, h=280, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ลูกบิดที่ส่งจริง", x=40, y=124, color=COL_DIM, value=16)
+ui.Label("ลูกบิดที่ส่งจริง", x=40, y=124, color=COL_DIM, value=20)
 lbl_pot = ui.Label("- %", x=40, y=160, color=COL_TEXT, value=24)
 bar_pot = ui.Bar(x=40, y=204, w=200, h=12, color=0x4A9EFF, min=0, max=100, value=0)
 sc_pot = ui.Scale(x=40, y=224, w=200, h=44, color=COL_TEXT, min=0, max=100)
 sc_pot.ticks(11, 5)
-ui.Label("ส่งไปแล้ว (ใบ)", x=40, y=288, color=COL_DIM, value=16)
+ui.Label("ส่งไปแล้ว (ใบ)", x=40, y=288, color=COL_DIM, value=20)
 seg_sent = ui.Seg7("0", x=40, y=324, w=200, h=48, color=COL_TEXT)
 
 # การ์ด 2: สามใบล่าสุดกับคำสั่งที่รับ
 ui.Panel(x=272, y=112, w=240, h=280, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("สามใบล่าสุด", x=288, y=124, color=COL_DIM, value=16)
+ui.Label("สามใบล่าสุด", x=288, y=124, color=COL_DIM, value=20)
 lst_sent = ui.List(x=288, y=160, w=208, h=168)
-ui.Label("รับล่าสุด", x=288, y=344, color=COL_DIM, value=16)
+ui.Label("รับล่าสุด", x=288, y=344, color=COL_DIM, value=20)
 lbl_cmd = ui.Label("ยังไม่มี", x=400, y=344, color=COL_DIM, value=20)
 
 # การ์ด 3: ปุ่มเริ่ม/หยุด ย้อนได้ทันทีจึงไม่ต้องยืนยัน
 # มุมขวาล่างตั้งแต่ x=690 y=340 เป็นของปุ่ม Console
 ui.Panel(x=528, y=112, w=240, h=280, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("คำสั่งการส่งข้อมูล", x=544, y=124, color=COL_DIM, value=16)
+ui.Label("คำสั่งการส่งข้อมูล", x=544, y=124, color=COL_DIM, value=20)
 lbl_state = ui.Label("กำลังส่ง", x=544, y=160, color=COL_DIM, value=20)
 btn_go = ui.Button("เริ่มส่ง", x=544, y=240, w=88, h=88, color=0x30A46C, value=20)
 btn_hold = ui.Button("หยุดส่ง", x=664, y=240, w=88, h=88, color=0x3A4150, value=20)
