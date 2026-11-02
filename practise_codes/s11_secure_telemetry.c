@@ -46,6 +46,12 @@
  *     catches) ends the program.
  *   - Stop ends the program after the next sleep, where MicroPython
  *     raises KeyboardInterrupt.
+ *   - In the BENTO Emulator, MQTT from C is not available yet: the
+ *     program says so (a label in place of the mqtt_pass row, which
+ *     was not set, and a printed line) and then runs as when the
+ *     platform cannot be reached: the failed lamp lights and it
+ *     prints that 0 messages were sent (with ท่าที่ 3 filled in, after
+ *     the 30 s wait).
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -133,6 +139,7 @@ typedef struct {
     bento_ui_id_t box;
     bento_ui_id_t yes_button;
     bento_ui_id_t no_button;
+    bool no_platform; /* no TESAIoT service: the BENTO Emulator */
 } tls_screen_t;
 
 /* The publish loop's own values. */
@@ -358,9 +365,30 @@ static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row,
     }
 }
 
+/* The BENTO Emulator has no MQTT from C yet: say so on the screen
+ * and in the Console. */
+static bento_status_t add_emulator_notice(bento_ui_t *ui)
+{
+    static const widget_spec_t notice = {
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit",
+        40,
+        316,
+        400,
+        -1,
+        COLOR_TEXT,
+        20};
+    bento_ui_id_t unused = 0U;
+
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a "
+                 "Dev Kit or Eva Kit.\n",
+                 notice.text);
+    return add_label(ui, &notice, &unused);
+}
+
 /* The left card: the identity, with mqtt_pass written as set but
  * unreadable, because an empty cell would read as "not set". */
-static bento_status_t add_identity(bento_ui_t *ui)
+static bento_status_t add_identity(bento_ui_t *ui, bool no_platform)
 {
     static const widget_spec_t card = {NULL, 24,         48, 440,
                                        344,  COLOR_CARD, 1};
@@ -377,7 +405,8 @@ static bento_status_t add_identity(bento_ui_t *ui)
     if (status == BENTO_OK) {
         status = add_label(ui, &title, &unused);
     }
-    if (status == BENTO_OK) {
+    mode[0] = '\0'; /* nothing to read back without the platform */
+    if ((status == BENTO_OK) && !no_platform) {
         status = read_field("tls_mode", mode, (uint32_t)sizeof(mode));
     }
     if (status == BENTO_OK) {
@@ -391,7 +420,13 @@ static bento_status_t add_identity(bento_ui_t *ui)
         add_row(ui, table, ROW_DEVICE_ID, "device_id", DEVICE_ID);
         add_row(ui, table, ROW_BROKER, "broker", BROKER);
         add_row(ui, table, ROW_TLS_MODE, "tls_mode", mode);
+    }
+    if ((status == BENTO_OK) && no_platform) {
+        status = add_emulator_notice(ui);
+    } else if (status == BENTO_OK) {
         add_row(ui, table, ROW_MQTT_PASS, "mqtt_pass", "ตั้งแล้ว ดูไม่ได้");
+    } else {
+        /* the card or the table failed: the status ends the program */
     }
     return status;
 }
@@ -555,7 +590,7 @@ static bento_status_t build_screen(tls_screen_t *screen)
         status = add_label(screen->ui, &sent, &screen->sent_label);
     }
     if (status == BENTO_OK) {
-        status = add_identity(screen->ui);
+        status = add_identity(screen->ui, screen->no_platform);
     }
     if (status == BENTO_OK) {
         status = add_card(screen->ui, &right_card);
@@ -836,21 +871,27 @@ int main(void)
         set_identity();
         status = print_config();
     }
+    if (status == BENTO_E_UNSUPPORTED) { /* the BENTO Emulator */
+        screen.no_platform = true;
+        status = BENTO_OK;
+    }
     if (status == BENTO_OK) {
         status = build_screen(&screen);
     }
     if (status == BENTO_OK) { /* ท่าที่ 3: สั่งต่อ แล้ววนรอจนกว่าจะต่อเสร็จจริง */
-        status =
-            start_connect(); /* returns at once: not connected yet */
+        if (!screen
+                 .no_platform) { /* returns at once: not connected yet */
+            status = start_connect();
+        }
         start_ms = bento_time_ticks_ms();
 
         /* ลูปรอทุกลูปต้องมี timeout ไม่งั้นวันที่เน็ตล่ม โปรแกรมจะค้างตรงนี้ตลอดกาล
          * เติม: วนขณะที่ bento_tesaiot_is_connected() ยังตอบว่าไม่ต่อ ถ้าเกิน 30000 ms
          *   นับจาก start_ms ให้พิมพ์เตือนแล้วออกจากลูป ไม่งั้นรอ 500 ms ด้วย wait_ms()
          * ทำไมต้องมีลูปรอ ทั้งที่บรรทัดบนเรียก connect() ไปแล้ว:
-     * examples/s11/05_wait_for_connected.py
+         * examples/s11/05_wait_for_connected.py
          * จับเวลาสองก้อนวางข้างกัน เวลาที่ connect() ใช้คืนค่า (แทบเป็นศูนย์)
-     * กับเวลาจนต่อสำเร็จจริง
+         * กับเวลาจนต่อสำเร็จจริง
          * เห็นสองเลขนั้นแล้วจะเลิกเชื่อค่าที่ connect() คืนมาไปตลอด
          * และมันย้ำกฎที่ใช้ได้ทุกที่ - ลูปที่รออะไรสักอย่าง ต้องมีทางออกด้วยเวลาเสมอ */
         (void)start_ms; /* used once ท่าที่ 3 is filled in */
