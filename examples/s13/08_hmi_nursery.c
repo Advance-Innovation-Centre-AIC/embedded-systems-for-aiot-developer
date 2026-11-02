@@ -60,6 +60,21 @@
 /* TEAM: the team number the teacher gives, used in session 12 (no
  * need to change it in this session) */
 static const char TEAM[] = "teamXX";
+static const char KIT[] = "nursery";
+/* The rule, the screen's rhythm and the error screen. */
+enum {
+    MANUAL_RESET =
+        0, /* acknowledged and quiet = back to normal by itself (0 = False) */
+    CONF_MIN = 60,
+    CONFIRM_N = 3,
+    WINDOW_N = 5,
+    LIVE = 3, /* the bed on the board's microphone (from 0: bed 4) */
+    DRAW_MS = 500,
+    HOLD_S = 30,    /* how long an error screen stays */
+    DEMO = 0,       /* 1 = simulated results: the C has no demo yet */
+    DEMO_PCT = 95,  /* the simulated result's percent ... */
+    DEMO_STEPS = 60 /* ... and how many model results it lasts */
+};
 /* ---- end of settings ---- */
 
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
@@ -68,14 +83,8 @@ static const char EMULATOR_NOTE[] =
 
 /* The rule, the screen's rhythm and the panel's limits. */
 enum {
-    CONF_MIN = 60, /* a result less sure than this does not count */
-    CONFIRM_N = 3, /* wins needed ... */
-    WINDOW_N = 5,  /* ... among this many latest results */
     BED_COUNT = 6,
-    LIVE = 3, /* the bed on the board's microphone (bed 4) */
     BED_COLUMNS = 2,
-    DRAW_MS = 500,
-    HOLD_S = 30, /* how long an error screen stays */
     HOLD_POLLS_PER_S = 5,
     HOLD_POLL_MS = 200,
     LOOP_MS = 50,
@@ -369,7 +378,8 @@ static bento_status_t hold(bento_ui_t *ui, const hold_text_t *text,
             &unused);
     }
     for (poll = 0;
-         (poll < (HOLD_S * HOLD_POLLS_PER_S)) && (status == BENTO_OK);
+         (poll < ((int32_t)HOLD_S * (int32_t)HOLD_POLLS_PER_S)) &&
+         (status == BENTO_OK);
          poll++) {
         poll_drop(ui);
         status = pause_ms(HOLD_POLL_MS);
@@ -684,7 +694,7 @@ static void alert_rule(nursery_t *nursery, bool danger)
  * off); a refused close needs nothing here. */
 static call_state_t step(call_state_t state, bool alerting, bool act)
 {
-    const bool manual = false; /* MANUAL_RESET of the original */
+    const bool manual = MANUAL_RESET != 0;
     call_state_t next = STATE_ACKNOWLEDGED;
 
     if (state == STATE_NORMAL) {
@@ -705,13 +715,12 @@ static void print_snapshot(const nursery_t *nursery)
 {
     static const char *const state_names[STATE_COUNT] = {
         "normal", "alert", "ack"};
-    static const char kit[] = "nursery";
 
     (void)printf("{\"id\": \"%s\", \"kit\": \"%s\", \"model\": \"%s\", "
                  "\"label\": \"%s\", \"conf\": %" PRId32 ", \"state\": "
                  "\"%s\", \"events\": %" PRId32 ", \"n\": %" PRIu32
                  "}\n",
-                 TEAM, kit, nursery->model_name, nursery->label,
+                 TEAM, KIT, nursery->model_name, nursery->label,
                  nursery->conf, state_names[nursery->state],
                  nursery->events, nursery->sequence);
 }
