@@ -2,7 +2,7 @@
  * s09_network_status.c -- จอสถานะเครือข่ายของทีม (ฉบับฝึกเติมโค้ด)
  *
  * วิธีรัน: 1) บนจอบอร์ด แตะการ์ด BENTO Playground ค้างหน้านี้ไว้
- *          2) แก้ WIFI_SSID / wifi_pass ให้ตรงกับเครือข่ายที่ผู้สอนแจก
+ *          2) แก้ WIFI_SSID / WIFI_PASS ให้ตรงกับเครือข่ายที่ผู้สอนแจก
  *          3) เติมช่องว่างทั้ง 6 จุดตามคำใบ้ แล้วกด "Program to Device"
  * สแกนคลื่นรอบตัว เรียงแรงไปอ่อน ลงตารางสี่คอลัมน์ ต่อเครือข่ายของทีม แล้วเปิด
  * หน้าสถานะที่วัด ping สองปลายทางสดทุก 3 วินาที พร้อมปุ่มสั่งสแกนใหม่
@@ -56,13 +56,20 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
-/* The team's network: set it, and wifi_pass in connect_wifi(), before
- * you run it. */
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* the network the teacher hands out */
 static const char WIFI_SSID[] = "AIoT-Class";
-
+/* that network's password */
+static const char WIFI_PASS[] = "changeme";
+/* the internet target (Google Public DNS) */
+static const char NET_TEST_IP[] = "8.8.8.8";
 enum {
     PING_TIMEOUT_MS = 1500, /* wait this long for one ping answer */
-    TOP_N = 3, /* a 288 px table: the header and three rows */
+    TOP_N = 3 /* a 288 px table: the header and three rows */
+};
+/* ---- end of settings ---- */
+
+enum {
     PING_EVERY_MS = 3000,
     RSSI_FLOOR = -90, /* the meter's range: next to nothing */
     RSSI_CEIL = -40,  /* ... to a full bar */
@@ -606,8 +613,6 @@ static void read_ip(uint32_t *ip_v4, char *text, uint32_t cap)
  * join is False; another failure ends the program. */
 static bento_status_t connect_wifi(bool *joined)
 {
-    static const char wifi_pass[] =
-        "changeme"; /* the network's password */
     bento_wifi_connect_params_t params;
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     uint32_t ip_v4 = 0U;
@@ -616,8 +621,8 @@ static bento_status_t connect_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\n");
     status = bento_wifi_connect_start(&params);
@@ -786,7 +791,6 @@ static bento_status_t link_round(const net_screen_t *screen,
 /* Joined: the address, the gateway, then the live loop until Stop. */
 static bento_status_t run_link(const net_screen_t *screen)
 {
-    static const char net_test_ip[] = "8.8.8.8"; /* Google Public DNS */
     link_state_t state;
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     char gateway[BENTO_WIFI_IPV4_TEXT_MAX];
@@ -801,8 +805,8 @@ static bento_status_t run_link(const net_screen_t *screen)
     status = bento_wifi_ipv4_format(state.gateway_ip, gateway,
                                     (uint32_t)sizeof(gateway), &length);
     if (status == BENTO_OK) {
-        status = bento_wifi_ipv4_parse(net_test_ip,
-                                       (uint32_t)strlen(net_test_ip),
+        status = bento_wifi_ipv4_parse(NET_TEST_IP,
+                                       (uint32_t)strlen(NET_TEST_IP),
                                        &state.internet_ip);
     }
     if (status == BENTO_OK) {
