@@ -59,6 +59,21 @@
 /* TEAM: the team number the teacher gives, used in session 12 (no
  * need to change it in this session) */
 static const char TEAM[] = "teamXX";
+static const char KIT[] = "safety";
+/* The rule, the screen's rhythm and the error screen. */
+enum {
+    MANUAL_RESET = 1, /* back to normal only by "reset" (1 = True) */
+    CONF_MIN = 60,
+    CONFIRM_N = 3,
+    WINDOW_N = 5,
+    LIVE = 3, /* the zone on the board's microphone (place in ZONES) */
+    DRAW_MS = 500,
+    NOTE_MS = 3000,
+    HOLD_S = 30,    /* how long an error screen stays */
+    DEMO = 0,       /* 1 = simulated results: the C has no demo yet */
+    DEMO_PCT = 95,  /* the simulated result's percent ... */
+    DEMO_STEPS = 60 /* ... and how many model results it lasts */
+};
 /* ---- end of settings ---- */
 
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
@@ -67,17 +82,10 @@ static const char EMULATOR_NOTE[] =
 
 /* The rule, the screen's rhythm and the panel's limits. */
 enum {
-    CONF_MIN = 60, /* a result less sure than this does not count */
     SIREN_CONF =
         45, /* the firmware's confirm level for Siren Detection */
-    CONFIRM_N = 3, /* wins needed ... */
-    WINDOW_N = 5,  /* ... among this many latest results */
     ZONE_COUNT = 6,
-    LIVE = 3, /* the zone on the board's microphone */
     ZONE_COLUMNS = 2,
-    DRAW_MS = 500,
-    NOTE_MS = 3000,
-    HOLD_S = 30, /* how long an error screen stays */
     HOLD_POLLS_PER_S = 5,
     HOLD_POLL_MS = 200,
     LOOP_MS = 50,
@@ -408,7 +416,8 @@ static bento_status_t hold(bento_ui_t *ui, const hold_text_t *text,
             &unused);
     }
     for (poll = 0;
-         (poll < (HOLD_S * HOLD_POLLS_PER_S)) && (status == BENTO_OK);
+         (poll < ((int32_t)HOLD_S * (int32_t)HOLD_POLLS_PER_S)) &&
+         (status == BENTO_OK);
          poll++) {
         poll_drop(ui);
         status = pause_ms(HOLD_POLL_MS);
@@ -732,7 +741,7 @@ static void alert_rule(safety_t *panel, bool danger)
 static panel_state_t step(panel_state_t state, bool alerting, bool act,
                           bool *refused)
 {
-    const bool manual = true; /* back to normal by "reset" only */
+    const bool manual = MANUAL_RESET != 0;
     panel_state_t next = STATE_ACKNOWLEDGED;
 
     *refused = false;
@@ -754,13 +763,12 @@ static void print_snapshot(const safety_t *panel)
 {
     static const char *const state_names[STATE_COUNT] = {
         "normal", "alert", "ack"};
-    static const char kit[] = "safety";
 
     (void)printf(
         "{\"id\": \"%s\", \"kit\": \"%s\", \"model\": \"%s\", "
         "\"label\": \"%s\", \"conf\": %" PRId32 ", \"state\": "
         "\"%s\", \"events\": %" PRId32 ", \"n\": %" PRIu32 "}\n",
-        TEAM, kit, panel->model_name, panel->label, panel->conf,
+        TEAM, KIT, panel->model_name, panel->label, panel->conf,
         state_names[panel->state], panel->events, panel->sequence);
 }
 
@@ -1074,8 +1082,8 @@ int main(void)
     } else if (status == BENTO_OK) {
         panel->conf_min =
             (strcmp(panel->model_name, "Siren Detection") == 0)
-                ? SIREN_CONF
-                : CONF_MIN;
+                ? (int32_t)SIREN_CONF
+                : (int32_t)CONF_MIN;
         (void)printf("found %s at index %" PRIu32 " | conf_min %" PRId32
                      "\n",
                      panel->model_name, panel->model, panel->conf_min);
