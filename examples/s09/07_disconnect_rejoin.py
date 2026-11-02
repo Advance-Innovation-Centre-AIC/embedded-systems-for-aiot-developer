@@ -101,7 +101,7 @@ print("connect() คืนค่า", ok)
 try:
     if not ok:
         l_phase.color(COL_BAD)
-        l_phase.text("ต่อไม่ติด ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์")
+        l_phase.text("ต่อไม่ติด ตรวจ WIFI_SSID กับรหัส Wi-Fi ในโค้ดไฟล์นี้")
         l_note.text("ไฟล์นี้ต้องต่อติดก่อน จึงจะสาธิตการตัดได้")
         ui.poll()
         lcd.print("<span class=err>ต่อไม่ติด จบการทำงาน</span>")

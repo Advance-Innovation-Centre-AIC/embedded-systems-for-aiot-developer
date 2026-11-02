@@ -568,7 +568,7 @@ static void give_up(const screen_t *screen)
 {
     set_color(screen, screen->phase, COL_BAD);
     set_text(screen, screen->phase,
-             "ต่อไม่ติด ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์");
+             "ต่อไม่ติด ตรวจ WIFI_SSID กับรหัส Wi-Fi ในโค้ดไฟล์นี้");
     set_text(screen, screen->note,
              "ไฟล์นี้ต้องต่อติดก่อน "
              "จึงจะสาธิตการตัดได้");
