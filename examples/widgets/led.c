@@ -178,6 +178,7 @@ static bento_status_t build_screen(lamp_screen_t *screen)
  * refusal, as modui.c does. */
 static void light_one(const lamp_screen_t *screen, int32_t lit)
 {
+    const int32_t shown = lit + 1;
     char text[TEXT_CAP];
     int32_t i;
 
@@ -186,7 +187,7 @@ static void light_one(const lamp_screen_t *screen, int32_t lit)
                                  (i == lit) ? 1 : 0);
     }
     (void)snprintf(text, sizeof(text), "ตอนนี้ติดดวงที่ %ld จากสามดวง",
-                   (long)(lit + 1));
+                   (long)shown);
     (void)bento_ui_set_text(screen->ui, screen->note, text,
                             (uint32_t)strlen(text));
 }
