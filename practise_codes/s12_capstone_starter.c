@@ -55,6 +55,11 @@
  *     finally.
  *   - The finally (mqtt.disconnect(), then the link shown offline)
  *     runs after the loop, whatever ended it.
+ *   - In the BENTO Emulator, MQTT from C is not available yet: the
+ *     program says so (a label in the title bar and a printed line) and
+ *     then works offline, as it does whenever the broker cannot be
+ *     reached: the screen keeps running, the link is retried every
+ *     10 s and every send that cannot get out is counted as missed.
  */
 #include <math.h>
 #include <stdbool.h>
@@ -198,6 +203,7 @@ typedef struct {
     uint32_t handle;
     bool open;
     bool online;
+    bool no_broker; /* MQTT unsupported here: the BENTO Emulator */
 } link_t;
 
 /* What has been decided and counted. */
@@ -905,6 +911,7 @@ static bento_status_t connect_broker(link_t *link, bool *connected)
     config.client_id_len = (uint32_t)strlen(link->client_id);
     status = bento_mqtt_open_start(&config, &link->handle);
     link->open = status == BENTO_OK;
+    link->no_broker = status == BENTO_E_UNSUPPORTED;
     while ((status == BENTO_OK) && (answer == BENTO_E_IN_PROGRESS)) {
         answer = bento_mqtt_open_poll(link->handle);
         if (answer == BENTO_E_IN_PROGRESS) {
@@ -1091,12 +1098,39 @@ static bento_status_t alarm_round(tilt_alarm_t *monitor)
     return status;
 }
 
+/* The BENTO Emulator has no MQTT from C yet: say so on the screen
+ * and in the Console, then carry on offline. */
+static bento_status_t add_emulator_notice(const alarm_screen_t *screen)
+{
+    static const widget_spec_t notice = {
+        KIND_LABEL,
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit",
+        280,
+        0,
+        320,
+        -1,
+        COLOR_WARN,
+        20,
+        0,
+        0};
+    bento_ui_id_t unused = 0U;
+
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a "
+                 "Dev Kit or Eva Kit.\n",
+                 notice.text);
+    return add_widget(screen->ui, &notice, &unused);
+}
+
 /* The try block: online, then the rounds until Stop. The finally
  * always says goodbye to the broker, so the name is not left held. */
 static bento_status_t run_alarm(tilt_alarm_t *monitor)
 {
     bento_status_t status = go_online(&monitor->link);
 
+    if ((status == BENTO_OK) && monitor->link.no_broker) {
+        status = add_emulator_notice(&monitor->screen);
+    }
     if (status == BENTO_OK) {
         show_link(&monitor->screen, monitor->link.online);
         monitor->decision.beat_ms = bento_time_ticks_ms();
