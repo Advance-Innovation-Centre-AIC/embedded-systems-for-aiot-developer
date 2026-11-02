@@ -22,6 +22,8 @@
  * status test of bento_sensors_sht40_temperature(); "{:.1f}" is
  * bento_fmt_real_precision(); the global _TEMP_SRC lives in the tally
  * struct; a failing sensors.snapshot() ends the program with its status.
+ * In the BENTO Emulator, whose C runtime has no sensors.snapshot(), the
+ * snapshot counts as one with no usable key (the SHT40 path still reads).
  */
 #include <inttypes.h>
 #include <stdbool.h>
@@ -121,6 +123,23 @@ static bento_status_t wait_ms(uint32_t duration_ms)
 
     if ((status == BENTO_OK) && !bento_runtime_is_running()) {
         status = BENTO_E_CANCELLED;
+    }
+    return status;
+}
+
+/* sensors.snapshot(). The BENTO Emulator's C runtime has no snapshot path
+ * (BENTO_E_UNSUPPORTED): there it counts as a snapshot with no usable key,
+ * so read_temp() takes its own no-knob path. */
+static bento_status_t take_snapshot(bento_sensors_snapshot_t *snap)
+{
+    bento_status_t status;
+
+    bento_sensors_snapshot_init(snap);
+    status =
+        bento_sensors_snapshot(BENTO_SENSORS_SNAPSHOT_DEFAULT_MS, snap);
+    if (status == BENTO_E_UNSUPPORTED) {
+        bento_sensors_snapshot_init(snap);
+        status = BENTO_OK;
     }
     return status;
 }
@@ -433,9 +452,7 @@ static bento_status_t run_round(const tile_screen_t *screen,
     uint32_t count = 0U;
     bento_status_t status;
 
-    bento_sensors_snapshot_init(&snap);
-    status = bento_sensors_snapshot(BENTO_SENSORS_SNAPSHOT_DEFAULT_MS,
-                                    &snap);
+    status = take_snapshot(&snap);
     if ((status == BENTO_OK) &&
         read_temp(&snap, &tally->source, &temp_c)) {
         use_temp(screen, tally, round, temp_c);
