@@ -59,22 +59,29 @@
 /* TEAM: the team number the teacher gives, used in session 12 (no
  * need to change it in this session) */
 static const char TEAM[] = "teamXX";
+static const char KIT[] = "machine";
+enum {
+    MANUAL_RESET = 1, /* 1: back to normal by "repair done" only */
+    CONF_MIN = 60,    /* a result less sure than this does not count */
+    CONFIRM_N = 3,    /* wins needed ... */
+    WINDOW_N = 5,     /* ... among this many latest results */
+    HEALTH_N = 30,    /* the machine's health from this many results */
+    CHART_N = 40,     /* one point every DRAW_MS: 20 s of chart */
+    DRAW_MS = 500,
+    NOTE_MS = 3000, /* how long "cannot close" stays */
+    HOLD_S = 30,    /* how long an error screen stays */
+    DEMO = 0,      /* 1: demo with injected results; no demo in C yet */
+    DEMO_PCT = 95, /* the demo's confidence, in percent */
+    DEMO_STEPS = 60 /* the demo's length, in model results */
+};
 /* ---- end of settings ---- */
 
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
 
-/* The rule, the screen's rhythm and the panel's limits. */
+/* The screen's rhythm and the panel's limits. */
 enum {
-    CONF_MIN = 60, /* a result less sure than this does not count */
-    CONFIRM_N = 3, /* wins needed ... */
-    WINDOW_N = 5,  /* ... among this many latest results */
-    HEALTH_N = 30, /* the health bar's window */
-    CHART_N = 40,  /* one point every DRAW_MS: 20 s of chart */
-    DRAW_MS = 500,
-    NOTE_MS = 3000, /* how long "cannot close" stays */
-    HOLD_S = 30,    /* how long an error screen stays */
     HOLD_POLLS_PER_S = 5,
     HOLD_POLL_MS = 200,
     LOOP_MS = 50,
@@ -361,7 +368,8 @@ static bento_status_t hold(bento_ui_t *ui, const hold_text_t *text,
             &unused);
     }
     for (poll = 0;
-         (poll < (HOLD_S * HOLD_POLLS_PER_S)) && (status == BENTO_OK);
+         (poll < ((int32_t)HOLD_S * (int32_t)HOLD_POLLS_PER_S)) &&
+         (status == BENTO_OK);
          poll++) {
         poll_drop(ui);
         status = pause_ms(HOLD_POLL_MS);
@@ -700,7 +708,7 @@ static void alert_rule(machine_t *machine, bool danger)
 static panel_state_t step(panel_state_t state, bool alerting, bool act,
                           bool *refused)
 {
-    const bool manual = true; /* back to normal by "repair done" only */
+    const bool manual = MANUAL_RESET != 0;
     panel_state_t next = STATE_ACKNOWLEDGED;
 
     *refused = false;
@@ -722,13 +730,12 @@ static void print_snapshot(const machine_t *machine)
 {
     static const char *const state_names[STATE_COUNT] = {
         "normal", "alert", "ack"};
-    static const char kit[] = "machine";
 
     (void)printf("{\"id\": \"%s\", \"kit\": \"%s\", \"model\": \"%s\", "
                  "\"label\": \"%s\", \"conf\": %" PRId32 ", \"state\": "
                  "\"%s\", \"events\": %" PRId32 ", \"n\": %" PRIu32
                  "}\n",
-                 TEAM, kit, machine->model_name, machine->label,
+                 TEAM, KIT, machine->model_name, machine->label,
                  machine->conf, state_names[machine->state],
                  machine->events, machine->sequence);
 }
