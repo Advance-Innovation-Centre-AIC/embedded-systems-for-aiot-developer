@@ -77,7 +77,11 @@ enum {
     MS_PER_S = 1000,
     US_PER_MS = 1000,
     MODEL_KEY_COUNT = 2,
-    TEXT_CHARS = 160
+    TEXT_CHARS = 160,
+    /* "label " + a label (47 bytes) + " running False" + NUL */
+    AFTER_CHARS = 72,
+    /* "After stop(): " + the AFTER_CHARS text */
+    END_CHARS = 88
 };
 
 /* What a read gave, in the order of the dict n. */
@@ -479,8 +483,8 @@ static void print_summary(const reader_t *reader)
  * running False. */
 static void show_after_stop(const reader_t *reader, int32_t stopped)
 {
-    char after[TEXT_CHARS];
-    char text[TEXT_CHARS];
+    char after[AFTER_CHARS];
+    char text[END_CHARS];
     reading_t reading;
 
     read_result(&reading);
