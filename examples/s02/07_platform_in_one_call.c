@@ -21,6 +21,8 @@
  * Twin of 07_platform_in_one_call.py
  * (embedded-systems-for-aiot-developer/examples/s02/07_platform_in_one_call.py).
  * Style: CLEAN_C.md.
+ * In the BENTO Emulator, MQTT from C is not available yet: the
+ * program says so and ends.
  * Where C differs: C has no dict. tesaiot.config() is read field by
  * field into a table (19 keys, about 2.4 KB, so at file scope), and
  * `for k in cfg` walks the keys in the order MicroPython's hash table
@@ -338,6 +340,38 @@ static bento_status_t build_notes(platform_screen_t *screen)
                       &footer, &unused);
     }
     return status;
+}
+
+/* The BENTO Emulator has no MQTT from C yet: bento_mqtt_* and the
+ * broker calls answer BENTO_E_UNSUPPORTED there. The program takes
+ * the original's own "broker failed" way out: the step turns red with
+ * the original's words, the reason line and the drawer say why, the
+ * console gets the full sentence in Thai and English, and the
+ * program ends normally. The screen line is the short form, within
+ * the 126 bytes of a SET_TEXT. */
+static void show_emulator_note(bento_ui_t *ui, bento_ui_id_t step,
+                               const char *step_text,
+                               bento_ui_id_t reason)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
+    uint32_t count = 0U;
+
+    /* the setters ignore a refusal, as in MicroPython (modui.c) */
+    (void)bento_ui_set_color(ui, step, COLOR_BAD);
+    (void)bento_ui_set_text(ui, step, step_text,
+                            (uint32_t)strlen(step_text));
+    (void)bento_ui_set_color(ui, reason, COLOR_BAD);
+    (void)bento_ui_set_text(ui, reason, note, (uint32_t)strlen(note));
+    /* ui.poll() answers no events when it fails; none are read */
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
+    (void)bento_lcd_print(note); /* ignores a console not ready */
+    (void)printf("MQTT จากภาษา C ยังไม่มีใน BENTO Emulator "
+                 "ให้รันบนบอร์ด Dev Kit หรือ Eva Kit / MQTT from C is "
+                 "not in the BENTO Emulator yet: run it on a Dev Kit "
+                 "or Eva Kit.\n");
 }
 
 static bento_status_t build_screen(platform_screen_t *screen)
@@ -867,6 +901,7 @@ static bento_status_t connect_and_send(const platform_screen_t *screen)
 int main(void)
 {
     platform_screen_t screen;
+    bool done = false;
     bento_status_t status;
 
     (void)memset(g_config, 0, sizeof(g_config));
@@ -879,8 +914,17 @@ int main(void)
         (void)bento_lcd_clear();
         (void)bento_lcd_console("<h2>คลังค่าตั้งที่บอร์ดจำเอง</h2>");
         status = read_config();
+        /* the Emulator answers every TESAIoT call, the store
+         * included, with BENTO_E_UNSUPPORTED; the program ends here,
+         * normally, with nothing written */
+        if (status == BENTO_E_UNSUPPORTED) {
+            show_emulator_note(screen.ui, screen.link, "ยังไม่สั่งต่อ",
+                               screen.note);
+            done = true;
+            status = BENTO_OK;
+        }
     }
-    if (status == BENTO_OK) {
+    if ((status == BENTO_OK) && !done) {
         print_config();
         if (PLATFORM.broker[0] == '\0') {
             show_read_only(&screen);
