@@ -43,6 +43,12 @@
 #include "bento_edgeai.h"
 #include "bento_runtime.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+enum {
+    ROWS = 9 /* rows per column (two columns) */
+};
+/* ---- end of settings ---- */
+
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
@@ -57,7 +63,6 @@ enum {
 
 /* Rows, timing and text sizes. */
 enum {
-    ROWS = 9,         /* rows per column, two columns */
     SENSOR_COUNT = 3, /* the sensor field's values 0, 1 and 2 */
     SETTLE_MS = 150,  /* let the cleared screen settle */
     POLL_MS = 200,
