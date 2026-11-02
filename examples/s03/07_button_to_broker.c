@@ -87,6 +87,11 @@ static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
 static const char BROKER[] = "broker.hivemq.com";
 /* team01 to team19; unset, the program will not run */
 static const char TEAM[] = "teamXX";
+/* สองบรรทัดนี้ห้ามแก้ (do not change these two) */
+static const char ROOT[] = "bento-aiot";
+/* DEVICE_ID = bento-aiot-TEAM, built in make_names() */
+/* TOPIC_EVENT = ROOT/TEAM/event, TOPIC_STATE = ROOT/TEAM/telemetry,
+ * built in code */
 /* ---- end of settings ---- */
 
 /* The course palette, 0xRRGGBB. */
@@ -1660,9 +1665,6 @@ static void show_summary(const app_t *app)
     }
     drain_events(screen);
 }
-
-/* Do not change: the topic root. */
-static const char ROOT[] = "bento-aiot";
 
 /* The networks a scan heard: too big for the 8 KB program stack,
  * so file scope, zeroed by the loader and again in main()
