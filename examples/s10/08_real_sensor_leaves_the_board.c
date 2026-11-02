@@ -54,6 +54,9 @@
  *     snapshot ends the program in both.
  *   - Stop ends the program quietly after the same cleanup, where
  *     MicroPython raises KeyboardInterrupt.
+ *   - In the BENTO Emulator, MQTT from C is not available yet: the
+ *     program says so and goes on offline, as the original does when
+ *     the broker cannot be reached (every send then fails).
  */
 #include <inttypes.h>
 #include <math.h>
@@ -78,7 +81,8 @@ enum {
     COLOR_CARD = 0x171B22,
     COLOR_READ = 0x4A9EFF, /* every reading */
     COLOR_SENT = 0x30A46C, /* what really went out */
-    COLOR_BAD = 0xE5484D
+    COLOR_BAD = 0xE5484D,
+    COLOR_WARN = 0xF5A623
 };
 
 /* Times, rounds and sizes. */
@@ -403,6 +407,8 @@ enum {
     LEGEND_X = 580,
     LEGEND_READ_Y = 172,
     LEGEND_SENT_Y = 196,
+    EMULATOR_NOTE_Y = 232, /* under the legend, beside the chart */
+    EMULATOR_NOTE_W = 204,
     STATUS_X = 20,
     STATUS_Y = 364,
     TITLE_PX = 24,
@@ -697,7 +703,8 @@ static void send_reading(const link_screen_t *screen, telemetry_t *tele,
     sent_status = bento_mqtt_publish(
         tele->broker, topic, (uint32_t)strlen(topic),
         (const uint8_t *)payload, (uint32_t)strlen(payload), 0U, 0U);
-    if (sent_status == BENTO_E_SESSION) {
+    if ((sent_status == BENTO_E_SESSION) ||
+        (sent_status == BENTO_E_UNSUPPORTED)) {
         /* the link dropped: the screen says so instead of going
          * quiet (the original's OSError) */
         show_status(screen, "ส่งไม่ออก: MQTT not connected", COLOR_BAD);
@@ -766,6 +773,32 @@ static bento_status_t measure_rounds(const link_screen_t *screen,
     return status;
 }
 
+/* The BENTO Emulator's C runtime has no MQTT yet (BENTO_E_UNSUPPORTED):
+ * a note beside the chart says so, and the console too. */
+static bento_status_t show_emulator_note(const link_screen_t *screen)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_widget_args_t args;
+    bento_ui_id_t label;
+    bento_status_t status;
+
+    bento_ui_widget_args_init(&args);
+    args.text = note;
+    args.text_len = (uint32_t)strlen(note);
+    args.x = LEGEND_X;
+    args.y = EMULATOR_NOTE_Y;
+    args.w = EMULATOR_NOTE_W;
+    args.color = (uint32_t)COLOR_WARN;
+    args.font_px = TEXT_PX;
+    status = bento_ui_label_create(screen->ui, &args, &label);
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
+    return status;
+}
+
 /* From the broker connect to the end of the loop. Whatever ends it,
  * the cleanup says goodbye to the broker, so the name does not
  * linger there for another minute. */
@@ -774,6 +807,10 @@ static bento_status_t run_with_broker(const link_screen_t *screen,
 {
     bento_status_t status = open_broker(&tele->broker);
 
+    if (status == BENTO_E_UNSUPPORTED) {
+        /* then on, as with a broker that cannot be reached */
+        status = show_emulator_note(screen);
+    }
     if (status == BENTO_OK) {
         show_link(screen, broker_connected(tele->broker));
         show_status(screen, "ต่อแล้ว ส่งทุก 2 วินาที", COLOR_SENT);
