@@ -41,6 +41,8 @@
  *     after the same cleanup.
  *   - Stop ends the program quietly after the same cleanup, where
  *     MicroPython raises KeyboardInterrupt.
+ *   - In the BENTO Emulator, MQTT from C is not available yet: the
+ *     program says so and ends.
  */
 #include <inttypes.h>
 #include <stdbool.h>
@@ -157,6 +159,7 @@ enum {
                                the theme's colour */
     COLOR_OK = 0x30A46C,
     COLOR_BAD = 0xE5484D,
+    COLOR_WARN = 0xF5A623,
     COLOR_INFO = 0x4A9EFF
 };
 
@@ -669,8 +672,22 @@ static bento_status_t send_and_count(const echo_screen_t *screen,
     return status;
 }
 
-/* run_echo() also writes the link and the count on the screen; most
- * of its work is the broker, so it lives here. */
+/* The BENTO Emulator's C runtime has no MQTT yet (BENTO_E_UNSUPPORTED):
+ * the note line says so, and the console too. */
+static void tell_emulator(const echo_screen_t *screen)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+
+    (void)bento_ui_set_color(screen->ui, screen->note, COLOR_WARN);
+    set_text(screen->ui, screen->note, note);
+    drain_events(screen->ui);
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
+}
+
 /* From the broker connect to the end of sending. Whatever ends it,
  * the cleanup says goodbye to the broker, so the name does not
  * linger there for another minute. */
@@ -681,6 +698,10 @@ static bento_status_t run_echo(const echo_screen_t *screen,
     bool linked = false;
     bento_status_t status = open_broker(echo, &linked);
 
+    if (status == BENTO_E_UNSUPPORTED) {
+        tell_emulator(screen);
+        status = BENTO_E_CANCELLED; /* a normal end: main returns 0 */
+    }
     if ((status == BENTO_OK) && !linked) {
         show_link(screen, false);
         give_up(screen, echo, "ต่อ broker ไม่ได้");
