@@ -34,6 +34,15 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* ชื่อทีม (ไทยหรืออังกฤษก็ได้) */
+static const char TEAM_NAME[] = "BentoBuilders";
+/* รายชื่อสมาชิก 2-3 คน */
+static const char *const MEMBERS[] = {"สมชาย", "สมหญิง", "สมศรี"};
+/* คำขวัญทีมสั้น ๆ */
+static const char MOTTO[] = "เล่นของจริงก่อน แล้วค่อยแกะ";
+/* ---- end of settings ---- */
+
 enum { /* times, ms */
     MEMBER_PAUSE_MS = 800,
     SETTLE_MS = 200,
@@ -94,14 +103,13 @@ enum { /* colours, 0xRRGGBB */
 enum { /* text buffers */
     LINE_BYTES =
         256, /* a console line before lcd cuts it at 127 bytes */
-    ROW_BYTES = 128,  /* two table cells with the NUL between them */
-    NUMBER_BYTES = 12 /* any int32_t with its sign and NUL */
+    ROW_BYTES = 128, /* two table cells with the NUL between them */
+    NUMBER_BYTES = 12 /* any int32_t with its sign and NUL */,
+    TAIL_BYTES =
+        192, /* the closing line's text: a long team name and 60 bytes of Thai */
+    CLOSING_BYTES =
+        TAIL_BYTES + 32 /* that text inside its span tags (22 bytes) */
 };
-
-/* The team: edit these three before running. */
-static const char TEAM_NAME[] = "BentoBuilders";
-static const char MOTTO[] = "เล่นของจริงก่อน แล้วค่อยแกะ";
-static const char *const MEMBERS[] = {"สมชาย", "สมหญิง", "สมศรี"};
 
 /* The lights the table loop switches at the end. */
 typedef struct {
@@ -239,8 +247,8 @@ static bento_status_t list_members(void)
  * would be cut silently. */
 static void close_console(void)
 {
-    char tail[LINE_BYTES];
-    char line[LINE_BYTES];
+    char tail[TAIL_BYTES];
+    char line[CLOSING_BYTES];
 
     (void)bento_lcd_print("<span class=ok>ขึ้นจอสำเร็จ</span>");
     (void)format_tail(
@@ -393,7 +401,7 @@ static bento_status_t fill_table(const badge_t *badge)
  * A Thai letter is 3 bytes, so a short-looking line fills it fast. */
 static bento_status_t add_byte_meter(bento_ui_t *ui)
 {
-    char tail[LINE_BYTES];
+    char tail[TAIL_BYTES];
     const int32_t used = format_tail(tail, sizeof(tail));
     char text[NUMBER_BYTES + sizeof(" ไบต์")];
     bento_ui_widget_args_t args;
