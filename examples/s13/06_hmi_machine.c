@@ -55,6 +55,12 @@
 #include "bento_edgeai.h"
 #include "bento_runtime.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* TEAM: the team number the teacher gives, used in session 12 (no
+ * need to change it in this session) */
+static const char TEAM[] = "teamXX";
+/* ---- end of settings ---- */
+
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
@@ -716,15 +722,13 @@ static void print_snapshot(const machine_t *machine)
 {
     static const char *const state_names[STATE_COUNT] = {
         "normal", "alert", "ack"};
-    static const char team[] =
-        "teamXX"; /* the team id the teacher gives */
     static const char kit[] = "machine";
 
     (void)printf("{\"id\": \"%s\", \"kit\": \"%s\", \"model\": \"%s\", "
                  "\"label\": \"%s\", \"conf\": %" PRId32 ", \"state\": "
                  "\"%s\", \"events\": %" PRId32 ", \"n\": %" PRIu32
                  "}\n",
-                 team, kit, machine->model_name, machine->label,
+                 TEAM, kit, machine->model_name, machine->label,
                  machine->conf, state_names[machine->state],
                  machine->events, machine->sequence);
 }
