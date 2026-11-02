@@ -64,9 +64,33 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
-enum { /* times, in ms */
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* exact name, looked up every run */
+static const char MODEL[] = "HumanActivity";
+/* false = deployed from the Store */
+static const bool BUILTIN = false;
+/* DEF_TH: Hearing at, Confirm at, clear below (fallback), % */
+static const int32_t DEF_THRESHOLDS[] = {40, 65, 30};
+enum {
     POLL_MS = 100,
-    DRAW_MS = 500,
+    DRAW_MS = 500
+};
+static const char HELP[] =
+    "Wear it on your chest - SW6 = Min, SW5 = pause";
+/* HELP on a board without buttons */
+static const char HELP_NO_BUTTONS[] = "Wear it on your chest";
+enum {
+    DWELL_CHOICES = 3, /* how many DWELLS */
+    CHIP_COUNT = 5     /* how many CHIPS */
+};
+/* ms on top before an activity counts */
+static const int32_t DWELLS[DWELL_CHOICES] = {0, 5000, 10000};
+/* CHIPS = NEED: the classes this example needs; unlabeled = none */
+static const char *const CHIPS[CHIP_COUNT] = {
+    "standing", "running", "walking", "sitting", "jumping"};
+/* ---- end of settings ---- */
+
+enum { /* times, in ms */
     LOOP_MS = 20,
     LOAD_MS = 150,
     OP_POLL_MS = 20,
@@ -80,11 +104,8 @@ enum { /* sizes and limits */
     CLOCK_BYTES = 36, /* "HH:MM:SS"; three int32_t at worst */
     MAX_CLASSES = BENTO_EDGEAI_MAX_CLASSES,
     LABEL_BYTES = BENTO_EDGEAI_LABEL_LEN,
-    CHIP_COUNT = 5,
-    DWELL_CHOICES = 3,
     PERCENT = 100,
-    DEF_CONFIRM = 65, /* Confirm at when the board gives none */
-    NO_CLASS = -1     /* "Not sure" */
+    NO_CLASS = -1 /* "Not sure" */
 };
 
 enum { /* board buttons */
@@ -110,15 +131,7 @@ enum { /* font sizes, px */
     VERDICT_PX = 28
 };
 
-static const char MODEL[] =
-    "HumanActivity"; /* exact name, looked up every run */
 static const char NOT_SURE[] = "Not sure";
-/* ms on top before an activity counts */
-static const int32_t DWELLS_MS[DWELL_CHOICES] = {0, 5000, 10000};
-/* the classes this example needs, and its chips; unlabeled = none of
- * them */
-static const char *const CHIPS[CHIP_COUNT] = {
-    "standing", "running", "walking", "sitting", "jumping"};
 
 /* Where a widget goes and how it looks: MicroPython's keywords. */
 typedef struct {
@@ -509,15 +522,12 @@ static int32_t compiled_count(void)
  * "is not False". */
 static bool source_matches(int32_t row, int32_t compiled)
 {
-    const bool want_builtin =
-        false; /* BUILTIN: false = from the Store */
-    bool matches = want_builtin;
+    bool matches = BUILTIN;
 
     if (compiled >= 0) {
         const bool builtin = row < compiled;
 
-        matches =
-            (builtin && want_builtin) || (!builtin && !want_builtin);
+        matches = (builtin && BUILTIN) || (!builtin && !BUILTIN);
     }
     return matches;
 }
@@ -688,8 +698,9 @@ static void read_confirm(timeline_t *app)
     known = bento_edgeai_thresholds(app->model.index, &thresholds) ==
             BENTO_OK;
     for (i = 0U; i < (uint32_t)MAX_CLASSES; i++) {
-        app->confirm[i] =
-            known ? (int32_t)thresholds.confirm[i] : DEF_CONFIRM;
+        app->confirm[i] = known
+                              ? (int32_t)thresholds.confirm[i]
+                              : DEF_THRESHOLDS[BENTO_EDGEAI_TH_CONFIRM];
     }
 }
 
@@ -803,7 +814,7 @@ static void step_dwell(timeline_t *app, int32_t klass, int32_t percent,
     }
     if ((klass != dwell->accepted) &&
         (bento_time_ticks_diff(now_ms, dwell->since_ms) >=
-         DWELLS_MS[app->dwell_index])) {
+         DWELLS[app->dwell_index])) {
         const bool counted = chip_of(app, klass) >= 0;
 
         dwell->accepted = klass;
@@ -985,7 +996,7 @@ static void show_chips(timeline_t *app)
 static void show_candidate(timeline_t *app, uint32_t now_ms)
 {
     const dwell_t *dwell = &app->dwell;
-    const int32_t dwell_ms = DWELLS_MS[app->dwell_index];
+    const int32_t dwell_ms = DWELLS[app->dwell_index];
     char text[TEXT_BYTES];
     char elapsed_text[BENTO_FMT_BUF_SIZE];
     char dwell_text[BENTO_FMT_BUF_SIZE];
@@ -1158,7 +1169,7 @@ static void next_dwell(timeline_t *app)
 
     app->dwell_index = (app->dwell_index + 1) % DWELL_CHOICES;
     (void)snprintf(text, sizeof(text), "Min %" PRId32 " s",
-                   DWELLS_MS[app->dwell_index] / MS_PER_S);
+                   DWELLS[app->dwell_index] / MS_PER_S);
     put_text(app->ui, &app->dwell_choice, text);
 }
 
@@ -1291,9 +1302,7 @@ int main(void)
     (void)memset(app, 0, sizeof(*app));
     app->ui = bento_runtime_get_ui();
     app->has_buttons = bento_buttons_count() > 0U;
-    app->help = app->has_buttons
-                    ? "Wear it on your chest - SW6 = Min, SW5 = pause"
-                    : "Wear it on your chest";
+    app->help = app->has_buttons ? HELP : HELP_NO_BUTTONS;
     app->pause_button.index = BUTTON_SW5;
     app->dwell_button.index = BUTTON_SW6;
     in_emulator = look_up_model(&app->model, &found);
