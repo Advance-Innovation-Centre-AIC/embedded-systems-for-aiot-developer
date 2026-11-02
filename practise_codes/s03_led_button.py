@@ -58,7 +58,7 @@ lbl_status = ui.Label("ไฟวิ่งกำลังเดิน", x=360, y=
 # การ์ดซ้ายบน: ไฟบนจอสะท้อนสิ่งที่โปรแกรม "สั่ง" ไม่ใช่สิ่งที่ขา "อ่านได้"
 # ระยะต่อดวงคิดจาก NUM_LEDS บอร์ดห้าดวงก็ไม่ล้นการ์ด
 ui.Panel(x=24, y=52, w=440, h=144, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ไฟบนบอร์ด " + str(NUM_LEDS) + " ดวง", x=40, y=68, color=COL_DIM, value=16)
+ui.Label("ไฟบนบอร์ด " + str(NUM_LEDS) + " ดวง", x=40, y=68, color=COL_DIM, value=20)
 PITCH = min(128, 408 // NUM_LEDS)
 LED_W = 48 if PITCH >= 128 else 36
 led_ui = []
@@ -66,26 +66,26 @@ for i in range(NUM_LEDS):
     x = 40 + i * PITCH
     led_ui.append(ui.Led(x=x, y=104, w=LED_W, h=LED_W, color=COL_OK, value=0))
     tag = ("ดวง " if PITCH >= 128 else "") + str(i + 1)
-    ui.Label(tag, x=x + LED_W + (16 if PITCH >= 128 else 8), y=112, color=COL_DIM, value=16)
-ui.Label("จอสะท้อนคำสั่ง ไม่ใช่ค่าที่ขาอ่าน", x=40, y=160, color=COL_DIM, value=16)
+    ui.Label(tag, x=x + LED_W + (16 if PITCH >= 128 else 8), y=112, color=COL_DIM, value=20)
+ui.Label("จอสะท้อนคำสั่ง ไม่ใช่ค่าที่ขาอ่าน", x=40, y=160, color=COL_DIM, value=20)
 
 # การ์ดขวาบน: สถานะปุ่มจริง กับตัวนับ
 ui.Panel(x=480, y=52, w=288, h=144, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ปุ่ม " + btn.name(), x=496, y=68, color=COL_DIM, value=16)
+ui.Label("ปุ่ม " + btn.name(), x=496, y=68, color=COL_DIM, value=20)
 led_btn = ui.Led(x=496, y=104, w=48, h=48, color=COL_RUN, value=0)
-ui.Label("กำลังกด", x=496, y=156, color=COL_DIM, value=16)
-ui.Label("นับได้ (ครั้ง)", x=596, y=100, color=COL_DIM, value=16)
+ui.Label("กำลังกด", x=496, y=156, color=COL_DIM, value=20)
+ui.Label("นับได้ (ครั้ง)", x=596, y=100, color=COL_DIM, value=20)
 seg_count = ui.Seg7("0", x=640, y=132, w=88, h=56, color=COL_TEXT)
 
 # การ์ดซ้ายล่าง: ปุ่มสูง 88 px เว้นห่าง 32 px ตามระยะนิ้วจริง
 ui.Panel(x=24, y=212, w=440, h=160, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("คำสั่งไฟวิ่ง", x=40, y=228, color=COL_DIM, value=16)
+ui.Label("คำสั่งไฟวิ่ง", x=40, y=228, color=COL_DIM, value=20)
 btn_run = ui.Button("เดินไฟวิ่ง", x=40, y=268, w=176, h=88, color=0x30A46C, value=20)
 btn_stop = ui.Button("หยุดไฟวิ่ง", x=248, y=268, w=176, h=88, color=0x3A4150, value=20)
 
 # การ์ดขวาล่าง: เวลาที่เหลือ พร้อมแถบบอกพิสัย
 ui.Panel(x=480, y=212, w=288, h=160, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("เวลาที่เหลือของรอบนี้", x=496, y=228, color=COL_DIM, value=16)
+ui.Label("เวลาที่เหลือของรอบนี้", x=496, y=228, color=COL_DIM, value=20)
 lbl_left = ui.Label("30 วิ", x=496, y=264, color=COL_TEXT, value=24)
 bar_left = ui.Bar(x=496, y=308, w=192, h=16, color=COL_RUN,
                   min=0, max=RUN_MS // 1000, value=0)

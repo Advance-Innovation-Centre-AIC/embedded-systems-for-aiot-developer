@@ -27,7 +27,7 @@
  *   - lcd.print() with several values joins them with spaces itself;
  *     here snprintf builds the same line first.
  *   - gpio.button(0) raises ValueError on a board without a button,
- *     and 408 // NUM_LEDS raises ZeroDivisionError on one without
+ *     and dividing 408 by NUM_LEDS raises ZeroDivisionError on one without
  *     LEDs; here both end the program with BENTO_E_INVALID_ARGUMENT.
  *   - Stop ends the program at once, without the closing summary
  *     (MicroPython raises KeyboardInterrupt there).
@@ -63,8 +63,7 @@ enum { /* layout */
     TITLE_PX = 28,
     STATUS_X = 360,
     STATUS_Y = 12,
-    STATUS_PX = 20,
-    NOTE_PX = 16,
+    NOTE_PX = 20, /* Thai on the board is 20 px or larger */
     CARD_RADIUS = 12,
     LEFT_X = 24,
     LEFT_W = 440,
@@ -156,6 +155,14 @@ enum { /* text buffers */
     USER_BUTTON = 0 /* gpio opens one button on both boards: index 0 */
 };
 
+/* A label's colour and size. */
+typedef struct {
+    uint32_t color;
+    int32_t size_px;
+} text_style_t;
+
+static const text_style_t NOTE_STYLE = {COLOR_DIM, NOTE_PX};
+
 /* Where a button goes. */
 typedef struct {
     int32_t x;
@@ -239,8 +246,9 @@ static void set_shown(bento_ui_t *ui, bento_ui_id_t widget, bool shown)
 }
 
 static bento_status_t add_label(bento_ui_t *ui, const char *text,
-                                int32_t x, int32_t y, uint32_t color,
-                                int32_t size_px, bento_ui_id_t *out_id)
+                                int32_t x, int32_t y,
+                                const text_style_t *style,
+                                bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -249,8 +257,8 @@ static bento_status_t add_label(bento_ui_t *ui, const char *text,
     args.text_len = (uint32_t)strlen(text);
     args.x = px(x);
     args.y = px(y);
-    args.color = color;
-    args.font_px = size_px;
+    args.color = style->color;
+    args.font_px = style->size_px;
     return bento_ui_label_create(ui, &args, out_id);
 }
 
@@ -259,7 +267,7 @@ static bento_status_t add_note(bento_ui_t *ui, const char *text,
 {
     bento_ui_id_t unused = 0U;
 
-    return add_label(ui, text, x, y, COLOR_DIM, NOTE_PX, &unused);
+    return add_label(ui, text, x, y, &NOTE_STYLE, &unused);
 }
 
 static bento_status_t add_card(bento_ui_t *ui, int32_t x, int32_t y,
@@ -366,15 +374,50 @@ static bento_status_t leds_off(const chase_t *chase)
     return status;
 }
 
+/* The step between two LEDs comes from the LED count, so five LEDs
+ * still fit the card; 0 when the board has none. */
+static int32_t led_pitch(uint32_t led_count)
+{
+    int32_t pitch = 0;
+
+    if (led_count > 0U) {
+        pitch = LED_SPACE / (int32_t)led_count;
+        if (pitch > PITCH_WIDE) {
+            pitch = PITCH_WIDE;
+        }
+    }
+    return pitch;
+}
+
+/* One LED on the screen and its tag beside it. */
+static bento_status_t add_led_column(panel_t *panel, uint32_t led,
+                                     int32_t pitch)
+{
+    char tag[TAG_BYTES];
+    const bool wide = pitch >= PITCH_WIDE;
+    const int32_t led_w = wide ? LED_WIDE : LED_NARROW;
+    const int32_t x = LEFT_TEXT_X + ((int32_t)led * pitch);
+    bento_status_t status = add_light(panel->ui, x, LED_ROW_Y, led_w,
+                                      COLOR_OK, &panel->leds[led]);
+
+    if (status == BENTO_OK) {
+        (void)snprintf(tag, sizeof(tag), "%s%" PRIu32,
+                       wide ? "ดวง " : "", led + 1U);
+        status =
+            add_note(panel->ui, tag,
+                     x + led_w + (wide ? TAG_GAP_WIDE : TAG_GAP_NARROW),
+                     LED_TAG_Y);
+    }
+    return status;
+}
+
 /* The screen's LEDs mirror what the program ordered, not what a pin
- * reads. The step between them comes from the LED count, so five
- * LEDs still fit the card. */
+ * reads. */
 static bento_status_t add_led_card(chase_t *chase)
 {
     panel_t *panel = &chase->panel;
-    char text[TAG_BYTES];
-    int32_t pitch = PITCH_WIDE;
-    int32_t led_w;
+    char text[LABEL_BYTES];
+    const int32_t pitch = led_pitch(chase->led_count);
     uint32_t i;
     bento_status_t status =
         add_card(panel->ui, LEFT_X, TOP_Y, LEFT_W, TOP_H);
@@ -388,25 +431,8 @@ static bento_status_t add_led_card(chase_t *chase)
         status =
             BENTO_E_INVALID_ARGUMENT; /* the original divides by the LED count */
     }
-    if (status == BENTO_OK) {
-        if ((LED_SPACE / (int32_t)chase->led_count) < pitch) {
-            pitch = LED_SPACE / (int32_t)chase->led_count;
-        }
-    }
-    led_w = (pitch >= PITCH_WIDE) ? LED_WIDE : LED_NARROW;
     for (i = 0U; (i < chase->led_count) && (status == BENTO_OK); i++) {
-        const int32_t x = LEFT_TEXT_X + ((int32_t)i * pitch);
-        const int32_t gap =
-            (pitch >= PITCH_WIDE) ? TAG_GAP_WIDE : TAG_GAP_NARROW;
-
-        status = add_light(panel->ui, x, LED_ROW_Y, led_w, COLOR_OK,
-                           &panel->leds[i]);
-        if (status == BENTO_OK) {
-            (void)snprintf(text, sizeof(text), "%s%" PRIu32,
-                           (pitch >= PITCH_WIDE) ? "ดวง " : "", i + 1U);
-            status =
-                add_note(panel->ui, text, x + led_w + gap, LED_TAG_Y);
-        }
+        status = add_led_column(panel, i, pitch);
     }
     if (status == BENTO_OK) {
         status = add_note(panel->ui, "จอสะท้อนคำสั่ง ไม่ใช่ค่าที่ขาอ่าน",
@@ -481,7 +507,8 @@ static bento_status_t add_command_card(panel_t *panel)
 /* The time left, with a bar that shows the range. */
 static bento_status_t add_time_card(panel_t *panel)
 {
-    const int32_t run_s = RUN_MS / MS_PER_SECOND;
+    static const text_style_t time_style = {COLOR_TEXT, LEFT_LABEL_PX};
+    const int32_t run_s = (int32_t)RUN_MS / (int32_t)MS_PER_SECOND;
     bento_ui_widget_args_t args;
     bento_ui_id_t scale = 0U;
     bento_status_t status =
@@ -494,7 +521,7 @@ static bento_status_t add_time_card(panel_t *panel)
     if (status == BENTO_OK) {
         status =
             add_label(panel->ui, "30 วิ", RIGHT_TEXT_X, LEFT_LABEL_Y,
-                      COLOR_TEXT, LEFT_LABEL_PX, &panel->time_left);
+                      &time_style, &panel->time_left);
     }
     if (status == BENTO_OK) {
         bento_ui_widget_args_init(&args);
@@ -565,6 +592,7 @@ static bento_status_t add_confirm(panel_t *panel)
  * them in the loop only wastes messages. */
 static bento_status_t build_screen(chase_t *chase)
 {
+    static const text_style_t title_style = {COLOR_TEXT, TITLE_PX};
     panel_t *panel = &chase->panel;
     bento_ui_id_t unused = 0U;
     bento_status_t status =
@@ -576,11 +604,11 @@ static bento_status_t build_screen(chase_t *chase)
     }
     if (status == BENTO_OK) {
         status = add_label(panel->ui, "แผงคุมไฟวิ่ง - คาบ 3", TITLE_X,
-                           TITLE_Y, COLOR_TEXT, TITLE_PX, &unused);
+                           TITLE_Y, &title_style, &unused);
     }
     if (status == BENTO_OK) {
         status = add_label(panel->ui, "ไฟวิ่งกำลังเดิน", STATUS_X, STATUS_Y,
-                           COLOR_DIM, STATUS_PX, &panel->status);
+                           &NOTE_STYLE, &panel->status);
     }
     if (status == BENTO_OK) {
         status = add_led_card(chase);
@@ -632,19 +660,12 @@ static bento_status_t step_chase(chase_t *chase, uint32_t now_ms)
     return status;
 }
 
-/* Step 4: read the button every round, believe only a still value. */
-static bento_status_t read_button(chase_t *chase, uint32_t now_ms)
+/* Believe only a value that has been still for DEBOUNCE_MS. */
+static void debounce(chase_t *chase, uint32_t now_ms)
 {
     char line[LABEL_BYTES];
-    bento_status_t status = BENTO_OK;
 
-    /* TODO จุดที่ 3: เติม status = bento_gpio_button_is_pressed(USER_BUTTON, &chase->raw);
-     * chase->raw ตั้งต้นเป็น false ไว้ให้ไฟล์รันได้ก่อนเติมจุดนี้
-     * เลขดิบจาก bento_gpio_button_value() กลับด้านกับที่คิด: 0 คือกด ไม่ใช่ 1
-     *   (examples/s03/04_button_active_low.py) */
-    if (status != BENTO_OK) {
-        /* the read failed: the original raises */
-    } else if (chase->raw != chase->last_raw) {
+    if (chase->raw != chase->last_raw) {
         chase->last_raw = chase->raw;
 
         /* TODO จุดที่ 4: เติม chase->last_change_ms = now_ms;
@@ -663,6 +684,20 @@ static bento_status_t read_button(chase_t *chase, uint32_t now_ms)
         }
     } else {
         /* still, or not still long enough */
+    }
+}
+
+/* Step 4: read the button every round, believe only a still value. */
+static bento_status_t read_button(chase_t *chase, uint32_t now_ms)
+{
+    bento_status_t status = BENTO_OK;
+
+    /* TODO จุดที่ 3: เติม status = bento_gpio_button_is_pressed(USER_BUTTON, &chase->raw);
+     * chase->raw ตั้งต้นเป็น false ไว้ให้ไฟล์รันได้ก่อนเติมจุดนี้
+     * เลขดิบจาก bento_gpio_button_value() กลับด้านกับที่คิด: 0 คือกด ไม่ใช่ 1
+     *   (examples/s03/04_button_active_low.py) */
+    if (status == BENTO_OK) {
+        debounce(chase, now_ms);
     }
     return status;
 }
