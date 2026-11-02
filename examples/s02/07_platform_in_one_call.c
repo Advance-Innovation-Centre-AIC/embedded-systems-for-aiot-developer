@@ -21,8 +21,8 @@
  * Twin of 07_platform_in_one_call.py
  * (embedded-systems-for-aiot-developer/examples/s02/07_platform_in_one_call.py).
  * Style: CLEAN_C.md.
- * In the BENTO Emulator, MQTT from C is not available yet: the
- * program says so and ends.
+ * In the BENTO Emulator, the TESAIoT platform from C is not
+ * available yet: the program says so and ends.
  * Where C differs: C has no dict. tesaiot.config() is read field by
  * field into a table (19 keys, about 2.4 KB, so at file scope), and
  * `for k in cfg` walks the keys in the order MicroPython's hash table
@@ -342,19 +342,21 @@ static bento_status_t build_notes(platform_screen_t *screen)
     return status;
 }
 
-/* The BENTO Emulator has no MQTT from C yet: bento_mqtt_* and the
- * broker calls answer BENTO_E_UNSUPPORTED there. The program takes
+/* The BENTO Emulator has no TESAIoT platform from C yet: every
+ * bento_tesaiot_* call, the settings store included, answers
+ * BENTO_E_UNSUPPORTED there. The program takes
  * the original's own "broker failed" way out: the step turns red with
  * the original's words, the reason line and the drawer say why, the
- * console gets the full sentence in Thai and English, and the
- * program ends normally. The screen line is the short form, within
- * the 126 bytes of a SET_TEXT. */
+ * console gets the sentence in Thai and English, and the program
+ * ends normally. The label stays within the 126 bytes of a
+ * SET_TEXT. */
 static void show_emulator_note(bento_ui_t *ui, bento_ui_id_t step,
                                const char *step_text,
                                bento_ui_id_t reason)
 {
-    static const char note[] =
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    /* the Emulator does not wrap a label by its width: \n does */
+    static const char note[] = "TESAIoT จาก C ยังไม่มีใน BENTO Emulator\n"
+                               "ให้รันบน Dev Kit หรือ Eva Kit";
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
 
@@ -368,10 +370,10 @@ static void show_emulator_note(bento_ui_t *ui, bento_ui_id_t step,
     (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
                         NULL);
     (void)bento_lcd_print(note); /* ignores a console not ready */
-    (void)printf("MQTT จากภาษา C ยังไม่มีใน BENTO Emulator "
-                 "ให้รันบนบอร์ด Dev Kit หรือ Eva Kit / MQTT from C is "
-                 "not in the BENTO Emulator yet: run it on a Dev Kit "
-                 "or Eva Kit.\n");
+    (void)printf(
+        "TESAIoT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit "
+        "หรือ Eva Kit / TESAIoT platform from C is not in the BENTO "
+        "Emulator yet: run it on a Dev Kit or Eva Kit.\n");
 }
 
 static bento_status_t build_screen(platform_screen_t *screen)
