@@ -40,6 +40,15 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+static const char DEVICE_ID[] = "team03";
+static const char API_KEY[] = "<api key ของทีม>";
+static const char MQTT_PASS[] = "<รหัสผ่าน MQTT ของทีม>";
+static const char BROKER[] = "mqtt.tesaiot.dev";
+/* ---- end of settings ---- */
+
 /* Timing, in milliseconds. */
 enum {
     SETTLE_MS = 200,    /* let the cleared screen settle */
@@ -419,23 +428,19 @@ static void print_lessons(const steps_screen_t *screen)
 
 static bento_status_t set_identity(void)
 {
-    static const char device_id[] = "team03";
-    static const char api_key[] = "<api key ของทีม>";
-    static const char mqtt_pass[] = "<รหัสผ่าน MQTT ของทีม>";
-    static const char broker[] = "mqtt.tesaiot.dev";
-    bento_status_t status = set_field("device_id", device_id);
+    bento_status_t status = set_field("device_id", DEVICE_ID);
 
     if (status == BENTO_OK) {
-        status = set_field("api_key", api_key);
+        status = set_field("api_key", API_KEY);
     }
     if (status == BENTO_OK) {
-        status = set_field("mqtt_pass", mqtt_pass);
+        status = set_field("mqtt_pass", MQTT_PASS);
     }
     if (status == BENTO_OK) {
-        status = set_field("broker", broker);
+        status = set_field("broker", BROKER);
     }
     if (status == BENTO_OK) {
-        status = set_field("sni_hostname", broker);
+        status = set_field("sni_hostname", BROKER);
     }
     return status;
 }
@@ -475,14 +480,11 @@ static bento_status_t show_emulator_note(const steps_screen_t *screen)
 static bento_status_t step_identity(const steps_screen_t *screen,
                                     bool *ready)
 {
-    /* Change these to the classroom's network and the team's identity. */
-    static const char wifi_ssid[] = "AIoT-Class";
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_status_t status;
 
     show_text(screen, SLOT_NOTE, "ต่อ WiFi ก่อน จอจะนิ่งครู่หนึ่ง");
     poll_ui(screen->ui);
-    status = join_wifi(wifi_ssid, wifi_pass, ready);
+    status = join_wifi(WIFI_SSID, WIFI_PASS, ready);
     if ((status == BENTO_OK) && !*ready) {
         step(screen, SLOT_STEP1, "1) WiFi + ตั้งตัวตน    WiFi ไม่ติด",
              COL_BAD);
