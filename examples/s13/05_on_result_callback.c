@@ -54,6 +54,14 @@
 #include "bento_edgeai.h"
 #include "bento_runtime.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+enum {
+    WINDOW_S = 10, /* one counting window, in seconds */
+    RUNS = 6,      /* windows, then the end */
+    DRAW_MS = 500
+};
+/* ---- end of settings ---- */
+
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
@@ -68,10 +76,7 @@ enum {
 
 /* Timing. */
 enum {
-    WINDOW_S = 10, /* one counting window */
-    RUNS = 6,      /* windows, then the end */
     MS_PER_S = 1000,
-    DRAW_MS = 500,
     LOOP_MS = 50,
     SETTLE_MS = 150, /* let the cleared screen settle */
     OP_POLL_MS = 100,
@@ -418,7 +423,7 @@ static bento_status_t run_window(compare_t *compare, uint32_t *polled)
     *polled = 0U;
     while ((status == BENTO_OK) &&
            (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
-            (WINDOW_S * MS_PER_S))) {
+            ((int32_t)WINDOW_S * (int32_t)MS_PER_S))) {
         uint32_t now_ms;
 
         take_reports(compare);
