@@ -36,6 +36,9 @@
  *  - on the reTerminal there is no wifi or mqtt module (ImportError
  *    at the start); here the screen is drawn and the first Wi-Fi call
  *    ends the program with BENTO_E_UNSUPPORTED, after the finally.
+ *  - In the BENTO Emulator, MQTT from C is not available yet: the program
+ *    says so and goes on offline, backing off as the original does when
+ *    the broker cannot be reached.
  */
 #include <stdbool.h>
 #include <stddef.h>
@@ -75,6 +78,8 @@ enum {
     ROLE_TRIES,
     ROLE_WAIT_BAR,
     ROLE_CHART,
+    ROLE_FOOT_LEFT,
+    ROLE_FOOT_RIGHT,
     ROLE_COUNT
 };
 
@@ -105,6 +110,7 @@ typedef struct {
     uint8_t series; /* the schedule's line on the chart */
     char client_id[CLIENT_ID_CHARS];
     broker_link_t link;
+    bool emulator_told; /* the Emulator note is shown once */
 } backoff_screen_t;
 
 /* What the loop keeps between rounds. */
@@ -289,10 +295,10 @@ static bento_status_t build_chart(backoff_screen_t *screen)
         WIDGET_CHART, ROLE_CHART, NULL, 24,          240, 744,
         88,           COLOR_CARD, 0,    CHART_TOP_S, 0};
     static const widget_spec_t notes[] = {
-        {WIDGET_LABEL, ROLE_FIXED, "กราฟคือสิ่งที่จะเกิดตอนสายหลุด", 24, 336,
+        {WIDGET_LABEL, ROLE_FOOT_LEFT, "กราฟคือสิ่งที่จะเกิดตอนสายหลุด", 24,
+         336, AUTO_PX, AUTO_PX, COLOR_DIM, 0, 0, TEXT_PX},
+        {WIDGET_LABEL, ROLE_FOOT_RIGHT, "ไม่ใช่สิ่งที่กำลังเกิด", 384, 336,
          AUTO_PX, AUTO_PX, COLOR_DIM, 0, 0, TEXT_PX},
-        {WIDGET_LABEL, ROLE_FIXED, "ไม่ใช่สิ่งที่กำลังเกิด", 384, 336, AUTO_PX,
-         AUTO_PX, COLOR_DIM, 0, 0, TEXT_PX},
         {WIDGET_LABEL, ROLE_FIXED, "กราฟ = ระยะห่างที่นัดไว้ (วินาที)", 24,
          368, AUTO_PX, AUTO_PX, COLOR_DIM, 0, 0, TEXT_PX}};
     bento_status_t status = add_widgets(screen, &chart, 1U);
@@ -429,6 +435,27 @@ static bento_status_t join_wifi(bool *joined)
                : BENTO_OK;
 }
 
+/* The BENTO Emulator's C runtime has no MQTT yet: bento_mqtt_open_start
+ * answers BENTO_E_UNSUPPORTED there. The first time, the footer line says
+ * so and the console too; after that it is a broker that cannot be
+ * reached, and the backoff goes on. */
+static void show_emulator_note(backoff_screen_t *screen)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+
+    if (!screen->emulator_told) {
+        screen->emulator_told = true;
+        show_text(screen, ROLE_FOOT_RIGHT, "");
+        show_color(screen, ROLE_FOOT_LEFT, (uint32_t)COLOR_WARN);
+        show_text(screen, ROLE_FOOT_LEFT, note);
+        (void)printf("%s / MQTT from C is not in the BENTO Emulator "
+                     "yet: run it on a Dev Kit or "
+                     "Eva Kit.\n",
+                     note);
+    }
+}
+
 /* mqtt.connect(BROKER, port=1883, client_id=CLIENT_ID): the old
  * client goes first, as the binding's cleanup does. */
 static bento_status_t connect_broker(backoff_screen_t *screen,
@@ -452,6 +479,9 @@ static bento_status_t connect_broker(backoff_screen_t *screen,
     config.client_id_len = (uint32_t)strlen(screen->client_id);
     status = bento_mqtt_open_start(&config, &link->handle);
     link->open = status == BENTO_OK;
+    if (status == BENTO_E_UNSUPPORTED) {
+        show_emulator_note(screen);
+    }
     while ((status == BENTO_OK) && (answer == BENTO_E_IN_PROGRESS)) {
         answer = bento_mqtt_open_poll(link->handle);
         if (answer == BENTO_E_IN_PROGRESS) {
