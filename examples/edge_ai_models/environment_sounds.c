@@ -21,6 +21,9 @@
  * Style: CLEAN_C.md. Closest library twin: devkit-21-ai-model-lab
  * (style only, the code is new).
  * Differs from the original:
+ *   - In the BENTO Emulator, Edge AI from C is not available yet:
+ *     the program says so and then shows the "Model not on this
+ *     board" card, as the original does when the model is missing.
  *   - gc.collect() and the free-heap print are left out: C has no
  *     garbage collector.
  *   - m["builtin"] is "row index below diag.compiled_models"; when
@@ -149,7 +152,9 @@ enum { /* layout */
     MISSING_TEXT_X = 120,
     MISSING_TITLE_Y = 126,
     MISSING_BODY_Y = 170,
-    MISSING_PX = 20
+    MISSING_PX = 20,
+    EMULATOR_NOTE_Y =
+        302 /* under the missing card, which ends at 290 */
 };
 
 /* An episode, as the original's Episode class names its states. */
@@ -1439,9 +1444,41 @@ static bento_status_t run_then_stop(lab_t *app)
     return (status == BENTO_E_CANCELLED) ? stop_status : status;
 }
 
+/* The BENTO Emulator has no Edge AI from C yet
+ * (bento_edgeai_supported() answers BENTO_E_UNSUPPORTED there): the
+ * original's path for a missing model, then the note under its card. */
+static bento_status_t show_emulator_note(bento_ui_t *ui)
+{
+    static const char note[] = "Edge AI จาก C ยังไม่มีใน BENTO Emulator "
+                               "ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_widget_args_t args;
+    bento_ui_id_t unused;
+    bento_status_t status = show_missing(ui);
+
+    if (status == BENTO_OK) {
+        bento_ui_widget_args_init(&args);
+        args.text = note;
+        args.text_len = (uint32_t)strlen(note);
+        args.x = MISSING_X;
+        args.y = EMULATOR_NOTE_Y;
+        args.w = MISSING_W; /* a width lets the label wrap */
+        args.color = COLOR_WARN;
+        args.font_px = MISSING_PX;
+        status = bento_ui_label_create(ui, &args, &unused);
+    }
+    if (status == BENTO_OK) {
+        (void)printf(
+            "%s / Edge AI from C is not in the BENTO Emulator yet: "
+            "run it on a Dev Kit or Eva Kit.\n",
+            note);
+    }
+    return status;
+}
+
 int main(void)
 {
     lab_t *app = &g_lab;
+    bool supported = false;
     bento_status_t status;
 
     (void)memset(app, 0, sizeof(*app));
@@ -1450,7 +1487,10 @@ int main(void)
     app->sw5.index = 1U;
     app->sw6.index = 0U;
     app->model_name = MODEL_NAME;
-    if (!find_model(MODEL_NAME, false, &app->model, &app->row_count)) {
+    if (bento_edgeai_supported(&supported) == BENTO_E_UNSUPPORTED) {
+        status = show_emulator_note(app->ui);
+    } else if (!find_model(MODEL_NAME, false, &app->model,
+                           &app->row_count)) {
         status = show_missing(app->ui);
     } else {
         status = build_screen(app);
