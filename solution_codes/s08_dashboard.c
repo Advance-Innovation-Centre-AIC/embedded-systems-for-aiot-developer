@@ -5,7 +5,8 @@
  * สี่การ์ดคือค่าที่วัดได้: ความเร่ง BMI270 เป็นกราฟสามเส้น เข็มทิศ BMM350 แถบสัมผัส
  * CapSense และลูกบิด พร้อมเกณฑ์เตือนที่ตั้งเองด้วย Spinbox แถบหัวมีชื่อทีม ไฟ "ค่าค้าง"
  * ปุ่ม "เดินหน้า" กับ "หยุดภาพ" และเลขรอบที่บอกว่าลูปยังเดิน ค่าที่อ่านไม่ได้ไม่ถูกแทน
- * ด้วยศูนย์ แต่คงค่าล่าสุดไว้แล้วจุดไฟค่าค้าง แก้ชื่อทีมที่ team ใน add_head แล้วปล่อยรันยาว 10 นาที
+ * ด้วยศูนย์ แต่คงค่าล่าสุดไว้แล้วจุดไฟค่าค้าง แก้ชื่อทีมที่ TEAM ในบล็อก settings
+ * บนสุด แล้วปล่อยรันยาว 10 นาที
  *
  * Four cards show what is measured: BMI270 acceleration as a
  * three-line chart, the BMM350 compass, the CapSense touch strip and
@@ -13,8 +14,9 @@
  * bar holds the team name, a "stale" lamp, run and hold buttons and a
  * round counter that proves the loop is alive. A value that cannot be
  * read is never replaced by zero: the last one stays and the stale lamp
- * lights. Set the team name in team (add_head) and let it run for 10 minutes; Stop
- * clears the screen and prints the number of rounds.
+ * lights. Set the team name in TEAM (the settings block at the top)
+ * and let it run for 10 minutes; Stop clears the screen and prints the
+ * number of rounds.
  *
  * Twin of s08_dashboard.py
  * (embedded-systems-for-aiot-developer/solution_codes/s08_dashboard.py).
@@ -37,6 +39,10 @@
 #include "bento_runtime.h"
 #include "bento_sensors.h"
 #include "bento_time.h"
+
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char TEAM[] = "BentoBuilders"; /* แก้ชื่อทีมให้เป็นของทีมเรา */
+/* ---- end of settings ---- */
 
 /* colours, 0xRRGGBB, the firmware dashboard's palette: one colour per
  * sensor, and warning colours kept for warnings only */
@@ -78,8 +84,11 @@ enum {
     FONT_HEAD = 24,
     FONT_BIG = 28,
     FONT_BODY = 20,
-    NUMBER_BYTES = 40,
-    TEXT_BYTES = 96
+    NUMBER_BYTES =
+        37, /* "{:+.1f}": a sign and the 35 characters bento_fmt writes, NUL */
+    TEXT_BYTES = 96,
+    LINE_BYTES =
+        114 /* "X%s Y%s Z%s": 5 bytes, three numbers of 36, NUL */
 };
 
 /* Every widget, in the order the original creates it (32 of the 64 the
@@ -247,8 +256,6 @@ static bento_status_t add_widgets(dashboard_t *board,
  * the round line, the dashboard's heartbeat. */
 static bento_status_t add_head(dashboard_t *board)
 {
-    static const char team[] =
-        "BentoBuilders"; /* change it to your team before you run */
     static const widget_spec_t specs[W_IMU_CARD - W_STALE_LAMP] = {
         {UI_WIDGET_LED, NULL, 400, 12, 48, 48, COLOR_WARN, 0, 0, 0},
         {UI_WIDGET_LABEL, "ค่าค้าง", 400, 64, -1, -1, COLOR_GRAY,
@@ -263,7 +270,7 @@ static bento_status_t add_head(dashboard_t *board)
     char text[TEXT_BYTES];
     bento_status_t status;
 
-    (void)snprintf(text, sizeof(text), "แดชบอร์ดทีม %s", team);
+    (void)snprintf(text, sizeof(text), "แดชบอร์ดทีม %s", TEAM);
     bento_ui_widget_args_init(&args);
     args.text = text;
     args.text_len = (uint32_t)strlen(text);
@@ -529,7 +536,7 @@ static void show_numbers(dashboard_t *board)
     char x_text[NUMBER_BYTES];
     char y_text[NUMBER_BYTES];
     char z_text[NUMBER_BYTES];
-    char text[TEXT_BYTES];
+    char text[LINE_BYTES];
 
     board->last_text_ms = bento_time_ticks_ms();
     signed_text(readings->accel[0], x_text, sizeof(x_text));
