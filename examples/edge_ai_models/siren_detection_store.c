@@ -57,17 +57,27 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
-enum { /* settings */
-    VOTES_NEEDED =
-        3, /* an event = 3 of the last 5 results at Confirm at */
-    VOTES_KEPT = 5,
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char MODEL[] =
+    "SirenDetection";              /* exact name, looked up every run */
+static const bool BUILTIN = false; /* false = deployed from the Store */
+enum {
+    K = 3, /* an event = K of the last N results at Confirm at */
+    N = 5,
     REFRACT_MS = 1500, /* no second event sooner than this */
-    DEF_HEARING =
-        40, /* fallback thresholds: Hearing at, Confirm at, clear below */
-    DEF_CONFIRM = 65,
-    DEF_CLEAR = 30,
+    HOLD_MS = 2000     /* an event stays on screen this long */
+};
+/* DEF_TH in the .py: Hearing at, Confirm at, clear below (fallback) */
+static const uint8_t DEF_THRESHOLDS[3] = {40U, 65U, 30U};
+enum {
     POLL_MS = 100,
-    DRAW_MS = 500,
+    DRAW_MS = 500
+};
+/* A = Store, B = built-in: one space apart, two models */
+static const char *const NAMES[2] = {MODEL, "Siren Detection"};
+/* ---- end of settings ---- */
+
+enum { /* times, counts and sizes */
     LOOP_MS = 20,
     LOAD_MS = 150,   /* let the screen settle after ui.screen() */
     OP_POLL_MS = 20, /* how often a started select or stop is asked */
@@ -151,10 +161,6 @@ typedef enum {
     EPISODE_SEEN
 } episode_state_t;
 
-static const char NAME_STORE[] =
-    "SirenDetection"; /* A: from the Store */
-static const char NAME_BUILTIN[] =
-    "Siren Detection"; /* B: built in, one space apart */
 static const char SIDE_LETTERS[] = "AB";
 
 /* One board button: one event per press, holding does not repeat. */
@@ -205,9 +211,9 @@ typedef struct {
     char labels[MAX_CLASSES][BENTO_EDGEAI_LABEL_LEN];
 } model_t;
 
-/* The last VOTES_KEPT scores. */
+/* The last N scores. */
 typedef struct {
-    int32_t scores[VOTES_KEPT];
+    int32_t scores[N];
     uint32_t count;
 } vote_t;
 
@@ -635,7 +641,7 @@ static bento_status_t show_missing(bento_ui_t *ui)
     (void)snprintf(text, sizeof(text),
                    "Deploy %s\nfrom edgeai-store.tesaiot.dev\n(sign in "
                    "with GitHub) on a Dev Kit.",
-                   NAME_STORE);
+                   MODEL);
     (void)printf("%s\n", text);
     status = bento_ui_screen_default(ui);
     if (status == BENTO_OK) {
@@ -697,11 +703,10 @@ static bento_status_t add_side(siren_t *app, uint32_t side_index)
     bento_status_t status;
 
     if (side_index == 0U) {
-        (void)snprintf(title, sizeof(title), "A: %s (Store)",
-                       NAME_STORE);
+        (void)snprintf(title, sizeof(title), "A: %s (Store)", MODEL);
     } else {
         (void)snprintf(title, sizeof(title), "B: %s (built-in)",
-                       NAME_BUILTIN);
+                       NAMES[1]);
     }
     status = add_card(app->ui, &box, title);
     if (status == BENTO_OK) {
@@ -787,13 +792,13 @@ static void vote_reset(vote_t *vote)
     vote->count = 0U;
 }
 
-/* Keeps the last VOTES_KEPT scores. */
+/* Keeps the last N scores. */
 static void vote_add(vote_t *vote, int32_t score)
 {
     uint32_t i;
 
-    if (vote->count == (uint32_t)VOTES_KEPT) {
-        for (i = 1U; i < (uint32_t)VOTES_KEPT; i++) {
+    if (vote->count == (uint32_t)N) {
+        for (i = 1U; i < (uint32_t)N; i++) {
             vote->scores[i - 1U] = vote->scores[i];
         }
         vote->count--;
@@ -815,7 +820,7 @@ static int32_t vote_max(const vote_t *vote)
     return best;
 }
 
-/* VOTES_NEEDED of the kept scores at or above the level = confirmed. */
+/* K of the kept scores at or above the level = confirmed. */
 static bool vote_hits(const vote_t *vote, int32_t level)
 {
     int32_t hits = 0;
@@ -826,14 +831,13 @@ static bool vote_hits(const vote_t *vote, int32_t level)
             hits++;
         }
     }
-    return hits >= VOTES_NEEDED;
+    return hits >= K;
 }
 
 /* A full window, every score below the level. */
 static bool vote_clear(const vote_t *vote, int32_t level)
 {
-    return (vote->count == (uint32_t)VOTES_KEPT) &&
-           (vote_max(vote) < level);
+    return (vote->count == (uint32_t)N) && (vote_max(vote) < level);
 }
 
 /* A confirm: true once per new event, then no other within
@@ -909,9 +913,12 @@ static void read_thresholds(side_t *side)
     if (bento_edgeai_thresholds(side->model.index, &side->thresholds) !=
         BENTO_OK) {
         for (i = 0U; i < (uint32_t)MAX_CLASSES; i++) {
-            side->thresholds.enter[i] = DEF_HEARING;
-            side->thresholds.confirm[i] = DEF_CONFIRM;
-            side->thresholds.exit[i] = DEF_CLEAR;
+            side->thresholds.enter[i] =
+                DEF_THRESHOLDS[BENTO_EDGEAI_TH_ENTER];
+            side->thresholds.confirm[i] =
+                DEF_THRESHOLDS[BENTO_EDGEAI_TH_CONFIRM];
+            side->thresholds.exit[i] =
+                DEF_THRESHOLDS[BENTO_EDGEAI_TH_EXIT];
         }
     }
 }
@@ -1255,8 +1262,7 @@ static bento_status_t swap_sides(siren_t *app)
     status = stop_ai();
     if (status == BENTO_OK) {
         app->active = 1U - app->active;
-        app->model_name =
-            (app->active == 0U) ? NAME_STORE : NAME_BUILTIN;
+        app->model_name = NAMES[app->active];
         clock_text(clock, sizeof(clock));
         (void)printf("%s swap: run %s\n", clock, app->model_name);
         status = start_model(app, app->sides[app->active].model.index,
@@ -1351,7 +1357,7 @@ static bento_status_t run_siren(siren_t *app)
 
     init_side(&app->sides[0], true);
     init_side(side_b,
-              find_model(NAME_BUILTIN, true, &side_b->model, &rows_b));
+              find_model(NAMES[1], true, &side_b->model, &rows_b));
     if (!side_b->present) {
         put_text(app->ui, &side_b->verdict, "not on this board");
         put_text(app->ui, &app->swap, "B not on this board");
@@ -1427,10 +1433,10 @@ int main(void)
     app->has_buttons = bento_buttons_count() > 0U;
     app->sw5.index = 1U;
     app->sw6.index = 0U;
-    app->model_name = NAME_STORE;
+    app->model_name = MODEL;
     if (bento_edgeai_supported(&supported) == BENTO_E_UNSUPPORTED) {
         status = show_emulator_note(app->ui);
-    } else if (!find_model(NAME_STORE, false, &app->sides[0].model,
+    } else if (!find_model(MODEL, BUILTIN, &app->sides[0].model,
                            &app->row_count)) {
         status = show_missing(app->ui);
     } else {
