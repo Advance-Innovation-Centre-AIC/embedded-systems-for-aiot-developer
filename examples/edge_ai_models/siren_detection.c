@@ -28,8 +28,8 @@
  *     original's except does. A row is built in when its index is
  *     below the engine's count of compiled models (bento_edgeai_diag);
  *     when that cannot be read, "builtin" is unknown (the original's
- *     None, as on the Emulator), which BUILTIN = 1 accepts and
- *     BUILTIN = 0 refuses.
+ *     None, as on the Emulator), which BUILTIN = true accepts and
+ *     BUILTIN = false refuses.
  *   - A board without edge_ai (import fails there) answers
  *     BENTO_E_UNSUPPORTED here, so it prints "cannot read models:" and
  *     shows the "Model not on this board" card.
@@ -62,24 +62,34 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
 /* The exact name, looked up every run. */
-static const char MODEL_NAME[] = "Siren Detection";
+static const char MODEL[] = "Siren Detection";
+/* false = deployed from the Store */
+static const bool BUILTIN = true;
+/* K, N: an event = K of the last N results at Confirm at.
+ * DEFAULT_HEARING, DEFAULT_CONFIRM, DEFAULT_CLEAR: DEF_TH in the .py,
+ * the fallback thresholds (Hearing at, Confirm at, clear below); the
+ * fallback is the Dev Kit seed (ai_engine.c). */
+enum {
+    K = 3,
+    N = 5,
+    REFRACT_MS = 1500, /* no second event sooner than this */
+    HOLD_MS = 2000,    /* an event stays on screen this long */
+    DEFAULT_HEARING = 30,
+    DEFAULT_CONFIRM = 45,
+    DEFAULT_CLEAR = 25,
+    POLL_MS = 100,
+    DRAW_MS = 500
+};
+/* ---- end of settings ---- */
 
-enum {           /* the vote and the episode */
-    BUILTIN = 1, /* 1 = built in, 0 = deployed from the Store */
-    VOTE_K = 3,
-    VOTE_N = 5,
-    REFRACT_MS = 1500,
-    DEF_ENTER = 30, /* the fallback = the Dev Kit seed, ai_engine.c */
-    DEF_CONFIRM = 45,
-    DEF_EXIT = 25,
-    RULE_STEP = 2, /* the rule: 1 -> 3 -> 5 -> 1 of VOTE_N */
+enum {
+    RULE_STEP = 2, /* the rule: 1 -> 3 -> 5 -> 1 of N */
     RULE_WRAP = 6
 };
 
 enum { /* times */
-    POLL_MS = 100,
-    DRAW_MS = 500,
     LOOP_MS = 20,
     SETTLE_MS = 150,
     OP_POLL_MS = 20,
@@ -247,12 +257,12 @@ typedef struct {
     bool clicked;
 } board_button_t;
 
-/* The last VOTE_N scores; `needed` of them at or above a level =
+/* The last N scores; `needed` of them at or above a level =
  * confirmed. */
 typedef struct {
     int32_t needed;
     int32_t count;
-    int32_t scores[VOTE_N];
+    int32_t scores[N];
 } vote_t;
 
 /* Latched: NORMAL > HEARD > UNACK > ACKED or ENDED, and only ACK ends
@@ -490,15 +500,14 @@ static int32_t compiled_count(void)
     return count;
 }
 
-/* BUILTIN = 1 takes a built-in row or an unknown one; 0 takes a Store
- * row only. */
+/* BUILTIN = true takes a built-in row or an unknown one; false takes a
+ * Store row only. */
 static bool source_matches(int32_t row, int32_t compiled)
 {
-    const bool want_builtin = BUILTIN != 0;
-    bool matches = want_builtin;
+    bool matches = BUILTIN;
 
     if (compiled >= 0) {
-        matches = want_builtin ? (row < compiled) : (row >= compiled);
+        matches = BUILTIN ? (row < compiled) : (row >= compiled);
     }
     return matches;
 }
@@ -541,7 +550,7 @@ static bool find_model(model_t *model)
         bento_edgeai_model_info_init(&info);
         status = bento_edgeai_model_info((uint32_t)row, &info);
         if ((status == BENTO_OK) && !found &&
-            (strcmp(info.name, MODEL_NAME) == 0) &&
+            (strcmp(info.name, MODEL) == 0) &&
             source_matches(row, compiled)) {
             keep_model(&info, row, rows, model);
             found = true;
@@ -572,7 +581,7 @@ static bento_status_t show_missing(bento_ui_t *ui)
     (void)snprintf(
         text, sizeof(text),
         "%s\nis built into the TESAIoT Dev Kit.\nNot on this board.",
-        MODEL_NAME);
+        MODEL);
     (void)printf("%s\n", text);
     status = bento_ui_screen_default(ui);
     if (status == BENTO_OK) {
@@ -691,7 +700,7 @@ static bento_status_t start_model(alert_t *alert, bool check_rows)
     bento_status_t link = BENTO_OK;
     bento_status_t status = BENTO_OK;
 
-    (void)snprintf(text, sizeof(text), "Loading %s ...", MODEL_NAME);
+    (void)snprintf(text, sizeof(text), "Loading %s ...", MODEL);
     put_text(alert->ui, &alert->screen.status, text);
     put_color(alert->ui, &alert->screen.status, COLOR_WARN);
     drain_events(alert->ui);
@@ -712,8 +721,7 @@ static bento_status_t start_model(alert_t *alert, bool check_rows)
         status = link;
     } else if (link != BENTO_OK) {
         (void)printf("select: %s\n", why);
-        (void)snprintf(text, sizeof(text), "Cannot start %s",
-                       MODEL_NAME);
+        (void)snprintf(text, sizeof(text), "Cannot start %s", MODEL);
         set_stop(alert, text);
     } else if (!alert->stopped) {
         put_text(alert->ui, &alert->screen.status, help_text(alert));
@@ -735,9 +743,9 @@ static void read_thresholds(alert_t *alert)
     if (bento_edgeai_thresholds(alert->model.index, limits) !=
         BENTO_OK) {
         for (klass = 0U; klass < (uint32_t)MAX_CLASSES; klass++) {
-            limits->enter[klass] = DEF_ENTER;
-            limits->confirm[klass] = DEF_CONFIRM;
-            limits->exit[klass] = DEF_EXIT;
+            limits->enter[klass] = DEFAULT_HEARING;
+            limits->confirm[klass] = DEFAULT_CONFIRM;
+            limits->exit[klass] = DEFAULT_CLEAR;
         }
     }
 }
@@ -803,13 +811,13 @@ static void vote_reset(vote_t *vote, int32_t needed)
     vote->count = 0;
 }
 
-/* Keeps the last VOTE_N scores, oldest first. */
+/* Keeps the last N scores, oldest first. */
 static void vote_add(vote_t *vote, int32_t percent)
 {
     int32_t i;
 
-    if (vote->count == VOTE_N) {
-        for (i = 1; i < VOTE_N; i++) {
+    if (vote->count == N) {
+        for (i = 1; i < N; i++) {
             vote->scores[i - 1] = vote->scores[i];
         }
         vote->count--;
@@ -847,7 +855,7 @@ static int32_t vote_max(const vote_t *vote)
 /* A full window, every score below the level. */
 static bool vote_clear(const vote_t *vote, int32_t level)
 {
-    return (vote->count == VOTE_N) && (vote_max(vote) < level);
+    return (vote->count == N) && (vote_max(vote) < level);
 }
 
 /* time.localtime() as HH:MM:SS; a clock that cannot be read gives
@@ -1033,8 +1041,7 @@ static bento_status_t add_meter(alert_t *alert)
         status = add_label(alert->ui, " ", &legend, &screen->legend.id);
     }
     if (status == BENTO_OK) {
-        (void)snprintf(text, sizeof(text), "Rule %d of %d", VOTE_K,
-                       VOTE_N);
+        (void)snprintf(text, sizeof(text), "Rule %d of %d", K, N);
         status = add_button(alert->ui, text, &rule_box, RULE_PX,
                             &screen->rule_button.id);
     }
@@ -1345,14 +1352,14 @@ static bool event_is(const bento_ui_event_t *event, uint8_t kind,
     return (event->type == kind) && (event->id == widget);
 }
 
-/* Rule: 1 -> 3 -> 5 -> 1 of the last VOTE_N, faster or surer. */
+/* Rule: 1 -> 3 -> 5 -> 1 of the last N, faster or surer. */
 static void next_rule(alert_t *alert)
 {
     char text[TEXT_BYTES];
 
     alert->vote.needed = (alert->vote.needed + RULE_STEP) % RULE_WRAP;
     (void)snprintf(text, sizeof(text), "Rule %" PRId32 " of %d",
-                   alert->vote.needed, VOTE_N);
+                   alert->vote.needed, N);
     put_text(alert->ui, &alert->screen.rule_button, text);
 }
 
@@ -1460,7 +1467,7 @@ static bento_status_t run_alert(alert_t *alert)
     put_text(alert->ui, &alert->screen.legend, text);
     alert->pause_button.index = 1U;       /* SW5 */
     alert->acknowledge_button.index = 0U; /* SW6 */
-    vote_reset(&alert->vote, VOTE_K);
+    vote_reset(&alert->vote, K);
     episode_start(&alert->siren, true);
     alert->peak = -1;
     status = start_model(alert, false);
