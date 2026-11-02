@@ -21,6 +21,8 @@
  * failure in MicroPython, so every status but BENTO_OK is False here.
  * device_id() raises OSError "Trust M device ID read failed" on failure;
  * here a failed status takes the except branch and prints that text.
+ * In the BENTO Emulator, MQTT from C is not available yet: the program says
+ * so and ends (every bento_tesaiot_* call answers BENTO_E_UNSUPPORTED there).
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -195,6 +197,22 @@ static void show(bento_ui_t *ui, bento_ui_id_t id, const char *text,
 {
     (void)bento_ui_set_color(ui, id, color);
     set_text(ui, id, text);
+}
+
+/* The BENTO Emulator's C runtime has no TESAIoT link yet: slots() is the
+ * first bento_tesaiot_* call, and it answers BENTO_E_UNSUPPORTED there. Say
+ * so on the top card and on the console; the program then ends with 0. */
+static void show_emulator_note(const slots_screen_t *screen)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+
+    show(screen->ui, screen->fast, note, (uint32_t)COLOR_WARN);
+    poll_screen(screen->ui);
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
 }
 
 /* The top half: slots() answers at once, because it asks no chip. */
@@ -535,6 +553,11 @@ int main(void)
         (void)bento_lcd_console(
             "<h2>คาบ 11 - ครึ่งที่ใช้ได้ กับ ครึ่งที่ตายแล้ว</h2>");
         status = step_slots(&screen);
+    }
+    if (status == BENTO_E_UNSUPPORTED) {
+        show_emulator_note(&screen);
+        status =
+            BENTO_E_CANCELLED; /* nothing else can run: a quiet end */
     }
     if (status == BENTO_OK) {
         step_dead_half(&screen);
