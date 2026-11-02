@@ -44,6 +44,9 @@
  *  - Stop raises KeyboardInterrupt in MicroPython; here the wait
  *    returns and the program ends after the same finally (the model is
  *    stopped).
+ * In the BENTO Emulator, Edge AI from C is not available yet: the
+ * program says so, then goes on as the original does when no
+ * model is on the board.
  */
 #include <inttypes.h>
 #include <stdbool.h>
@@ -53,6 +56,10 @@
 
 #include "bento_edgeai.h"
 #include "bento_runtime.h"
+
+/* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
+static const char EMULATOR_NOTE[] =
+    "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
 
 /* The rule, the screen's rhythm and the house's limits. */
 enum {
@@ -393,7 +400,17 @@ static void add_line(hold_text_t *text, const char *line)
     }
 }
 
-static bento_status_t hold_no_model(bento_ui_t *ui)
+/* The BENTO Emulator's C runtime answers BENTO_E_UNSUPPORTED to every
+ * Edge AI call: the console says so. */
+static void print_emulator_note(void)
+{
+    (void)printf(
+        "%s / Edge AI from C is not in the BENTO Emulator yet: "
+        "run it on a Dev Kit or Eva Kit.\n",
+        EMULATOR_NOTE);
+}
+
+static bento_status_t hold_no_model(bento_ui_t *ui, bool in_emulator)
 {
     hold_text_t text;
 
@@ -401,6 +418,9 @@ static bento_status_t hold_no_model(bento_ui_t *ui)
     add_line(&text, "ไม่พบโมเดล Voice Commands");
     add_line(&text, "deploy Voice Commands จาก Store ก่อน");
     add_line(&text, "แล้วกด Run ใหม่");
+    if (in_emulator) {
+        add_line(&text, EMULATOR_NOTE);
+    }
     return hold(ui, &text, COLOR_BAD);
 }
 
@@ -990,6 +1010,7 @@ int main(void)
 {
     voice_t *voice = &g_voice;
     bool supported = false;
+    bool in_emulator = false;
     bool found = false;
     bento_status_t status;
 
@@ -997,16 +1018,21 @@ int main(void)
     voice->ui = bento_runtime_get_ui();
     reset_house(voice);
     status = bento_edgeai_supported(&supported);
-    if ((status == BENTO_OK) && !supported) {
+    in_emulator = status == BENTO_E_UNSUPPORTED;
+    if (in_emulator) {
+        print_emulator_note();
+        status = BENTO_OK; /* on as if no model were on the board */
+    }
+    if ((status == BENTO_OK) && !supported && !in_emulator) {
         status = BENTO_E_UNSUPPORTED; /* import edge_ai fails */
     }
-    if (status == BENTO_OK) {
+    if ((status == BENTO_OK) && !in_emulator) {
         status = find_model(voice, &found);
     }
     if ((status == BENTO_OK) && !found) {
         (void)printf("none of these models is on the board: ('Voice "
                      "Commands',)\n");
-        status = hold_no_model(voice->ui);
+        status = hold_no_model(voice->ui, in_emulator);
     } else if (status == BENTO_OK) {
         status = run_voice(voice);
     } else {
