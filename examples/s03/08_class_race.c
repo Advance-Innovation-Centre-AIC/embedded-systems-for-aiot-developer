@@ -83,6 +83,19 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* แก้สี่บรรทัดนี้ให้ตรงกับที่ผู้สอนแจกหน้าห้อง
+ * Set these four to what the teacher hands out. */
+/* the team's phone hotspot: faculty Wi-Fi needs a login */
+static const char WIFI_SSID[] = "bento-teamXX";
+/* 8 characters or more */
+static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
+/* the spare is "test.mosquitto.org" */
+static const char BROKER[] = "broker.hivemq.com";
+/* team01 to team19; unset, the program will not run */
+static const char TEAM[] = "teamXX";
+/* ---- end of settings ---- */
+
 /* ---- JSON: what json.loads gives this program -------------------- */
 
 typedef enum {
@@ -1764,20 +1777,6 @@ static bool has_sound(const bento_ui_t *ui)
            ((caps.feature_bits & (uint32_t)BENTO_UI_FEATURE_SFX) != 0U);
 }
 
-/* Change these to what the teacher hands out. NETWORK.ssid is the
- * team's phone hotspot (the faculty Wi-Fi needs a login the board
- * cannot do); TEAM is team01 to team19. The program refuses to run
- * until TEAM is set. */
-typedef struct {
-    const char *ssid;
-    const char *pass;
-} wifi_network_t;
-
-static const wifi_network_t NETWORK = {"bento-teamXX",
-                                       "<รหัส Hotspot ของทีม>"};
-static const char BROKER[] = "broker.hivemq.com";
-static const char TEAM[] = "teamXX";
-
 /* ---- the reports' keys, in json.dumps order ---------------------- */
 
 typedef enum {
@@ -1838,10 +1837,10 @@ static bento_status_t join_wifi(bool *joined)
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = NETWORK.ssid;
-    params.ssid_len = text_length(NETWORK.ssid);
-    params.pass = NETWORK.pass;
-    params.pass_len = text_length(NETWORK.pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = text_length(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = text_length(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -1888,8 +1887,7 @@ static bento_status_t heard_network(bool *heard)
     }
     *heard = false;
     for (i = 0U; (scan == BENTO_OK) && (i < count); i++) {
-        *heard =
-            *heard || (strcmp(g_networks[i].ssid, NETWORK.ssid) == 0);
+        *heard = *heard || (strcmp(g_networks[i].ssid, WIFI_SSID) == 0);
     }
     return status;
 }
@@ -1906,7 +1904,7 @@ static bento_status_t explain_no_wifi(race_screen_t *screen)
         (void)snprintf(text, sizeof(text),
                        heard ? "ได้ยินวง %s แต่ต่อไม่ผ่าน ตรวจรหัสผ่าน"
                              : "ไม่ได้ยินวง %s ตรวจชื่อวง",
-                       NETWORK.ssid);
+                       WIFI_SSID);
         stop_here(screen, "ต่อ WiFi ไม่ติด", text);
     }
     return status;
@@ -1946,8 +1944,7 @@ static bento_status_t step_wifi(race_screen_t *screen, char *ip,
     show(screen, screen->headline, COLOR_WARN,
          "กำลังต่อ WiFi จอจะนิ่งสักครู่");
     drop_events(screen);
-    (void)snprintf(text, sizeof(text), "1) กำลังต่อ WiFi %s",
-                   NETWORK.ssid);
+    (void)snprintf(text, sizeof(text), "1) กำลังต่อ WiFi %s", WIFI_SSID);
     (void)bento_lcd_print(text);
     status = join_wifi(&joined);
     if ((status == BENTO_OK) && !joined) {
