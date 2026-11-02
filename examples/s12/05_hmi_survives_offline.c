@@ -355,10 +355,9 @@ static void show_emulator_note(const hmi_t *hmi)
     args.font_px = TEXT_PX;
     /* best effort: the HMI goes on offline whether the note shows or not */
     (void)bento_ui_label_create(hmi->ui, &args, &id);
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a Dev Kit or Eva "
-                 "Kit.\n",
-                 note);
+    (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ "
+                 "Eva Kit / MQTT from C is not in the BENTO Emulator "
+                 "yet: run it on a Dev Kit or Eva Kit.\n");
 }
 
 static bento_status_t connect_broker(hmi_t *hmi, bool *connected)
