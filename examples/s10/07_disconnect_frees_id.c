@@ -491,15 +491,15 @@ static void fail_first(const demo_t *demo, const char *step_text,
 static void tell_emulator(const demo_t *demo)
 {
     static const char note[] =
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator\nให้รันบน Dev Kit หรือ Eva Kit";
 
     set_color(demo, demo->note, (uint32_t)COL_WARN);
     set_text(demo, demo->note, note);
+    set_text(demo, demo->note_2, ""); /* room for its second line */
     drain_events(demo);
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a Dev Kit or Eva "
-                 "Kit.\n",
-                 note);
+    (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ "
+                 "Eva Kit / MQTT from C is not in the BENTO Emulator "
+                 "yet: run it on a Dev Kit or Eva Kit.\n");
 }
 
 /* Step 1: the Wi-Fi, then the broker. *ok is false when the run
