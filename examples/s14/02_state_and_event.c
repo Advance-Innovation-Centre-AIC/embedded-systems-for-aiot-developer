@@ -49,6 +49,14 @@
 #include "bento_runtime.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "<Hotspot name>";
+static const char WIFI_PASS[] = "<Hotspot password>";
+static const char TEAM[] = "teamXX";
+/* BROKER: test.mosquitto.org is the spare */
+static const char BROKER[] = "broker.hivemq.com";
+/* ---- end of settings ---- */
+
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
@@ -60,13 +68,6 @@ enum {
     EMULATOR_NOTE_PX = 20,
     EMULATOR_NOTE_COLOR = 0xF5A623
 };
-
-/* Edit before running: the team (here and in the topics in
- * send_event() and send_state()), and the WiFi when the board has none
- * saved (its password is in join_wifi(), the broker in open_broker()).
- */
-static const char WIFI_SSID[] = "<Hotspot name>";
-static const char TEAM[] = "teamXX"; /* the number the teacher gives */
 
 /* The rule, sending, waiting and the screen's rhythm. */
 enum {
@@ -92,6 +93,7 @@ enum {
     TEAM_CHARS = 6,
     TEAM_PREFIX_CHARS = 4,
     CLIENT_ID_CHARS = 24,
+    TOPIC_CHARS = 64, /* "bento-aiot/", the team and "/event" */
     VALUE_CHARS = 100,
     MESSAGE_CHARS = 320,
     TEXT_CHARS = 160
@@ -153,6 +155,8 @@ typedef struct {
     bento_ui_id_t event_label;
     bento_ui_id_t note;
     char client_id[CLIENT_ID_CHARS];
+    char topic[TOPIC_CHARS];
+    char topic_event[TOPIC_CHARS];
     uint32_t client;
     bool online;
     uint8_t hist[WINDOW_N];
@@ -400,15 +404,14 @@ static bento_status_t wait_saved_wifi(bool *connected)
  * refusal or a timeout is False, anything else an OSError. */
 static bento_status_t join_wifi(bool *joined)
 {
-    static const char wifi_pass[] = "<Hotspot password>";
     bento_wifi_connect_params_t params;
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.timeout_ms = 0U; /* the binding's own window */
     params.flags = BENTO_WIFI_F_SAVE_CREDS;
     status = bento_wifi_connect_start(&params);
@@ -453,14 +456,12 @@ static bento_status_t wifi_up(const link_t *link, bool *up)
  * answers. The client is kept for the finally's disconnect. */
 static bento_status_t open_broker(link_t *link, bool *opened)
 {
-    static const char broker[] =
-        "broker.hivemq.com"; /* or test.mosquitto.org */
     bento_mqtt_config_t config;
     bento_status_t status;
 
     bento_mqtt_config_init(&config);
-    config.host = broker;
-    config.host_len = (uint32_t)strlen(broker);
+    config.host = BROKER;
+    config.host_len = (uint32_t)strlen(BROKER);
     config.port = (uint16_t)BROKER_PORT;
     config.keepalive_s = (uint16_t)KEEPALIVE_S;
     config.client_id = link->client_id;
@@ -603,7 +604,6 @@ static void send(const link_t *link, const char *topic)
 /* The event: id, event, model, label, conf. */
 static void send_event(link_t *link, bool start)
 {
-    static const char topic_event[] = "bento-aiot/teamXX/event";
     char model[VALUE_CHARS];
     char label[VALUE_CHARS];
 
@@ -615,13 +615,12 @@ static void send_event(link_t *link, bool start)
         "\"label\": \"%s\", \"conf\": %" PRId32 "}",
         TEAM, start ? "ai_alarm_start" : "ai_alarm_end", model, label,
         link->conf);
-    send(link, topic_event);
+    send(link, link->topic_event);
 }
 
 /* The state: id, n, model, label, conf, alarm. */
 static void send_state(link_t *link)
 {
-    static const char topic[] = "bento-aiot/teamXX/ai";
     char model[VALUE_CHARS];
     char label[VALUE_CHARS];
 
@@ -633,7 +632,7 @@ static void send_state(link_t *link)
                    "%" PRId32 ", \"alarm\": %d}",
                    TEAM, link->state_count, model, label, link->conf,
                    link->alerting ? 1 : 0);
-    send(link, topic);
+    send(link, link->topic);
 }
 
 /* An event goes out once, when the alarm starts or ends. */
@@ -866,6 +865,10 @@ int main(void)
     (void)snprintf(link->client_id, sizeof(link->client_id),
                    "bento-ai-%s-%04" PRIx32, TEAM,
                    bento_time_ticks_ms() & (uint32_t)CLIENT_MASK);
+    (void)snprintf(link->topic, sizeof(link->topic), "bento-aiot/%s/ai",
+                   TEAM);
+    (void)snprintf(link->topic_event, sizeof(link->topic_event),
+                   "bento-aiot/%s/event", TEAM);
     status = bento_edgeai_supported(&supported);
     in_emulator = status == BENTO_E_UNSUPPORTED;
     if (in_emulator) {
