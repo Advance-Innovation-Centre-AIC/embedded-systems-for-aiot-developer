@@ -1211,20 +1211,21 @@ static void show_wifi(const telemetry_t *app)
  * the empty list of sent messages, and on the console. */
 static bento_status_t show_emulator_note(const telemetry_t *app)
 {
-    static const spec_t note = {
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit",
-        288,
-        160,
-        208,
-        -1,
-        COL_WARN,
-        20};
+    /* The line breaks are in the text: the Emulator does not wrap a
+     * label at a width, so all of it stays on the screen. */
+    static const spec_t note = {"MQTT จาก C ยังไม่มีใน\nBENTO "
+                                "Emulator\nให้รันบน Dev Kit\nหรือ Eva Kit",
+                                288,
+                                160,
+                                -1,
+                                -1,
+                                COL_WARN,
+                                20};
     bento_ui_id_t unused;
 
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a Dev Kit or "
-                 "Eva Kit.\n",
-                 note.text);
+    (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ "
+                 "Eva Kit / MQTT from C is not in the BENTO Emulator "
+                 "yet: run it on a Dev Kit or Eva Kit.\n");
     return add_label(app->ui, &note, &unused);
 }
 
