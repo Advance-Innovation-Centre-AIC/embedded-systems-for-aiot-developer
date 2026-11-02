@@ -26,6 +26,8 @@
  *  - json.dumps({"round": 1}) is built with snprintf: the same text.
  *  - raise Stop / except Stop: pass is the end of the status chain with 0;
  *    Stop during a sleep or the join ends the program with 0.
+ * In the BENTO Emulator, MQTT from C is not available yet: the program says
+ * so and ends.
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -47,6 +49,13 @@ enum {
     AFTER_SEND_MS = 1000,
     AFTER_CLOSE_MS = 1200,
     NOT_UP = -1 /* wait_connected(): no link within the limit */
+};
+
+/* Where the Emulator note sits: over the note card, two lines at most. */
+enum {
+    EMU_NOTE_X = 40,
+    EMU_NOTE_Y = 272,
+    EMU_NOTE_W = 620
 };
 
 enum {
@@ -431,6 +440,37 @@ static bento_status_t set_identity(void)
     return status;
 }
 
+/* The BENTO Emulator's C runtime has no TESAIoT link yet (every
+ * bento_tesaiot_* call answers BENTO_E_UNSUPPORTED there): the note card
+ * says so, the console too, and the program ends quietly. Answers
+ * BENTO_E_CANCELLED, the quiet end, once the note is up. */
+static bento_status_t show_emulator_note(const steps_screen_t *screen)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_widget_args_t args;
+    bento_ui_id_t label;
+    bento_status_t status;
+
+    show_text(screen, SLOT_NOTE, "");
+    show_text(screen, SLOT_NOTE2, "");
+    bento_ui_widget_args_init(&args);
+    args.text = note;
+    args.text_len = (uint32_t)strlen(note);
+    args.x = EMU_NOTE_X;
+    args.y = EMU_NOTE_Y;
+    args.w = EMU_NOTE_W;
+    args.color = (uint32_t)COL_WARN;
+    args.font_px = FONT_PX;
+    status = bento_ui_label_create(screen->ui, &args, &label);
+    poll_ui(screen->ui);
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
+    return (status == BENTO_OK) ? BENTO_E_CANCELLED : status;
+}
+
 /* *ready is false when Wi-Fi did not join; the screen says so. */
 static bento_status_t step_identity(const steps_screen_t *screen,
                                     bool *ready)
@@ -450,6 +490,9 @@ static bento_status_t step_identity(const steps_screen_t *screen,
              "ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์");
     } else if (status == BENTO_OK) {
         status = set_identity();
+        if (status == BENTO_E_UNSUPPORTED) {
+            status = show_emulator_note(screen);
+        }
         if (status == BENTO_OK) {
             status = tell_identity(screen);
         }
