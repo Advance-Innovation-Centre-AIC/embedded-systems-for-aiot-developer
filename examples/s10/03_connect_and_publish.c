@@ -593,14 +593,13 @@ static void close_broker(const publish_screen_t *screen,
 static void tell_emulator(const publish_screen_t *screen)
 {
     static const char note[] =
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator\nให้รันบน Dev Kit หรือ Eva Kit";
 
     show_step(screen, SLOT_NOTE, COL_WARN, note);
     poll_ui(screen->ui);
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a Dev Kit or Eva "
-                 "Kit.\n",
-                 note);
+    (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ "
+                 "Eva Kit / MQTT from C is not in the BENTO Emulator "
+                 "yet: run it on a Dev Kit or Eva Kit.\n");
 }
 
 static bento_status_t step_broker(const publish_screen_t *screen)
