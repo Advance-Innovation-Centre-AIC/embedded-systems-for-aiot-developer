@@ -777,8 +777,8 @@ static bento_status_t measure_rounds(const link_screen_t *screen,
  * a note beside the chart says so, and the console too. */
 static bento_status_t show_emulator_note(const link_screen_t *screen)
 {
-    static const char note[] =
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    static const char note[] = "MQTT จาก C ยังไม่มีใน\nBENTO "
+                               "Emulator\nให้รันบน Dev Kit\nหรือ Eva Kit";
     bento_ui_widget_args_t args;
     bento_ui_id_t label;
     bento_status_t status;
@@ -792,10 +792,9 @@ static bento_status_t show_emulator_note(const link_screen_t *screen)
     args.color = (uint32_t)COLOR_WARN;
     args.font_px = TEXT_PX;
     status = bento_ui_label_create(screen->ui, &args, &label);
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a Dev Kit or Eva "
-                 "Kit.\n",
-                 note);
+    (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ "
+                 "Eva Kit / MQTT from C is not in the BENTO Emulator "
+                 "yet: run it on a Dev Kit or Eva Kit.\n");
     return status;
 }
 
