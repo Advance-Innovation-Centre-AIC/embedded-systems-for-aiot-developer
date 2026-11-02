@@ -289,6 +289,7 @@ static uint32_t read_unicode_escape(json_reader_t *reader)
     const uint32_t hex_digits = 4U;
     const uint32_t bits_per_hex = 4U;
     const uint8_t highest_digit = 9U;
+    const uint8_t zero = (uint8_t)'0';
     uint32_t code = 0U;
     uint32_t i;
 
@@ -296,7 +297,8 @@ static uint32_t read_unicode_escape(json_reader_t *reader)
         uint8_t digit;
 
         reader_advance(reader);
-        digit = (uint8_t)((reader_peek(reader) | lower_case) - '0');
+        digit = (uint8_t)((uint8_t)(reader_peek(reader) | lower_case) -
+                          zero);
         if (digit > highest_digit) {
             digit = (uint8_t)(digit - letter_gap);
         }
@@ -582,7 +584,7 @@ static bool place_in_object(json_reader_t *reader,
         reader->key_is_cmd =
             (value->kind == KIND_TEXT) &&
             (value->length == cmd_length) &&
-            (memcmp(value->text, cmd_key, cmd_length) == 0);
+            (strncmp(value->text, cmd_key, cmd_length) == 0);
         valid = !opens; /* a list or object cannot be a key */
     } else {
         reader->key_pending = false;
@@ -747,26 +749,38 @@ static void line_append(char *line, uint32_t cap, const char *text)
     }
 }
 
+/* \n \r \t as their letter; 0 for any other byte. */
+static char escape_letter(uint8_t byte)
+{
+    char letter = '\0';
+
+    if (byte == (uint8_t)'\n') {
+        letter = 'n';
+    } else if (byte == (uint8_t)'\r') {
+        letter = 'r';
+    } else if (byte == (uint8_t)'\t') {
+        letter = 't';
+    } else {
+        /* no letter: written as \xNN */
+    }
+    return letter;
+}
+
 /* One byte of a bytes repr: escaped as MicroPython escapes it. */
 static void append_repr_byte(char *line, uint32_t cap, uint8_t byte,
                              uint8_t quote)
 {
     const uint8_t first_printable = 0x20U;
     const uint8_t delete_char = 0x7FU;
+    const char letter = escape_letter(byte);
     char piece[REPR_PIECE_BYTES];
 
-    if (byte == quote) {
-        (void)snprintf(piece, sizeof(piece), "\\%c", (char)quote);
-    } else if (byte == (uint8_t)'\\') {
-        (void)snprintf(piece, sizeof(piece), "\\\\");
+    if ((byte == quote) || (byte == (uint8_t)'\\')) {
+        (void)snprintf(piece, sizeof(piece), "\\%c", (char)byte);
     } else if ((byte >= first_printable) && (byte < delete_char)) {
         (void)snprintf(piece, sizeof(piece), "%c", (char)byte);
-    } else if (byte == (uint8_t)'\n') {
-        (void)snprintf(piece, sizeof(piece), "\\n");
-    } else if (byte == (uint8_t)'\r') {
-        (void)snprintf(piece, sizeof(piece), "\\r");
-    } else if (byte == (uint8_t)'\t') {
-        (void)snprintf(piece, sizeof(piece), "\\t");
+    } else if (letter != '\0') {
+        (void)snprintf(piece, sizeof(piece), "\\%c", letter);
     } else {
         (void)snprintf(piece, sizeof(piece), "\\x%02x",
                        (unsigned int)byte);
@@ -806,7 +820,7 @@ static bool is_word(const json_value_t *action, const char *word)
     const size_t length = strlen(word);
 
     return (action->kind == KIND_TEXT) && (action->length == length) &&
-           (memcmp(action->text, word, length) == 0);
+           (strncmp(action->text, word, length) == 0);
 }
 
 /* The Python type name of a document that is not an object. */
@@ -817,10 +831,6 @@ static const char *type_name(value_kind_t kind)
 
     return names[kind];
 }
-
-static const char WIFI_SSID[] = "AIoT-Class";
-static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
-static const char BROKER[] = "192.168.1.50";
 
 /* Sleeps, and turns Stop into BENTO_E_CANCELLED. */
 static bento_status_t wait_ms(uint32_t duration_ms)
@@ -853,14 +863,16 @@ static void print_wifi_address(void)
  * timed-out join is False; any other failure ends the program. */
 static bento_status_t join_wifi(bool *joined)
 {
+    static const char wifi_ssid[] = "AIoT-Class";
+    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = WIFI_SSID;
-    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASS;
-    params.pass_len = (uint32_t)strlen(WIFI_PASS);
+    params.ssid = wifi_ssid;
+    params.ssid_len = (uint32_t)strlen(wifi_ssid);
+    params.pass = wifi_pass;
+    params.pass_len = (uint32_t)strlen(wifi_pass);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -892,16 +904,17 @@ static bento_status_t join_wifi(bool *joined)
 static bento_status_t open_broker(const char *client_id,
                                   uint32_t *broker, bool *online)
 {
+    static const char broker_host[] = "192.168.1.50";
     bento_mqtt_config_t config;
     bento_status_t status;
 
     bento_mqtt_config_init(&config);
-    config.host = BROKER;
-    config.host_len = (uint32_t)strlen(BROKER);
+    config.host = broker_host;
+    config.host_len = (uint32_t)strlen(broker_host);
     config.port = (uint16_t)BROKER_PORT;
     config.client_id = client_id;
     config.client_id_len = (uint32_t)strlen(client_id);
-    (void)printf("[MQTT] Connecting to %s:%d ...\r\n", BROKER,
+    (void)printf("[MQTT] Connecting to %s:%d ...\r\n", broker_host,
                  BROKER_PORT);
     status = bento_mqtt_open_start(&config, broker);
     if (status == BENTO_OK) {
@@ -915,8 +928,8 @@ static bento_status_t open_broker(const char *client_id,
     }
     *online = (status == BENTO_OK);
     if (*online) {
-        (void)printf("[MQTT] Connected to %s:%d as '%s'\r\n", BROKER,
-                     BROKER_PORT, client_id);
+        (void)printf("[MQTT] Connected to %s:%d as '%s'\r\n",
+                     broker_host, BROKER_PORT, client_id);
     } else if ((status != BENTO_E_CANCELLED) && (*broker != 0U)) {
         status = BENTO_OK;
     } else {
@@ -1104,7 +1117,6 @@ static void show_alive(command_app_t *app)
     set_text(app->screen.ui, app->screen.alive, text);
 }
 
-static const char DEVICE_ID[] = "team03";
 static const char TOPIC_CMD[] = "bento/team03/command";
 
 /* The upper card: the topic watched and the last command. */
@@ -1181,6 +1193,31 @@ static bool subscribe_topic(uint32_t broker)
     return status == BENTO_OK;
 }
 
+/* beep or count: the sound for beep, one more on the counter. */
+static void obey(command_app_t *app, const json_value_t *action,
+                 char *line, uint32_t cap)
+{
+    const command_screen_t *screen = &app->screen;
+    const bool beep = is_word(action, "beep");
+
+    if (beep) {
+        /* the sound core may be absent; MicroPython's tone()
+         * sends and does not wait for an answer either */
+        (void)bento_ui_sfx_tone(screen->ui, NOTE_A4,
+                                BENTO_UI_WAVE_SQUARE, TONE_VELOCITY,
+                                TONE_MS);
+    }
+    app->counter++;
+    (void)bento_ui_set_color(screen->ui, screen->last, COLOR_OK);
+    set_text(screen->ui, screen->last, action->text);
+    if (beep) {
+        (void)snprintf(line, cap, "ทำตามคำสั่ง beep");
+    } else {
+        (void)snprintf(line, cap, "ทำตามคำสั่ง count -> %ld",
+                       (long)app->counter);
+    }
+}
+
 /* beep, count, or a command nobody knows. */
 static void carry_out(command_app_t *app, const json_value_t *action)
 {
@@ -1188,24 +1225,7 @@ static void carry_out(command_app_t *app, const json_value_t *action)
     char line[ACTION_LINE_CHARS];
 
     if (is_word(action, "beep") || is_word(action, "count")) {
-        if (is_word(action, "beep")) {
-            /* the sound core may be absent; MicroPython's tone()
-             * sends and does not wait for an answer either */
-            (void)bento_ui_sfx_tone(screen->ui, NOTE_A4,
-                                    BENTO_UI_WAVE_SQUARE, TONE_VELOCITY,
-                                    TONE_MS);
-        }
-        app->counter++;
-        (void)bento_ui_set_color(screen->ui, screen->last, COLOR_OK);
-        set_text(screen->ui, screen->last, action->text);
-        if (is_word(action, "beep")) {
-            (void)snprintf(line, sizeof(line), "ทำตามคำสั่ง beep");
-        } else {
-            (void)snprintf(line, sizeof(line),
-                           "ทำตามคำสั่ง count -> "
-                           "%ld",
-                           (long)app->counter);
-        }
+        obey(app, action, line, (uint32_t)sizeof(line));
     } else {
         (void)bento_ui_set_color(screen->ui, screen->last, COLOR_BAD);
         (void)snprintf(line, sizeof(line), "ไม่รู้จัก: %s", action->text);
@@ -1353,13 +1373,14 @@ static void leave_broker(command_app_t *app)
 
 int main(void)
 {
+    static const char device_id[] = "team03";
     command_app_t app;
     char client_id[CLIENT_ID_CHARS];
     bento_status_t status;
 
     /* a fresh suffix each run: a restart right after Stop does not
      * collide with the last run's id */
-    (void)snprintf(client_id, sizeof(client_id), "%s-%04lx", DEVICE_ID,
+    (void)snprintf(client_id, sizeof(client_id), "%s-%04lx", device_id,
                    (unsigned long)(bento_time_ticks_ms() &
                                    (uint32_t)CLIENT_SUFFIX_MASK));
     (void)memset(&app, 0, sizeof(app));

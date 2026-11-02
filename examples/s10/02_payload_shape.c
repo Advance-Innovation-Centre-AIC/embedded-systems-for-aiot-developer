@@ -85,8 +85,6 @@ typedef struct {
     int32_t widest;
 } payloads_t;
 
-static const char DEVICE_ID[] = "team03";
-
 /* str() of a real number, as the board's MicroPython writes it. */
 static void format_real(bento_real_t value, char *out, uint32_t cap)
 {
@@ -100,6 +98,7 @@ static void format_real(bento_real_t value, char *out, uint32_t cap)
 /* The three payloads, written as json.dumps writes them. */
 static void build_payloads(payloads_t *data, uint32_t uptime_ms)
 {
+    static const char device_id[] = "team03";
     const bento_real_t loose_temp = (bento_real_t)25.123456789012345;
     const bento_real_t tight_temp = (bento_real_t)25.1;
     const uint32_t uptime_s = uptime_ms / (uint32_t)MS_PER_S;
@@ -117,7 +116,7 @@ static void build_payloads(payloads_t *data, uint32_t uptime_ms)
     (void)snprintf(shapes[SHAPE_GOOD].json, JSON_CHARS,
                    "{\"id\": \"%s\", \"uptime_s\": %lu, "
                    "\"count\": %d, \"unit\": \"s\"}",
-                   DEVICE_ID, (unsigned long)uptime_s, COUNTER);
+                   device_id, (unsigned long)uptime_s, COUNTER);
 }
 
 /* Names, colours, and the byte count of each text: an ASCII
@@ -164,18 +163,19 @@ static bool find_json_value(const char *json, const char *key,
                             char *out, uint32_t cap)
 {
     char pattern[VALUE_CHARS];
-    const char *start;
+    const char *found;
     uint32_t length = 0U;
 
     (void)snprintf(pattern, sizeof(pattern), "\"%s\": ", key);
-    start = strstr(json, pattern);
-    if (start != NULL) {
-        start += strlen(pattern);
+    found = strstr(json, pattern);
+    if (found != NULL) {
+        const char *start = &found[strlen(pattern)];
+
         length = value_length(start, cap);
         (void)memcpy(out, start, length);
     }
     out[length] = '\0';
-    return start != NULL;
+    return found != NULL;
 }
 
 /* The Python type a JSON value comes back as. */

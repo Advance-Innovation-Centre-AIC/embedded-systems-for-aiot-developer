@@ -92,11 +92,7 @@ enum { /* the widget kinds of the layout tables */
     WIDGET_KIND_COUNT
 };
 
-static const char WIFI_SSID[] = "AIoT-Class";
-static const char WIFI_PASSWORD[] = "<รหัสผ่านของห้องเรียน>";
-static const char BROKER[] = "192.168.1.50";
 static const char DEVICE_ID[] = "team03";
-static const char TOPIC[] = "bento/team03/telemetry";
 
 typedef struct {
     int32_t kind;
@@ -299,15 +295,17 @@ static void show_link(const hmi_t *hmi, bool online)
 /* wifi.connect(): true when joined. A board without Wi-Fi ends the program. */
 static bento_status_t join_wifi(bool *joined)
 {
+    static const char wifi_ssid[] = "AIoT-Class";
+    static const char wifi_password[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     bento_status_t answer = BENTO_E_IN_PROGRESS;
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = WIFI_SSID;
-    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASSWORD;
-    params.pass_len = (uint32_t)strlen(WIFI_PASSWORD);
+    params.ssid = wifi_ssid;
+    params.ssid_len = (uint32_t)strlen(wifi_ssid);
+    params.pass = wifi_password;
+    params.pass_len = (uint32_t)strlen(wifi_password);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* as the binding does */
     status = bento_wifi_connect_start(&params);
     while ((status == BENTO_OK) && (answer == BENTO_E_IN_PROGRESS)) {
@@ -330,14 +328,15 @@ static bento_status_t join_wifi(bool *joined)
 /* mqtt.connect(BROKER, port=1883, client_id=CLIENT_ID): false on a refusal. */
 static bento_status_t connect_broker(hmi_t *hmi, bool *connected)
 {
+    static const char broker[] = "192.168.1.50";
     broker_link_t *link = &hmi->link;
     bento_mqtt_config_t config;
     bento_status_t answer = BENTO_E_IN_PROGRESS;
     bento_status_t status;
 
     bento_mqtt_config_init(&config);
-    config.host = BROKER;
-    config.host_len = (uint32_t)strlen(BROKER);
+    config.host = broker;
+    config.host_len = (uint32_t)strlen(broker);
     config.port = MQTT_PORT;
     config.client_id = hmi->client_id;
     config.client_id_len = (uint32_t)strlen(hmi->client_id);
@@ -406,6 +405,7 @@ static void follow_slider(const hmi_t *hmi, telemetry_t *telemetry)
  * an old value is of no use. A link lost while sending is never fatal. */
 static bool send_value(const hmi_t *hmi, telemetry_t *telemetry)
 {
+    static const char topic[] = "bento/team03/telemetry";
     char body[TEXT_CHARS];
     bool sent = false;
 
@@ -413,7 +413,7 @@ static bool send_value(const hmi_t *hmi, telemetry_t *telemetry)
                    DEVICE_ID, (int)telemetry->value);
     if (telemetry->online) {
         const bento_status_t status = bento_mqtt_publish(
-            hmi->link.handle, TOPIC, (uint32_t)strlen(TOPIC),
+            hmi->link.handle, topic, (uint32_t)strlen(topic),
             (const uint8_t *)body, (uint32_t)strlen(body), 0U, 0U);
 
         sent = status == BENTO_OK;

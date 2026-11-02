@@ -39,7 +39,6 @@ enum { /* sizes */
     TEXT_BYTES = 256,
     COUNT_BYTES = 64,
     GROUP_COUNT = 5,
-    GROUP_KEYS_MAX = 5,
     KEY_ROW_COUNT = 4,
     LINE_A_GROUPS = 3, /* groups on the first summary line */
     SETTLE_MS = 200
@@ -83,29 +82,32 @@ enum { /* the course palette */
     COLOR_INFO = 0x4A9EFF
 };
 
+/* The keys of each group, in the order the original lists them. */
+static const char *const KEYS_IDENTITY[] = {"device_id", "factory_uid",
+                                            "api_key", "tls_mode"};
+static const char *const KEYS_MQTT[] = {
+    "broker", "port", "sni_hostname", "qos", "keepalive"};
+static const char *const KEYS_HTTPS[] = {"api_host", "api_port",
+                                         "api_endpoint"};
+static const char *const KEYS_RETRY[] = {
+    "timeout_ms", "max_retries", "retry_interval_ms", "sntp_server",
+    "sntp_timezone"};
+static const char *const KEYS_OTHER[] = {"wifi_ssid", "debug_level"};
+
 typedef struct {
     const char *title;
     uint32_t key_count;
-    const char *keys[GROUP_KEYS_MAX];
+    const char *const *keys;
 } group_t;
 
 /* Grouped so a reader sees which question each key answers, not just an
  * alphabetical list. */
 static const group_t GROUPS[GROUP_COUNT] = {
-    {"ตัวตนของอุปกรณ์",
-     4U,
-     {"device_id", "factory_uid", "api_key", "tls_mode", ""}},
-    {"ปลายทาง MQTT",
-     5U,
-     {"broker", "port", "sni_hostname", "qos", "keepalive"}},
-    {"ปลายทาง HTTPS",
-     3U,
-     {"api_host", "api_port", "api_endpoint", "", ""}},
-    {"การลองใหม่และเวลา",
-     5U,
-     {"timeout_ms", "max_retries", "retry_interval_ms", "sntp_server",
-      "sntp_timezone"}},
-    {"อื่น ๆ", 2U, {"wifi_ssid", "debug_level", "", "", ""}}};
+    {"ตัวตนของอุปกรณ์", 4U, KEYS_IDENTITY},
+    {"ปลายทาง MQTT", 5U, KEYS_MQTT},
+    {"ปลายทาง HTTPS", 3U, KEYS_HTTPS},
+    {"การลองใหม่และเวลา", 5U, KEYS_RETRY},
+    {"อื่น ๆ", 2U, KEYS_OTHER}};
 
 typedef struct {
     char key[KEYS_MAX][KEY_BYTES];

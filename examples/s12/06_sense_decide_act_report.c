@@ -115,7 +115,6 @@ enum { /* the course palette, 0xRRGGBB */
     COLOR_SEG = 0x4A9EFF
 };
 
-static const char DEVICE_ID[] = "team03";
 static const bento_real_t ON_ABOVE =
     (bento_real_t)27.5; /* cross above: switch on */
 static const bento_real_t OFF_BELOW =
@@ -529,15 +528,16 @@ static bento_status_t act(const report_screen_t *screen,
  * MicroPython's hash table walks the three keys. */
 static void print_report(bool on, bento_real_t temp_c)
 {
+    static const char device_id[] = "team03";
     char number[BENTO_FMT_BUF_SIZE];
 
     format_tenth(number, sizeof(number), temp_c);
 #if defined(BENTO_TARGET_PSOC_EDGE)
     (void)printf("{\"temp_c\": %s, \"device\": \"%s\", \"fan\": %d}\n",
-                 number, DEVICE_ID, on ? 1 : 0);
+                 number, device_id, on ? 1 : 0);
 #else
     (void)printf("{\"fan\": %d, \"device\": \"%s\", \"temp_c\": %s}\n",
-                 on ? 1 : 0, DEVICE_ID, number);
+                 on ? 1 : 0, device_id, number);
 #endif
 }
 

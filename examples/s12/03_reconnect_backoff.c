@@ -393,26 +393,24 @@ static void show_countdown(const backoff_screen_t *screen,
     }
 }
 
-/* The network, as the original names it. */
-static const char WIFI_SSID[] = "AIoT-Class";
-static const char WIFI_PASSWORD[] = "<รหัสผ่านของห้องเรียน>";
-static const char BROKER[] = "192.168.1.50";
-
 /* ---- The link ---- */
 
 /* wifi.connect(): true when joined. A board without Wi-Fi ends the
  * program. */
 static bento_status_t join_wifi(bool *joined)
 {
+    /* The network, as the original names it. */
+    static const char wifi_ssid[] = "AIoT-Class";
+    static const char wifi_password[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     bento_status_t answer = BENTO_E_IN_PROGRESS;
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = WIFI_SSID;
-    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASSWORD;
-    params.pass_len = (uint32_t)strlen(WIFI_PASSWORD);
+    params.ssid = wifi_ssid;
+    params.ssid_len = (uint32_t)strlen(wifi_ssid);
+    params.pass = wifi_password;
+    params.pass_len = (uint32_t)strlen(wifi_password);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* as the binding does */
     status = bento_wifi_connect_start(&params);
     while ((status == BENTO_OK) && (answer == BENTO_E_IN_PROGRESS)) {
@@ -436,6 +434,7 @@ static bento_status_t join_wifi(bool *joined)
 static bento_status_t connect_broker(backoff_screen_t *screen,
                                      bool *connected)
 {
+    static const char broker[] = "192.168.1.50";
     broker_link_t *link = &screen->link;
     bento_mqtt_config_t config;
     bento_status_t answer = BENTO_E_IN_PROGRESS;
@@ -446,8 +445,8 @@ static bento_status_t connect_broker(backoff_screen_t *screen,
         link->open = false;
     }
     bento_mqtt_config_init(&config);
-    config.host = BROKER;
-    config.host_len = (uint32_t)strlen(BROKER);
+    config.host = broker;
+    config.host_len = (uint32_t)strlen(broker);
     config.port = MQTT_PORT;
     config.client_id = screen->client_id;
     config.client_id_len = (uint32_t)strlen(screen->client_id);
@@ -580,8 +579,6 @@ static bento_status_t retry_when_due(backoff_screen_t *screen,
     return status;
 }
 
-static const char DEVICE_ID[] = "team03";
-
 static bento_status_t run_loop(backoff_screen_t *screen, retry_t *retry)
 {
     bento_status_t status = BENTO_OK;
@@ -632,6 +629,7 @@ static void say_goodbye(const backoff_screen_t *screen)
 
 int main(void)
 {
+    static const char device_id[] = "team03";
     backoff_screen_t screen;
     bento_status_t status;
 
@@ -639,7 +637,7 @@ int main(void)
     screen.ui = bento_runtime_get_ui();
     /* a new suffix each run: a quick rerun never meets its old id */
     (void)snprintf(screen.client_id, sizeof(screen.client_id),
-                   "%s-%04x", DEVICE_ID,
+                   "%s-%04x", device_id,
                    (unsigned)(bento_time_ticks_ms() &
                               (uint32_t)CLIENT_SUFFIX_MASK));
     status = build_screen(&screen);

@@ -112,11 +112,6 @@ typedef struct {
 } look_t;
 
 static const char WIFI_SSID[] = "AIoT-Class";
-static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
-static const char DEVICE_ID[] = "team03";
-static const char API_KEY[] = "<api key ของทีม>";
-static const char MQTT_PASS[] = "<รหัสผ่าน MQTT ของทีม>";
-static const char BROKER[] = "<ชื่อโฮสต์ของแพลตฟอร์ม>";
 
 /* Sleeps, and turns Stop into BENTO_E_CANCELLED. */
 static bento_status_t wait_ms(uint32_t duration_ms)
@@ -156,23 +151,27 @@ static bento_status_t set_field(const char *key, const char *value)
  * nothing connects yet. Then the mode is set and read back. */
 static bento_status_t configure_platform(char *mode, uint32_t cap)
 {
+    static const char device_id[] = "team03";
+    static const char api_key[] = "<api key ของทีม>";
+    static const char mqtt_pass[] = "<รหัสผ่าน MQTT ของทีม>";
+    static const char broker_host[] = "<ชื่อโฮสต์ของแพลตฟอร์ม>";
     uint32_t length = 0U;
-    bento_status_t status = set_field("device_id", DEVICE_ID);
+    bento_status_t status = set_field("device_id", device_id);
 
     if (status == BENTO_OK) {
-        status = set_field("api_key", API_KEY);
+        status = set_field("api_key", api_key);
     }
     if (status == BENTO_OK) {
-        status = set_field("mqtt_pass", MQTT_PASS);
+        status = set_field("mqtt_pass", mqtt_pass);
     }
     if (status == BENTO_OK) {
-        status = set_field("broker", BROKER);
+        status = set_field("broker", broker_host);
     }
     /* the server picks its certificate by this name, sent before
      * encryption: unless it is the broker's, the link fails with no
      * message at all */
     if (status == BENTO_OK) {
-        status = set_field("sni_hostname", BROKER);
+        status = set_field("sni_hostname", broker_host);
     }
     if (status == BENTO_OK) {
         status = set_field("tls_mode", "server_tls");
@@ -569,6 +568,7 @@ static bento_status_t build_screen(link_screen_t *screen)
  * *joined is its True or False. */
 static bento_status_t join_wifi(bool *joined)
 {
+    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     char ip[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_status_t join = BENTO_E_IN_PROGRESS;
@@ -577,8 +577,8 @@ static bento_status_t join_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASS;
-    params.pass_len = (uint32_t)strlen(WIFI_PASS);
+    params.pass = wifi_pass;
+    params.pass_len = (uint32_t)strlen(wifi_pass);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
