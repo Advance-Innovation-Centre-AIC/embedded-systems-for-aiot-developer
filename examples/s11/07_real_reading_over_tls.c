@@ -41,6 +41,8 @@
  *  - raise Stop / except Stop: pass is the not-connected path ending with 0;
  *    Stop during a sleep ends the program there, without disconnect(), as
  *    the uncaught KeyboardInterrupt does.
+ * In the BENTO Emulator, MQTT from C is not available yet: the program says
+ * so and ends.
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -111,7 +113,8 @@ enum { /* the course palette */
     COLOR_CARD = 0x171B22,
     COLOR_OK = 0x30A46C,
     COLOR_BAD = 0xE5484D,
-    COLOR_INFO = 0x4A9EFF
+    COLOR_INFO = 0x4A9EFF,
+    COLOR_WARN = 0xF5A623
 };
 
 typedef struct {
@@ -455,6 +458,36 @@ static bento_status_t show_device(const tls_screen_t *screen)
     return status;
 }
 
+/* The BENTO Emulator's C runtime has no TESAIoT link yet (every
+ * bento_tesaiot_* call answers BENTO_E_UNSUPPORTED there): the note takes
+ * the note line, the console says it too, and the program ends quietly.
+ * Answers BENTO_E_CANCELLED, the quiet end, once the note is up. */
+static bento_status_t show_emulator_note(const tls_screen_t *screen)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_widget_args_t args;
+    bento_ui_id_t label;
+    bento_status_t status;
+
+    set_text(screen, screen->note, "");
+    bento_ui_widget_args_init(&args);
+    args.text = note;
+    args.text_len = (uint32_t)strlen(note);
+    args.x = MARGIN_X;
+    args.y = NOTE_Y;
+    args.w = WIDE_CARD_W;
+    args.color = (uint32_t)COLOR_WARN;
+    args.font_px = FONT_TEXT;
+    status = bento_ui_label_create(screen->ui, &args, &label);
+    poll_screen(screen->ui);
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
+    return (status == BENTO_OK) ? BENTO_E_CANCELLED : status;
+}
+
 /* The link uses the settings stored by files 01 and 02 of this session. */
 static bento_status_t open_link(const tls_screen_t *screen)
 {
@@ -470,8 +503,10 @@ static bento_status_t open_link(const tls_screen_t *screen)
             BENTO_E_CANCELLED; /* the original's Stop: a quiet end */
     } else if (status == BENTO_OK) {
         status = show_device(screen);
+    } else if (status == BENTO_E_UNSUPPORTED) {
+        status = show_emulator_note(screen);
     } else {
-        /* no TESAIoT on this firmware: the status ends the program */
+        /* any other refusal ends the program with its status */
     }
     return status;
 }
