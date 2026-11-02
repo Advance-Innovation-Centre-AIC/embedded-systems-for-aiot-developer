@@ -60,9 +60,32 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
-enum { /* times, in ms */
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* exact name, looked up every run */
+static const char MODEL[] = "Motion Detection";
+/* false = deployed from the Store */
+static const bool BUILTIN = true;
+/* DEF_TH: Hearing at, Confirm at, clear below (fallback), % */
+static const int32_t DEF_THRESHOLDS[] = {40, 65, 30};
+enum {
     POLL_MS = 100,
-    DRAW_MS = 500,
+    DRAW_MS = 500
+};
+static const char HELP[] = "Move the board - SW6 = Dwell, SW5 = pause";
+/* HELP on a board without buttons */
+static const char HELP_NO_BUTTONS[] = "Move the board";
+enum {
+    DWELL_CHOICES = 3, /* how many DWELLS */
+    CHIP_COUNT = 3     /* how many CHIPS */
+};
+/* ms on top before a gesture counts (a USB cable tug moves it too) */
+static const int32_t DWELLS[DWELL_CHOICES] = {0, 500, 1000};
+/* CHIPS = NEED: the classes this example needs */
+static const char *const CHIPS[CHIP_COUNT] = {"idle", "circle",
+                                              "shaking"};
+/* ---- end of settings ---- */
+
+enum { /* times, in ms */
     LOOP_MS = 20,
     LOAD_MS = 150,
     OP_POLL_MS = 20,
@@ -75,11 +98,8 @@ enum { /* sizes and limits */
     CLOCK_BYTES = 36, /* "HH:MM:SS"; three int32_t at worst */
     MAX_CLASSES = BENTO_EDGEAI_MAX_CLASSES,
     LABEL_BYTES = BENTO_EDGEAI_LABEL_LEN,
-    CHIP_COUNT = 3,
-    DWELL_CHOICES = 3,
     PERCENT = 100,
-    DEF_CONFIRM = 65, /* Confirm at when the board gives none */
-    NO_CLASS = -1     /* "Not sure" */
+    NO_CLASS = -1 /* "Not sure" */
 };
 
 enum { /* board buttons */
@@ -105,14 +125,7 @@ enum { /* font sizes, px */
     VERDICT_PX = 28
 };
 
-static const char MODEL[] =
-    "Motion Detection"; /* exact name, looked up every run */
 static const char NOT_SURE[] = "Not sure";
-/* ms on top before a gesture counts (a USB cable tug moves it too) */
-static const int32_t DWELLS_MS[DWELL_CHOICES] = {0, 500, 1000};
-/* the classes this example needs, and its chips */
-static const char *const CHIPS[CHIP_COUNT] = {"idle", "circle",
-                                              "shaking"};
 
 /* Where a widget goes and how it looks: MicroPython's keywords. */
 typedef struct {
@@ -488,15 +501,12 @@ static int32_t compiled_count(void)
  * "is not False". */
 static bool source_matches(int32_t row, int32_t compiled)
 {
-    const bool want_builtin =
-        true; /* BUILTIN: false = from the Store */
-    bool matches = want_builtin;
+    bool matches = BUILTIN;
 
     if (compiled >= 0) {
         const bool builtin = row < compiled;
 
-        matches =
-            (builtin && want_builtin) || (!builtin && !want_builtin);
+        matches = (builtin && BUILTIN) || (!builtin && !BUILTIN);
     }
     return matches;
 }
@@ -666,8 +676,9 @@ static void read_confirm(gesture_t *app)
     known = bento_edgeai_thresholds(app->model.index, &thresholds) ==
             BENTO_OK;
     for (i = 0U; i < (uint32_t)MAX_CLASSES; i++) {
-        app->confirm[i] =
-            known ? (int32_t)thresholds.confirm[i] : DEF_CONFIRM;
+        app->confirm[i] = known
+                              ? (int32_t)thresholds.confirm[i]
+                              : DEF_THRESHOLDS[BENTO_EDGEAI_TH_CONFIRM];
     }
 }
 
@@ -784,7 +795,7 @@ static bool step_dwell(gesture_t *app, int32_t klass, int32_t percent,
     }
     if ((klass != dwell->accepted) &&
         (bento_time_ticks_diff(now_ms, dwell->since_ms) >=
-         DWELLS_MS[app->dwell_index])) {
+         DWELLS[app->dwell_index])) {
         dwell->accepted = klass;
         if (klass >= 0) {
             dwell->count++;
@@ -944,7 +955,7 @@ static void show_chips(gesture_t *app)
 static void show_candidate(gesture_t *app, uint32_t now_ms)
 {
     const dwell_t *dwell = &app->dwell;
-    const int32_t dwell_ms = DWELLS_MS[app->dwell_index];
+    const int32_t dwell_ms = DWELLS[app->dwell_index];
     char text[TEXT_BYTES];
     char elapsed_text[BENTO_FMT_BUF_SIZE];
     char dwell_text[BENTO_FMT_BUF_SIZE];
@@ -1125,7 +1136,7 @@ static void next_dwell(gesture_t *app)
     char text[TEXT_BYTES];
 
     app->dwell_index = (app->dwell_index + 1) % DWELL_CHOICES;
-    tenths_text((bento_real_t)DWELLS_MS[app->dwell_index] /
+    tenths_text((bento_real_t)DWELLS[app->dwell_index] /
                     (bento_real_t)MS_PER_S,
                 seconds);
     (void)snprintf(text, sizeof(text), "Dwell %s s", seconds);
@@ -1246,9 +1257,7 @@ int main(void)
     (void)memset(app, 0, sizeof(*app));
     app->ui = bento_runtime_get_ui();
     app->has_buttons = bento_buttons_count() > 0U;
-    app->help = app->has_buttons
-                    ? "Move the board - SW6 = Dwell, SW5 = pause"
-                    : "Move the board";
+    app->help = app->has_buttons ? HELP : HELP_NO_BUTTONS;
     app->pause_button.index = BUTTON_SW5;
     app->dwell_button.index = BUTTON_SW6;
     in_emulator = look_up_model(&app->model, &found);
