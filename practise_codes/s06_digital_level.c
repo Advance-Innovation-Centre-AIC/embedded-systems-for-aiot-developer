@@ -67,7 +67,6 @@ enum {
     MS_PER_SECOND = 1000,
     FONT_TITLE = 24,
     FONT_BODY = 20,
-    FONT_SMALL = 16,
     NUMBER_BYTES = 40,
     TEXT_BYTES = 96
 };
@@ -221,14 +220,14 @@ static bento_status_t add_measure_widgets(level_t *level)
         {UI_WIDGET_PANEL, NULL, 24, 48, 576, 128, COLOR_CARD, 1,
          COLOR_DIM, CARD_RADIUS},
         {UI_WIDGET_LABEL, "ROLL เอียงซ้าย-ขวา (องศา)", 40, 60, -1, -1,
-         COLOR_DIM, FONT_SMALL, 0, 0},
+         COLOR_DIM, FONT_BODY, 0, 0},
         {UI_WIDGET_BAR, NULL, 40, 96, 160, 16, COLOR_BAR, 0, -ANGLE_MAX,
          ANGLE_MAX},
         {UI_WIDGET_SCALE, NULL, 40, 112, 160, 44, COLOR_TEXT, 0,
          -ANGLE_MAX, ANGLE_MAX},
         {UI_WIDGET_SEG7, "+00.0", 216, 96, 96, 56, COLOR_TEXT, 0, 0, 0},
         {UI_WIDGET_LABEL, "PITCH เอียงหน้า-หลัง (องศา)", 328, 60, -1, -1,
-         COLOR_DIM, FONT_SMALL, 0, 0},
+         COLOR_DIM, FONT_BODY, 0, 0},
         {UI_WIDGET_BAR, NULL, 328, 96, 160, 16, COLOR_BAR, 0,
          -ANGLE_MAX, ANGLE_MAX},
         {UI_WIDGET_SCALE, NULL, 328, 112, 160, 44, COLOR_TEXT, 0,
@@ -238,10 +237,10 @@ static bento_status_t add_measure_widgets(level_t *level)
          COLOR_DIM, CARD_RADIUS},
         {UI_WIDGET_LED, NULL, 632, 72, 48, 48, COLOR_OK, 1, 0, 0},
         {UI_WIDGET_LED, NULL, 704, 72, 48, 48, COLOR_BAD, 0, 0, 0},
-        {UI_WIDGET_LABEL, "ผ่าน", 632, 128, -1, -1, COLOR_DIM,
-         FONT_SMALL, 0, 0},
-        {UI_WIDGET_LABEL, "เกิน", 696, 128, -1, -1, COLOR_DIM,
-         FONT_SMALL, 0, 0}};
+        {UI_WIDGET_LABEL, "ผ่าน", 632, 128, -1, -1, COLOR_DIM, FONT_BODY,
+         0, 0},
+        {UI_WIDGET_LABEL, "เกิน", 696, 128, -1, -1, COLOR_DIM, FONT_BODY,
+         0, 0}};
 
     return add_widgets(level, specs, W_TITLE, W_CONTROL_CARD);
 }
@@ -255,7 +254,7 @@ static bento_status_t add_control_widgets(level_t *level)
         {UI_WIDGET_PANEL, NULL, 24, 192, 744, 188, COLOR_CARD, 1,
          COLOR_DIM, CARD_RADIUS},
         {UI_WIDGET_LABEL, "เกณฑ์ยอมรับ (องศา)", 40, 204, -1, -1,
-         COLOR_DIM, FONT_SMALL, 0, 0},
+         COLOR_DIM, FONT_BODY, 0, 0},
         {UI_WIDGET_SPINBOX, NULL, 40, 240, 96, 88, COLOR_TEXT,
          TOL_START, TOL_MIN, TOL_MAX},
         {UI_WIDGET_BUTTON, "ลด", 168, 240, 88, 88, COLOR_KEY, FONT_BODY,
@@ -263,13 +262,13 @@ static bento_status_t add_control_widgets(level_t *level)
         {UI_WIDGET_BUTTON, "เพิ่ม", 288, 240, 88, 88, COLOR_KEY,
          FONT_BODY, 0, 0},
         {UI_WIDGET_LABEL, "คำสั่ง", 472, 204, -1, -1, COLOR_DIM,
-         FONT_SMALL, 0, 0},
+         FONT_BODY, 0, 0},
         {UI_WIDGET_BUTTON, "ตั้งศูนย์", 472, 240, 144, 88, COLOR_OK,
          FONT_BODY, 0, 0},
         {UI_WIDGET_BUTTON, "จบการวัด", 648, 240, 104, 88, COLOR_KEY,
          FONT_BODY, 0, 0},
         {UI_WIDGET_LABEL, "อ้างอิง R +0.0  P +0.0", 40, 336, -1, -1,
-         COLOR_DIM, FONT_SMALL, 0, 0}};
+         COLOR_DIM, FONT_BODY, 0, 0}};
 
     return add_widgets(level, specs, W_CONTROL_CARD,
                        W_COUNT - W_CONTROL_CARD);
@@ -409,12 +408,12 @@ static void handle_events(level_t *level)
         } else if (widget == level->widgets[W_EXIT]) {
             level->running = false;
         } else if (widget == level->widgets[W_UP]) {
-            level->tolerance = (level->tolerance + TOL_STEP < TOL_MAX)
+            level->tolerance = ((level->tolerance + TOL_STEP) < TOL_MAX)
                                    ? (level->tolerance + TOL_STEP)
                                    : TOL_MAX;
             set_value(level, W_TOL_BOX, level->tolerance);
         } else if (widget == level->widgets[W_DOWN]) {
-            level->tolerance = (level->tolerance - TOL_STEP > TOL_MIN)
+            level->tolerance = ((level->tolerance - TOL_STEP) > TOL_MIN)
                                    ? (level->tolerance - TOL_STEP)
                                    : TOL_MIN;
             set_value(level, W_TOL_BOX, level->tolerance);
@@ -446,8 +445,9 @@ static bool show_bars_and_lamps(const level_t *level)
  * goes first: text and colour are two messages across the cores. */
 static void show_numbers(level_t *level, bool in_tolerance)
 {
-    const int32_t second =
-        (int32_t)(bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND);
+    const uint32_t elapsed_seconds =
+        bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND;
+    const int32_t second = (int32_t)elapsed_seconds;
     char text[NUMBER_BYTES];
 
     if (second != level->last_second) {

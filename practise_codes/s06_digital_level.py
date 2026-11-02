@@ -61,13 +61,13 @@ health = "กำลังวัดอยู่"     # ข้อความล�
 # สองแกนวางเคียงกันแทนที่จะวางซ้อนกัน ไม้บรรทัดจึงสั้นลงแต่ได้ความสูงคืนมา 100 พิกเซล
 # ซึ่งเป็นความสูงที่แถวปุ่มข้างล่างต้องใช้ - ปุ่มสูง 88 px ไม่มีทางบีบให้เตี้ยกว่านี้ได้
 ui.Panel(x=24, y=48, w=576, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ROLL เอียงซ้าย-ขวา (องศา)", x=40, y=60, color=COL_DIM, value=16)
+ui.Label("ROLL เอียงซ้าย-ขวา (องศา)", x=40, y=60, color=COL_DIM, value=20)
 roll_bar = ui.Bar(x=40, y=96, w=160, h=16, color=0x4A9EFF, min=-90, max=90, value=0)
 roll_scale = ui.Scale(x=40, y=112, w=160, h=44, color=COL_TEXT, min=-90, max=90)
 roll_scale.ticks(9, 4)          # 9 ขีด ใส่ตัวเลขทุกขีดที่สี่ = -90 0 90
 roll_seg = ui.Seg7("+00.0", x=216, y=96, w=96, h=56, color=COL_TEXT)
 
-ui.Label("PITCH เอียงหน้า-หลัง (องศา)", x=328, y=60, color=COL_DIM, value=16)
+ui.Label("PITCH เอียงหน้า-หลัง (องศา)", x=328, y=60, color=COL_DIM, value=20)
 pitch_bar = ui.Bar(x=328, y=96, w=160, h=16, color=0x4A9EFF, min=-90, max=90, value=0)
 pitch_scale = ui.Scale(x=328, y=112, w=160, h=44, color=COL_TEXT, min=-90, max=90)
 pitch_scale.ticks(9, 4)
@@ -77,8 +77,8 @@ pitch_seg = ui.Seg7("+00.0", x=504, y=96, w=80, h=56, color=COL_TEXT)
 ui.Panel(x=616, y=48, w=152, h=128, color=COL_CARD, min=COL_DIM, max=12, value=1)
 led_in = ui.Led(x=632, y=72, w=48, h=48, color=COL_OK, value=1)
 led_out = ui.Led(x=704, y=72, w=48, h=48, color=COL_BAD, value=0)
-ui.Label("ผ่าน", x=632, y=128, color=COL_DIM, value=16)
-ui.Label("เกิน", x=696, y=128, color=COL_DIM, value=16)
+ui.Label("ผ่าน", x=632, y=128, color=COL_DIM, value=20)
+ui.Label("เกิน", x=696, y=128, color=COL_DIM, value=20)
 
 # เกณฑ์ยอมรับ: ผู้ใช้ตั้งเองด้วยปุ่มสองปุ่ม ไม่ใช่ค่าคงที่ในโค้ด
 # spinbox เปล่า ๆ บนจอสัมผัส นิ้วเปลี่ยนค่าไม่ได้ ตัวที่เพิ่มลดจริงคือปุ่มสองปุ่มข้าง ๆ
@@ -86,7 +86,7 @@ ui.Label("เกิน", x=696, y=128, color=COL_DIM, value=16)
 # ห้าเป้าสัมผัสเรียงแถวเดียว เว้นห่างกัน 32 px และปุ่มขวาสุดจบที่ x=752 y=328
 # ซึ่งอยู่เหนือมุมที่ปุ่ม Console จองไว้ (x>690 และ y>340) พอดี
 ui.Panel(x=24, y=192, w=744, h=188, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("เกณฑ์ยอมรับ (องศา)", x=40, y=204, color=COL_DIM, value=16)
+ui.Label("เกณฑ์ยอมรับ (องศา)", x=40, y=204, color=COL_DIM, value=20)
 sp_tol = ui.Spinbox(x=40, y=240, w=96, h=88, color=COL_TEXT,
                     min=TOL_MIN, max=TOL_MAX, value=tol)
 sp_tol.digits(2, 0)             # ไม่บอกจะเห็น 0005 เพราะค่าตั้งต้นคือสี่หลัก
@@ -94,12 +94,12 @@ btn_dn = ui.Button("ลด", x=168, y=240, w=88, h=88, color=0x3A4150, value=20)
 btn_up = ui.Button("เพิ่ม", x=288, y=240, w=88, h=88, color=0x3A4150, value=20)
 
 # ปุ่มสั่งงานสองปุ่ม แยกหน้าที่กันคนละปุ่ม ไม่มีปุ่มไหนสลับสองความหมายในตัวเดียว
-ui.Label("คำสั่ง", x=472, y=204, color=COL_DIM, value=16)
+ui.Label("คำสั่ง", x=472, y=204, color=COL_DIM, value=20)
 zero_btn = ui.Button("ตั้งศูนย์", x=472, y=240, w=144, h=88, color=0x30A46C, value=20)
 zero_id = zero_btn.id()
 exit_btn = ui.Button("จบการวัด", x=648, y=240, w=104, h=88, color=0x3A4150, value=20)
 exit_id = exit_btn.id()
-ref = ui.Label("อ้างอิง R +0.0  P +0.0", x=40, y=336, color=COL_DIM, value=16)
+ref = ui.Label("อ้างอิง R +0.0  P +0.0", x=40, y=336, color=COL_DIM, value=20)
 
 # ตัวกรองมีความจำ สองสัญญาณจึงต้องใช้สองตัวเสมอ ใช้ตัวเดียวร่วมกันไม่ได้
 ema_roll = dsp.EMA(alpha=0.2)
