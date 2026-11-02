@@ -66,6 +66,14 @@
 #include "bento_runtime.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "<Hotspot name>";
+static const char WIFI_PASS[] = "<Hotspot password>";
+static const char TEAM[] = "teamXX";
+/* BROKER: test.mosquitto.org is the spare */
+static const char BROKER[] = "broker.hivemq.com";
+/* ---- end of settings ---- */
+
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
@@ -148,21 +156,6 @@ enum {
     TITLE_PX = 24,
     BIG_PX = 28
 };
-
-/* The program's settings. */
-typedef struct {
-    const char *wifi_ssid;
-    const char *wifi_pass;
-    const char *team;
-    const char *broker;
-} settings_t;
-
-/* Edit before running: TEAM, and WIFI_SSID / WIFI_PASS unless the board
- * is already on a saved WiFi. The broker's spare is test.mosquitto.org.
- */
-static const settings_t SETTINGS = {"<Hotspot name>",
-                                    "<Hotspot password>", "teamXX",
-                                    "broker.hivemq.com"};
 
 /* Only these names are obeyed. */
 static const char *const ALLOWED[ALLOWED_COUNT] = {
@@ -892,14 +885,12 @@ static bool team_ok(void)
     bool digits = true;
     uint32_t i;
 
-    for (i = TEAM_PREFIX_LEN; i < (uint32_t)strlen(SETTINGS.team);
-         i++) {
-        digits = digits && (SETTINGS.team[i] >= '0') &&
-                 (SETTINGS.team[i] <= '9');
+    for (i = TEAM_PREFIX_LEN; i < (uint32_t)strlen(TEAM); i++) {
+        digits = digits && (TEAM[i] >= '0') && (TEAM[i] <= '9');
     }
-    return (strlen(SETTINGS.team) == (size_t)TEAM_LEN) &&
-           (strncmp(SETTINGS.team, "team", TEAM_PREFIX_LEN) == 0) &&
-           digits && (strcmp(SETTINGS.team, "team00") != 0);
+    return (strlen(TEAM) == (size_t)TEAM_LEN) &&
+           (strncmp(TEAM, "team", TEAM_PREFIX_LEN) == 0) && digits &&
+           (strcmp(TEAM, "team00") != 0);
 }
 
 /* wifi.connect(WIFI_SSID, WIFI_PASS), waited for. */
@@ -910,10 +901,10 @@ static bento_status_t connect_wifi(bool *joined)
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = SETTINGS.wifi_ssid;
-    params.ssid_len = (uint32_t)strlen(SETTINGS.wifi_ssid);
-    params.pass = SETTINGS.wifi_pass;
-    params.pass_len = (uint32_t)strlen(SETTINGS.wifi_pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* as the binding does */
     status = bento_wifi_connect_start(&params);
     while ((status == BENTO_OK) && (answer == BENTO_E_IN_PROGRESS)) {
@@ -948,8 +939,7 @@ static bento_status_t wifi_up(const commander_t *commander,
             status = pause_ms(WIFI_POLL_MS);
         }
     }
-    if ((status == BENTO_OK) && !*joined &&
-        (SETTINGS.wifi_ssid[0] == '<')) {
+    if ((status == BENTO_OK) && !*joined && (WIFI_SSID[0] == '<')) {
         say(commander, "No WiFi - set WIFI_SSID (offline)", COLOR_WARN);
     } else if ((status == BENTO_OK) && !*joined) {
         say(commander, "Connecting WiFi ...", COLOR_WARN);
@@ -971,8 +961,8 @@ static bento_status_t connect_broker(commander_t *commander,
     uint8_t granted = 0U;
 
     bento_mqtt_config_init(&config);
-    config.host = SETTINGS.broker;
-    config.host_len = (uint32_t)strlen(SETTINGS.broker);
+    config.host = BROKER;
+    config.host_len = (uint32_t)strlen(BROKER);
     config.port = MQTT_PORT;
     config.keepalive_s = KEEPALIVE_S;
     config.client_id = commander->client_id;
@@ -1184,7 +1174,7 @@ static void send_state(commander_t *commander)
         "{\"id\": \"%s\", \"n\": %" PRId32
         ", \"model\": \"%s\", \"label\": \"%s\", \"conf\": %" PRId32
         "}",
-        SETTINGS.team, commander->sent,
+        TEAM, commander->sent,
         commander->running ? ALLOWED[commander->name] : "",
         has_text ? commander->label : "-",
         has_text ? commander->conf : 0);
@@ -1290,10 +1280,10 @@ static bento_status_t run_commands(commander_t *commander)
 static void name_topics(commander_t *commander)
 {
     (void)snprintf(commander->client_id, sizeof(commander->client_id),
-                   "bento-ai-%s-%04" PRIx32, SETTINGS.team,
+                   "bento-ai-%s-%04" PRIx32, TEAM,
                    bento_time_ticks_ms() & (uint32_t)CLOCK_MASK);
     (void)snprintf(commander->topic, sizeof(commander->topic),
-                   "bento-aiot/%s/ai", SETTINGS.team);
+                   "bento-aiot/%s/ai", TEAM);
     (void)snprintf(commander->topic_command,
                    sizeof(commander->topic_command), "%s/cmd",
                    commander->topic);
