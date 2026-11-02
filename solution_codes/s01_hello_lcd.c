@@ -102,8 +102,6 @@ enum { /* text buffers */
 static const char TEAM_NAME[] = "BentoBuilders";
 static const char MOTTO[] = "เล่นของจริงก่อน แล้วค่อยแกะ";
 static const char *const MEMBERS[] = {"สมชาย", "สมหญิง", "สมศรี"};
-static const char TAIL_START[] = "ทีม ";
-static const char TAIL_END[] = " พร้อมลุยคาบต่อไป";
 
 /* The lights the table loop switches at the end. */
 typedef struct {
@@ -116,6 +114,16 @@ typedef struct {
 static uint32_t member_count(void)
 {
     return (uint32_t)(sizeof(MEMBERS) / sizeof(MEMBERS[0]));
+}
+
+/* The closing line's text (TAIL in the original). Answers its whole
+ * length in bytes, even when the buffer cuts the text. */
+static int32_t format_tail(char *text, size_t cap)
+{
+    const int written =
+        snprintf(text, cap, "ทีม %s พร้อมลุยคาบต่อไป", TEAM_NAME);
+
+    return (written > 0) ? (int32_t)written : 0;
 }
 
 /* Sleeps, and turns Stop into BENTO_E_CANCELLED. */
@@ -190,13 +198,12 @@ static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row,
     }
 }
 
-/* Steps 1-4: everything goes to the Console drawer. lcd.print()
- * ignores a console that is not ready (modlcd.c), and so does this. */
-static bento_status_t write_console(void)
+/* Steps 1-2: the heading and the greeting. lcd.print() ignores a
+ * console that is not ready (modlcd.c), and so does every console
+ * call here. */
+static void greet_console(void)
 {
     char line[LINE_BYTES];
-    uint32_t i;
-    bento_status_t status = BENTO_OK;
 
     /* start from a known state: the Playground may still hold the last program's lines */
     (void)bento_lcd_clear();
@@ -210,20 +217,48 @@ static bento_status_t write_console(void)
     (void)snprintf(line, sizeof(line), "คำขวัญของเรา: %s", MOTTO);
     (void)bento_lcd_print(line);
     (void)printf("ส่งข้อความทักทายขึ้นจอบอร์ดแล้ว ดูที่จอ ไม่ใช่ที่หน้าคอม\n");
+}
+
+/* Step 3: one member at a time, so people can read them. */
+static bento_status_t list_members(void)
+{
+    char line[LINE_BYTES];
+    uint32_t i;
+    bento_status_t status = BENTO_OK;
+
     for (i = 0U; (i < member_count()) && (status == BENTO_OK); i++) {
         (void)snprintf(line, sizeof(line), "สมาชิกคนที่ %" PRIu32 " : %s",
                        i + 1U, MEMBERS[i]);
         (void)bento_lcd_print(line);
-        status = wait_ms(
-            MEMBER_PAUSE_MS); /* one name at a time, so people can read them */
+        status = wait_ms(MEMBER_PAUSE_MS);
     }
+    return status;
+}
+
+/* Step 4: two calls on purpose: together they pass 127 bytes and
+ * would be cut silently. */
+static void close_console(void)
+{
+    char tail[LINE_BYTES];
+    char line[LINE_BYTES];
+
+    (void)bento_lcd_print("<span class=ok>ขึ้นจอสำเร็จ</span>");
+    (void)format_tail(
+        tail, sizeof(tail)); /* the length is the byte meter's */
+    (void)snprintf(line, sizeof(line), "<span class=ok>%s</span>",
+                   tail);
+    (void)bento_lcd_print(line);
+}
+
+/* Steps 1-4: everything goes to the Console drawer. */
+static bento_status_t write_console(void)
+{
+    bento_status_t status;
+
+    greet_console();
+    status = list_members();
     if (status == BENTO_OK) {
-        /* two calls on purpose: together they pass 127 bytes and would be cut silently */
-        (void)bento_lcd_print("<span class=ok>ขึ้นจอสำเร็จ</span>");
-        (void)snprintf(line, sizeof(line),
-                       "<span class=ok>%s%s%s</span>", TAIL_START,
-                       TEAM_NAME, TAIL_END);
-        (void)bento_lcd_print(line);
+        close_console();
     }
     return status;
 }
@@ -358,9 +393,8 @@ static bento_status_t fill_table(const badge_t *badge)
  * A Thai letter is 3 bytes, so a short-looking line fills it fast. */
 static bento_status_t add_byte_meter(bento_ui_t *ui)
 {
-    const int32_t used =
-        (int32_t)(strlen(TAIL_START) + strlen(TEAM_NAME) +
-                  strlen(TAIL_END));
+    char tail[LINE_BYTES];
+    const int32_t used = format_tail(tail, sizeof(tail));
     char text[NUMBER_BYTES + sizeof(" ไบต์")];
     bento_ui_widget_args_t args;
     bento_ui_id_t bar = 0U;

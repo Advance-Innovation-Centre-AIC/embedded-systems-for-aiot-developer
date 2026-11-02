@@ -103,8 +103,6 @@ enum { /* text buffers */
 static const char TEAM_NAME[] = "BentoBuilders";
 static const char MOTTO[] = "เล่นของจริงก่อน แล้วค่อยแกะ";
 static const char *const MEMBERS[] = {"สมชาย", "สมหญิง", "สมศรี"};
-static const char TAIL_START[] = "ทีม ";
-static const char TAIL_END[] = " พร้อมลุยคาบต่อไป";
 
 /* The lights the table loop switches at the end. */
 typedef struct {
@@ -117,6 +115,16 @@ typedef struct {
 static uint32_t member_count(void)
 {
     return (uint32_t)(sizeof(MEMBERS) / sizeof(MEMBERS[0]));
+}
+
+/* The closing line's text (TAIL in the original). Answers its whole
+ * length in bytes, even when the buffer cuts the text. */
+static int32_t format_tail(char *text, size_t cap)
+{
+    const int written =
+        snprintf(text, cap, "ทีม %s พร้อมลุยคาบต่อไป", TEAM_NAME);
+
+    return (written > 0) ? (int32_t)written : 0;
 }
 
 /* Sleeps, and turns Stop into BENTO_E_CANCELLED. */
@@ -191,13 +199,12 @@ static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row,
     }
 }
 
-/* Steps 1-4: everything goes to the Console drawer. lcd.print()
- * ignores a console that is not ready (modlcd.c), and so does this. */
-static bento_status_t write_console(void)
+/* Steps 1-2: the heading and the greeting. lcd.print() ignores a
+ * console that is not ready (modlcd.c), and so does every console
+ * call here. */
+static void greet_console(void)
 {
     char line[LINE_BYTES];
-    uint32_t i;
-    bento_status_t status = BENTO_OK;
 
     /* TODO ท่าที่ 1: ล้างจอให้สะอาด แล้วปักหัวเรื่อง
      * จอ Playground อาจมีของจากโปรแกรมก่อนหน้าค้างอยู่ เริ่มจากสถานะที่รู้แน่เสมอ
@@ -228,19 +235,32 @@ static bento_status_t write_console(void)
 
     /* printf ขึ้นที่คอนโซลของ BENTO IDE ฝั่งคอม ไม่ใช่จอบอร์ด มีไว้เทียบปลายทางของสองคำสั่ง */
     (void)printf("ส่งข้อความทักทายขึ้นจอบอร์ดแล้ว ดูที่จอ ไม่ใช่ที่หน้าคอม\n");
+}
 
-    /* ท่าที่ 3: แนะนำสมาชิกทีละคนด้วยลูป เพิ่มหรือลดสมาชิกได้โดยไม่ต้องแตะตัวลูปเลย */
+/* Step 3: introduce the members one by one with a loop; members can be
+ * added or removed without touching the loop. */
+static bento_status_t list_members(void)
+{
+    uint32_t i;
+    bento_status_t status = BENTO_OK;
+
     for (i = 0U; (i < member_count()) && (status == BENTO_OK); i++) {
         /* i นับจาก 0 ตามธรรมเนียม บวก 1 ตอนแสดงผลให้คนอ่านเข้าใจง่าย
-         * TODO ท่าที่ 3: เติม snprintf(line, sizeof(line), "สมาชิกคนที่ %" PRIu32 " : %s",
-         *   i + 1U, MEMBERS[i]) แล้ว bento_lcd_print(line)
+         * TODO ท่าที่ 3: ประกาศ char line[LINE_BYTES] บนสุดของฟังก์ชัน แล้วเติม
+         *   snprintf(line, sizeof(line), "สมาชิกคนที่ %" PRIu32 " : %s", i + 1U, MEMBERS[i])
+         *   ตามด้วย bento_lcd_print(line)
          * ชื่อยาวแล้วบรรทัดขาดหายไปดื้อ ๆ: examples/s01/06_safe_print.py ย้ายกฎ 127 ไบต์เข้าไปอยู่ใน
          *   ฟังก์ชันเดียว แล้วเรียกฟังก์ชันนั้นแทน จะได้ไม่ต้องนั่งนับไบต์เองทุกบรรทัดที่พิมพ์ */
 
         /* TODO ท่าที่ 3 (ต่อ): หน่วง 800 ms ให้ชื่อขึ้นทีละคน คนดูอ่านทัน
          * เติม: status = wait_ms(MEMBER_PAUSE_MS) */
     }
+    return status;
+}
 
+/* Step 4: close with a green status. */
+static void close_console(void)
+{
     /* TODO ท่าที่ 4: ปิดท้ายด้วยสถานะสีเขียว span class=ok คือ "งานสำเร็จ"
      * ระวังความยาวรวมต่อการเรียกหนึ่งครั้ง: อย่าเกิน 127 ไบต์ (ไทยตัวละ 3 ไบต์ = ราว 42 ตัวอักษร)
      * เกินแล้วถูกตัดเงียบ ต้องแยกเป็นสองครั้ง เพราะรวมกันแล้วเกิน 127 ไบต์
@@ -249,10 +269,22 @@ static bento_status_t write_console(void)
      *   เขียวคือส่งได้ครบ แดงคือเกินแล้ว และมันชี้ให้ดูด้วยว่า ขึ้นบรรทัดใหม่ท้ายบรรทัดหายไปพร้อมกับ
      *   ส่วนที่ถูกตัด */
 
-    /* TODO ท่าที่ 4 (ต่อ): บรรทัดปิดท้ายคือ TAIL_START + TEAM_NAME + TAIL_END
-     * เติม: snprintf(line, sizeof(line), "<span class=ok>%s%s%s</span>", TAIL_START, TEAM_NAME,
-     *   TAIL_END) แล้ว bento_lcd_print(line) */
+    /* TODO ท่าที่ 4 (ต่อ): บรรทัดปิดท้ายคือข้อความที่ format_tail() ประกอบให้ (เขียนมาให้แล้ว)
+     * ประกาศ char tail[LINE_BYTES] และ char line[LINE_BYTES] แล้วเติม
+     *   format_tail(tail, sizeof(tail)) ตามด้วย snprintf(line, sizeof(line),
+     *   "<span class=ok>%s</span>", tail) และ bento_lcd_print(line) */
+}
 
+/* Steps 1-4: everything goes to the Console drawer. */
+static bento_status_t write_console(void)
+{
+    bento_status_t status;
+
+    greet_console();
+    status = list_members();
+    if (status == BENTO_OK) {
+        close_console();
+    }
     return status;
 }
 
@@ -388,9 +420,8 @@ static bento_status_t fill_table(const badge_t *badge)
  * A Thai letter is 3 bytes, so a short-looking line fills it fast. */
 static bento_status_t add_byte_meter(bento_ui_t *ui)
 {
-    const int32_t used =
-        (int32_t)(strlen(TAIL_START) + strlen(TEAM_NAME) +
-                  strlen(TAIL_END));
+    char tail[LINE_BYTES];
+    const int32_t used = format_tail(tail, sizeof(tail));
     char text[NUMBER_BYTES + sizeof(" ไบต์")];
     bento_ui_widget_args_t args;
     bento_ui_id_t bar = 0U;

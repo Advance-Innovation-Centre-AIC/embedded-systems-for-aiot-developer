@@ -29,6 +29,8 @@
  * (embedded-systems-for-aiot-developer/practise_codes/s02_ai_observer.py).
  * Style: CLEAN_C.md.
  * Differs from the original:
+ *   - WIFI_SSID and WIFI_PASS sit at the top of join_wifi(), the one
+ *     function that reads them (MISRA 8.9), not at the top of the file.
  *   - The list of (name, cond, hit, ms) tuples is a static const table
  *     of trial_t.
  *   - lcd.print() with several values joins them with spaces itself;
@@ -106,6 +108,13 @@ enum { /* the link card */
     TEXT_PX = 20
 };
 
+enum { /* the table's columns, left to right */
+    COLUMN_BAND = 0,
+    COLUMN_COND = 1,
+    COLUMN_RESULT = 2,
+    COLUMN_MS = 3
+};
+
 enum { /* colours, 0xRRGGBB */
     COLOR_TEXT = 0xE8EAED,
     COLOR_DIM = 0x9AA3AF,
@@ -122,12 +131,8 @@ enum { /* text buffers */
     NUMBER_BYTES = 12 /* any int32_t with its sign and NUL */
 };
 
-/* Edit these first: the next team changes only this block. */
+/* Edit this first, and the hotspot's name and password in join_wifi(). */
 static const char TEAM_NAME[] = "BentoBuilders";
-static const char WIFI_SSID[] =
-    "bento-teamXX"; /* the team's phone hotspot */
-static const char WIFI_PASS[] =
-    "<รหัส Hotspot ของทีม>"; /* at least 8 characters */
 
 /* One trial, written down by hand on the board. */
 typedef struct {
@@ -274,13 +279,13 @@ static bento_status_t add_table(notebook_t *book)
     args.min_val = TABLE_COLUMNS;
     status = bento_ui_table_create(book->ui, &args, &book->table);
     if (status == BENTO_OK) {
-        (void)bento_ui_set_col_width(book->ui, book->table, 0,
+        (void)bento_ui_set_col_width(book->ui, book->table, COLUMN_BAND,
                                      BAND_COLUMN_W);
-        (void)bento_ui_set_col_width(book->ui, book->table, 1,
+        (void)bento_ui_set_col_width(book->ui, book->table, COLUMN_COND,
                                      COND_COLUMN_W);
-        (void)bento_ui_set_col_width(book->ui, book->table, 2,
-                                     RESULT_COLUMN_W);
-        (void)bento_ui_set_col_width(book->ui, book->table, 3,
+        (void)bento_ui_set_col_width(book->ui, book->table,
+                                     COLUMN_RESULT, RESULT_COLUMN_W);
+        (void)bento_ui_set_col_width(book->ui, book->table, COLUMN_MS,
                                      MS_COLUMN_W);
         add_row(book->ui, book->table, 0U, header, TABLE_COLUMNS);
     }
@@ -443,10 +448,10 @@ static bento_status_t print_trials(const notebook_t *book)
 
         /* แถวเดียวกันลงตารางบนจอด้วย (เขียนมาให้แล้ว) */
         (void)snprintf(ms_text, sizeof(ms_text), "%" PRId32, trial->ms);
-        cells[0] = trial->name;
-        cells[1] = trial->cond;
-        cells[2] = trial->hit ? "ต่อติด" : "ไม่ติด";
-        cells[3] = ms_text;
+        cells[COLUMN_BAND] = trial->name;
+        cells[COLUMN_COND] = trial->cond;
+        cells[COLUMN_RESULT] = trial->hit ? "ต่อติด" : "ไม่ติด";
+        cells[COLUMN_MS] = ms_text;
         add_row(book->ui, book->table, (uint8_t)(i + 1U), cells,
                 TABLE_COLUMNS);
         drain_events(book->ui);
@@ -515,14 +520,18 @@ static bento_status_t wait_for_join(void)
  * False. Only Stop ends the program here. */
 static bento_status_t join_wifi(bool *joined)
 {
+    /* แก้สองบรรทัดนี้ให้เป็น Hotspot มือถือของทีม (WiFi คณะต้อง login บอร์ดใช้ไม่ได้) */
+    static const char ssid[] = "bento-teamXX";
+    static const char password[] =
+        "<รหัส Hotspot ของทีม>"; /* at least 8 characters */
     bento_wifi_connect_params_t params;
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = WIFI_SSID;
-    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASS;
-    params.pass_len = (uint32_t)strlen(WIFI_PASS);
+    params.ssid = ssid;
+    params.ssid_len = (uint32_t)strlen(ssid);
+    params.pass = password;
+    params.pass_len = (uint32_t)strlen(password);
     params.timeout_ms = 0U; /* the binding's own window */
     params.flags = BENTO_WIFI_F_SAVE_CREDS;
     status = bento_wifi_connect_start(&params);
