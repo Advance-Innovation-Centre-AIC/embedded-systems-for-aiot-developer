@@ -3,13 +3,16 @@
  *
  * การ์ดเดียวกลางจอบอก SSID, IP และเวลา ping ไป 8.8.8.8 อัปเดตทุก
  * วินาที ทุกตัวเลขบนจอวัดมาจริง ลองถอดสาย LAN ของเราเตอร์แล้วดูว่า
- * ping เปลี่ยนเป็น "ไม่ตอบ" แต่ IP ยังอยู่ ก่อนกด Run ให้แก้ WIFI_SSID
- * และ WIFI_PASS เป็นวงของห้องเรียน
+ * ping เปลี่ยนเป็น "ไม่ตอบ" แต่ IP ยังอยู่ ก่อนกด Run ให้แก้ชื่อวง
+ * WIFI_SSID (เหนือฟังก์ชัน connect_wifi) และรหัสผ่าน wifi_pass
+ * (ต้นฟังก์ชัน connect_wifi) เป็นวงของห้องเรียน
  *
  * One card shows the SSID, the IP address and the ping time to
  * 8.8.8.8, updated every second; every number on it is measured.
  * Unplug the router's LAN cable and watch ping turn to "no answer"
- * while the IP stays. Set WIFI_SSID and WIFI_PASS before you run it.
+ * while the IP stays. Before you run it, set the network name
+ * WIFI_SSID (just above the function connect_wifi) and the password
+ * wifi_pass (at the top of the function connect_wifi).
  *
  * Twin of 06_link_panel_hmi.py
  * (embedded-systems-for-aiot-developer/examples/s09/06_link_panel_hmi.py),
@@ -378,8 +381,6 @@ static void show_join_failed(const link_screen_t *screen)
  * where the program joins). */
 static const char WIFI_SSID[] = "AIoT-Class";
 
-/* Google Public DNS: outside our network, and it always answers. */
-
 /* wifi.connect(): *joined is false when the network was not found or
  * refused us, as the original's False; other failures end the run.
  * The original's binding saves the network after a join, so the
@@ -461,6 +462,7 @@ static bento_status_t wait_second(bento_ui_t *ui)
 /* Runs until Stop. */
 static bento_status_t run_loop(const link_screen_t *screen)
 {
+    /* Google Public DNS: outside our network, and it always answers. */
     static const char ping_ip[] = "8.8.8.8";
     uint32_t target = 0U;
     bento_status_t status = bento_wifi_ipv4_parse(

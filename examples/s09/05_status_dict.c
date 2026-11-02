@@ -7,14 +7,17 @@
  * รอบละการอ่านเดียว สามคีย์บนจอ (connected, ip, mode)
  * จึงมาจากจังหวะเวลาเดียวกันเสมอ ลองปิดเราเตอร์ระหว่างเฝ้าดู
  * แล้วดูว่าสามค่าเปลี่ยนพร้อมกัน
- * ก่อนรันแก้ WIFI_SSID และ WIFI_PASS
+ * ก่อนรันแก้ชื่อวง WIFI_SSID (เหนือฟังก์ชัน join_wifi)
+ * และรหัสผ่าน wifi_pass (ต้นฟังก์ชัน join_wifi)
  *
  * Reads wifi.status() once and uses that one reading for the whole
  * round: before joining, after joining, then says which keys
  * changed. Then it watches 14 rounds, one reading each, so the
  * three keys on the screen (connected, ip, mode) always come from
  * the same moment. Switch the router off while it watches: all
- * three change together. Set WIFI_SSID and WIFI_PASS first.
+ * three change together. Set the network name WIFI_SSID (just above
+ * the function join_wifi) and the password wifi_pass (at the top of
+ * the function join_wifi) first.
  *
  * Twin of 05_status_dict.py
  * (embedded-systems-for-aiot-developer/examples/s09/05_status_dict.py),

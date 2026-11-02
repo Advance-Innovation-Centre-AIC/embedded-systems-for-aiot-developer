@@ -5,14 +5,16 @@
  * ต่อ WiFi อ่านค่าไว้ แล้วสั่ง wifi.disconnect() อ่านค่าซ้ำ รอ 6 วินาที
  * แล้วต่อกลับ สี่บรรทัดบนเปลี่ยนพร้อมกันตอนตัดและตอนต่อใหม่ บรรทัด
  * "if wifi.ip():" ยังตอบ True ตอนหลุด เพราะ "0.0.0.0" ไม่ใช่สตริงว่าง
- * ถามสถานะด้วย is_connected() เท่านั้น ก่อนรันแก้ WIFI_SSID WIFI_PASS
+ * ถามสถานะด้วย is_connected() เท่านั้น ก่อนรันแก้ชื่อวง WIFI_SSID
+ * (ใต้ #include) และรหัสผ่าน wifi_pass (ต้นฟังก์ชัน join_wifi)
  *
  * Joins the Wi-Fi and reads the link, calls wifi.disconnect(),
  * reads it again, waits 6 s and joins again. The top four lines
  * change together when the link drops and when it comes back. The
  * "if wifi.ip():" line still says True while the link is down,
  * because "0.0.0.0" is not an empty text: ask is_connected(). Set
- * WIFI_SSID and WIFI_PASS first.
+ * the network name WIFI_SSID (below the includes) and the password
+ * wifi_pass (at the top of the function join_wifi) first.
  *
  * Twin of 07_disconnect_rejoin.py
  * (embedded-systems-for-aiot-developer/examples/s09/07_disconnect_rejoin.py),
