@@ -72,6 +72,16 @@ static const char WIFI_PASS[] = "<Hotspot password>";
 static const char TEAM[] = "teamXX";
 /* BROKER: test.mosquitto.org is the spare */
 static const char BROKER[] = "broker.hivemq.com";
+/* The rules and the rhythm, as the original sets them. */
+enum {
+    CMD_GAP_MS = 3000,     /* commands closer than this are not done */
+    MAX_CMD_BYTES = 200,   /* longer messages are not read */
+    ALIVE_EVERY_MS = 2000, /* sent again this often, change or not */
+    GAP_MS = 200,          /* never sent closer than this */
+    WIFI_WAIT_S = 5,       /* wait this long for the saved WiFi */
+    DRAW_MS = 500,         /* the screen is redrawn this often */
+    RUN_S = 600            /* the program runs this many seconds */
+};
 /* ---- end of settings ---- */
 
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
@@ -88,15 +98,8 @@ enum {
 
 /* The rules, the network and the screen's rhythm. */
 enum {
-    CMD_GAP_MS = 3000,   /* commands closer than this are not done */
-    MAX_CMD_BYTES = 200, /* longer messages are not read */
-    ALIVE_EVERY_MS = 2000,
-    GAP_MS = 200,
-    WIFI_WAIT_S = 5,
     WIFI_POLLS_PER_S = 10,
     WIFI_POLL_MS = 100,
-    DRAW_MS = 500,
-    RUN_S = 600,
     MS_PER_S = 1000,
     LOOP_MS = 50,
     SETTLE_MS = 150, /* let the cleared screen settle */
@@ -929,8 +932,9 @@ static bento_status_t wifi_up(const commander_t *commander,
     int32_t poll;
 
     *joined = false;
-    for (poll = 0; (poll < (WIFI_WAIT_S * WIFI_POLLS_PER_S)) &&
-                   !*joined && (status == BENTO_OK);
+    for (poll = 0;
+         (poll < ((int32_t)WIFI_WAIT_S * (int32_t)WIFI_POLLS_PER_S)) &&
+         !*joined && (status == BENTO_OK);
          poll++) {
         if (bento_wifi_is_connected(joined) != BENTO_OK) {
             *joined = false; /* an unanswered question is not joined */
@@ -1264,7 +1268,7 @@ static bento_status_t run_commands(commander_t *commander)
     while ((status == BENTO_OK) &&
            (bento_time_ticks_diff(bento_time_ticks_ms(),
                                   commander->start_ms) <
-            (RUN_S * MS_PER_S))) {
+            ((int32_t)RUN_S * (int32_t)MS_PER_S))) {
         status = run_once(commander);
     }
     stop_ai();
