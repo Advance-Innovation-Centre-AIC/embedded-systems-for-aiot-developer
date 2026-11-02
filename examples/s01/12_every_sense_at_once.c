@@ -277,6 +277,14 @@ static bool is_miss(bento_status_t status)
            (status == BENTO_E_TRANSPORT) || (status == BENTO_E_TIMEOUT);
 }
 
+/* No reading this round: a miss, or a runtime without the snapshot
+ * (the BENTO Emulator answers BENTO_E_UNSUPPORTED), which takes the
+ * original's except OSError path too. Only a miss is asked again. */
+static bool no_reading(bento_status_t status)
+{
+    return is_miss(status) || (status == BENTO_E_UNSUPPORTED);
+}
+
 /* sensors.snapshot(): the binding's budget, spent in calls of at most
  * BENTO_SENSORS_WAIT_MAX_MS each so that Stop is seen in between. */
 static bento_status_t take_snapshot(bool answered_before,
@@ -564,7 +572,7 @@ static bento_status_t print_answers(bool answered_before)
 
     if (status == BENTO_OK) {
         print_snapshot(&snapshot);
-    } else if (is_miss(status)) {
+    } else if (no_reading(status)) {
         (void)printf("snapshot() ปฏิเสธ: sensors.snapshot(): no "
                      "reply from the display core. It answers sensor "
                      "requests about 13 s after a reset -- if this "
@@ -889,7 +897,7 @@ static bento_status_t read_round(const sense_screen_t *screen,
 
     tally->rounds++;
     status = take_snapshot(tally->ready, &snapshot);
-    if (is_miss(status)) {
+    if (no_reading(status)) {
         tally->misses++;
         show_miss(screen, tally->misses);
         status = BENTO_OK;
