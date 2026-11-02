@@ -57,6 +57,8 @@
  *   - In the BENTO Emulator, MQTT from C is not available yet: the
  *     program says so and goes on offline, as the original does when
  *     the broker cannot be reached (every send then fails).
+ * In the BENTO Emulator, whose C runtime has no sensors.snapshot(), the
+ * snapshot counts as one with no usable key (the SHT40 path still reads).
  */
 #include <inttypes.h>
 #include <math.h>
@@ -166,6 +168,23 @@ static bento_status_t wait_ms(uint32_t duration_ms)
 
     if ((status == BENTO_OK) && !bento_runtime_is_running()) {
         status = BENTO_E_CANCELLED;
+    }
+    return status;
+}
+
+/* sensors.snapshot(). The BENTO Emulator's C runtime has no snapshot path
+ * (BENTO_E_UNSUPPORTED): there it counts as a snapshot with no usable key,
+ * so read_temp() takes its own no-knob path. */
+static bento_status_t take_snapshot(bento_sensors_snapshot_t *snap)
+{
+    bento_status_t status;
+
+    bento_sensors_snapshot_init(snap);
+    status =
+        bento_sensors_snapshot(BENTO_SENSORS_SNAPSHOT_DEFAULT_MS, snap);
+    if (status == BENTO_E_UNSUPPORTED) {
+        bento_sensors_snapshot_init(snap);
+        status = BENTO_OK;
     }
     return status;
 }
@@ -729,9 +748,7 @@ static bento_status_t measure_once(const link_screen_t *screen,
     bento_real_t temp_c = (bento_real_t)0.0;
     bento_status_t status;
 
-    bento_sensors_snapshot_init(&snap);
-    status = bento_sensors_snapshot(BENTO_SENSORS_SNAPSHOT_DEFAULT_MS,
-                                    &snap);
+    status = take_snapshot(&snap);
     if ((status == BENTO_OK) &&
         read_temp(&snap, &tele->source, &temp_c)) {
         tele->last_value = temp_c;
