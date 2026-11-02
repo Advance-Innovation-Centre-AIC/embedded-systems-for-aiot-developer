@@ -76,8 +76,6 @@
 static const char TEAM_NAME[] = "BentoBuilders";
 static const char DEVICE_ID[] =
     "team03"; /* registered, under 31 chars */
-static const char API_KEY[] = "<api key ของทีม>";
-static const char MQTT_PASS[] = "<รหัสผ่าน MQTT 16 ตัว>";
 static const char BROKER[] = "<โฮสต์แพลตฟอร์ม>";
 
 enum { /* times */
@@ -91,8 +89,8 @@ enum { /* times */
 
 enum { /* text sizes */
     TEXT_BYTES = 128,
-    VALUE_BYTES = BENTO_TESAIOT_CONFIG_VALUE_MAX + 1,
-    KEY_BYTES = BENTO_TESAIOT_CONFIG_KEY_MAX + 1,
+    VALUE_BYTES = (int32_t)BENTO_TESAIOT_CONFIG_VALUE_MAX + 1,
+    KEY_BYTES = (int32_t)BENTO_TESAIOT_CONFIG_KEY_MAX + 1,
     NUMBER_BYTES = BENTO_FMT_BUF_SIZE,
     PAYLOAD_BYTES = 160
 };
@@ -108,6 +106,16 @@ enum { /* layout that more than one widget shares */
     ACCEL_DIGITS = 2,
     HEADING_DIGITS = 1,
     DECIMAL_BASE = 10
+};
+
+enum { /* the title, and the identity table's rows in order */
+    TITLE_X = 24,
+    TITLE_Y = 8,
+    TITLE_PX = 20,
+    ROW_DEVICE_ID = 0,
+    ROW_BROKER = 1,
+    ROW_TLS_MODE = 2,
+    ROW_MQTT_PASS = 3
 };
 
 enum { /* colours, 0xRRGGBB */
@@ -311,6 +319,20 @@ static bento_status_t read_field(const char *key, char *value,
         value, cap, &length);
 }
 
+/* One "'key': value" of the dict's repr. */
+static void print_entry(uint32_t index, const char *key,
+                        const char *value)
+{
+    (void)printf("%s", (index > 0U) ? ", " : "");
+    print_repr(key);
+    (void)printf(": ");
+    if (is_number_key(key)) {
+        (void)printf("%s", value);
+    } else {
+        print_repr(value);
+    }
+}
+
 /* print("config ปัจจุบัน:", tesaiot.config()) */
 static bento_status_t print_config(void)
 {
@@ -331,14 +353,7 @@ static bento_status_t print_config(void)
             status = read_field(key, value, (uint32_t)sizeof(value));
         }
         if (status == BENTO_OK) {
-            (void)printf("%s", (i > 0U) ? ", " : "");
-            print_repr(key);
-            (void)printf(": ");
-            if (is_number_key(key)) {
-                (void)printf("%s", value);
-            } else {
-                print_repr(value);
-            }
+            print_entry(i, key, value);
         }
     }
     if (status == BENTO_OK) {
@@ -365,13 +380,16 @@ static bento_status_t set_field(const char *key, const char *value)
  * the link fails without a word. */
 static bento_status_t set_identity(void)
 {
+    /* the team's own key and MQTT password: edit both before the run */
+    static const char api_key[] = "<api key ของทีม>";
+    static const char mqtt_pass[] = "<รหัสผ่าน MQTT 16 ตัว>";
     bento_status_t status = set_field("device_id", DEVICE_ID);
 
     if (status == BENTO_OK) {
-        status = set_field("api_key", API_KEY);
+        status = set_field("api_key", api_key);
     }
     if (status == BENTO_OK) {
-        status = set_field("mqtt_pass", MQTT_PASS);
+        status = set_field("mqtt_pass", mqtt_pass);
     }
     if (status == BENTO_OK) {
         status = set_field("broker", BROKER);
@@ -382,13 +400,13 @@ static bento_status_t set_identity(void)
     return status;
 }
 
-/* One table row: two cells, each ended by a NUL. */
+/* One table row: two cells, each ended by its NUL. */
 static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row,
                     const char *left, const char *right)
 {
     char cells[TEXT_BYTES];
     const size_t left_bytes = strlen(left) + 1U;
-    const size_t right_bytes = strlen(right);
+    const size_t right_bytes = strlen(right) + 1U;
 
     if ((left_bytes + right_bytes) <= sizeof(cells)) {
         (void)memcpy(cells, left, left_bytes);
@@ -406,7 +424,7 @@ static bento_status_t add_identity(bento_ui_t *ui)
     static const widget_spec_t card = {NULL, 24,         48, 440,
                                        344,  COLOR_CARD, 1};
     static const widget_spec_t title = {
-        "ตัวตนที่บอร์ดใช้แนะนำตัว", 40, 60, -1, -1, COLOR_DIM, 16};
+        "ตัวตนที่บอร์ดใช้แนะนำตัว", 40, 60, -1, -1, COLOR_DIM, 20};
     static const widget_spec_t table_spec = {NULL, 40, 96, 408,
                                              288,  0U, 0};
     char mode[VALUE_BYTES];
@@ -429,10 +447,10 @@ static bento_status_t add_identity(bento_ui_t *ui)
     if (status == BENTO_OK) {
         (void)bento_ui_set_col_width(ui, table, 0, LEFT_COLUMN_W);
         (void)bento_ui_set_col_width(ui, table, 1, RIGHT_COLUMN_W);
-        add_row(ui, table, 0U, "device_id", DEVICE_ID);
-        add_row(ui, table, 1U, "broker", BROKER);
-        add_row(ui, table, 2U, "tls_mode", mode);
-        add_row(ui, table, 3U, "mqtt_pass", "ตั้งแล้ว ดูไม่ได้");
+        add_row(ui, table, ROW_DEVICE_ID, "device_id", DEVICE_ID);
+        add_row(ui, table, ROW_BROKER, "broker", BROKER);
+        add_row(ui, table, ROW_TLS_MODE, "tls_mode", mode);
+        add_row(ui, table, ROW_MQTT_PASS, "mqtt_pass", "ตั้งแล้ว ดูไม่ได้");
     }
     return status;
 }
@@ -446,9 +464,9 @@ static bento_status_t add_lamps(tls_screen_t *screen)
         {NULL, 688, 96, 48, 48, COLOR_BAD, 0},
     };
     static const widget_spec_t names[] = {
-        {"กำลังต่อ", 496, 148, -1, -1, COLOR_DIM, 16},
-        {"สำเร็จ", 592, 148, -1, -1, COLOR_DIM, 16},
-        {"ล้มเหลว", 672, 148, -1, -1, COLOR_DIM, 16},
+        {"กำลังต่อ", 496, 148, -1, -1, COLOR_DIM, 20},
+        {"สำเร็จ", 592, 148, -1, -1, COLOR_DIM, 20},
+        {"ล้มเหลว", 672, 148, -1, -1, COLOR_DIM, 20},
     };
     bento_ui_id_t *const ids[] = {&screen->lamp_wait, &screen->lamp_ok,
                                   &screen->lamp_fail};
@@ -498,7 +516,7 @@ static bento_status_t add_meter(tls_screen_t *screen)
     static const widget_spec_t seconds = {"0 วิ", 496,        284, -1,
                                           -1,    COLOR_TEXT, 20};
     static const widget_spec_t ceiling = {
-        "เพดาน 30 วิ", 592, 284, -1, -1, COLOR_DIM, 16};
+        "เพดาน 30 วิ", 592, 284, -1, -1, COLOR_DIM, 20};
     static const widget_spec_t bar = {NULL, 496,       320, 192,
                                       12,   COLOR_RUN, 0};
     static const widget_spec_t ruler = {NULL, 496,        340, 192,
@@ -574,9 +592,10 @@ static bento_status_t build_screen(tls_screen_t *screen)
     static const widget_spec_t right_card = {NULL, 480,        48, 288,
                                              344,  COLOR_CARD, 1};
     static const widget_spec_t handshake = {
-        "การจับมือ TLS", 496, 60, -1, -1, COLOR_DIM, 16};
+        "การจับมือ TLS", 496, 60, -1, -1, COLOR_DIM, 20};
     char title_text[TEXT_BYTES];
-    widget_spec_t title = {NULL, 24, 8, -1, -1, COLOR_TEXT, 20};
+    widget_spec_t title = {NULL, TITLE_X,    TITLE_Y, -1,
+                           -1,   COLOR_TEXT, TITLE_PX};
     bento_ui_id_t unused = 0U;
     bento_status_t status =
         bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
@@ -641,12 +660,25 @@ static bento_status_t start_connect(void)
     return status;
 }
 
-/* Every wait has a way out by time, or the program would hang here
- * the day the network is down. The bar moves every half second; the
- * number is written again only when the second changes. */
-static bento_status_t wait_connected(const tls_screen_t *screen)
+/* The bar moves every half second; the number is written again only
+ * when the second changes. */
+static void show_seconds(const tls_screen_t *screen, int32_t waited_ms,
+                         int32_t *last_second)
 {
     char text[TEXT_BYTES];
+
+    if ((waited_ms / MS_PER_S) != *last_second) {
+        *last_second = waited_ms / MS_PER_S;
+        set_value(screen->ui, screen->seconds_bar, *last_second);
+        (void)snprintf(text, sizeof(text), "%ld วิ", (long)*last_second);
+        set_text(screen->ui, screen->seconds_label, text);
+    }
+}
+
+/* Every wait has a way out by time, or the program would hang here
+ * the day the network is down. */
+static bento_status_t wait_connected(const tls_screen_t *screen)
+{
     const uint32_t start_ms = bento_time_ticks_ms();
     int32_t last_second = -1;
     bool waiting = true;
@@ -660,13 +692,7 @@ static bento_status_t wait_connected(const tls_screen_t *screen)
             (void)printf("ต่อแพลตฟอร์มไม่สำเร็จใน 30 วินาที\n");
             waiting = false;
         } else {
-            if ((waited_ms / MS_PER_S) != last_second) {
-                last_second = waited_ms / MS_PER_S;
-                set_value(screen->ui, screen->seconds_bar, last_second);
-                (void)snprintf(text, sizeof(text), "%ld วิ",
-                               (long)last_second);
-                set_text(screen->ui, screen->seconds_label, text);
-            }
+            show_seconds(screen, waited_ms, &last_second);
             drain_events(screen->ui);
             status = wait_ms(WAIT_STEP_MS);
         }

@@ -76,7 +76,7 @@ lbl_sent = ui.Label("ส่งแล้ว 0 ใบ", x=560, y=8, color=COL_DIM,
 # การ์ดต้องถูกสร้างก่อนของที่วางบนมันเสมอ LVGL วาดตามลำดับการสร้าง การ์ดที่มาทีหลัง
 # จะทาทับของที่สร้างไว้ก่อนจนหายไปทั้งใบ โดยไม่มี error สักบรรทัด
 ui.Panel(x=24, y=48, w=440, h=344, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ตัวตนที่บอร์ดใช้แนะนำตัว", x=40, y=60, color=COL_DIM, value=16)
+ui.Label("ตัวตนที่บอร์ดใช้แนะนำตัว", x=40, y=60, color=COL_DIM, value=20)
 cfg0 = tesaiot.config()
 # สี่แถวคูณ 72 พิกเซล = 288 พอดีกับความสูงที่ขอไว้ ขอมากกว่านี้แถวล่างสุดจะถูกตัด
 # และผลรวมความกว้างคอลัมน์ต้องน้อยกว่า w อยู่ราว 16 ไม่งั้นมีแถบเลื่อนคาใต้ตาราง
@@ -95,14 +95,14 @@ tbl_id.add_row("mqtt_pass", "ตั้งแล้ว ดูไม่ได้")
 
 # การ์ดขวา: ไฟสามดวงของการจับมือ ติดทีละดวงเสมอ แล้วปุ่มสั่งงาน แล้วเวลาที่ใช้
 ui.Panel(x=480, y=48, w=288, h=344, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("การจับมือ TLS", x=496, y=60, color=COL_DIM, value=16)
+ui.Label("การจับมือ TLS", x=496, y=60, color=COL_DIM, value=20)
 led_wait = ui.Led(x=496, y=96, w=48, h=48, color=COL_RUN, value=1)
 led_ok = ui.Led(x=592, y=96, w=48, h=48, color=COL_OK, value=0)
 led_fail = ui.Led(x=688, y=96, w=48, h=48, color=COL_BAD, value=0)
 # ป้ายอยู่ใต้ไฟของตัวเอง ไม่ใช่ข้าง ๆ เพราะการ์ดกว้าง 288 ไม่พอให้ไฟกับคำอยู่บรรทัดเดียว
-ui.Label("กำลังต่อ", x=496, y=148, color=COL_DIM, value=16)
-ui.Label("สำเร็จ", x=592, y=148, color=COL_DIM, value=16)
-ui.Label("ล้มเหลว", x=672, y=148, color=COL_DIM, value=16)
+ui.Label("กำลังต่อ", x=496, y=148, color=COL_DIM, value=20)
+ui.Label("สำเร็จ", x=592, y=148, color=COL_DIM, value=20)
+ui.Label("ล้มเหลว", x=672, y=148, color=COL_DIM, value=20)
 
 # ปุ่มสั่งงานสองปุ่มแยกกัน วางไว้เหนือมาตรวัด เพราะปุ่มที่ยาวลงไปถึง y=340
 # จะไปทับมุมขวาล่างที่เฟิร์มแวร์ถือไว้ให้ปุ่ม Console แล้วกดไม่โดน
@@ -112,7 +112,7 @@ btn_disc = ui.Button("ตัดสาย", x=616, y=184, w=88, h=88, color=0x3A4
 # เวลาจับมือ เทียบกับเพดานที่โค้ดใช้จริง ไม่ใช่เพดานที่เดาเอา
 # ui.Scale คือไม้บรรทัด ไม่มีเข็มและไม่รับ .value() ตัวที่ขยับคือ ui.Bar ที่วางเหนือมัน
 lbl_hs = ui.Label("0 วิ", x=496, y=284, color=COL_TEXT, value=20)
-ui.Label("เพดาน 30 วิ", x=592, y=284, color=COL_DIM, value=16)
+ui.Label("เพดาน 30 วิ", x=592, y=284, color=COL_DIM, value=20)
 bar_hs = ui.Bar(x=496, y=320, w=192, h=12, color=COL_RUN,
                 min=0, max=WAIT_CEILING_S, value=0)
 sc_hs = ui.Scale(x=496, y=340, w=192, h=44, color=COL_TEXT,
