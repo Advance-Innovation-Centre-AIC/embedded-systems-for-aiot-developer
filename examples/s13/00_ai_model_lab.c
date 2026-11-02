@@ -78,6 +78,16 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+enum {
+    POLL_MS = 100,   /* read a result every ... ms */
+    DRAW_MS = 500,   /* redraw every ... ms (faster = flicker) */
+    CONF_OK = 60,    /* confidence (%) we trust */
+    MAX_CLASSES = 8, /* the AI core reports at most 8 classes */
+    VU_LEDS = 16     /* LEDs in the confidence meter */
+};
+/* ---- end of settings ---- */
+
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
@@ -92,19 +102,14 @@ enum {
 
 /* Times, limits and the meter. */
 enum {
-    POLL_MS = 100, /* read a result this often */
-    DRAW_MS = 500, /* redraw this often: faster flickers */
     LOOP_MS = 20,  /* the main loop's rest */
     LOAD_MS = 150, /* let the screen settle after ui.screen() */
     OP_POLL_MS = 20,
     HANDLED_POLLS = 50, /* 50 x 4 ms: the setter's 200 ms wait */
     HANDLED_MS = 4,
-    CONF_OK = 60, /* a confidence (%) to trust */
-    MAX_CLASSES = BENTO_EDGEAI_MAX_CLASSES,
     MODELS_MAX = 32,
     SENSOR_COUNT = 3,
     PERCENT = 100,
-    VU_LEDS = 16,  /* LEDs in the confidence meter */
     VU_GREEN = 10, /* LEDs 0-9 green */
     VU_AMBER = 14, /* 10-13 amber, the rest red */
     TEXT_BYTES = 128,
@@ -917,8 +922,9 @@ static bento_status_t add_scores(lab_screen_t *screen)
 /* The confidence meter: only the LEDs that change are switched. */
 static void meter(lab_screen_t *screen, int32_t confidence)
 {
-    const int32_t lit = ((confidence * VU_LEDS) + (PERCENT / 2)) /
-                        PERCENT; /* rounded to the nearest LED */
+    const int32_t lit =
+        ((confidence * (int32_t)VU_LEDS) + (PERCENT / 2)) /
+        PERCENT; /* rounded to the nearest LED */
     const int32_t first = (lit < screen->lit) ? lit : screen->lit;
     const int32_t end = (lit > screen->lit) ? lit : screen->lit;
     int32_t led;
