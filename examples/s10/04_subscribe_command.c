@@ -70,6 +70,14 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+static const char BROKER[] = "192.168.1.50";
+static const char DEVICE_ID[] = "team03";
+static const char TOPIC_CMD[] = "bento/team03/command";
+/* ---- end of settings ---- */
+
 /* Screen layout on the 792 x 398 canvas. */
 enum {
     MARGIN_X = 20,
@@ -866,16 +874,14 @@ static void print_wifi_address(void)
  * timed-out join is False; any other failure ends the program. */
 static bento_status_t join_wifi(bool *joined)
 {
-    static const char wifi_ssid[] = "AIoT-Class";
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = wifi_ssid;
-    params.ssid_len = (uint32_t)strlen(wifi_ssid);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -907,17 +913,16 @@ static bento_status_t join_wifi(bool *joined)
 static bento_status_t open_broker(const char *client_id,
                                   uint32_t *broker, bool *online)
 {
-    static const char broker_host[] = "192.168.1.50";
     bento_mqtt_config_t config;
     bento_status_t status;
 
     bento_mqtt_config_init(&config);
-    config.host = broker_host;
-    config.host_len = (uint32_t)strlen(broker_host);
+    config.host = BROKER;
+    config.host_len = (uint32_t)strlen(BROKER);
     config.port = (uint16_t)BROKER_PORT;
     config.client_id = client_id;
     config.client_id_len = (uint32_t)strlen(client_id);
-    (void)printf("[MQTT] Connecting to %s:%d ...\r\n", broker_host,
+    (void)printf("[MQTT] Connecting to %s:%d ...\r\n", BROKER,
                  BROKER_PORT);
     status = bento_mqtt_open_start(&config, broker);
     if (status == BENTO_OK) {
@@ -931,8 +936,8 @@ static bento_status_t open_broker(const char *client_id,
     }
     *online = (status == BENTO_OK);
     if (*online) {
-        (void)printf("[MQTT] Connected to %s:%d as '%s'\r\n",
-                     broker_host, BROKER_PORT, client_id);
+        (void)printf("[MQTT] Connected to %s:%d as '%s'\r\n", BROKER,
+                     BROKER_PORT, client_id);
     } else if ((status != BENTO_E_CANCELLED) && (*broker != 0U)) {
         status = BENTO_OK;
     } else {
@@ -1119,8 +1124,6 @@ static void show_alive(command_app_t *app)
                    dots[app->ticks % DOT_KINDS], (long)app->ticks);
     set_text(app->screen.ui, app->screen.alive, text);
 }
-
-static const char TOPIC_CMD[] = "bento/team03/command";
 
 /* The upper card: the topic watched and the last command. */
 static bento_status_t add_topic_card(command_screen_t *screen)
@@ -1395,14 +1398,13 @@ static void leave_broker(command_app_t *app)
 
 int main(void)
 {
-    static const char device_id[] = "team03";
     command_app_t app;
     char client_id[CLIENT_ID_CHARS];
     bento_status_t status;
 
     /* a fresh suffix each run: a restart right after Stop does not
      * collide with the last run's id */
-    (void)snprintf(client_id, sizeof(client_id), "%s-%04lx", device_id,
+    (void)snprintf(client_id, sizeof(client_id), "%s-%04lx", DEVICE_ID,
                    (unsigned long)(bento_time_ticks_ms() &
                                    (uint32_t)CLIENT_SUFFIX_MASK));
     (void)memset(&app, 0, sizeof(app));
