@@ -30,6 +30,9 @@
  *  - the finally (mqtt.disconnect(), the lamp off) runs after the loop,
  *    whatever ended it. A board without Wi-Fi (BENTO_E_UNSUPPORTED) ends
  *    the program after the finally, where MicroPython has no wifi module.
+ * In the BENTO Emulator, MQTT from C is not available yet: the program says
+ * so and goes on offline, as the original does when the broker cannot be
+ * reached.
  */
 #include <stdbool.h>
 #include <stddef.h>
@@ -61,7 +64,10 @@ enum { /* layout sizes and fonts */
     TITLE_PX = 24,
     TEXT_PX = 20,      /* Thai below 20 px loses its strokes */
     CARD_EDGE_PX = 12, /* max= of the card panel */
-    CARD_BORDER = 1    /* value= of the card panel */
+    CARD_BORDER = 1,   /* value= of the card panel */
+    NOTE_X = 20,       /* the Emulator note, under the chart legend */
+    NOTE_Y = 372,
+    NOTE_W = 760
 };
 enum { /* the course palette, 0xRRGGBB */
     COLOR_TEXT = 0xE8EAED,
@@ -69,7 +75,9 @@ enum { /* the course palette, 0xRRGGBB */
     COLOR_CARD = 0x171B22,
     COLOR_OK = 0x30A46C,
     COLOR_BAD = 0xE5484D,
-    COLOR_INFO = 0x4A9EFF
+    COLOR_INFO = 0x4A9EFF,
+    COLOR_WARN =
+        0xF5A623 /* the course palette's warning, for the Emulator note */
 };
 enum { /* the widgets the program changes; ROLE_FIXED holds the rest */
     ROLE_FIXED,
@@ -326,6 +334,33 @@ static bento_status_t join_wifi(bool *joined)
 }
 
 /* mqtt.connect(BROKER, port=1883, client_id=CLIENT_ID): false on a refusal. */
+/* The BENTO Emulator's C runtime has no MQTT yet: bento_mqtt_open_start
+ * answers BENTO_E_UNSUPPORTED there. A line under the chart and the
+ * console say so; the HMI then goes on offline, as with a broker that
+ * cannot be reached. */
+static void show_emulator_note(const hmi_t *hmi)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_widget_args_t args;
+    bento_ui_id_t id;
+
+    bento_ui_widget_args_init(&args);
+    args.text = note;
+    args.text_len = (uint32_t)strlen(note);
+    args.x = NOTE_X;
+    args.y = NOTE_Y;
+    args.w = NOTE_W;
+    args.color = (uint32_t)COLOR_WARN;
+    args.font_px = TEXT_PX;
+    /* best effort: the HMI goes on offline whether the note shows or not */
+    (void)bento_ui_label_create(hmi->ui, &args, &id);
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
+}
+
 static bento_status_t connect_broker(hmi_t *hmi, bool *connected)
 {
     static const char broker[] = "192.168.1.50";
@@ -342,6 +377,9 @@ static bento_status_t connect_broker(hmi_t *hmi, bool *connected)
     config.client_id_len = (uint32_t)strlen(hmi->client_id);
     status = bento_mqtt_open_start(&config, &link->handle);
     link->open = status == BENTO_OK;
+    if (status == BENTO_E_UNSUPPORTED) {
+        show_emulator_note(hmi);
+    }
     while ((status == BENTO_OK) && (answer == BENTO_E_IN_PROGRESS)) {
         answer = bento_mqtt_open_poll(link->handle);
         if (answer == BENTO_E_IN_PROGRESS) {
