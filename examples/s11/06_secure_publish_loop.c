@@ -46,6 +46,15 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+static const char DEVICE_ID[] = "team03";
+static const char API_KEY[] = "<api key ของทีม>";
+static const char MQTT_PASS[] = "<รหัสผ่าน MQTT ของทีม>";
+static const char BROKER[] = "<ชื่อโฮสต์ของแพลตฟอร์ม>";
+/* ---- end of settings ---- */
+
 /* Screen layout on the 792 x 398 canvas. */
 enum {
     MARGIN_X = 20,
@@ -100,9 +109,6 @@ enum {
      * whole line and cut it to what they carry, as for print(). */
     LINE_CHARS = TEXT_CHARS + MODE_CHARS
 };
-
-/* The widgets the program changes after it has drawn the screen. */
-static const char WIFI_SSID[] = "AIoT-Class";
 
 typedef struct {
     bento_ui_t *ui;
@@ -169,24 +175,20 @@ static bento_status_t set_field(const char *key, const char *value)
 /* The platform's settings, then tls_mode read back once. */
 static bento_status_t configure_platform(publisher_t *publisher)
 {
-    static const char device_id[] = "team03";
-    static const char api_key[] = "<api key ของทีม>";
-    static const char mqtt_pass[] = "<รหัสผ่าน MQTT ของทีม>";
-    static const char broker[] = "<ชื่อโฮสต์ของแพลตฟอร์ม>";
     uint32_t length = 0U;
-    bento_status_t status = set_field("device_id", device_id);
+    bento_status_t status = set_field("device_id", DEVICE_ID);
 
     if (status == BENTO_OK) {
-        status = set_field("api_key", api_key);
+        status = set_field("api_key", API_KEY);
     }
     if (status == BENTO_OK) {
-        status = set_field("mqtt_pass", mqtt_pass);
+        status = set_field("mqtt_pass", MQTT_PASS);
     }
     if (status == BENTO_OK) {
-        status = set_field("broker", broker);
+        status = set_field("broker", BROKER);
     }
     if (status == BENTO_OK) {
-        status = set_field("sni_hostname", broker);
+        status = set_field("sni_hostname", BROKER);
     }
     if (status == BENTO_OK) {
         status = set_field("tls_mode", "server_tls");
@@ -410,7 +412,6 @@ static bento_status_t build_screen(tls_screen_t *screen)
  * timed-out join is False; any other failure ends the program. */
 static bento_status_t join_wifi(bool *joined)
 {
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_status_t status;
@@ -418,8 +419,8 @@ static bento_status_t join_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
