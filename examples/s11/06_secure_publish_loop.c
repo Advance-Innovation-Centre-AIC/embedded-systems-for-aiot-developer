@@ -32,6 +32,8 @@
  *     radio's per-attempt lines are not reported by the C API.
  *   - Stop ends the program quietly, where MicroPython raises
  *     KeyboardInterrupt.
+ * In the BENTO Emulator, MQTT from C is not available yet: the program says
+ * so and ends.
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -66,7 +68,8 @@ enum {
     CHART_CAPTION_Y = 174,
     CHART_Y = 212,
     CHART_H = 120,
-    STATUS_Y = 332
+    STATUS_Y = 332,
+    EMU_NOTE_W = 752 /* the Emulator note wraps on the status line */
 };
 
 /* The course palette, 0xRRGGBB. */
@@ -598,6 +601,36 @@ static bento_status_t publish_loop(const tls_screen_t *screen,
     return status;
 }
 
+/* The BENTO Emulator's C runtime has no TESAIoT link yet (every
+ * bento_tesaiot_* call answers BENTO_E_UNSUPPORTED there): the note takes
+ * the status line, the console says it too, and the program ends quietly.
+ * Answers BENTO_E_CANCELLED, the quiet end, once the note is up. */
+static bento_status_t show_emulator_note(const tls_screen_t *screen)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_widget_args_t args;
+    bento_ui_id_t label;
+    bento_status_t status;
+
+    set_text(screen->ui, screen->status_line, "");
+    bento_ui_widget_args_init(&args);
+    args.text = note;
+    args.text_len = (uint32_t)strlen(note);
+    args.x = MARGIN_X;
+    args.y = STATUS_Y;
+    args.w = EMU_NOTE_W;
+    args.color = (uint32_t)COLOR_WARN;
+    args.font_px = TEXT_PX;
+    status = bento_ui_label_create(screen->ui, &args, &label);
+    poll_display(screen->ui);
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
+    return (status == BENTO_OK) ? BENTO_E_CANCELLED : status;
+}
+
 /* After Wi-Fi: the platform, the link, the loop. */
 static bento_status_t run_platform(const tls_screen_t *screen,
                                    publisher_t *publisher)
@@ -606,6 +639,9 @@ static bento_status_t run_platform(const tls_screen_t *screen,
     bool up = false;
     bento_status_t status = configure_platform(publisher);
 
+    if (status == BENTO_E_UNSUPPORTED) {
+        status = show_emulator_note(screen);
+    }
     if (status == BENTO_OK) {
         show_mode(screen, publisher, &matches);
     }
