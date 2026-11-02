@@ -22,6 +22,9 @@
  * (embedded-systems-for-aiot-developer/examples/edge_ai_models/drill_material_mic.py).
  * Style: CLEAN_C.md. Written new; devkit-21-ai-model-lab gave the style.
  * Differs from the original:
+ *   - In the BENTO Emulator, Edge AI/MQTT from C is not available
+ *     yet: the program says so and then shows the "Model not on
+ *     this board" card, as the .py does when the model is missing.
  *   - gc.collect() and the free-heap print are left out: C has no
  *     garbage collector.
  *   - m["builtin"] is "row index below diag.compiled_models"; when the
@@ -110,6 +113,10 @@ enum { /* font sizes, px */
 };
 
 /* The exact name, looked up every run. */
+/* What the BENTO Emulator says: 119 bytes, within the 126 one
+ * label takes; the label gets a width so it wraps. */
+static const char EMULATOR_TEXT[] =
+    "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
 static const char MODEL_NAME[] = "DrillMaterialMic";
 static const char NOT_SURE[] = "Not sure";
 static const char *const CHIP_NAMES[CHIP_COUNT] = {
@@ -516,14 +523,16 @@ static bento_status_t scan_models(model_t *model, bool *found,
 }
 
 /* find_model(): never reads the model id. */
-static void find_model(model_t *model, bool *found)
+static void find_model(model_t *model, bool *found, bool *emulator)
 {
     bool supported = false;
     int32_t rows = 0;
+    const bento_status_t link = bento_edgeai_supported(&supported);
     bento_status_t status;
 
     *found = false;
-    if ((bento_edgeai_supported(&supported) == BENTO_OK) && supported) {
+    *emulator = link == BENTO_E_UNSUPPORTED;
+    if ((link == BENTO_OK) && supported) {
         status = scan_models(model, found, &rows);
         if (status != BENTO_OK) {
             (void)printf("cannot read models: %s\n",
@@ -1382,10 +1391,30 @@ static bento_status_t run_program(drill_t *drill)
     return status;
 }
 
+/* The BENTO Emulator has no Edge AI from C yet: say so on the console
+ * now, and under the missing card once it is drawn. */
+static void say_no_emulator_ai(void)
+{
+    (void)printf(
+        "%s / Edge AI from C is not in the BENTO Emulator yet: "
+        "run it on a Dev Kit or Eva Kit.\n",
+        EMULATOR_TEXT);
+}
+
+static bento_status_t show_no_emulator_ai(bento_ui_t *ui)
+{
+    static const rect_t text_at = {96, 300, 600, -1};
+    bento_ui_id_t unused = 0U;
+
+    return add_label(ui, EMULATOR_TEXT, text_at, COLOR_BAD, MEDIUM_PX,
+                     &unused);
+}
+
 int main(void)
 {
     drill_t *drill = &g_drill;
     bool found = false;
+    bool emulator = false;
     bento_status_t status;
 
     (void)memset(drill, 0, sizeof(*drill));
@@ -1393,9 +1422,15 @@ int main(void)
     drill->has_buttons = bento_buttons_count() > 0U;
     drill->sw5.index = SW5_INDEX;
     drill->sw6.index = SW6_INDEX;
-    find_model(&drill->model, &found);
+    find_model(&drill->model, &found, &emulator);
     if (!found) {
+        if (emulator) {
+            say_no_emulator_ai();
+        }
         status = missing_model(drill->ui);
+        if ((status == BENTO_OK) && emulator) {
+            status = show_no_emulator_ai(drill->ui);
+        }
     } else {
         status = run_program(drill);
     }
