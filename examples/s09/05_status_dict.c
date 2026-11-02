@@ -7,17 +7,15 @@
  * รอบละการอ่านเดียว สามคีย์บนจอ (connected, ip, mode)
  * จึงมาจากจังหวะเวลาเดียวกันเสมอ ลองปิดเราเตอร์ระหว่างเฝ้าดู
  * แล้วดูว่าสามค่าเปลี่ยนพร้อมกัน
- * ก่อนรันแก้ชื่อวง WIFI_SSID (เหนือฟังก์ชัน join_wifi)
- * และรหัสผ่าน wifi_pass (ต้นฟังก์ชัน join_wifi)
+ * ก่อนรันแก้ WIFI_SSID และ WIFI_PASS ในกรอบ "แก้ก่อนรัน" ใต้ #include
  *
  * Reads wifi.status() once and uses that one reading for the whole
  * round: before joining, after joining, then says which keys
  * changed. Then it watches 14 rounds, one reading each, so the
  * three keys on the screen (connected, ip, mode) always come from
  * the same moment. Switch the router off while it watches: all
- * three change together. Set the network name WIFI_SSID (just above
- * the function join_wifi) and the password wifi_pass (at the top of
- * the function join_wifi) first.
+ * three change together. Set WIFI_SSID and WIFI_PASS in the
+ * "แก้ก่อนรัน" settings block below the includes first.
  *
  * Twin of 05_status_dict.py
  * (embedded-systems-for-aiot-developer/examples/s09/05_status_dict.py),
@@ -47,6 +45,11 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 #include "bento_wifi.h"
+
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+/* ---- end of settings ---- */
 
 /* The course palette, 0xRRGGBB. */
 enum {
@@ -455,18 +458,11 @@ static void skip_watch(const screen_t *screen)
     lcd_line("<span class=err>ยังไม่ได้ต่อ ข้ามรอบเฝ้าดู</span>");
 }
 
-/* The classroom network the teacher hands out (its password is set
- * where the program joins). */
-static const char WIFI_SSID[] = "AIoT-Class";
-
 /* wifi.connect(): *joined is its True or False. A refused or
  * timed-out join is False; any other failure ends the program,
  * as the binding's OSError does. */
 static bento_status_t join_wifi(bool *joined)
 {
-    /* the classroom password, WIFI_PASS in the .py: set it before you
-     * run */
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     reading_t reading;
     bento_status_t status;
@@ -474,8 +470,8 @@ static bento_status_t join_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
