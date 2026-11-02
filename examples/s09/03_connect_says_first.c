@@ -39,6 +39,11 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+/* ---- end of settings ---- */
+
 /* Timing, in milliseconds. */
 enum {
     SETTLE_MS = 200,    /* let the cleared screen settle */
@@ -302,10 +307,6 @@ static void tell_summary(const wifi_screen_t *screen)
     console_line(line);
 }
 
-/* The classroom network the teacher hands out (its password is set
- * where the program joins). */
-static const char WIFI_SSID[] = "AIoT-Class";
-
 /* The three steps of the lesson stay on screen the whole run. The
  * state label (text NULL) names the network. */
 static bento_status_t add_widgets(wifi_screen_t *screen)
@@ -403,9 +404,6 @@ static bento_status_t tell_success(const wifi_screen_t *screen,
  * as text, to keep its format under control. */
 static bento_status_t run(const wifi_screen_t *screen)
 {
-    /* the classroom password, WIFI_PASS in the .py: set it before you
-     * run */
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     char line[TEXT_BYTES];
     bool joined = false;
     uint32_t start_ms;
@@ -417,7 +415,7 @@ static bento_status_t run(const wifi_screen_t *screen)
     console_line(line);
     (void)printf("กำลังต่อ %s\n", WIFI_SSID);
     start_ms = bento_time_ticks_ms();
-    status = join_wifi(WIFI_SSID, wifi_pass, &joined);
+    status = join_wifi(WIFI_SSID, WIFI_PASS, &joined);
     took_ms = bento_time_ticks_diff(bento_time_ticks_ms(), start_ms);
     if (status == BENTO_OK) {
         (void)snprintf(line, sizeof(line), "%ld", (long)took_ms);
