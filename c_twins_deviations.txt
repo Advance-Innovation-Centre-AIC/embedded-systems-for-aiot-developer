@@ -1,0 +1,5 @@
+# MISRA C:2012 deviations for the C twins of this course (the .c beside each .py)
+# Format: id | rule | scope | category | reason | approval
+# The C twins follow the BENTO library's examples_c/CLEAN_C.md and its examples_c/misra_deviations.txt
+# (E01 printf/snprintf, E03/E04 large file-scope objects). This file adds what a course twin needs beyond those.
+BENTO-MISRA-CT01 | 8.7, 8.9 | c-twins: the one callback-state object per file | advisory | A program built on bento_game hands its frame callback, update(void *user, bool *out_stop), a void * only (bento_game.h bento_game_update_fn). Converting it back would break Rule 11.5, and a PSoC Edge native module has no writable static data (MicroPython tools/mpy_ld.py, docs/develop/natmod.rst). So the state the callback needs is ONE non-static file-scope object with no initialiser, named g_*, declared extern just above its definition (Rule 8.4 holds), set in main(); the callback writes (void)user. This applies below the 512 bytes of the library's E03 rule, for this object only; every other file-scope object follows E03. | approved-by: pending professor review
