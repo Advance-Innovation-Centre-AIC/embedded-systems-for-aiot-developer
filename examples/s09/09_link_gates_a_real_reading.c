@@ -42,7 +42,11 @@
  *   - sensors.snapshot() waits up to 16 s for the display core in
  *     the first seconds after a reset; C asks for
  *     BENTO_SENSORS_SNAPSHOT_DEFAULT_MS (1 s). A failed snapshot
- *     ends the program in both.
+ *     ends the program in both. A build whose C runtime has no
+ *     snapshot path (the BENTO Emulator answers
+ *     BENTO_E_UNSUPPORTED) reads it as a snapshot without the "pot"
+ *     key: the SHT40 is asked, and a round with neither has no
+ *     reading, the original's (None, "") path.
  */
 #include <inttypes.h>
 #include <stdbool.h>
@@ -497,6 +501,13 @@ static bento_status_t measure(const gate_screen_t *screen,
     bento_sensors_snapshot_init(&snap);
     status = bento_sensors_snapshot(BENTO_SENSORS_SNAPSHOT_DEFAULT_MS,
                                     &snap);
+    if (status == BENTO_E_UNSUPPORTED) {
+        /* a build with no snapshot path (the BENTO Emulator): a
+         * snapshot without the "pot" key, so read_temp() takes the
+         * SHT40, or has no reading this round, as the original does */
+        bento_sensors_snapshot_init(&snap);
+        status = BENTO_OK;
+    }
     if ((status == BENTO_OK) &&
         read_temp(&snap, &tally->source, &temp_c)) {
         if (bento_fmt_real_precision(digits, sizeof(digits), temp_c, 1,
