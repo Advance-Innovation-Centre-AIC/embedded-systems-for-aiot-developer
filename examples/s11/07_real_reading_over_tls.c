@@ -41,7 +41,7 @@
  *  - raise Stop / except Stop: pass is the not-connected path ending with 0;
  *    Stop during a sleep ends the program there, without disconnect(), as
  *    the uncaught KeyboardInterrupt does.
- * In the BENTO Emulator, MQTT from C is not available yet: the program says
+ * In the BENTO Emulator, the TESAIoT platform from C is not available yet: the program says
  * so and ends.
  */
 #include <stdbool.h>
@@ -464,8 +464,8 @@ static bento_status_t show_device(const tls_screen_t *screen)
  * Answers BENTO_E_CANCELLED, the quiet end, once the note is up. */
 static bento_status_t show_emulator_note(const tls_screen_t *screen)
 {
-    static const char note[] =
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    static const char note[] = "TESAIoT จาก C ยังไม่มีใน BENTO "
+                               "Emulator\nให้รันบน Dev Kit หรือ Eva Kit";
     bento_ui_widget_args_t args;
     bento_ui_id_t label;
     bento_status_t status;
@@ -481,10 +481,10 @@ static bento_status_t show_emulator_note(const tls_screen_t *screen)
     args.font_px = FONT_TEXT;
     status = bento_ui_label_create(screen->ui, &args, &label);
     poll_screen(screen->ui);
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a Dev Kit or Eva "
-                 "Kit.\n",
-                 note);
+    (void)printf(
+        "TESAIoT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva "
+        "Kit / TESAIoT platform from C is not in the BENTO Emulator "
+        "yet: run it on a Dev Kit or Eva Kit.\n");
     return (status == BENTO_OK) ? BENTO_E_CANCELLED : status;
 }
 
