@@ -80,6 +80,14 @@ enum { /* colours, 0xRRGGBB */
     COLOR_DOTS = 0x4A9EFF
 };
 
+/* How a label looks. */
+typedef struct {
+    uint32_t color;
+    int32_t font_px;
+} label_style_t;
+
+static const label_style_t NOTE_STYLE = {COLOR_DIM, FONT_VALUE};
+
 /* The inner areas the containers answer, and the widgets the loop
  * changes. */
 typedef struct {
@@ -102,7 +110,7 @@ static int16_t px(int32_t value)
 
 static bento_status_t add_label(bento_ui_t *ui, bento_ui_id_t parent,
                                 const char *text, int32_t x, int32_t y,
-                                uint32_t color, int32_t font_px)
+                                const label_style_t *style)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
@@ -112,8 +120,8 @@ static bento_status_t add_label(bento_ui_t *ui, bento_ui_id_t parent,
     args.text_len = (uint32_t)strlen(text);
     args.x = px(x);
     args.y = px(y);
-    args.color = color;
-    args.font_px = font_px;
+    args.color = style->color;
+    args.font_px = style->font_px;
     args.parent = parent;
     return bento_ui_label_create(ui, &args, &unused);
 }
@@ -154,10 +162,10 @@ static bento_status_t add_tabs(layout_t *layout)
 /* Tab 1: a Win has its own title bar; its body is the area below. */
 static bento_status_t add_window(layout_t *layout)
 {
-    static const char *const LOG_LINES[] = {
+    static const char *const log_lines[] = {
         "ระบบเริ่มทำงาน", "เชื่อมต่อเซนเซอร์แล้ว", "รอข้อมูลชุดแรก"};
     const uint32_t line_count =
-        (uint32_t)(sizeof(LOG_LINES) / sizeof(LOG_LINES[0]));
+        (uint32_t)(sizeof(log_lines) / sizeof(log_lines[0]));
     bento_ui_widget_args_t args;
     bento_ui_id_t win;
     uint32_t i;
@@ -177,10 +185,9 @@ static bento_status_t add_window(layout_t *layout)
         status = bento_ui_win_content(layout->ui, win, &layout->body);
     }
     for (i = 0U; (i < line_count) && (status == BENTO_OK); i++) {
-        status =
-            add_label(layout->ui, layout->body, LOG_LINES[i], LOG_X,
-                      LOG_FIRST_Y + ((int32_t)i * LOG_PITCH), COLOR_DIM,
-                      FONT_VALUE);
+        status = add_label(
+            layout->ui, layout->body, log_lines[i], LOG_X,
+            LOG_FIRST_Y + ((int32_t)i * LOG_PITCH), &NOTE_STYLE);
     }
     return status;
 }
@@ -216,9 +223,9 @@ static bento_status_t add_spinner(layout_t *layout)
     args.parent = layout->tab_dots;
     status = bento_ui_spinner_create(layout->ui, &args, &unused);
     if (status == BENTO_OK) {
-        status = add_label(layout->ui, layout->tab_dots,
-                           "กำลังอ่านเซนเซอร์", SPINNER_TEXT_X,
-                           SPINNER_TEXT_Y, COLOR_DIM, FONT_VALUE);
+        status =
+            add_label(layout->ui, layout->tab_dots, "กำลังอ่านเซนเซอร์",
+                      SPINNER_TEXT_X, SPINNER_TEXT_Y, &NOTE_STYLE);
     }
     return status;
 }
@@ -242,7 +249,7 @@ static bento_status_t add_picture(layout_t *layout)
         (void)bento_ui_image_icon(layout->ui, picture, "0", 1U);
         status = add_label(layout->ui, layout->tab_dots,
                            "ui.Image + .icon(0)", PICTURE_TEXT_X,
-                           PICTURE_TEXT_Y, COLOR_DIM, FONT_VALUE);
+                           PICTURE_TEXT_Y, &NOTE_STYLE);
     }
     return status;
 }
@@ -251,6 +258,7 @@ static bento_status_t add_picture(layout_t *layout)
  * a swipe moves up and down. */
 static bento_status_t add_tiles(layout_t *layout)
 {
+    static const label_style_t big_style = {COLOR_TEXT, FONT_BIG};
     bento_ui_widget_args_t args;
     bento_ui_id_t tiles;
     bento_status_t status;
@@ -273,12 +281,11 @@ static bento_status_t add_tiles(layout_t *layout)
     if (status == BENTO_OK) {
         status =
             add_label(layout->ui, layout->top_tile, "ปัดขึ้นเพื่อดูหน้าถัดไป",
-                      TILE_TEXT_X, TILE_TEXT_Y, COLOR_TEXT, FONT_BIG);
+                      TILE_TEXT_X, TILE_TEXT_Y, &big_style);
     }
     if (status == BENTO_OK) {
-        status =
-            add_label(layout->ui, layout->next_tile, "นี่คือไทล์ที่สอง",
-                      TILE_TEXT_X, TILE_TEXT_Y, COLOR_TEXT, FONT_BIG);
+        status = add_label(layout->ui, layout->next_tile, "นี่คือไทล์ที่สอง",
+                           TILE_TEXT_X, TILE_TEXT_Y, &big_style);
     }
     return status;
 }
