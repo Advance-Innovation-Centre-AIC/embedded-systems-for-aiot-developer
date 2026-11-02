@@ -175,7 +175,8 @@ static void show_number(const magnet_screen_t *screen, int32_t slot,
                         const char *prefix, bento_real_t value,
                         const number_format_t *format)
 {
-    char number[TEXT_BYTES];
+    char number[BENTO_FMT_BUF_SIZE +
+                1U]; /* format_number(): a real and its sign */
     char text[TEXT_BYTES];
 
     format_number(number, sizeof(number), value, format);
@@ -369,7 +370,8 @@ static void show_field(const magnet_screen_t *screen,
     const bento_real_t squares = (mx * mx) + (my * my) + (mz * mz);
     const bento_real_t magnitude = (bento_real_t)sqrt((double)squares);
     const char *note = "อยู่ในช่วงของโลกพอดี";
-    char number[TEXT_BYTES];
+    char number[BENTO_FMT_BUF_SIZE +
+                1U]; /* format_number(): a real and its sign */
     char text[TEXT_BYTES];
 
     show_number(screen, SLOT_MX, "mx  ", mx, &axis);
@@ -404,7 +406,8 @@ static bento_status_t show_headings(const magnet_screen_t *screen,
         const bento_real_t driver = (bento_real_t)reading->heading;
         const bento_real_t computed = (bento_real_t)compass;
         bento_real_t gap = driver - computed;
-        char number[TEXT_BYTES];
+        char number[BENTO_FMT_BUF_SIZE +
+                    1U]; /* format_number(): a real and its sign */
         char text[TEXT_BYTES];
 
         show_number(screen, SLOT_DRIVER, "heading()  ", driver, &angle);
