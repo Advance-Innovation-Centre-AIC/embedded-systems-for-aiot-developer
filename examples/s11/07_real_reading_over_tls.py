@@ -96,7 +96,8 @@ try:
         raise Stop
 
     led_tls.value(1)
-    lbl_tls.text("ช่องเข้ารหัสพร้อม - " + tesaiot.device_id())
+    # device_id() คืน bytes ต้องแปลงเป็นข้อความด้วย str() ก่อนต่อกับสตริง
+    lbl_tls.text("ช่องเข้ารหัสพร้อม - " + str(tesaiot.device_id()))
     lbl_tls.color(COL_OK)
     ui.poll()
 
