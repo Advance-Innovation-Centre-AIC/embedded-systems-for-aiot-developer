@@ -117,45 +117,45 @@ ui.screen()
 time.sleep_ms(200)
 ui.Label("นั่งร้านเอียง - " + DEVICE_ID, x=24, y=8, color=COL_TEXT, value=20)
 led_mqtt = ui.Led(x=606, y=12, w=18, h=18, color=COL_OK, value=0)
-lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=16)
+lbl_mqtt = ui.Label("MQTT: ออฟไลน์", x=632, y=10, color=COL_DIM, value=20)
 
 # การ์ดซ้ายบน: ค่าที่วัดได้ + พิสัย
 # สร้างการ์ดก่อนของที่วางบนมัน ไม่งั้นการ์ดทับจนหาย
 ui.Panel(x=24, y=48, w=464, h=184, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ค่าที่วัดได้ เทียบกับเกณฑ์", x=40, y=56, color=COL_DIM, value=16)
+ui.Label("ค่าที่วัดได้ เทียบกับเกณฑ์", x=40, y=56, color=COL_DIM, value=20)
 lbl_value = ui.Label("--", x=40, y=88, color=COL_TEXT, value=28)
-lbl_quality = ui.Label("รอค่าแรก", x=248, y=96, color=COL_DIM, value=16)
+lbl_quality = ui.Label("รอค่าแรก", x=248, y=96, color=COL_DIM, value=20)
 bar_value = ui.Bar(x=40, y=136, w=432, h=16, color=COL_RUN,
                    min=0, max=SCALE_MAX, value=0)
 sc_value = ui.Scale(x=40, y=156, w=432, h=48, color=COL_TEXT, min=0, max=SCALE_MAX)
 sc_value.ticks(10, 3)
 ui.Label("เฝ้าระวัง " + str(WARN_LIMIT) + " - ผิดปกติ " + str(ALERT_LIMIT) + " " + UNIT,
-         x=40, y=208, color=COL_DIM, value=16)
+         x=40, y=208, color=COL_DIM, value=20)
 
 # การ์ดซ้ายล่าง: สถานะเป็นไฟสามดวง ติดทีละดวง
 ui.Panel(x=24, y=240, w=464, h=152, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("สถานะที่ตัดสินแล้ว", x=40, y=248, color=COL_DIM, value=16)
+ui.Label("สถานะที่ตัดสินแล้ว", x=40, y=248, color=COL_DIM, value=20)
 lbl_latch = ui.Label("รอคนรับทราบ", x=336, y=244, color=COL_WARN, value=20)
 lbl_latch.hide()
 led_ok = ui.Led(x=40, y=276, w=48, h=48, color=COL_OK, value=1)
 led_warn = ui.Led(x=144, y=276, w=48, h=48, color=COL_WARN, value=0)
 led_bad = ui.Led(x=248, y=276, w=48, h=48, color=COL_BAD, value=0)
-ui.Label("ปกติ", x=40, y=328, color=COL_DIM, value=16)
-ui.Label("เฝ้าระวัง", x=144, y=328, color=COL_DIM, value=16)
-ui.Label("ผิดปกติ", x=248, y=328, color=COL_DIM, value=16)
+ui.Label("ปกติ", x=40, y=328, color=COL_DIM, value=20)
+ui.Label("เฝ้าระวัง", x=144, y=328, color=COL_DIM, value=20)
+ui.Label("ผิดปกติ", x=248, y=328, color=COL_DIM, value=20)
 lbl_state = ui.Label("กำลังวัดท่าตั้งต้น", x=40, y=356, color=COL_TEXT, value=20)
 btn_ack = ui.Button("รับทราบ", x=368, y=276, w=104, h=88, color=0x3A4150, value=20)
 
 ui.Panel(x=504, y=48, w=264, h=344, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("ไฟเตือนหน้างาน", x=520, y=56, color=COL_DIM, value=16)
+ui.Label("ไฟเตือนหน้างาน", x=520, y=56, color=COL_DIM, value=20)
 led_beacon = ui.Led(x=520, y=88, w=48, h=48, color=COL_BAD, value=0)
 lbl_beacon_state = ui.Label("ไฟดับอยู่", x=576, y=100, color=COL_DIM, value=20)
-lbl_beacon = ui.Label("สั่งปิดต้องยืนยันก่อน", x=520, y=144, color=COL_DIM, value=16)
+lbl_beacon = ui.Label("สั่งปิดต้องยืนยันก่อน", x=520, y=144, color=COL_DIM, value=20)
 # ปุ่มเปิด/ปิดแยกกัน: ปุ่มสลับบอกไม่ได้ว่าอยู่สถานะไหน
 btn_on = ui.Button("เปิดไฟ", x=520, y=176, w=96, h=88, color=0x30A46C, value=20)
 btn_off = ui.Button("ปิดไฟ", x=648, y=176, w=96, h=88, color=0x3A4150, value=20)
 lbl_net = ui.Label("net: starting", x=520, y=296, color=COL_DIM, value=20)
-lbl_sent = ui.Label("ส่งแล้ว 0 ใบ", x=520, y=336, color=COL_DIM, value=16)
+lbl_sent = ui.Label("ส่งแล้ว 0 ใบ", x=520, y=336, color=COL_DIM, value=20)
 
 # ข้อความ MsgBox ได้ราว 31 ตัวอักษรไทย เกินถูกตัดเงียบ ๆ
 # คำยืนยันต้องบอก "สิ่งที่จะเกิด" ไม่ใช่ "ยืนยันไหม"
