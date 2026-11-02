@@ -165,7 +165,7 @@ static void spend(budget_t *budget, int32_t used)
     budget->used = used;
     (void)snprintf(text, sizeof(text),
                    "ใช้ไป %" PRId32 " / งบ %d (เพดาน %d)", budget->used,
-                   (int)COURSE_BUDGET, (int)MAX_WIDGETS);
+                   COURSE_BUDGET, MAX_WIDGETS);
     show_text(budget->ui, budget->counter, text);
     (void)bento_ui_set_value(budget->ui, budget->bar, budget->used);
 }

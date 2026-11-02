@@ -179,7 +179,7 @@ static bento_status_t add_count(sound_screen_t *screen)
  * theme's. */
 static bento_status_t add_buttons(sound_screen_t *screen)
 {
-    static const char *const TEXTS[BUTTON_COUNT] = {"ยืนยัน", "ปฏิเสธ",
+    static const char *const texts[BUTTON_COUNT] = {"ยืนยัน", "ปฏิเสธ",
                                                     "ไล่โน้ต"};
     bento_ui_widget_args_t args;
     bento_status_t status = BENTO_OK;
@@ -188,8 +188,8 @@ static bento_status_t add_buttons(sound_screen_t *screen)
     for (i = 0U; (i < (uint32_t)BUTTON_COUNT) && (status == BENTO_OK);
          i++) {
         bento_ui_widget_args_init(&args);
-        args.text = TEXTS[i];
-        args.text_len = (uint32_t)strlen(TEXTS[i]);
+        args.text = texts[i];
+        args.text_len = (uint32_t)strlen(texts[i]);
         args.x = (int16_t)(MARGIN_X + ((int32_t)i * BUTTON_PITCH));
         args.y = BUTTON_Y;
         args.w = BUTTON_W;
@@ -309,8 +309,8 @@ static void play_effect(sound_screen_t *screen, uint8_t effect,
  * between two notes throws its events away, as the original does. */
 static bento_status_t play_scale(sound_screen_t *screen)
 {
-    static const uint8_t MELODY[MELODY_NOTES] = {60U, 64U, 67U, 72U};
-    static const char *const NOTE_NAMES[MELODY_NOTES] = {"C4", "E4",
+    static const uint8_t melody[MELODY_NOTES] = {60U, 64U, 67U, 72U};
+    static const char *const note_names[MELODY_NOTES] = {"C4", "E4",
                                                          "G4", "C5"};
     bento_ui_event_t thrown_away[BENTO_UI_POLL_EVENTS_MAX];
     char name[TEXT_BYTES];
@@ -325,11 +325,11 @@ static bento_status_t play_scale(sound_screen_t *screen)
 
         if (screen->has_sound) {
             (void)bento_ui_sfx_tone(
-                screen->ui, MELODY[i], (uint8_t)BENTO_UI_WAVE_TRIANGLE,
+                screen->ui, melody[i], (uint8_t)BENTO_UI_WAVE_TRIANGLE,
                 (uint8_t)NOTE_VELOCITY, (uint16_t)NOTE_LENGTH_MS);
         }
         (void)snprintf(name, sizeof(name), "tone %u = %s",
-                       (unsigned int)MELODY[i], NOTE_NAMES[i]);
+                       (unsigned int)melody[i], note_names[i]);
         played_one(screen, name);
         (void)bento_ui_poll(screen->ui, thrown_away,
                             BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
@@ -359,27 +359,34 @@ static bento_status_t handle_click(sound_screen_t *screen,
 
 /* ui.poll() answers at most BENTO_UI_POLL_EVENTS_MAX events, possibly
  * none; a failed poll answers none, so it is not an error here. */
-static bento_status_t run_loop(sound_screen_t *screen)
+static bento_status_t handle_events(sound_screen_t *screen)
 {
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
+    bento_status_t status = BENTO_OK;
+    uint32_t count = 0U;
+    uint32_t i;
+
+    if (bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
+        count = 0U;
+    }
+    for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
+        if (events[i].type == BENTO_UI_EVENT_CLICKED) {
+            status = handle_click(screen, events[i].id);
+        }
+    }
+    return status;
+}
+
+static bento_status_t run_loop(sound_screen_t *screen)
+{
     const uint32_t start_ms = bento_time_ticks_ms();
     bento_status_t status = BENTO_OK;
 
     while ((status == BENTO_OK) &&
            (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
             RUN_MS)) {
-        uint32_t count = 0U;
-        uint32_t i;
-
-        if (bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX,
-                          &count, NULL) != BENTO_OK) {
-            count = 0U;
-        }
-        for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
-            if (events[i].type == BENTO_UI_EVENT_CLICKED) {
-                status = handle_click(screen, events[i].id);
-            }
-        }
+        status = handle_events(screen);
         if (status == BENTO_OK) {
             status = pause_ms(LOOP_MS);
         }

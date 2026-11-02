@@ -139,17 +139,17 @@ typedef struct {
  * ui.poll() puts in ev["type"] (modui.c). Shown only, never compared. */
 static const char *type_text(uint8_t type)
 {
-    static const char *const NAMES[] = {
+    static const char *const names[] = {
         "unknown",    "clicked",      "value_changed",
         "toggled",    "pressed",      "released",
         "press_lost", "long_pressed", "long_pressed_repeat",
         "ready",      "cancel",       "focused",
         "defocused",  "scroll_begin", "scroll_end",
         "gesture"};
-    const char *name = NAMES[0];
+    const char *name = names[0];
 
-    if ((size_t)type < (sizeof(NAMES) / sizeof(NAMES[0]))) {
-        name = NAMES[type];
+    if ((size_t)type < (sizeof(names) / sizeof(names[0]))) {
+        name = names[type];
     }
     return name;
 }
@@ -217,7 +217,7 @@ static bento_status_t add_button(bento_ui_t *ui, const char *text,
  * type, so the learner finds each control without guessing. */
 static bento_status_t add_names(bento_ui_t *ui)
 {
-    static const int16_t NAME_X[CONTROL_COUNT] = {MARGIN_X, SWITCH_X,
+    static const int16_t name_x[CONTROL_COUNT] = {MARGIN_X, SWITCH_X,
                                                   CHECKBOX_X, SLIDER_X};
     bento_status_t status = BENTO_OK;
     bento_ui_id_t unused;
@@ -225,7 +225,7 @@ static bento_status_t add_names(bento_ui_t *ui)
 
     for (i = 0U; (i < (uint32_t)CONTROL_COUNT) && (status == BENTO_OK);
          i++) {
-        const label_at_t at = {NAME_X[i], NAME_Y, FONT_TEXT_PX};
+        const label_at_t at = {name_x[i], NAME_Y, FONT_TEXT_PX};
 
         status = add_label(ui, STEPS[i].who, at, COLOR_DIM, &unused);
     }
@@ -377,7 +377,7 @@ static void show_step(const events_screen_t *screen)
     char text[TEXT_BYTES];
 
     (void)snprintf(text, sizeof(text), "%" PRId32 " / %d  %s",
-                   screen->step + 1, (int)CONTROL_COUNT, step->who);
+                   screen->step + 1, CONTROL_COUNT, step->who);
     show_text(screen->ui, screen->position, text);
     (void)snprintf(text, sizeof(text), "แตะ %s แล้วต้องได้ %s", step->who,
                    type_text(step->want_type));
