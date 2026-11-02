@@ -509,6 +509,13 @@ static bento_status_t handle_click(census_screen_t *screen,
     return status;
 }
 
+/* True when the event is of this kind; the kind passes through a
+ * uint8_t, so both sides of the comparison have one type. */
+static bool type_is(const bento_ui_event_t *event, uint8_t kind)
+{
+    return event->type == kind;
+}
+
 /* ui.poll() answers at most BENTO_UI_POLL_EVENTS_MAX events, possibly
  * none; a failed poll answers none, so it is not an error here. */
 static bento_status_t handle_events(census_screen_t *screen)
@@ -523,7 +530,7 @@ static bento_status_t handle_events(census_screen_t *screen)
         count = 0U;
     }
     for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
-        if (events[i].type == BENTO_UI_EVENT_CLICKED) {
+        if (type_is(&events[i], BENTO_UI_EVENT_CLICKED)) {
             status = handle_click(screen, events[i].id);
         }
     }

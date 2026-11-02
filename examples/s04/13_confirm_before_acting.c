@@ -66,9 +66,6 @@ typedef struct {
     const char *why;
 } action_t;
 
-static const action_t ACTIONS[ACTION_COUNT] = {
-    {"เปิด", "พัดลมจะเริ่มหมุนทันที"}, {"ปิด", "พัดลมจะหยุดหมุนทันที"}};
-
 typedef struct {
     bento_ui_t *ui;
     bento_ui_id_t ids[W_COUNT];
@@ -150,23 +147,6 @@ static bento_status_t add_widgets(bento_ui_t *ui,
     return status;
 }
 
-/* The screen, in creation order. The box's title and body are split
- * by a new line. */
-static const widget_spec_t SCREEN_WIDGETS[W_COUNT] = {
-    {UI_WIDGET_LABEL, "สั่งของจริง ต้องยืนยันก่อน", 24, 16, AUTO, AUTO,
-     COLOR_TEXT, 28, 0, 0},
-    {UI_WIDGET_LABEL, "ตอนนี้: พัดลมปิดอยู่", 24, 64, AUTO, AUTO, COLOR_TEXT,
-     24, 0, 0},
-    {UI_WIDGET_LABEL, "สั่งงาน", 24, 112, AUTO, AUTO, COLOR_DIM, 20, 0,
-     0},
-    {UI_WIDGET_BTNMATRIX, NULL, 24, 144, 352, 96, COLOR_THEME, 0, 0, 0},
-    {UI_WIDGET_LABEL, "กล่องยืนยัน", 416, 112, AUTO, AUTO, COLOR_DIM, 20,
-     0, 0},
-    {UI_WIDGET_MSGBOX, "ยืนยันคำสั่ง\nพัดลมจะเริ่มหมุนทันที", 416, 144, 352, AUTO,
-     COLOR_THEME, 0, 0, 0},
-    {UI_WIDGET_LABEL, "แตะปุ่มซ้าย แล้วอ่านกล่องขวาก่อนตัดสินใจ", 24, 264, AUTO,
-     AUTO, COLOR_DIM, 20, 0, 0}};
-
 /* ui.poll() here only lets the screen draw; the events are not used. */
 static void let_screen_draw(bento_ui_t *ui)
 {
@@ -194,6 +174,31 @@ static void add_buttons(const confirm_screen_t *screen)
                               (uint32_t)strlen("ตกลง"), false, 0U);
 }
 
+/* The screen, in creation order. The box's title and body are split
+ * by a new line. */
+static bento_status_t add_screen_widgets(bento_ui_t *ui, uint32_t first,
+                                         uint32_t count,
+                                         bento_ui_id_t *ids)
+{
+    static const widget_spec_t screen_widgets[W_COUNT] = {
+        {UI_WIDGET_LABEL, "สั่งของจริง ต้องยืนยันก่อน", 24, 16, AUTO, AUTO,
+         COLOR_TEXT, 28, 0, 0},
+        {UI_WIDGET_LABEL, "ตอนนี้: พัดลมปิดอยู่", 24, 64, AUTO, AUTO,
+         COLOR_TEXT, 24, 0, 0},
+        {UI_WIDGET_LABEL, "สั่งงาน", 24, 112, AUTO, AUTO, COLOR_DIM, 20,
+         0, 0},
+        {UI_WIDGET_BTNMATRIX, NULL, 24, 144, 352, 96, COLOR_THEME, 0, 0,
+         0},
+        {UI_WIDGET_LABEL, "กล่องยืนยัน", 416, 112, AUTO, AUTO, COLOR_DIM,
+         20, 0, 0},
+        {UI_WIDGET_MSGBOX, "ยืนยันคำสั่ง\nพัดลมจะเริ่มหมุนทันที", 416, 144, 352,
+         AUTO, COLOR_THEME, 0, 0, 0},
+        {UI_WIDGET_LABEL, "แตะปุ่มซ้าย แล้วอ่านกล่องขวาก่อนตัดสินใจ", 24, 264,
+         AUTO, AUTO, COLOR_DIM, 20, 0, 0}};
+
+    return add_widgets(ui, &screen_widgets[first], count, &ids[first]);
+}
+
 static bento_status_t build_screen(confirm_screen_t *screen)
 {
     bento_status_t status =
@@ -204,8 +209,8 @@ static bento_status_t build_screen(confirm_screen_t *screen)
         status = pause_ms(SETTLE_MS);
     }
     if (status == BENTO_OK) {
-        status = add_widgets(screen->ui, SCREEN_WIDGETS, W_COUNT,
-                             screen->ids);
+        status =
+            add_screen_widgets(screen->ui, 0U, W_COUNT, screen->ids);
     }
     if (status == BENTO_OK) {
         add_buttons(screen);
@@ -217,6 +222,8 @@ static bento_status_t build_screen(confirm_screen_t *screen)
 /* The action of a button number, or the "unknown" row. */
 static action_t find_action(int32_t number, const char *unknown_why)
 {
+    static const action_t actions[ACTION_COUNT] = {
+        {"เปิด", "พัดลมจะเริ่มหมุนทันที"}, {"ปิด", "พัดลมจะหยุดหมุนทันที"}};
     action_t action;
 
     /* filled field by field: a local initialiser holding a text would
@@ -224,7 +231,7 @@ static action_t find_action(int32_t number, const char *unknown_why)
     action.what = "ไม่รู้จัก";
     action.why = unknown_why;
     if ((number >= 0) && (number < ACTION_COUNT)) {
-        action = ACTIONS[number];
+        action = actions[number];
     }
     return action;
 }
@@ -269,13 +276,20 @@ static void carry_out(confirm_screen_t *screen)
     screen->has_pending = false;
 }
 
+/* True when the event is of this kind; the kind passes through a
+ * uint8_t, so both sides of the comparison have one type. */
+static bool type_is(const bento_ui_event_t *event, uint8_t kind)
+{
+    return event->type == kind;
+}
+
 /* Any event from the box counts as its answer, but only while a
  * command waits. */
 static void handle_event(confirm_screen_t *screen,
                          const bento_ui_event_t *event)
 {
     if ((event->id == screen->ids[W_MATRIX]) &&
-        (event->type == BENTO_UI_EVENT_VALUE_CHANGED)) {
+        type_is(event, BENTO_UI_EVENT_VALUE_CHANGED)) {
         ask_to_confirm(screen, event->value);
     } else if ((event->id == screen->ids[W_BOX]) &&
                screen->has_pending) {

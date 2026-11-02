@@ -71,12 +71,6 @@ enum {
     W_COUNT
 };
 
-/* The demo: a made-up raw drag up and release, typed here, not read
- * from the sensor, so the learner sees the shape before dragging. */
-static const int32_t DEMO[DEMO_POINTS] = {
-    -1, -1, -1, -1, 5,  15, 28, 40, 52, 63, 74, 82, 88,
-    88, 88, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-
 typedef struct {
     bento_ui_t *ui;
     bento_ui_id_t ids[W_COUNT];
@@ -161,31 +155,6 @@ static bento_status_t add_widgets(bento_ui_t *ui,
     return status;
 }
 
-/* The screen on an 8 px grid with a 24 px margin. The chart's Y axis
- * starts at -10: the raw value can go below zero without a finger. A
- * line is named by what it does, not by its colour. A Seg7 takes no
- * value=: its digits come from h. */
-static const widget_spec_t SCREEN_WIDGETS[W_COUNT] = {
-    {UI_WIDGET_LABEL, "สไลเดอร์สัมผัส = สวิตช์หรี่ไฟ", 24, 8, AUTO, AUTO,
-     COLOR_TEXT, 24, 0, 0},
-    {UI_WIDGET_LABEL, "ลากนิ้วบนแถบ CapSense", 496, 14, AUTO, AUTO,
-     COLOR_DIM, 20, 0, 0},
-    {UI_WIDGET_CHART, NULL, 24, 56, 744, 152, COLOR_TEXT, 0, -10,
-     LEVEL_MAX},
-    {UI_WIDGET_LABEL, "เส้นที่ตกติดลบ = ค่าดิบ slider()", 24, 214, AUTO, AUTO,
-     COLOR_TEXT, 20, 0, 0},
-    {UI_WIDGET_LABEL, "เส้นที่ค้างระดับ = ไฟที่สั่งจริง", 24, 246, AUTO, AUTO,
-     COLOR_ACCENT, 20, 0, 0},
-    {UI_WIDGET_LABEL, "ความสว่าง (%)", 496, 214, AUTO, AUTO, COLOR_DIM,
-     20, 0, 0},
-    {UI_WIDGET_SEG7, NULL, 496, 248, 192, 56, COLOR_ACCENT, 0, 0, 0},
-    {UI_WIDGET_BAR, NULL, 496, 312, 192, 32, COLOR_ACCENT, 0, 0,
-     LEVEL_MAX},
-    {UI_WIDGET_LABEL, "ปล่อยนิ้ว", 24, 288, AUTO, AUTO, COLOR_DIM, 28, 0,
-     0},
-    {UI_WIDGET_LABEL, "ค้างไว้ที่ 0%", 24, 336, AUTO, AUTO, COLOR_DIM, 20,
-     0, 0}};
-
 /* ui.poll() here only lets the screen draw; the events are not used. */
 static void let_screen_draw(bento_ui_t *ui)
 {
@@ -222,6 +191,39 @@ static bento_status_t pick_led(uint32_t *led)
     return status;
 }
 
+/* The screen on an 8 px grid with a 24 px margin. The chart's Y axis
+ * starts at -10: the raw value can go below zero without a finger. A
+ * line is named by what it does, not by its colour. A Seg7 takes no
+ * value=: its digits come from h. */
+static bento_status_t add_screen_widgets(bento_ui_t *ui, uint32_t first,
+                                         uint32_t count,
+                                         bento_ui_id_t *ids)
+{
+    static const widget_spec_t screen_widgets[W_COUNT] = {
+        {UI_WIDGET_LABEL, "สไลเดอร์สัมผัส = สวิตช์หรี่ไฟ", 24, 8, AUTO, AUTO,
+         COLOR_TEXT, 24, 0, 0},
+        {UI_WIDGET_LABEL, "ลากนิ้วบนแถบ CapSense", 496, 14, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_CHART, NULL, 24, 56, 744, 152, COLOR_TEXT, 0, -10,
+         LEVEL_MAX},
+        {UI_WIDGET_LABEL, "เส้นที่ตกติดลบ = ค่าดิบ slider()", 24, 214, AUTO,
+         AUTO, COLOR_TEXT, 20, 0, 0},
+        {UI_WIDGET_LABEL, "เส้นที่ค้างระดับ = ไฟที่สั่งจริง", 24, 246, AUTO, AUTO,
+         COLOR_ACCENT, 20, 0, 0},
+        {UI_WIDGET_LABEL, "ความสว่าง (%)", 496, 214, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_SEG7, NULL, 496, 248, 192, 56, COLOR_ACCENT, 0, 0,
+         0},
+        {UI_WIDGET_BAR, NULL, 496, 312, 192, 32, COLOR_ACCENT, 0, 0,
+         LEVEL_MAX},
+        {UI_WIDGET_LABEL, "ปล่อยนิ้ว", 24, 288, AUTO, AUTO, COLOR_DIM, 28,
+         0, 0},
+        {UI_WIDGET_LABEL, "ค้างไว้ที่ 0%", 24, 336, AUTO, AUTO, COLOR_DIM,
+         20, 0, 0}};
+
+    return add_widgets(ui, &screen_widgets[first], count, &ids[first]);
+}
+
 static bento_status_t build_screen(dimmer_t *dimmer)
 {
     bento_status_t status =
@@ -229,8 +231,8 @@ static bento_status_t build_screen(dimmer_t *dimmer)
                         BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
-        status = add_widgets(dimmer->ui, SCREEN_WIDGETS, W_COUNT,
-                             dimmer->ids);
+        status =
+            add_screen_widgets(dimmer->ui, 0U, W_COUNT, dimmer->ids);
     }
     if (status == BENTO_OK) {
         /* series 0 takes the chart's color= */
@@ -302,6 +304,11 @@ static bento_status_t hold_led(const dimmer_t *dimmer, int32_t level,
  * lifts. */
 static bento_status_t run_demo(const dimmer_t *dimmer)
 {
+    /* The demo: a made-up raw drag up and release, typed here, not read
+     * from the sensor, so the learner sees the shape before dragging. */
+    static const int32_t demo[DEMO_POINTS] = {
+        -1, -1, -1, -1, 5,  15, 28, 40, 52, 63, 74, 82, 88,
+        88, 88, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
     bento_status_t status = BENTO_OK;
     int32_t demo_level = 0;
     uint32_t i;
@@ -311,10 +318,10 @@ static bento_status_t run_demo(const dimmer_t *dimmer)
               "ลากขึ้น แล้วปล่อย - ดูเส้นที่ค้าง");
     for (i = 0U; (i < (uint32_t)DEMO_POINTS) && (status == BENTO_OK);
          i++) {
-        if (DEMO[i] >= 0) {
-            demo_level = DEMO[i];
+        if (demo[i] >= 0) {
+            demo_level = demo[i];
         }
-        chart_point(dimmer, DEMO[i], demo_level);
+        chart_point(dimmer, demo[i], demo_level);
         show_level(dimmer, demo_level);
         let_screen_draw(dimmer->ui);
         status = hold_led(dimmer, demo_level, DEMO_STEP_MS);

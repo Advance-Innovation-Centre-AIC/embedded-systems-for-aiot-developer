@@ -166,35 +166,6 @@ static bento_status_t add_widgets(bento_ui_t *ui,
     return status;
 }
 
-/* The screen on an 8 px grid: the menu card and the trap card on the
- * left, the stuck-touch gauge on the right. The trap text never
- * changes, so it is dim, not a warning colour. A Panel's value= is its
- * border width. The rows come after this table. */
-static const widget_spec_t SCREEN_WIDGETS[W_COUNT] = {
-    {UI_WIDGET_LABEL, "เมนูสัมผัสสองปุ่ม", 24, 8, AUTO, AUTO, COLOR_TEXT, 28,
-     0, 0},
-    {UI_WIDGET_PANEL, NULL, 24, 56, 432, 192, COLOR_CARD, 1, COLOR_CARD,
-     12},
-    {UI_WIDGET_PANEL, NULL, 24, 264, 432, 96, COLOR_CARD, 1, COLOR_CARD,
-     12},
-    {UI_WIDGET_LABEL, "กับดัก: น้ำบนแผ่นอ่านเหมือนนิ้ว", 40, 280, AUTO, AUTO,
-     COLOR_DIM, 20, 0, 0},
-    {UI_WIDGET_LABEL, "จึงพังในครัวเปียก และถุงมือหนา", 40, 312, AUTO, AUTO,
-     COLOR_DIM, 20, 0, 0},
-    {UI_WIDGET_LABEL, "CAP1 = เลื่อนขึ้น", 480, 56, AUTO, AUTO, COLOR_DIM,
-     20, 0, 0},
-    {UI_WIDGET_LABEL, "CAP2 = เลื่อนลง", 480, 88, AUTO, AUTO, COLOR_DIM,
-     20, 0, 0},
-    {UI_WIDGET_LABEL, "แตะค้างมาแล้วกี่รอบ", 480, 136, AUTO, AUTO,
-     COLOR_DIM, 20, 0, 0},
-    {UI_WIDGET_BAR, NULL, 480, 168, 208, 32, COLOR_ACCENT, 0, 0,
-     STUCK_ROUNDS},
-    {UI_WIDGET_LABEL, "0 / 40", 480, 208, AUTO, AUTO, COLOR_DIM, 20, 0,
-     0},
-    /* the normal state stays quiet: dim, not green */
-    {UI_WIDGET_LABEL, "สถานะ: ปกติ", 480, 256, AUTO, AUTO, COLOR_DIM, 24,
-     0, 0}};
-
 /* ui.poll() here only lets the screen draw; the events are not used. */
 static void let_screen_draw(bento_ui_t *ui)
 {
@@ -278,6 +249,42 @@ static bento_status_t add_rows(menu_t *menu)
     return status;
 }
 
+/* The screen on an 8 px grid: the menu card and the trap card on the
+ * left, the stuck-touch gauge on the right. The trap text never
+ * changes, so it is dim, not a warning colour. A Panel's value= is its
+ * border width. The rows come after this table. */
+static bento_status_t add_screen_widgets(bento_ui_t *ui, uint32_t first,
+                                         uint32_t count,
+                                         bento_ui_id_t *ids)
+{
+    static const widget_spec_t screen_widgets[W_COUNT] = {
+        {UI_WIDGET_LABEL, "เมนูสัมผัสสองปุ่ม", 24, 8, AUTO, AUTO, COLOR_TEXT,
+         28, 0, 0},
+        {UI_WIDGET_PANEL, NULL, 24, 56, 432, 192, COLOR_CARD, 1,
+         COLOR_CARD, 12},
+        {UI_WIDGET_PANEL, NULL, 24, 264, 432, 96, COLOR_CARD, 1,
+         COLOR_CARD, 12},
+        {UI_WIDGET_LABEL, "กับดัก: น้ำบนแผ่นอ่านเหมือนนิ้ว", 40, 280, AUTO,
+         AUTO, COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_LABEL, "จึงพังในครัวเปียก และถุงมือหนา", 40, 312, AUTO,
+         AUTO, COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_LABEL, "CAP1 = เลื่อนขึ้น", 480, 56, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_LABEL, "CAP2 = เลื่อนลง", 480, 88, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_LABEL, "แตะค้างมาแล้วกี่รอบ", 480, 136, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_BAR, NULL, 480, 168, 208, 32, COLOR_ACCENT, 0, 0,
+         STUCK_ROUNDS},
+        {UI_WIDGET_LABEL, "0 / 40", 480, 208, AUTO, AUTO, COLOR_DIM, 20,
+         0, 0},
+        /* the normal state stays quiet: dim, not green */
+        {UI_WIDGET_LABEL, "สถานะ: ปกติ", 480, 256, AUTO, AUTO, COLOR_DIM,
+         24, 0, 0}};
+
+    return add_widgets(ui, &screen_widgets[first], count, &ids[first]);
+}
+
 static bento_status_t build_screen(menu_t *menu)
 {
     bento_status_t status =
@@ -285,15 +292,14 @@ static bento_status_t build_screen(menu_t *menu)
                         BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
-        status = add_widgets(menu->ui, SCREEN_WIDGETS, 2U, menu->ids);
+        status = add_screen_widgets(menu->ui, 0U, 2U, menu->ids);
     }
     if (status == BENTO_OK) {
         status = add_rows(menu);
     }
     if (status == BENTO_OK) {
-        status = add_widgets(menu->ui, &SCREEN_WIDGETS[W_TRAP_CARD],
-                             (uint32_t)W_COUNT - 2U,
-                             &menu->ids[W_TRAP_CARD]);
+        status = add_screen_widgets(menu->ui, W_TRAP_CARD,
+                                    (uint32_t)W_COUNT - 2U, menu->ids);
     }
     return status;
 }

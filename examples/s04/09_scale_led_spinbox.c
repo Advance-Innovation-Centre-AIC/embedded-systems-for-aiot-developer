@@ -158,38 +158,6 @@ static bento_status_t add_widgets(bento_ui_t *ui,
     return status;
 }
 
-/* The screen, in creation order (creation order is drawing order).
- * The bar sits above the ruler: a Scale has no needle, so the bar is
- * what moves. */
-static const widget_spec_t SCREEN_WIDGETS[W_COUNT] = {
-    {UI_WIDGET_LABEL, "แผงคุมอุณหภูมิ", 20, 12, AUTO, AUTO, COLOR_TEXT, 24,
-     0, 0},
-    {UI_WIDGET_PANEL, NULL, 20, 48, 740, 112, COLOR_CARD, 1, COLOR_DIM,
-     12},
-    {UI_WIDGET_LABEL, "อุณหภูมิเทียบพิสัยใช้งาน", 40, 60, AUTO, AUTO,
-     COLOR_DIM, 20, 0, 0},
-    {UI_WIDGET_BAR, NULL, 40, 84, 660, 16, COLOR_OK, 0, T_MIN, T_MAX},
-    {UI_WIDGET_SCALE, NULL, 40, 104, 660, 48, COLOR_TEXT, 0, T_MIN,
-     T_MAX},
-    {UI_WIDGET_PANEL, NULL, 20, 176, 360, 120, COLOR_CARD, 1, COLOR_DIM,
-     12},
-    {UI_WIDGET_LABEL, "เป้าหมาย (องศา)", 40, 188, AUTO, AUTO, COLOR_DIM,
-     20, 0, 0},
-    {UI_WIDGET_SPINBOX, NULL, 40, 220, 200, 88, COLOR_OK, 45, T_MIN,
-     T_MAX},
-    {UI_WIDGET_PANEL, NULL, 400, 176, 360, 120, COLOR_CARD, 1,
-     COLOR_DIM, 12},
-    {UI_WIDGET_LABEL, "สถานะ", 420, 188, AUTO, AUTO, COLOR_DIM, 20, 0,
-     0},
-    {UI_WIDGET_LED, NULL, 428, 224, 48, 48, COLOR_OK, 1, 0, 0},
-    {UI_WIDGET_LABEL, "ปกติ", 480, 232, AUTO, AUTO, COLOR_DIM, 20, 0, 0},
-    {UI_WIDGET_LED, NULL, 560, 224, 48, 48, COLOR_WARN, 0, 0, 0},
-    {UI_WIDGET_LABEL, "เฝ้าระวัง", 612, 280, AUTO, AUTO, COLOR_DIM, 20, 0,
-     0},
-    {UI_WIDGET_LED, NULL, 700, 224, 48, 48, COLOR_BAD, 0, 0, 0},
-    {UI_WIDGET_LABEL, "ค่าลอย ๆ ไม่บอกว่าสูงไหม มาตรวัดบอก", 20, 312, AUTO,
-     AUTO, COLOR_DIM, 20, 0, 0}};
-
 /* ui.poll() here only lets the screen draw; the events are not used. */
 static void let_screen_draw(bento_ui_t *ui)
 {
@@ -198,6 +166,47 @@ static void let_screen_draw(bento_ui_t *ui)
 
     (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
                         NULL);
+}
+
+/* The screen, in creation order (creation order is drawing order).
+ * The bar sits above the ruler: a Scale has no needle, so the bar is
+ * what moves. */
+static bento_status_t add_screen_widgets(bento_ui_t *ui, uint32_t first,
+                                         uint32_t count,
+                                         bento_ui_id_t *ids)
+{
+    static const widget_spec_t screen_widgets[W_COUNT] = {
+        {UI_WIDGET_LABEL, "แผงคุมอุณหภูมิ", 20, 12, AUTO, AUTO, COLOR_TEXT,
+         24, 0, 0},
+        {UI_WIDGET_PANEL, NULL, 20, 48, 740, 112, COLOR_CARD, 1,
+         COLOR_DIM, 12},
+        {UI_WIDGET_LABEL, "อุณหภูมิเทียบพิสัยใช้งาน", 40, 60, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_BAR, NULL, 40, 84, 660, 16, COLOR_OK, 0, T_MIN,
+         T_MAX},
+        {UI_WIDGET_SCALE, NULL, 40, 104, 660, 48, COLOR_TEXT, 0, T_MIN,
+         T_MAX},
+        {UI_WIDGET_PANEL, NULL, 20, 176, 360, 120, COLOR_CARD, 1,
+         COLOR_DIM, 12},
+        {UI_WIDGET_LABEL, "เป้าหมาย (องศา)", 40, 188, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_SPINBOX, NULL, 40, 220, 200, 88, COLOR_OK, 45, T_MIN,
+         T_MAX},
+        {UI_WIDGET_PANEL, NULL, 400, 176, 360, 120, COLOR_CARD, 1,
+         COLOR_DIM, 12},
+        {UI_WIDGET_LABEL, "สถานะ", 420, 188, AUTO, AUTO, COLOR_DIM, 20,
+         0, 0},
+        {UI_WIDGET_LED, NULL, 428, 224, 48, 48, COLOR_OK, 1, 0, 0},
+        {UI_WIDGET_LABEL, "ปกติ", 480, 232, AUTO, AUTO, COLOR_DIM, 20, 0,
+         0},
+        {UI_WIDGET_LED, NULL, 560, 224, 48, 48, COLOR_WARN, 0, 0, 0},
+        {UI_WIDGET_LABEL, "เฝ้าระวัง", 612, 280, AUTO, AUTO, COLOR_DIM,
+         20, 0, 0},
+        {UI_WIDGET_LED, NULL, 700, 224, 48, 48, COLOR_BAD, 0, 0, 0},
+        {UI_WIDGET_LABEL, "ค่าลอย ๆ ไม่บอกว่าสูงไหม มาตรวัดบอก", 20, 312,
+         AUTO, AUTO, COLOR_DIM, 20, 0, 0}};
+
+    return add_widgets(ui, &screen_widgets[first], count, &ids[first]);
 }
 
 static bento_status_t build_screen(gauge_screen_t *screen)
@@ -210,8 +219,8 @@ static bento_status_t build_screen(gauge_screen_t *screen)
         status = pause_ms(SETTLE_MS);
     }
     if (status == BENTO_OK) {
-        status = add_widgets(screen->ui, SCREEN_WIDGETS, W_COUNT,
-                             screen->ids);
+        status =
+            add_screen_widgets(screen->ui, 0U, W_COUNT, screen->ids);
     }
     if (status == BENTO_OK) {
         let_screen_draw(screen->ui);

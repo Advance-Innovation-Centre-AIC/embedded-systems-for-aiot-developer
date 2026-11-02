@@ -51,7 +51,7 @@
 /* Change these to what the teacher hands out. A phone hotspot: the
  * faculty Wi-Fi needs a login the board cannot do. */
 static const char WIFI_SSID[] = "bento-teamXX";
-static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>"; /* 8 or more */
+/* the hotspot's password (8 or more) is set in join_wifi() */
 static const char BROKER[] =
     "broker.hivemq.com";             /* or test.mosquitto.org */
 static const char TEAM[] = "teamXX"; /* team01 to team19 */
@@ -179,25 +179,12 @@ typedef struct {
     json_value_t text;
 } command_t;
 
-/* UTF-8 and the character ranges the screen draws. */
-static const uint32_t UTF8_ONE_BYTE_END = 0x80U;  /* below: one byte */
-static const uint32_t UTF8_TWO_BYTE_END = 0x800U; /* below: two bytes */
 static const uint32_t UTF8_LEAD_TWO = 0xC0U;
 static const uint32_t UTF8_LEAD_THREE = 0xE0U;
-static const uint32_t UTF8_LEAD_FOUR = 0xF0U;
-static const uint32_t UTF8_FOLLOW = 0x80U;
 static const uint32_t UTF8_FOLLOW_BITS = 0x3FU;
 static const uint32_t UTF8_FOLLOW_SHIFT = 6U;
-static const uint32_t UTF8_LEAD_THREE_BITS = 0x0FU;
 static const uint32_t UTF8_LEAD_THREE_SHIFT = 12U;
-static const uint32_t UTF8_WIDTH_THREE = 3U;
 static const uint32_t UTF8_WIDTH_FOUR = 4U;
-static const uint32_t ASCII_FIRST = 0x20U;
-static const uint32_t ASCII_LAST = 0x7EU;
-static const uint32_t THAI_BLOCK = 0x0E00U; /* U+0E00 to U+0E7F */
-static const uint32_t THAI_BLOCK_MASK = 0xFF80U;
-static const uint32_t HEX_LETTER_VALUE = 10U; /* 'a' and 'A' */
-
 /* Up to BENTO_WIFI_SCAN_MAX networks: too big for the 8 KB program
  * stack, so file scope, cleared at the start of main() (C9). */
 extern bento_wifi_ap_t g_networks[BENTO_WIFI_SCAN_MAX];
@@ -285,6 +272,14 @@ static uint8_t peek(const json_reader_t *reader)
                                          : 0U;
 }
 
+/* The value of a digit letter. */
+static int32_t digit_value(uint8_t letter)
+{
+    const uint8_t zero = (uint8_t)'0';
+
+    return (int32_t)letter - (int32_t)zero;
+}
+
 static bool is_digit(uint8_t letter)
 {
     return (letter >= (uint8_t)'0') && (letter <= (uint8_t)'9');
@@ -336,34 +331,41 @@ static void value_put(json_value_t *value, uint8_t byte)
 /* A \u escape, written as UTF-8. */
 static void value_put_code(json_value_t *value, uint32_t code)
 {
-    if (code < UTF8_ONE_BYTE_END) {
+    static const uint32_t utf8_follow = 0x80U;
+    static const uint32_t utf8_two_byte_end =
+        0x800U; /* below: two bytes */
+    /* UTF-8 and the character ranges the screen draws. */
+    static const uint32_t utf8_one_byte_end =
+        0x80U; /* below: one byte */
+    if (code < utf8_one_byte_end) {
         value_put(value, (uint8_t)code);
-    } else if (code < UTF8_TWO_BYTE_END) {
+    } else if (code < utf8_two_byte_end) {
         value_put(value, (uint8_t)(UTF8_LEAD_TWO |
                                    (code >> UTF8_FOLLOW_SHIFT)));
         value_put(value,
-                  (uint8_t)(UTF8_FOLLOW | (code & UTF8_FOLLOW_BITS)));
+                  (uint8_t)(utf8_follow | (code & UTF8_FOLLOW_BITS)));
     } else {
         value_put(value, (uint8_t)(UTF8_LEAD_THREE |
                                    (code >> UTF8_LEAD_THREE_SHIFT)));
         value_put(value,
-                  (uint8_t)(UTF8_FOLLOW | ((code >> UTF8_FOLLOW_SHIFT) &
+                  (uint8_t)(utf8_follow | ((code >> UTF8_FOLLOW_SHIFT) &
                                            UTF8_FOLLOW_BITS)));
         value_put(value,
-                  (uint8_t)(UTF8_FOLLOW | (code & UTF8_FOLLOW_BITS)));
+                  (uint8_t)(utf8_follow | (code & UTF8_FOLLOW_BITS)));
     }
 }
 
 static uint32_t hex_digit(uint8_t letter, bool *ok)
 {
+    static const uint32_t hex_letter_value = 10U; /* 'a' and 'A' */
     uint32_t digit = 0U;
 
     if (is_digit(letter)) {
         digit = (uint32_t)letter - (uint32_t)'0';
     } else if ((letter >= (uint8_t)'a') && (letter <= (uint8_t)'f')) {
-        digit = ((uint32_t)letter - (uint32_t)'a') + HEX_LETTER_VALUE;
+        digit = ((uint32_t)letter - (uint32_t)'a') + hex_letter_value;
     } else if ((letter >= (uint8_t)'A') && (letter <= (uint8_t)'F')) {
-        digit = ((uint32_t)letter - (uint32_t)'A') + HEX_LETTER_VALUE;
+        digit = ((uint32_t)letter - (uint32_t)'A') + hex_letter_value;
     } else {
         *ok = false;
     }
@@ -393,15 +395,22 @@ static void read_escape(json_reader_t *reader, json_value_t *value)
     static const char escaped[] = "\"\\/bfnrt";
     static const char meant[] = "\"\\/\b\f\n\r\t";
     const uint8_t letter = peek(reader);
-    const char *found = strchr(escaped, (int)letter);
+    bool found = false;
+    uint32_t i;
 
     reader->at++;
-    if (letter == (uint8_t)'u') {
+    for (i = 0U; (escaped[i] != '\0') && !found; i++) {
+        if ((uint8_t)escaped[i] == letter) {
+            value_put(value, (uint8_t)meant[i]);
+            found = true;
+        }
+    }
+    if (!found && (letter == (uint8_t)'u')) {
         read_unicode_escape(reader, value);
-    } else if ((letter != 0U) && (found != NULL)) {
-        value_put(value, (uint8_t)meant[found - escaped]);
-    } else {
+    } else if (!found) {
         reader->ok = false;
+    } else {
+        /* one escaped letter kept */
     }
 }
 
@@ -437,7 +446,7 @@ static uint32_t read_digits(json_reader_t *reader, bento_real_t *number)
 
     while (is_digit(peek(reader))) {
         const bento_real_t digit =
-            (bento_real_t)(int32_t)(peek(reader) - (uint8_t)'0');
+            (bento_real_t)digit_value(peek(reader));
 
         *number = *number * ten;
         *number = *number + digit;
@@ -456,8 +465,7 @@ static int32_t read_exponent_digits(json_reader_t *reader)
     reader->ok = is_digit(peek(reader));
     while (is_digit(peek(reader))) {
         if (exponent < EXPONENT_CAP) {
-            exponent = (exponent * ten) +
-                       (int32_t)(peek(reader) - (uint8_t)'0');
+            exponent = (exponent * ten) + digit_value(peek(reader));
         }
         reader->at++;
     }
@@ -688,14 +696,17 @@ static bool text_is_unicode(void)
 static uint32_t character_at(const char *text, uint32_t at,
                              uint32_t length, uint32_t *code)
 {
+    static const uint32_t utf8_width_three = 3U;
+    static const uint32_t utf8_lead_three_bits = 0x0FU;
+    static const uint32_t utf8_lead_four = 0xF0U;
     const uint32_t lead = (uint32_t)(uint8_t)text[at];
     uint32_t width = 1U;
 
     *code = lead;
-    if (lead >= UTF8_LEAD_FOUR) {
+    if (lead >= utf8_lead_four) {
         width = UTF8_WIDTH_FOUR;
     } else if (lead >= UTF8_LEAD_THREE) {
-        width = UTF8_WIDTH_THREE;
+        width = utf8_width_three;
     } else if (lead >= UTF8_LEAD_TWO) {
         width = 2U;
     } else {
@@ -704,9 +715,9 @@ static uint32_t character_at(const char *text, uint32_t at,
     if ((at + width) > length) {
         width = length - at;
     }
-    if (width == UTF8_WIDTH_THREE) {
+    if (width == utf8_width_three) {
         *code =
-            ((lead & UTF8_LEAD_THREE_BITS) << UTF8_LEAD_THREE_SHIFT) |
+            ((lead & utf8_lead_three_bits) << UTF8_LEAD_THREE_SHIFT) |
             (((uint32_t)(uint8_t)text[at + 1U] & UTF8_FOLLOW_BITS)
              << UTF8_FOLLOW_SHIFT);
     } else if (width != 1U) {
@@ -723,6 +734,10 @@ static uint32_t character_at(const char *text, uint32_t at,
 static void screen_safe(const char *text, uint32_t length, char *out,
                         uint32_t out_bytes)
 {
+    static const uint32_t thai_block_mask = 0xFF80U;
+    static const uint32_t thai_block = 0x0E00U; /* U+0E00 to U+0E7F */
+    static const uint32_t ascii_last = 0x7EU;
+    static const uint32_t ascii_first = 0x20U;
     const bool unicode = text_is_unicode();
     uint32_t at = 0U;
     uint32_t used = 0U;
@@ -734,8 +749,8 @@ static void screen_safe(const char *text, uint32_t length, char *out,
         const uint32_t width =
             unicode ? character_at(text, at, length, &code) : 1U;
 
-        if (((code >= ASCII_FIRST) && (code <= ASCII_LAST)) ||
-            ((code & THAI_BLOCK_MASK) == THAI_BLOCK)) {
+        if (((code >= ascii_first) && (code <= ascii_last)) ||
+            ((code & thai_block_mask) == thai_block)) {
             (void)memcpy(&out[used], &text[at], (size_t)width);
             used += width;
         } else {
@@ -749,30 +764,6 @@ static void screen_safe(const char *text, uint32_t length, char *out,
 }
 
 /* ---- the screen ----------------------------------------------------- */
-
-/* The screen, in creation order. Touch targets are 88 px tall. */
-static const widget_spec_t SCREEN_WIDGETS[W_NOTE] = {
-    {UI_WIDGET_LABEL, "แผงของเราบน broker", 24, 8, AUTO, AUTO,
-     COLOR_TEXT, 24, 0, 0},
-    {UI_WIDGET_LABEL, "กำลังจะเริ่ม", 384, 16, AUTO, AUTO, COLOR_DIM, 20,
-     0, 0},
-    {UI_WIDGET_PANEL, NULL, 24, 56, 744, 128, COLOR_CARD, 1, COLOR_CARD,
-     12},
-    {UI_WIDGET_BUTTON, "ส่ง event", 40, 72, 200, 88, COLOR_ACCENT, 24, 0,
-     0},
-    {UI_WIDGET_LABEL, "ค่าที่ตั้ง 0-100", 272, 70, AUTO, AUTO, COLOR_DIM, 20,
-     0, 0},
-    {UI_WIDGET_SLIDER, NULL, 272, 120, 320, 24, COLOR_ACCENT,
-     VALUE_START, VALUE_MIN, VALUE_MAX},
-    {UI_WIDGET_SEG7, "50", 624, 88, 128, 56, COLOR_ACCENT, 0, 0, 0},
-    {UI_WIDGET_PANEL, NULL, 24, 200, 744, 128, COLOR_CARD, 1,
-     COLOR_CARD, 12},
-    {UI_WIDGET_LABEL, "สาย: ยังไม่ได้ต่อ", 40, 208, AUTO, AUTO, COLOR_WARN,
-     20, 0, 0},
-    {UI_WIDGET_LABEL, "ส่งแล้ว telemetry 0  event 0  หาย 0", 40, 248,
-     AUTO, AUTO, COLOR_TEXT, 20, 0, 0},
-    {UI_WIDGET_LABEL, "ยังไม่มีคำสั่งจากเว็บ", 40, 288, AUTO, AUTO, COLOR_DIM,
-     20, 0, 0}};
 
 /* A label's colour and text together. */
 static void show(const panel_t *panel, uint32_t widget, uint32_t color,
@@ -823,6 +814,37 @@ static bento_status_t add_note(panel_t *panel)
     return bento_ui_label_create(panel->ui, &args, &panel->ids[W_NOTE]);
 }
 
+/* The screen, in creation order. Touch targets are 88 px tall. */
+static bento_status_t add_screen_widgets(bento_ui_t *ui, uint32_t first,
+                                         uint32_t count,
+                                         bento_ui_id_t *ids)
+{
+    static const widget_spec_t screen_widgets[W_NOTE] = {
+        {UI_WIDGET_LABEL, "แผงของเราบน broker", 24, 8, AUTO, AUTO,
+         COLOR_TEXT, 24, 0, 0},
+        {UI_WIDGET_LABEL, "กำลังจะเริ่ม", 384, 16, AUTO, AUTO, COLOR_DIM,
+         20, 0, 0},
+        {UI_WIDGET_PANEL, NULL, 24, 56, 744, 128, COLOR_CARD, 1,
+         COLOR_CARD, 12},
+        {UI_WIDGET_BUTTON, "ส่ง event", 40, 72, 200, 88, COLOR_ACCENT,
+         24, 0, 0},
+        {UI_WIDGET_LABEL, "ค่าที่ตั้ง 0-100", 272, 70, AUTO, AUTO, COLOR_DIM,
+         20, 0, 0},
+        {UI_WIDGET_SLIDER, NULL, 272, 120, 320, 24, COLOR_ACCENT,
+         VALUE_START, VALUE_MIN, VALUE_MAX},
+        {UI_WIDGET_SEG7, "50", 624, 88, 128, 56, COLOR_ACCENT, 0, 0, 0},
+        {UI_WIDGET_PANEL, NULL, 24, 200, 744, 128, COLOR_CARD, 1,
+         COLOR_CARD, 12},
+        {UI_WIDGET_LABEL, "สาย: ยังไม่ได้ต่อ", 40, 208, AUTO, AUTO,
+         COLOR_WARN, 20, 0, 0},
+        {UI_WIDGET_LABEL, "ส่งแล้ว telemetry 0  event 0  หาย 0", 40, 248,
+         AUTO, AUTO, COLOR_TEXT, 20, 0, 0},
+        {UI_WIDGET_LABEL, "ยังไม่มีคำสั่งจากเว็บ", 40, 288, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0}};
+
+    return add_widgets(ui, &screen_widgets[first], count, &ids[first]);
+}
+
 static bento_status_t build_screen(panel_t *panel)
 {
     bento_status_t status =
@@ -833,8 +855,7 @@ static bento_status_t build_screen(panel_t *panel)
         status = pause_ms(SETTLE_MS);
     }
     if (status == BENTO_OK) {
-        status =
-            add_widgets(panel->ui, SCREEN_WIDGETS, W_NOTE, panel->ids);
+        status = add_screen_widgets(panel->ui, 0U, W_NOTE, panel->ids);
     }
     if (status == BENTO_OK) {
         status = add_note(panel);
@@ -908,6 +929,8 @@ static void read_ip(char *text, uint32_t text_bytes)
  * *joined is wifi.connect()'s True or False. */
 static bento_status_t join_wifi(bool *joined)
 {
+    static const char wifi_pass[] =
+        "<รหัส Hotspot ของทีม>"; /* 8 or more */
     bento_wifi_connect_params_t params;
     char ip[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_status_t join = BENTO_E_IN_PROGRESS;
@@ -916,8 +939,8 @@ static bento_status_t join_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASS;
-    params.pass_len = (uint32_t)strlen(WIFI_PASS);
+    params.pass = wifi_pass;
+    params.pass_len = (uint32_t)strlen(wifi_pass);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -1300,6 +1323,13 @@ static void read_inbox(panel_t *panel)
     }
 }
 
+/* True when the event is of this kind; the kind passes through a
+ * uint8_t, so both sides of the comparison have one type. */
+static bool type_is(const bento_ui_event_t *event, uint8_t kind)
+{
+    return event->type == kind;
+}
+
 /* ui.poll() answers at most BENTO_UI_POLL_EVENTS_MAX events, possibly
  * none; a failed poll answers none, so it is not an error here. */
 static void handle_events(panel_t *panel)
@@ -1313,10 +1343,10 @@ static void handle_events(panel_t *panel)
         count = 0U;
     }
     for (i = 0U; i < count; i++) {
-        if ((events[i].type == BENTO_UI_EVENT_CLICKED) &&
+        if (type_is(&events[i], BENTO_UI_EVENT_CLICKED) &&
             (events[i].id == panel->ids[W_BUTTON])) {
             send_press(panel);
-        } else if ((events[i].type == BENTO_UI_EVENT_VALUE_CHANGED) &&
+        } else if (type_is(&events[i], BENTO_UI_EVENT_VALUE_CHANGED) &&
                    (events[i].id == panel->ids[W_SLIDER])) {
             set_value(panel, events[i].value);
         } else {

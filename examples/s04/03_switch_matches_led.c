@@ -178,7 +178,7 @@ static int32_t switch_pitch(uint32_t led_count)
 
     if (led_count > 1U) {
         pitch = (SWITCH_RIGHT_EDGE - SWITCH_FIRST_X - SWITCH_W) /
-                (int32_t)(led_count - 1U);
+                ((int32_t)led_count - 1);
         if (pitch > PITCH_MAX) {
             pitch = PITCH_MAX;
         }
@@ -421,6 +421,13 @@ static uint32_t switch_index(const switch_panel_t *panel,
     return found;
 }
 
+/* True when the event is of this kind; the kind passes through a
+ * uint8_t, so both sides of the comparison have one type. */
+static bool type_is(const bento_ui_event_t *event, uint8_t kind)
+{
+    return event->type == kind;
+}
+
 static bento_status_t handle_event(switch_panel_t *panel,
                                    const bento_ui_event_t *event)
 {
@@ -428,7 +435,7 @@ static bento_status_t handle_event(switch_panel_t *panel,
     char text[TEXT_BYTES];
     bento_status_t status = BENTO_OK;
 
-    if ((event->type == BENTO_UI_EVENT_TOGGLED) &&
+    if (type_is(event, BENTO_UI_EVENT_TOGGLED) &&
         (led < panel->switch_count)) {
         status = set_led(panel, led, event->value == 1);
         if (status == BENTO_OK) {
@@ -437,7 +444,7 @@ static bento_status_t handle_event(switch_panel_t *panel,
                            panel->led_on[led] ? "ON" : "OFF");
             (void)bento_lcd_print(text);
         }
-    } else if ((event->type == BENTO_UI_EVENT_CLICKED) &&
+    } else if (type_is(event, BENTO_UI_EVENT_CLICKED) &&
                (event->id == panel->all_off)) {
         /* through the same gate, so the switches spring back by
          * themselves */

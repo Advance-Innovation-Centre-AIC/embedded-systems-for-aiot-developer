@@ -167,23 +167,6 @@ static bento_status_t add_widgets(bento_ui_t *ui,
     return status;
 }
 
-/* The card on the right: the same values the menu shows, seen without
- * walking in. A good settings screen answers both ways. The status
- * line is short: a create text has a ceiling and is cut silently. */
-static const widget_spec_t SIDE_WIDGETS[W_COUNT] = {
-    {UI_WIDGET_PANEL, NULL, 496, 64, 272, 272, COLOR_CARD, 0, 0, 8},
-    {UI_WIDGET_LABEL, "ค่าที่ใช้อยู่ตอนนี้", 520, 88, AUTO, AUTO, COLOR_DIM, 20,
-     0, 0},
-    {UI_WIDGET_LABEL, SSID, 520, 136, AUTO, AUTO, COLOR_TEXT, 24, 0, 0},
-    {UI_WIDGET_LABEL, "เตือนที่ 60 องศา", 520, 184, AUTO, AUTO, COLOR_TEXT,
-     24, 0, 0},
-    {UI_WIDGET_LABEL, "ส่งทุก 5 วินาที", 520, 232, AUTO, AUTO, COLOR_TEXT,
-     24, 0, 0},
-    {UI_WIDGET_LABEL, "แตะเมนูซ้ายดูเพิ่ม", 520, 280, AUTO, AUTO, COLOR_DIM,
-     20, 0, 0},
-    {UI_WIDGET_LABEL, "เมนูพาคนเดินดู แต่ไม่บอกโปรแกรม", 24, 344, AUTO, AUTO,
-     COLOR_DIM, 20, 0, 0}};
-
 /* The name MicroPython's ui.poll() puts in ev["type"] (modui.c). */
 static const char *type_text(uint8_t type)
 {
@@ -311,6 +294,31 @@ static bento_status_t add_child_rows(const menu_screen_t *screen)
     return status;
 }
 
+/* The card on the right: the same values the menu shows, seen without
+ * walking in. A good settings screen answers both ways. The status
+ * line is short: a create text has a ceiling and is cut silently. */
+static bento_status_t add_screen_widgets(bento_ui_t *ui, uint32_t first,
+                                         uint32_t count,
+                                         bento_ui_id_t *ids)
+{
+    static const widget_spec_t screen_widgets[W_COUNT] = {
+        {UI_WIDGET_PANEL, NULL, 496, 64, 272, 272, COLOR_CARD, 0, 0, 8},
+        {UI_WIDGET_LABEL, "ค่าที่ใช้อยู่ตอนนี้", 520, 88, AUTO, AUTO, COLOR_DIM,
+         20, 0, 0},
+        {UI_WIDGET_LABEL, SSID, 520, 136, AUTO, AUTO, COLOR_TEXT, 24, 0,
+         0},
+        {UI_WIDGET_LABEL, "เตือนที่ 60 องศา", 520, 184, AUTO, AUTO,
+         COLOR_TEXT, 24, 0, 0},
+        {UI_WIDGET_LABEL, "ส่งทุก 5 วินาที", 520, 232, AUTO, AUTO,
+         COLOR_TEXT, 24, 0, 0},
+        {UI_WIDGET_LABEL, "แตะเมนูซ้ายดูเพิ่ม", 520, 280, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_LABEL, "เมนูพาคนเดินดู แต่ไม่บอกโปรแกรม", 24, 344, AUTO,
+         AUTO, COLOR_DIM, 20, 0, 0}};
+
+    return add_widgets(ui, &screen_widgets[first], count, &ids[first]);
+}
+
 static bento_status_t build_screen(menu_screen_t *screen)
 {
     static const widget_spec_t title = {UI_WIDGET_LABEL,
@@ -345,7 +353,7 @@ static bento_status_t build_screen(menu_screen_t *screen)
     }
     if (status == BENTO_OK) {
         status =
-            add_widgets(screen->ui, SIDE_WIDGETS, W_COUNT, screen->ids);
+            add_screen_widgets(screen->ui, 0U, W_COUNT, screen->ids);
     }
     return status;
 }

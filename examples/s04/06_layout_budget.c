@@ -267,7 +267,8 @@ static bento_status_t add_row(budget_t *budget, int32_t row)
         if (off_area(x + CELL_W, y + CELL_H) ||
             in_reserved(x + CELL_W, y + CELL_H)) {
             budget->skipped++;
-        } else if (budget->used >= (COURSE_BUDGET - RESERVE_FOR_TEXT)) {
+        } else if (budget->used >= ((int32_t)COURSE_BUDGET -
+                                    (int32_t)RESERVE_FOR_TEXT)) {
             full = true;
         } else {
             status = add_cell(budget, row, col);

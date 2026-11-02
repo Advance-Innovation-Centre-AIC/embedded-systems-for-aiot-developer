@@ -77,11 +77,6 @@ enum {
     W_COUNT
 };
 
-/* The Dropdown's choices, one per line, the form LVGL takes. The
- * event brings back only the index, so the texts are kept here too. */
-static const char CHOICE_TEXT[] = "ช้า\nกลาง\nเร็ว";
-static const char *const CHOICES[CHOICE_COUNT] = {"ช้า", "กลาง", "เร็ว"};
-
 typedef struct {
     bento_ui_t *ui;
     bento_ui_id_t ids[W_COUNT];
@@ -92,11 +87,6 @@ typedef struct {
     uint32_t widget;
     const char *name;
 } input_t;
-
-static const input_t INPUTS[INPUT_COUNT] = {
-    {W_BUTTON, "Button"},     {W_SWITCH, "Switch"},
-    {W_SLIDER, "Slider"},     {W_CHECKBOX, "Checkbox"},
-    {W_DROPDOWN, "Dropdown"}, {W_TEXTAREA, "Textarea"}};
 
 /* One widget as the original makes it: its factory, its text and its
  * keyword arguments. value= is a Label's or Button's font size and a
@@ -114,46 +104,6 @@ typedef struct {
     int32_t min;
     int32_t max;
 } widget_spec_t;
-
-/* The screen, in creation order (creation order is drawing order). */
-static const widget_spec_t SCREEN_WIDGETS[W_COUNT] = {
-    {UI_WIDGET_LABEL, "หกชนิดที่รับอินพุตได้", 20, 12, AUTO, AUTO, COLOR_TEXT,
-     24, 0, 0},
-    {UI_WIDGET_PANEL, NULL, 20, 48, 752, 112, COLOR_CARD, 1, COLOR_DIM,
-     12},
-    /* the three this session already used, for comparison */
-    {UI_WIDGET_BUTTON, "Button", 36, 88, 120, 88, COLOR_TEXT, 16, 0, 0},
-    {UI_WIDGET_LABEL, "Switch", 176, 64, AUTO, AUTO, COLOR_DIM, 16, 0,
-     0},
-    {UI_WIDGET_SWITCH, NULL, 176, 92, AUTO, AUTO, COLOR_THEME, 0, 0, 0},
-    {UI_WIDGET_LABEL, "Slider", 280, 64, AUTO, AUTO, COLOR_DIM, 16, 0,
-     0},
-    {UI_WIDGET_SLIDER, NULL, 280, 96, 180, AUTO, COLOR_THEME, 40, 0,
-     100},
-    /* the three this file adds */
-    {UI_WIDGET_CHECKBOX, "Checkbox", 480, 64, AUTO, AUTO, COLOR_TEXT, 0,
-     0, 0},
-    {UI_WIDGET_LABEL, "Dropdown", 480, 100, AUTO, AUTO, COLOR_DIM, 16,
-     0, 0},
-    {UI_WIDGET_DROPDOWN, CHOICE_TEXT, 480, 124, 140, AUTO, COLOR_THEME,
-     20, 0, 0},
-    {UI_WIDGET_LABEL, "Textarea", 636, 64, AUTO, AUTO, COLOR_DIM, 16, 0,
-     0},
-    {UI_WIDGET_TEXTAREA, "แตะแล้วพิมพ์", 636, 100, 120, 88, COLOR_THEME,
-     20, 0, 0},
-    /* takes no input at all: proof that its .value() answers 0 */
-    {UI_WIDGET_LABEL, "Label ไม่รับอินพุต", 20, 170, AUTO, AUTO, COLOR_DIM,
-     20, 0, 0},
-    {UI_WIDGET_LABEL, "ยังไม่มีเหตุการณ์เข้ามา", 20, 204, AUTO, AUTO,
-     COLOR_INFO, 24, 0, 0},
-    {UI_WIDGET_LABEL, "แตะของแถวบนทีละชิ้น", 20, 240, AUTO, AUTO,
-     COLOR_DIM, 20, 0, 0},
-    {UI_WIDGET_LABEL, "ยังไม่ได้ไล่ถาม value()", 20, 272, AUTO, AUTO,
-     COLOR_WARN, 20, 0, 0},
-    {UI_WIDGET_LABEL, "Dropdown ส่งลำดับ ไม่ได้ส่งข้อความ", 20, 302, AUTO,
-     AUTO, COLOR_DIM, 20, 0, 0},
-    {UI_WIDGET_LABEL, "value() ที่ตอบ 0 อาจแปลว่าตอบไม่ได้", 20, 332, AUTO,
-     AUTO, COLOR_DIM, 20, 0, 0}};
 
 /* A sleep that turns the IDE's Stop into BENTO_E_CANCELLED. */
 static bento_status_t pause_ms(uint32_t ms)
@@ -230,6 +180,58 @@ static const char *type_text(uint8_t type)
     return name;
 }
 
+/* The screen, in creation order (creation order is drawing order). */
+static bento_status_t add_screen_widgets(bento_ui_t *ui, uint32_t first,
+                                         uint32_t count,
+                                         bento_ui_id_t *ids)
+{
+    /* The Dropdown's choices, one per line, the form LVGL takes. The
+     * event brings back only the index, so the texts are kept here too. */
+    static const char choice_text[] = "ช้า\nกลาง\nเร็ว";
+    static const widget_spec_t screen_widgets[W_COUNT] = {
+        {UI_WIDGET_LABEL, "หกชนิดที่รับอินพุตได้", 20, 12, AUTO, AUTO,
+         COLOR_TEXT, 24, 0, 0},
+        {UI_WIDGET_PANEL, NULL, 20, 48, 752, 112, COLOR_CARD, 1,
+         COLOR_DIM, 12},
+        /* the three this session already used, for comparison */
+        {UI_WIDGET_BUTTON, "Button", 36, 88, 120, 88, COLOR_TEXT, 16, 0,
+         0},
+        {UI_WIDGET_LABEL, "Switch", 176, 64, AUTO, AUTO, COLOR_DIM, 16,
+         0, 0},
+        {UI_WIDGET_SWITCH, NULL, 176, 92, AUTO, AUTO, COLOR_THEME, 0, 0,
+         0},
+        {UI_WIDGET_LABEL, "Slider", 280, 64, AUTO, AUTO, COLOR_DIM, 16,
+         0, 0},
+        {UI_WIDGET_SLIDER, NULL, 280, 96, 180, AUTO, COLOR_THEME, 40, 0,
+         100},
+        /* the three this file adds */
+        {UI_WIDGET_CHECKBOX, "Checkbox", 480, 64, AUTO, AUTO,
+         COLOR_TEXT, 0, 0, 0},
+        {UI_WIDGET_LABEL, "Dropdown", 480, 100, AUTO, AUTO, COLOR_DIM,
+         16, 0, 0},
+        {UI_WIDGET_DROPDOWN, choice_text, 480, 124, 140, AUTO,
+         COLOR_THEME, 20, 0, 0},
+        {UI_WIDGET_LABEL, "Textarea", 636, 64, AUTO, AUTO, COLOR_DIM,
+         16, 0, 0},
+        {UI_WIDGET_TEXTAREA, "แตะแล้วพิมพ์", 636, 100, 120, 88,
+         COLOR_THEME, 20, 0, 0},
+        /* takes no input at all: proof that its .value() answers 0 */
+        {UI_WIDGET_LABEL, "Label ไม่รับอินพุต", 20, 170, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_LABEL, "ยังไม่มีเหตุการณ์เข้ามา", 20, 204, AUTO, AUTO,
+         COLOR_INFO, 24, 0, 0},
+        {UI_WIDGET_LABEL, "แตะของแถวบนทีละชิ้น", 20, 240, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_LABEL, "ยังไม่ได้ไล่ถาม value()", 20, 272, AUTO, AUTO,
+         COLOR_WARN, 20, 0, 0},
+        {UI_WIDGET_LABEL, "Dropdown ส่งลำดับ ไม่ได้ส่งข้อความ", 20, 302, AUTO,
+         AUTO, COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_LABEL, "value() ที่ตอบ 0 อาจแปลว่าตอบไม่ได้", 20, 332,
+         AUTO, AUTO, COLOR_DIM, 20, 0, 0}};
+
+    return add_widgets(ui, &screen_widgets[first], count, &ids[first]);
+}
+
 static bento_status_t build_screen(form_screen_t *screen)
 {
     bento_status_t status =
@@ -240,8 +242,8 @@ static bento_status_t build_screen(form_screen_t *screen)
         status = pause_ms(SETTLE_MS);
     }
     if (status == BENTO_OK) {
-        status = add_widgets(screen->ui, SCREEN_WIDGETS, W_COUNT,
-                             screen->ids);
+        status =
+            add_screen_widgets(screen->ui, 0U, W_COUNT, screen->ids);
     }
     return status;
 }
@@ -289,30 +291,36 @@ static void sweep_values(const form_screen_t *screen)
 static const char *input_name(const form_screen_t *screen,
                               bento_ui_id_t widget)
 {
+    static const input_t inputs[INPUT_COUNT] = {
+        {W_BUTTON, "Button"},     {W_SWITCH, "Switch"},
+        {W_SLIDER, "Slider"},     {W_CHECKBOX, "Checkbox"},
+        {W_DROPDOWN, "Dropdown"}, {W_TEXTAREA, "Textarea"}};
     const char *name = "ไม่รู้จัก";
     uint32_t i;
 
     for (i = 0U; i < (uint32_t)INPUT_COUNT; i++) {
-        if (screen->ids[INPUTS[i].widget] == widget) {
-            name = INPUTS[i].name;
+        if (screen->ids[inputs[i].widget] == widget) {
+            name = inputs[i].name;
         }
     }
     return name;
 }
 
 /* What a value_changed means depends on who sent it: a Dropdown's
- * value is an index into CHOICES, a Textarea's is always 0. */
+ * value is an index into the choices, a Textarea's is always 0. */
 static void explain_change(const form_screen_t *screen,
                            const bento_ui_event_t *event, char *text,
                            size_t text_bytes)
 {
+    static const char *const choices[CHOICE_COUNT] = {"ช้า", "กลาง",
+                                                      "เร็ว"};
     const int32_t value = event->value;
 
     if (event->id == screen->ids[W_DROPDOWN]) {
         const char *pick = "?";
 
         if ((value >= 0) && (value < CHOICE_COUNT)) {
-            pick = CHOICES[value];
+            pick = choices[value];
         }
         (void)snprintf(text, text_bytes,
                        "Dropdown เลือกลำดับ %" PRId32 " = %s", value,
@@ -325,6 +333,13 @@ static void explain_change(const form_screen_t *screen,
     }
 }
 
+/* True when the event is of this kind; the kind passes through a
+ * uint8_t, so both sides of the comparison have one type. */
+static bool type_is(const bento_ui_event_t *event, uint8_t kind)
+{
+    return event->type == kind;
+}
+
 /* One branch per known kind and a last one for the rest: an else that
  * swallowed everything would hide a strange event from everyone. */
 static void explain_event(const form_screen_t *screen,
@@ -333,13 +348,13 @@ static void explain_event(const form_screen_t *screen,
     char text[TEXT_BYTES];
     const bento_ui_id_t mean = screen->ids[W_MEAN];
 
-    if (event->type == BENTO_UI_EVENT_CLICKED) {
+    if (type_is(event, BENTO_UI_EVENT_CLICKED)) {
         show_text(screen->ui, mean, "กดแล้วปล่อย - value ไม่ได้ใช้");
-    } else if (event->type == BENTO_UI_EVENT_TOGGLED) {
+    } else if (type_is(event, BENTO_UI_EVENT_TOGGLED)) {
         (void)snprintf(text, sizeof(text), "สลับเป็น %s",
                        (event->value == 1) ? "เปิด" : "ปิด");
         show_text(screen->ui, mean, text);
-    } else if (event->type == BENTO_UI_EVENT_VALUE_CHANGED) {
+    } else if (type_is(event, BENTO_UI_EVENT_VALUE_CHANGED)) {
         explain_change(screen, event, text, sizeof(text));
         show_text(screen->ui, mean, text);
     } else {

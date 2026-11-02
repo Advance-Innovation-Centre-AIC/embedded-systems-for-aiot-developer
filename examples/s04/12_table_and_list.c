@@ -147,24 +147,6 @@ static bento_status_t add_widgets(bento_ui_t *ui,
     return status;
 }
 
-/* The screen, in creation order. A Table takes cols= in min and rows=
- * in max, as modui.c copies them. */
-static const widget_spec_t SCREEN_WIDGETS[W_COUNT] = {
-    {UI_WIDGET_LABEL, "สามค่าในตารางเดียว", 24, 16, AUTO, AUTO,
-     COLOR_TEXT, 28, 0, 0},
-    {UI_WIDGET_LABEL, "ค่าที่อ่านได้ตอนนี้", 24, 64, AUTO, AUTO, COLOR_DIM, 20,
-     0, 0},
-    {UI_WIDGET_TABLE, NULL, 24, 96, 352, 152, COLOR_THEME, 0, 2,
-     TABLE_ROWS},
-    {UI_WIDGET_LABEL, "เลือกดูเซ็นเซอร์", 416, 64, AUTO, AUTO, COLOR_DIM,
-     20, 0, 0},
-    {UI_WIDGET_LIST, "เซ็นเซอร์บนบอร์ด", 416, 96, 352, 152, COLOR_THEME, 0,
-     0, 0},
-    {UI_WIDGET_LABEL, "รูปร่างของค่าที่ผ่านมา", 24, 272, AUTO, AUTO,
-     COLOR_DIM, 20, 0, 0},
-    {UI_WIDGET_IMG, "star", 24, 304, 48, 48, COLOR_ACCENT, 0, 0, 0},
-    {UI_WIDGET_LINE, NULL, 96, 304, AUTO, AUTO, COLOR_ACCENT, 0, 0, 0}};
-
 /* One table row of two cells, "first\0second". The table's setters
  * never raise in MicroPython, so their status is not checked. */
 static void add_table_row(const table_screen_t *screen, uint8_t row,
@@ -229,6 +211,32 @@ static void let_screen_draw(bento_ui_t *ui)
                         NULL);
 }
 
+/* The screen, in creation order. A Table takes cols= in min and rows=
+ * in max, as modui.c copies them. */
+static bento_status_t add_screen_widgets(bento_ui_t *ui, uint32_t first,
+                                         uint32_t count,
+                                         bento_ui_id_t *ids)
+{
+    static const widget_spec_t screen_widgets[W_COUNT] = {
+        {UI_WIDGET_LABEL, "สามค่าในตารางเดียว", 24, 16, AUTO, AUTO,
+         COLOR_TEXT, 28, 0, 0},
+        {UI_WIDGET_LABEL, "ค่าที่อ่านได้ตอนนี้", 24, 64, AUTO, AUTO, COLOR_DIM,
+         20, 0, 0},
+        {UI_WIDGET_TABLE, NULL, 24, 96, 352, 152, COLOR_THEME, 0, 2,
+         TABLE_ROWS},
+        {UI_WIDGET_LABEL, "เลือกดูเซ็นเซอร์", 416, 64, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_LIST, "เซ็นเซอร์บนบอร์ด", 416, 96, 352, 152,
+         COLOR_THEME, 0, 0, 0},
+        {UI_WIDGET_LABEL, "รูปร่างของค่าที่ผ่านมา", 24, 272, AUTO, AUTO,
+         COLOR_DIM, 20, 0, 0},
+        {UI_WIDGET_IMG, "star", 24, 304, 48, 48, COLOR_ACCENT, 0, 0, 0},
+        {UI_WIDGET_LINE, NULL, 96, 304, AUTO, AUTO, COLOR_ACCENT, 0, 0,
+         0}};
+
+    return add_widgets(ui, &screen_widgets[first], count, &ids[first]);
+}
+
 static bento_status_t build_screen(table_screen_t *screen)
 {
     bento_status_t status =
@@ -239,8 +247,8 @@ static bento_status_t build_screen(table_screen_t *screen)
         status = pause_ms(SETTLE_MS);
     }
     if (status == BENTO_OK) {
-        status = add_widgets(screen->ui, SCREEN_WIDGETS, W_COUNT,
-                             screen->ids);
+        status =
+            add_screen_widgets(screen->ui, 0U, W_COUNT, screen->ids);
     }
     if (status == BENTO_OK) {
         fill_screen(screen);
