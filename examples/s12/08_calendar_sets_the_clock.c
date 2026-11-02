@@ -59,7 +59,9 @@ enum { /* fonts, times, dates, sizes */
     MONTH_SHIFT = 100,
     RTC_YEAR_MIN = 2000,
     RTC_YEAR_MAX = 2099,
-    TEXT_BYTES = 128 /* the display carries at most 127 bytes */
+    TEXT_BYTES = 128, /* the display carries at most 127 bytes */
+    DATE_BYTES =
+        36 /* "%04d-%02d-%02d" of any three int: 3 x 11, 2 dashes, NUL */
 };
 enum { /* the course palette */
     COLOR_TEXT = 0xE8EAED,
@@ -76,7 +78,7 @@ typedef struct {
     bento_ui_id_t human;
     bento_ui_id_t hint;
     bento_ui_id_t line;
-    char boot_text[TEXT_BYTES];
+    char boot_text[DATE_BYTES];
 } calendar_screen_t;
 
 static bento_status_t add_label(const char *text, int32_t x, int32_t y,
@@ -244,7 +246,7 @@ static bento_status_t take_date(const calendar_screen_t *screen,
     const int32_t year = ymd / YEAR_SHIFT;
     const int32_t month = (ymd / MONTH_SHIFT) % MONTH_SHIFT;
     const int32_t day = ymd % MONTH_SHIFT;
-    char picked[TEXT_BYTES];
+    char picked[DATE_BYTES];
     char text[TEXT_BYTES];
     bento_status_t status;
 
