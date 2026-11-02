@@ -56,8 +56,8 @@ pot_scale.ticks(11, 2)          # 11 ขีด ใส่ตัวเลขทุ
 
 ui.Label("เปอร์เซ็นต์ที่วัดได้", x=28, y=152, color=COL_DIM, value=20)
 lbl_pct = ui.Label("0.0 %", x=28, y=180, color=COL_TEXT, value=28)
-lbl_raw = ui.Label("ค่าดิบ 0", x=252, y=148, color=COL_DIM, value=16)
-lbl_volt = ui.Label("โวลต์ 0.000 V", x=252, y=172, color=COL_DIM, value=16)
+lbl_raw = ui.Label("ค่าดิบ 0", x=252, y=144, color=COL_DIM, value=20)
+lbl_volt = ui.Label("โวลต์ 0.000 V", x=252, y=166, color=COL_DIM, value=20)
 
 # ท่าเดียวกันครึ่งหลัง: เกณฑ์ที่ผู้ใช้ตั้งเอง กับไฟสองดวงที่บอกสถานะ
 ui.Panel(x=492, y=40, w=288, h=224, color=COL_CARD, min=COL_DIM, max=12, value=1)
@@ -66,14 +66,14 @@ ui.Label("เกณฑ์เตือน (เปอร์เซ็นต์)", x
 sp_th = ui.Spinbox(x=508, y=76, w=256, h=88, color=COL_TEXT,
                    min=TH_MIN, max=TH_MAX, value=th)
 sp_th.digits(2, 0)              # ไม่บอกจะเห็น 0070 เพราะค่าตั้งต้นคือสี่หลัก
-btn_up = ui.Button("เพิ่ม", x=644, y=172, w=120, h=88, color=0x3A4150, value=16)
-btn_dn = ui.Button("ลด", x=508, y=172, w=120, h=88, color=0x3A4150, value=16)
+btn_up = ui.Button("เพิ่ม", x=644, y=172, w=120, h=88, color=0x3A4150, value=20)
+btn_dn = ui.Button("ลด", x=508, y=172, w=120, h=88, color=0x3A4150, value=20)
 
-ui.Label("สถานะเทียบเกณฑ์", x=492, y=280, color=COL_DIM, value=16)
+ui.Label("สถานะเทียบเกณฑ์", x=492, y=280, color=COL_DIM, value=20)
 led_ok = ui.Led(x=492, y=304, w=48, h=48, color=COL_OK, value=1)
-ui.Label("ต่ำกว่าเกณฑ์", x=548, y=320, color=COL_DIM, value=16)
+ui.Label("ต่ำกว่าเกณฑ์", x=548, y=320, color=COL_DIM, value=20)
 led_bad = ui.Led(x=492, y=348, w=48, h=48, color=COL_BAD, value=0)
-ui.Label("เกิน", x=548, y=364, color=COL_DIM, value=16)
+ui.Label("เกิน", x=548, y=364, color=COL_DIM, value=20)
 
 # --- ท่าที่ 3: แถบเลื่อนสัมผัสและปุ่มทองแดงสองปุ่ม ---
 ui.Panel(x=12, y=248, w=468, h=140, color=COL_CARD, min=COL_DIM, max=12, value=1)
@@ -89,13 +89,13 @@ ui.Label("ปุ่ม 1", x=216, y=356, color=COL_DIM, value=20)
 
 # --- ท่าที่ 4: บรรทัดคุณภาพของค่า และการเทียบค่าดิบกับค่ากรองแล้ว ---
 ui.Panel(x=280, y=336, w=196, h=52, color=COL_CARD, min=COL_DIM, max=12, value=1)
-ui.Label("คุณภาพของค่า", x=292, y=340, color=COL_DIM, value=16)
-lbl_health = ui.Label("อ่านค่าปกติ", x=292, y=364, color=COL_TEXT, value=16)
+ui.Label("คุณภาพของค่า", x=292, y=340, color=COL_DIM, value=20)
+lbl_health = ui.Label("อ่านค่าปกติ", x=292, y=364, color=COL_TEXT, value=20)
 health = "อ่านค่าปกติ"      # ข้อความล่าสุดของบรรทัดคุณภาพ คิดใหม่วินาทีละครั้ง
 
-raw_line = ui.Label("ดิบ 0.00 %", x=252, y=196, color=COL_TEXT, value=16)
-ema_line = ui.Label("กรอง 0.00 %", x=368, y=196, color=COL_TEXT, value=16)
-ui.Label("อัลฟา 0.2", x=252, y=216, color=COL_DIM, value=16)
+raw_line = ui.Label("ดิบ 0.00 %", x=252, y=188, color=COL_TEXT, value=20)
+ema_line = ui.Label("กรอง 0.00 %", x=252, y=210, color=COL_TEXT, value=20)
+ui.Label("อัลฟา 0.2", x=380, y=210, color=COL_DIM, value=20)
 ui.poll()
 
 # ฟิลเตอร์ต้องเกิดนอกลูป เพราะมันต้องจำอดีต - สร้างในลูปเมื่อไร ค่าที่ได้จะเท่าค่าดิบเป๊ะ

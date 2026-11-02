@@ -18,7 +18,7 @@
  * laid over its own scale. A user-set alarm threshold (Spinbox with
  * up/down buttons) drives two status lamps from the filtered value. The
  * slider and the two copper buttons are shown below, with the raw and
- * filtered percentages side by side and a value-quality line. Numbers
+ * filtered percentages one under the other and a value-quality line. Numbers
  * are rewritten once a second; bars and lamps every 200 ms round.
  *
  * This is the practice skeleton: the blanks marked "เติม" do nothing
@@ -66,6 +66,12 @@ enum {                /* the rulers and the threshold box */
     CARD_RADIUS = 12
 };
 
+enum { /* decimals in the texts */
+    PERCENT_DIGITS = 1,
+    LINE_DIGITS = 2, /* two on both lines keep the jitter visible */
+    VOLT_DIGITS = 3
+};
+
 enum { /* times, ms */
     CLEAR_MS = 200,
     LOOP_MS = 200, /* faster loops send more draws than CM55 can draw */
@@ -89,8 +95,7 @@ enum { /* a prefix, a number of up to BENTO_FMT_BUF_SIZE and a suffix */
 
 /* The widgets the loop changes: their place in screen_t.ids. */
 typedef enum {
-    SLOT_NONE = -1,
-    SLOT_POT_BAR = 0,
+    SLOT_POT_BAR,
     SLOT_PERCENT,
     SLOT_RAW,
     SLOT_VOLT,
@@ -105,7 +110,8 @@ typedef enum {
     SLOT_HEALTH,
     SLOT_RAW_LINE,
     SLOT_EMA_LINE,
-    SLOT_COUNT
+    SLOT_COUNT,
+    SLOT_NONE /* a widget the loop never changes */
 } slot_t;
 
 typedef enum {
@@ -238,12 +244,26 @@ static bento_status_t create_widget(knob_panel_t *panel,
     return status;
 }
 
-/* Every widget in the original's order (a later one covers an earlier
- * one where they meet). A card's min is its border colour, max its
- * corner radius, value its border width. */
-static bento_status_t build_widgets(knob_panel_t *panel)
+/* Widgets in the original's order (a later one covers an earlier one
+ * where they meet). A card's low is its border colour, high its corner
+ * radius, value its border width. */
+static bento_status_t create_widgets(knob_panel_t *panel,
+                                     const widget_spec_t *widgets,
+                                     uint32_t count)
 {
-    static const widget_spec_t WIDGETS[] = {
+    bento_status_t status = BENTO_OK;
+    uint32_t i;
+
+    for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
+        status = create_widget(panel, &widgets[i]);
+    }
+    return status;
+}
+
+/* The title and the knob on its own ruler, with raw counts and volts. */
+static bento_status_t build_knob_card(knob_panel_t *panel)
+{
+    static const widget_spec_t widgets[] = {
         {KIND_LABEL, "แผงคุมลูกบิดกับแถบสัมผัส", 16, 8, -1, -1, COLOR_TEXT,
          24, 0, 0, SLOT_NONE},
         {KIND_PANEL, NULL, 12, 40, 468, 200, COLOR_CARD, 1, COLOR_DIM,
@@ -258,30 +278,52 @@ static bento_status_t build_widgets(knob_panel_t *panel)
          0, SLOT_NONE},
         {KIND_LABEL, "0.0 %", 28, 180, -1, -1, COLOR_TEXT, 28, 0, 0,
          SLOT_PERCENT},
-        {KIND_LABEL, "ค่าดิบ 0", 252, 148, -1, -1, COLOR_DIM, 16, 0, 0,
+        {KIND_LABEL, "ค่าดิบ 0", 252, 144, -1, -1, COLOR_DIM, 20, 0, 0,
          SLOT_RAW},
-        {KIND_LABEL, "โวลต์ 0.000 V", 252, 172, -1, -1, COLOR_DIM, 16, 0,
+        {KIND_LABEL, "โวลต์ 0.000 V", 252, 166, -1, -1, COLOR_DIM, 20, 0,
          0, SLOT_VOLT},
+    };
+
+    return create_widgets(
+        panel, widgets,
+        (uint32_t)(sizeof(widgets) / sizeof(widgets[0])));
+}
+
+/* The threshold the user sets, and the two lamps that compare with it. */
+static bento_status_t build_threshold_card(knob_panel_t *panel)
+{
+    static const widget_spec_t widgets[] = {
         {KIND_PANEL, NULL, 492, 40, 288, 224, COLOR_CARD, 1, COLOR_DIM,
          CARD_RADIUS, SLOT_NONE},
         {KIND_LABEL, "เกณฑ์เตือน (เปอร์เซ็นต์)", 508, 48, -1, -1, COLOR_DIM,
          20, 0, 0, SLOT_NONE},
         {KIND_SPINBOX, NULL, 508, 76, 256, 88, COLOR_TEXT,
          THRESHOLD_START, THRESHOLD_MIN, THRESHOLD_MAX, SLOT_SPIN},
-        {KIND_BUTTON, "เพิ่ม", 644, 172, 120, 88, COLOR_BUTTON, 16, 0, 0,
+        {KIND_BUTTON, "เพิ่ม", 644, 172, 120, 88, COLOR_BUTTON, 20, 0, 0,
          SLOT_UP},
-        {KIND_BUTTON, "ลด", 508, 172, 120, 88, COLOR_BUTTON, 16, 0, 0,
+        {KIND_BUTTON, "ลด", 508, 172, 120, 88, COLOR_BUTTON, 20, 0, 0,
          SLOT_DOWN},
-        {KIND_LABEL, "สถานะเทียบเกณฑ์", 492, 280, -1, -1, COLOR_DIM, 16,
+        {KIND_LABEL, "สถานะเทียบเกณฑ์", 492, 280, -1, -1, COLOR_DIM, 20,
          0, 0, SLOT_NONE},
         {KIND_LED, NULL, 492, 304, 48, 48, COLOR_OK, 1, 0, 0,
          SLOT_LED_OK},
-        {KIND_LABEL, "ต่ำกว่าเกณฑ์", 548, 320, -1, -1, COLOR_DIM, 16, 0, 0,
+        {KIND_LABEL, "ต่ำกว่าเกณฑ์", 548, 320, -1, -1, COLOR_DIM, 20, 0, 0,
          SLOT_NONE},
         {KIND_LED, NULL, 492, 348, 48, 48, COLOR_BAD, 0, 0, 0,
          SLOT_LED_BAD},
-        {KIND_LABEL, "เกิน", 548, 364, -1, -1, COLOR_DIM, 16, 0, 0,
+        {KIND_LABEL, "เกิน", 548, 364, -1, -1, COLOR_DIM, 20, 0, 0,
          SLOT_NONE},
+    };
+
+    return create_widgets(
+        panel, widgets,
+        (uint32_t)(sizeof(widgets) / sizeof(widgets[0])));
+}
+
+/* The slider and the copper buttons, the quality line, raw against filtered. */
+static bento_status_t build_touch_card(knob_panel_t *panel)
+{
+    static const widget_spec_t widgets[] = {
         {KIND_PANEL, NULL, 12, 248, 468, 140, COLOR_CARD, 1, COLOR_DIM,
          CARD_RADIUS, SLOT_NONE},
         {KIND_LABEL, "แถบสัมผัสและปุ่มทองแดง", 28, 256, -1, -1, COLOR_DIM,
@@ -300,24 +342,32 @@ static bento_status_t build_widgets(knob_panel_t *panel)
          SLOT_NONE},
         {KIND_PANEL, NULL, 280, 336, 196, 52, COLOR_CARD, 1, COLOR_DIM,
          CARD_RADIUS, SLOT_NONE},
-        {KIND_LABEL, "คุณภาพของค่า", 292, 340, -1, -1, COLOR_DIM, 16, 0,
+        {KIND_LABEL, "คุณภาพของค่า", 292, 340, -1, -1, COLOR_DIM, 20, 0,
          0, SLOT_NONE},
-        {KIND_LABEL, "อ่านค่าปกติ", 292, 364, -1, -1, COLOR_TEXT, 16, 0, 0,
+        {KIND_LABEL, "อ่านค่าปกติ", 292, 364, -1, -1, COLOR_TEXT, 20, 0, 0,
          SLOT_HEALTH},
-        {KIND_LABEL, "ดิบ 0.00 %", 252, 196, -1, -1, COLOR_TEXT, 16, 0,
+        {KIND_LABEL, "ดิบ 0.00 %", 252, 188, -1, -1, COLOR_TEXT, 20, 0,
          0, SLOT_RAW_LINE},
-        {KIND_LABEL, "กรอง 0.00 %", 368, 196, -1, -1, COLOR_TEXT, 16, 0,
+        {KIND_LABEL, "กรอง 0.00 %", 252, 210, -1, -1, COLOR_TEXT, 20, 0,
          0, SLOT_EMA_LINE},
-        {KIND_LABEL, "อัลฟา 0.2", 252, 216, -1, -1, COLOR_DIM, 16, 0, 0,
+        {KIND_LABEL, "อัลฟา 0.2", 380, 210, -1, -1, COLOR_DIM, 20, 0, 0,
          SLOT_NONE},
     };
-    const uint32_t count =
-        (uint32_t)(sizeof(WIDGETS) / sizeof(WIDGETS[0]));
-    bento_status_t status = BENTO_OK;
-    uint32_t i;
 
-    for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
-        status = create_widget(panel, &WIDGETS[i]);
+    return create_widgets(
+        panel, widgets,
+        (uint32_t)(sizeof(widgets) / sizeof(widgets[0])));
+}
+
+static bento_status_t build_widgets(knob_panel_t *panel)
+{
+    bento_status_t status = build_knob_card(panel);
+
+    if (status == BENTO_OK) {
+        status = build_threshold_card(panel);
+    }
+    if (status == BENTO_OK) {
+        status = build_touch_card(panel);
     }
     return status;
 }
@@ -542,21 +592,24 @@ static void pick_health(knob_panel_t *panel)
 static void show_numbers(knob_panel_t *panel)
 {
     const reading_t *reading = &panel->reading;
-    const int32_t second =
-        (int32_t)(bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND);
+    const uint32_t seconds_now =
+        bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND;
+    const int32_t second = (int32_t)seconds_now;
     char text[TEXT_BYTES];
 
     if (second != panel->last_second) {
         panel->last_second = second;
-        show_real(panel, SLOT_PERCENT, "", reading->percent, 1, " %");
+        show_real(panel, SLOT_PERCENT, "", reading->percent,
+                  PERCENT_DIGITS, " %");
         (void)snprintf(text, sizeof(text), "ค่าดิบ %u",
                        (unsigned int)reading->raw);
         set_text(panel->ui, panel->ids[SLOT_RAW], text);
-        show_real(panel, SLOT_VOLT, "โวลต์ ", reading->volts, 3, " V");
-        show_real(panel, SLOT_RAW_LINE, "ดิบ    ", reading->percent, 2,
-                  " %");
-        show_real(panel, SLOT_EMA_LINE, "กรอง  ", panel->ema_percent, 2,
-                  " %");
+        show_real(panel, SLOT_VOLT, "โวลต์ ", reading->volts,
+                  VOLT_DIGITS, " V");
+        show_real(panel, SLOT_RAW_LINE, "ดิบ    ", reading->percent,
+                  LINE_DIGITS, " %");
+        show_real(panel, SLOT_EMA_LINE, "กรอง  ", panel->ema_percent,
+                  LINE_DIGITS, " %");
         pick_health(panel);
     }
 }
