@@ -50,6 +50,12 @@
 #include "bento_edgeai.h"
 #include "bento_runtime.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+enum {
+    DRAW_MS = 500
+};
+/* ---- end of settings ---- */
+
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
@@ -64,7 +70,6 @@ enum {
 
 /* Timing. */
 enum {
-    DRAW_MS = 500,
     LOOP_MS = 30,
     SETTLE_MS = 150, /* let the cleared screen settle */
     OP_POLL_MS = 20,
