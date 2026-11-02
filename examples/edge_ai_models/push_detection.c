@@ -72,14 +72,37 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
-enum { /* times, in ms */
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* exact name, looked up every run */
+static const char MODEL[] = "Push Detection";
+/* false = deployed from the Store */
+static const bool BUILTIN = true;
+enum {
+    /* K, N: event = K of the last N results at Confirm at */
+    K = 3,
+    N = 5,
+    /* no second push sooner than this (SW6 / touch: 0.3, 1, 2 s) */
+    REFRACT_MS = 1000,
+    /* an event stays on screen this long */
+    HOLD_MS = 2000
+};
+/* DEF_TH: Hearing at, Confirm at, clear below (fallback), % */
+static const int32_t DEF_THRESHOLDS[] = {40, 65, 30};
+enum {
     POLL_MS = 100,
-    DRAW_MS = 500,
+    DRAW_MS = 500
+};
+static const char HELP[] =
+    "Push your palm - SW6 = refractory, SW5 = pause";
+/* HELP on a board without buttons */
+static const char HELP_NO_BUTTONS[] = "Push your palm toward the radar";
+/* ---- end of settings ---- */
+
+enum { /* times, in ms */
     LOOP_MS = 20,
     LOAD_MS = 150,
     OP_POLL_MS = 20,
     FAIL_STOP_MS = 3000,
-    HOLD_MS = 2000,     /* an event stays on screen this long */
     NEAR_MS = 1000,     /* two pushes closer than this: "< 1 s apart" */
     HANDLED_POLLS = 50, /* 50 x 4 ms: the setter's 200 ms wait */
     HANDLED_MS = 4
@@ -90,8 +113,6 @@ enum { /* sizes and limits */
     CLOCK_BYTES = 36, /* "HH:MM:SS"; three int32_t at worst */
     MAX_CLASSES = BENTO_EDGEAI_MAX_CLASSES,
     LABEL_BYTES = BENTO_EDGEAI_LABEL_LEN,
-    VOTE_K = 3, /* event = K of the last N results at Confirm at */
-    VOTE_N = 5,
     LOG_LINES = 3,
     VU_LEDS = 10,
     VU_STEP = 10, /* % per LED */
@@ -101,12 +122,6 @@ enum { /* sizes and limits */
     TEACH_ENTER = 20, /* teaching thresholds (see the header) */
     TEACH_CONFIRM = 30,
     PERCENT = 100
-};
-
-enum { /* fallback thresholds, % */
-    DEF_ENTER = 40,
-    DEF_CONFIRM = 65,
-    DEF_EXIT = 30
 };
 
 enum { /* the episode's states */
@@ -146,11 +161,6 @@ enum { /* the meter and its marks */
     METER_W = 432,
     MARK_Y = 256
 };
-
-static const char MODEL[] =
-    "Push Detection"; /* exact name, looked up every run */
-/* SW6 / touch: no second push sooner than this */
-static const int32_t REFRACTS_MS[REFRACT_CHOICES] = {300, 1000, 2000};
 
 /* Where a widget goes and how it looks: MicroPython's keywords. */
 typedef struct {
@@ -214,7 +224,7 @@ typedef struct {
 /* The last N scores; K of them at or above a level = confirmed. */
 typedef struct {
     int32_t count;
-    int32_t scores[VOTE_N];
+    int32_t scores[N];
 } vote_t;
 
 /* info: NORMAL > HEARD > SEEN for HOLD_MS, no ACK.
@@ -544,15 +554,12 @@ static int32_t compiled_count(void)
  * "is not False". */
 static bool source_matches(int32_t row, int32_t compiled)
 {
-    const bool want_builtin =
-        true; /* BUILTIN: false = from the Store */
-    bool matches = want_builtin;
+    bool matches = BUILTIN;
 
     if (compiled >= 0) {
         const bool builtin = row < compiled;
 
-        matches =
-            (builtin && want_builtin) || (!builtin && !want_builtin);
+        matches = (builtin && BUILTIN) || (!builtin && !BUILTIN);
     }
     return matches;
 }
@@ -723,9 +730,12 @@ static void read_thresholds(uint32_t index, thresholds_t *out)
         bento_edgeai_thresholds(index, &board) == BENTO_OK;
     out->class_count = MAX_CLASSES;
     for (i = 0U; i < (uint32_t)MAX_CLASSES; i++) {
-        out->level[BENTO_EDGEAI_TH_ENTER][i] = DEF_ENTER;
-        out->level[BENTO_EDGEAI_TH_CONFIRM][i] = DEF_CONFIRM;
-        out->level[BENTO_EDGEAI_TH_EXIT][i] = DEF_EXIT;
+        out->level[BENTO_EDGEAI_TH_ENTER][i] =
+            DEF_THRESHOLDS[BENTO_EDGEAI_TH_ENTER];
+        out->level[BENTO_EDGEAI_TH_CONFIRM][i] =
+            DEF_THRESHOLDS[BENTO_EDGEAI_TH_CONFIRM];
+        out->level[BENTO_EDGEAI_TH_EXIT][i] =
+            DEF_THRESHOLDS[BENTO_EDGEAI_TH_EXIT];
     }
     if (out->from_board) {
         out->class_count = board.class_count;
@@ -875,8 +885,8 @@ static void vote_add(vote_t *vote, int32_t score)
 {
     int32_t i;
 
-    if (vote->count == VOTE_N) {
-        for (i = 1; i < VOTE_N; i++) {
+    if (vote->count == N) {
+        for (i = 1; i < N; i++) {
             vote->scores[i - 1] = vote->scores[i];
         }
         vote->count--;
@@ -907,13 +917,13 @@ static bool vote_hits(const vote_t *vote, int32_t level)
             hits++;
         }
     }
-    return hits >= VOTE_K;
+    return hits >= K;
 }
 
 /* N results, all below the level. */
 static bool vote_clear(const vote_t *vote, int32_t level)
 {
-    return (vote->count == VOTE_N) && (vote_max(vote) < level);
+    return (vote->count == N) && (vote_max(vote) < level);
 }
 
 /* A confirmed result: a new event unless one is latched or the last
@@ -1323,13 +1333,15 @@ static bool refract_tapped(push_t *app)
 /* Refractory 0.3 -> 1 -> 2 s. */
 static void next_refract(push_t *app)
 {
+    static const int32_t refracts_ms[REFRACT_CHOICES] = {300, 1000,
+                                                         2000};
     static const char *const seconds[REFRACT_CHOICES] = {"0.3", "1",
                                                          "2"};
     char clock[CLOCK_BYTES];
     char text[TEXT_BYTES];
 
     app->refract_index = (app->refract_index + 1) % REFRACT_CHOICES;
-    app->refract_ms = REFRACTS_MS[app->refract_index];
+    app->refract_ms = refracts_ms[app->refract_index];
     (void)snprintf(text, sizeof(text), "Refractory %s s",
                    seconds[app->refract_index]);
     put_text(app->ui, &app->refractory, text);
@@ -1432,7 +1444,7 @@ static bento_status_t run_push(push_t *app)
     if (status == BENTO_OK) {
         show_marks(app, PUSH_CLASS);
         app->refract_index = 1;
-        app->refract_ms = REFRACTS_MS[app->refract_index];
+        app->refract_ms = REFRACT_MS;
         app->peak = -1;
         app->episode.latch = false;
         status = loop_then_restore(app);
@@ -1475,9 +1487,7 @@ int main(void)
     (void)memset(app, 0, sizeof(*app));
     app->ui = bento_runtime_get_ui();
     app->has_buttons = bento_buttons_count() > 0U;
-    app->help = app->has_buttons
-                    ? "Push your palm - SW6 = refractory, SW5 = pause"
-                    : "Push your palm toward the radar";
+    app->help = app->has_buttons ? HELP : HELP_NO_BUTTONS;
     app->pause_button.index = BUTTON_SW5;
     app->refract_button.index = BUTTON_SW6;
     in_emulator = look_up_model(&app->model, &found);
