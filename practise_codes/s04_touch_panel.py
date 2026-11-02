@@ -49,7 +49,7 @@ ui.screen()
 time.sleep_ms(200)                                 # ให้ CM55 ล้างเสร็จก่อนยิงคำสั่งชุดใหม่
 
 # value= ของ Label คือ "ขนาดฟอนต์" (16/20/24/28) ไม่ใช่ค่าตัวเลขใด ๆ
-# 28 คือหัวเรื่อง 20 คือค่าที่ต้องอ่าน 16 คือป้ายกำกับชั้นรอง - สามชั้นนี้คือลำดับสายตา
+# 28 คือหัวเรื่อง 20 คือค่าที่ต้องอ่านและป้ายกำกับชั้นรอง (ตัวไทยบนจอบอร์ดต้องไม่เล็กกว่า 20) - ลำดับสายตามาจากขนาดกับสี
 # ผังหน้าจอ: หัวเรื่อง+สถานะ y=8..45 · สามแถวคำสั่งรายดวง y=52..380 · การ์ดคำสั่งรวม x=520..768
 ui.Label("แผงควบคุม LED ของทีม", x=24, y=8, color=COL_TEXT, value=28)
 status = ui.Label("พร้อมรับคำสั่ง", x=360, y=12, color=COL_DIM, value=20)
@@ -69,7 +69,7 @@ for i in range(len(LED_IDX)):
     y = ROW_TOP + i * ROW_PITCH
     # ไฟสถานะบอกว่า "ตอนนี้เป็นยังไง" ปุ่มบอกว่า "สั่งอะไรได้" - คนละหน้าที่ คนละชิ้น
     lamps.append(ui.Led(x=24, y=y + 20, w=48, h=48, color=COL_ON[i], value=0))
-    ui.Label(BTN_TEXT[i], x=88, y=y + 32, color=COL_DIM, value=16)
+    ui.Label(BTN_TEXT[i], x=88, y=y + 32, color=COL_DIM, value=20)
 
     # เติม: btn_on.append(ui.Button("เปิด", x=184, y=y, w=144, h=88, color=0x30A46C, value=20))
     # ยังไม่ชินกับอาร์กิวเมนต์ของ widget: examples/s04/01_first_widgets.py สร้างทีละตัวช้า ๆ
@@ -90,7 +90,7 @@ ui.Panel(x=520, y=48, w=248, h=308, color=COL_CARD, min=COL_DIM, max=12, value=1
 # ตัวเลขมาพร้อมพิสัยของมันเสมอ ป้ายกำกับแยกอีกบรรทัดจึงไม่จำเป็น และไม่มีที่ให้ด้วย
 lbl_count = ui.Label("ติดอยู่ 0 จาก " + str(len(LED_IDX)) + " ดวง", x=536, y=60,
                      color=COL_TEXT, value=20)
-ui.Label("คำสั่งทั้งชุด", x=536, y=96, color=COL_DIM, value=16)
+ui.Label("คำสั่งทั้งชุด", x=536, y=96, color=COL_DIM, value=20)
 btn_all_on = ui.Button("เปิดทั้งหมด", x=536, y=132, w=216, h=88, color=0x30A46C, value=20)
 btn_all_off = ui.Button("ปิดทั้งหมด", x=536, y=252, w=216, h=88, color=0x3A4150, value=20)
 

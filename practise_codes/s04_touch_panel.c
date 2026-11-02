@@ -86,8 +86,7 @@ enum { /* layout, px */
 
 enum { /* font sizes, px */
     FONT_TITLE = 28,
-    FONT_VALUE = 20,
-    FONT_SMALL = 16
+    FONT_VALUE = 20
 };
 
 enum {              /* times, ms */
@@ -109,8 +108,6 @@ enum { /* "ติดอยู่ " + any int32_t + " จาก " + any int32_t +
 
 static const char *const BUTTON_TEXT[LED_COUNT] = {"แดง", "เขียว",
                                                    "น้ำเงิน"};
-static const uint32_t COLOR_ON[LED_COUNT] = {0xE53935U, 0x43A047U,
-                                             0x1E88E5U};
 
 /* The panel's widgets and its truth: led_on is what the program
  * commanded, never read back from the pins. */
@@ -215,14 +212,14 @@ static bool find_led(const char *wanted, uint32_t *led)
  * (Eva Kit: LED 2 is blue although it is called "RGB_RED"). */
 static void pick_leds(panel_t *panel)
 {
-    static const char *const RGB_NAMES[LED_COUNT] = {
+    static const char *const rgb_names[LED_COUNT] = {
         "RGB_RED", "RGB_GREEN", "RGB_BLUE"};
-    uint32_t found[LED_COUNT] = {0U};
+    uint32_t found[LED_COUNT] = {0U, 0U, 0U};
     bool all_found = true;
     uint32_t i;
 
     for (i = 0U; i < (uint32_t)LED_COUNT; i++) {
-        all_found = find_led(RGB_NAMES[i], &found[i]) && all_found;
+        all_found = find_led(rgb_names[i], &found[i]) && all_found;
     }
     for (i = 0U; i < (uint32_t)LED_COUNT; i++) {
         panel->led_index[i] = all_found ? found[i] : i;
@@ -248,6 +245,9 @@ static bento_status_t add_title(panel_t *panel)
 /* One row: the lamp tells what is, the buttons tell what can be done. */
 static bento_status_t add_row(panel_t *panel, uint32_t row)
 {
+    /* the lamp colours, in the order of BUTTON_TEXT */
+    static const uint32_t color_on[LED_COUNT] = {0xE53935U, 0x43A047U,
+                                                 0x1E88E5U};
     const int32_t top = ROW_TOP + ((int32_t)row * ROW_PITCH);
     const rect_t name_place = {NAME_X, px(top + NAME_DY), 0, 0};
     const rect_t on_place = {ON_X, px(top), ROW_BUTTON_W, BUTTON_H};
@@ -261,12 +261,12 @@ static bento_status_t add_row(panel_t *panel, uint32_t row)
     args.y = px(top + LAMP_DY);
     args.w = LAMP_SIZE;
     args.h = LAMP_SIZE;
-    args.color = COLOR_ON[row];
+    args.color = color_on[row];
     args.font_px = 0;
     status = bento_ui_led_create(panel->ui, &args, &panel->lamps[row]);
     if (status == BENTO_OK) {
         status = add_label(panel->ui, BUTTON_TEXT[row], &name_place,
-                           COLOR_DIM, FONT_SMALL, &unused);
+                           COLOR_DIM, FONT_VALUE, &unused);
     }
     /* เติม: สร้างปุ่ม "เปิด" ด้วย add_button() ที่ on_place สี COLOR_GO
      * เก็บไว้ใน panel->on_buttons[panel->on_count] แล้วเพิ่ม panel->on_count
@@ -311,13 +311,13 @@ static bento_status_t add_set_card(panel_t *panel)
     status = bento_ui_panel_create(panel->ui, &args, &unused);
     if (status == BENTO_OK) {
         (void)snprintf(text, sizeof(text), "ติดอยู่ 0 จาก %d ดวง",
-                       (int)LED_COUNT);
+                       LED_COUNT);
         status = add_label(panel->ui, text, &count_place, COLOR_TEXT,
                            FONT_VALUE, &panel->count_label);
     }
     if (status == BENTO_OK) {
         status = add_label(panel->ui, "คำสั่งทั้งชุด", &set_place, COLOR_DIM,
-                           FONT_SMALL, &unused);
+                           FONT_VALUE, &unused);
     }
     if (status == BENTO_OK) {
         status = add_button(panel->ui, "เปิดทั้งหมด", &all_on_place,
@@ -406,7 +406,7 @@ static void show_status(const panel_t *panel)
         }
     }
     (void)snprintf(text, sizeof(text), "ติดอยู่ %" PRId32 " จาก %d ดวง",
-                   lit, (int)LED_COUNT);
+                   lit, LED_COUNT);
     set_text(panel->ui, panel->count_label, text);
 }
 
@@ -530,27 +530,36 @@ static bento_status_t handle_click(panel_t *panel, bento_ui_id_t widget)
     return status;
 }
 
-/* Poll every round (else the screen hides widgets for about 2 s) and
- * act on clicks only. Each control sends its own event type:
- * examples/s04/02_event_types.py prints the real events one by one. */
-static bento_status_t run_event_loop(panel_t *panel)
+/* One poll: act on clicks only. ui.poll() answers no events when it
+ * fails. */
+static bento_status_t handle_events(panel_t *panel)
 {
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count;
     uint32_t i;
     bento_status_t status = BENTO_OK;
 
+    if (bento_ui_poll(panel->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
+        count = 0U;
+    }
+    for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
+        if (events[i].type == (uint8_t)BENTO_UI_EVENT_CLICKED) {
+            status = handle_click(panel, events[i].id);
+        }
+    }
+    return status;
+}
+
+/* Poll every round (else the screen hides widgets for about 2 s) and
+ * act on clicks only. Each control sends its own event type:
+ * examples/s04/02_event_types.py prints the real events one by one. */
+static bento_status_t run_event_loop(panel_t *panel)
+{
+    bento_status_t status = BENTO_OK;
+
     while (status == BENTO_OK) {
-        /* ui.poll() answers no events when it fails */
-        if (bento_ui_poll(panel->ui, events, BENTO_UI_POLL_EVENTS_MAX,
-                          &count, NULL) != BENTO_OK) {
-            count = 0U;
-        }
-        for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
-            if (events[i].type == (uint8_t)BENTO_UI_EVENT_CLICKED) {
-                status = handle_click(panel, events[i].id);
-            }
-        }
+        status = handle_events(panel);
         /* กฎข้อ 2: หน่วงอย่างน้อย 50 ms คืนเวลาให้ระบบไปวาดจอ
          * เติม: พักด้วย bento_time_sleep_ms() นาน LOOP_MS เมื่อ status ยังเป็น BENTO_OK
          * อยากได้เสียงตอบรับตอนแตะปุ่มด้วย: examples/s04/05_sound_feedback.py ต่อ ui.sfx และ ui.tone
