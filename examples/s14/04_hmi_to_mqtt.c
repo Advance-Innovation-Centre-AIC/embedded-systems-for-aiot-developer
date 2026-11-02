@@ -47,6 +47,9 @@
  *  - Stop raises KeyboardInterrupt in MicroPython; here the wait
  *    returns and the program ends after the same finally (the model is
  *    stopped and the broker link closed).
+ * In the BENTO Emulator, Edge AI from C is not available yet: the
+ * program says so, then goes on as the original does when no
+ * model is on the board.
  */
 #include <inttypes.h>
 #include <stdbool.h>
@@ -58,6 +61,10 @@
 #include "bento_mqtt.h"
 #include "bento_runtime.h"
 #include "bento_wifi.h"
+
+/* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
+static const char EMULATOR_NOTE[] =
+    "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
 
 /* The alert rule, the network and the screen's rhythm. */
 enum {
@@ -583,7 +590,17 @@ static void join_keys(int32_t kit, bool as_tuple, char *text,
     }
 }
 
-static bento_status_t hold_no_model(const hmi_t *hmi)
+/* The BENTO Emulator's C runtime answers BENTO_E_UNSUPPORTED to every
+ * Edge AI call: the console says so. */
+static void print_emulator_note(void)
+{
+    (void)printf(
+        "%s / Edge AI from C is not in the BENTO Emulator yet: "
+        "run it on a Dev Kit or Eva Kit.\n",
+        EMULATOR_NOTE);
+}
+
+static bento_status_t hold_no_model(const hmi_t *hmi, bool in_emulator)
 {
     char first[TEXT_CHARS];
     char names[TEXT_CHARS];
@@ -599,6 +616,9 @@ static bento_status_t hold_no_model(const hmi_t *hmi)
     add_line(&text, first);
     add_line(&text, names);
     add_line(&text, "deploy จาก Store ก่อน");
+    if (in_emulator) {
+        add_line(&text, EMULATOR_NOTE);
+    }
     return hold(hmi->ui, &text, COLOR_BAD);
 }
 
@@ -1231,7 +1251,7 @@ static bento_status_t start_hmi(hmi_t *hmi)
     return run_hmi(hmi);
 }
 
-static bento_status_t run_kit(hmi_t *hmi)
+static bento_status_t run_kit(hmi_t *hmi, bool in_emulator)
 {
     bool found = false;
     bento_status_t status = BENTO_OK;
@@ -1239,11 +1259,13 @@ static bento_status_t run_kit(hmi_t *hmi)
     hmi->kit = find_kit();
     if (hmi->kit == NO_KIT) {
         status = hold_bad_kit(hmi->ui);
-    } else {
+    } else if (!in_emulator) {
         status = find_model(hmi, &found);
+    } else {
+        found = false; /* the Emulator: no model */
     }
     if ((status == BENTO_OK) && (hmi->kit != NO_KIT) && !found) {
-        status = hold_no_model(hmi);
+        status = hold_no_model(hmi, in_emulator);
     } else if ((status == BENTO_OK) && found) {
         status = start_hmi(hmi);
     } else {
@@ -1256,6 +1278,7 @@ int main(void)
 {
     hmi_t *hmi = &g_hmi;
     bool supported = false;
+    bool in_emulator = false;
     bento_status_t status;
 
     (void)memset(hmi, 0, sizeof(*hmi));
@@ -1267,14 +1290,19 @@ int main(void)
     (void)snprintf(hmi->label, sizeof(hmi->label), "-");
     name_topics(hmi);
     status = bento_edgeai_supported(&supported);
-    if ((status == BENTO_OK) && !supported) {
+    in_emulator = status == BENTO_E_UNSUPPORTED;
+    if (in_emulator) {
+        print_emulator_note();
+        status = BENTO_OK; /* on as if no model were on the board */
+    }
+    if ((status == BENTO_OK) && !supported && !in_emulator) {
         status = BENTO_E_UNSUPPORTED; /* import edge_ai fails */
     }
     if (status == BENTO_OK) {
         status = build_screen(hmi);
     }
     if (status == BENTO_OK) {
-        status = run_kit(hmi);
+        status = run_kit(hmi, in_emulator);
     }
     return (status == BENTO_E_CANCELLED) ? 0 : (int)status;
 }
