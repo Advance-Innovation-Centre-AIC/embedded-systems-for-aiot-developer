@@ -48,6 +48,9 @@
  *   - The binding cuts an MQTT password to 31 bytes; C sends it whole.
  *   - Stop ends the program quietly after the same cleanup, where
  *     MicroPython raises KeyboardInterrupt.
+ *   - In the BENTO Emulator, MQTT from C is not available yet: the
+ *     program says so and then works offline, as the original does
+ *     when the broker cannot be reached.
  */
 #include <math.h>
 #include <stdbool.h>
@@ -1204,6 +1207,27 @@ static void show_wifi(const telemetry_t *app)
     set_value(app->ui, app->led_wifi, connected ? 1 : 0);
 }
 
+/* The BENTO Emulator has no MQTT from C yet: say so on the screen, over
+ * the empty list of sent messages, and on the console. */
+static bento_status_t show_emulator_note(const telemetry_t *app)
+{
+    static const spec_t note = {
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit",
+        288,
+        160,
+        208,
+        -1,
+        COL_WARN,
+        20};
+    bento_ui_id_t unused;
+
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or "
+                 "Eva Kit.\n",
+                 note.text);
+    return add_label(app->ui, &note, &unused);
+}
+
 /* mqtt.connect(): *connected is its True or False. A client that could
  * not even start (no radio) ends the program, as the binding's raise. */
 static bento_status_t open_broker(telemetry_t *app, bool *connected)
@@ -1214,6 +1238,7 @@ static bento_status_t open_broker(telemetry_t *app, bool *connected)
         "team03"; /* the platform's device_id, <= 31 characters */
     static const char mqtt_pass[] = "bento";
     bento_mqtt_config_t config;
+    bool in_emulator;
     bento_status_t status;
 
     bento_mqtt_config_init(&config);
@@ -1228,6 +1253,7 @@ static bento_status_t open_broker(telemetry_t *app, bool *connected)
     config.pass = mqtt_pass;
     config.pass_len = (uint32_t)strlen(mqtt_pass);
     status = bento_mqtt_open_start(&config, &app->broker);
+    in_emulator = status == BENTO_E_UNSUPPORTED;
     if (status == BENTO_OK) {
         (void)printf("[MQTT] Connecting to %s:%d ...\n", broker_host,
                      BROKER_PORT);
@@ -1243,6 +1269,9 @@ static bento_status_t open_broker(telemetry_t *app, bool *connected)
     if (*connected) {
         (void)printf("[MQTT] Connected to %s:%d as '%s'\n", broker_host,
                      BROKER_PORT, device_id);
+    } else if (in_emulator) {
+        status = show_emulator_note(
+            app); /* then offline, as a refused connect */
     } else if ((status != BENTO_E_CANCELLED) && (app->broker != 0U)) {
         status =
             BENTO_OK; /* refused or timed out: False, go on offline */
