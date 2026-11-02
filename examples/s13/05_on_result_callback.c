@@ -41,6 +41,9 @@
  *    bento_edgeai_supported() false ends with BENTO_E_UNSUPPORTED;
  *  - Stop raises KeyboardInterrupt in MicroPython; here the wait
  *    returns and the program ends after the same finally.
+ * In the BENTO Emulator, Edge AI from C is not available yet: the
+ * program says so, then goes on as the original does when no
+ * model is on the board.
  */
 #include <inttypes.h>
 #include <stdbool.h>
@@ -50,6 +53,18 @@
 
 #include "bento_edgeai.h"
 #include "bento_runtime.h"
+
+/* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
+static const char EMULATOR_NOTE[] =
+    "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+
+/* Where that note sits on the screen. */
+enum {
+    EMULATOR_NOTE_X = 12,
+    EMULATOR_NOTE_Y = 180,
+    EMULATOR_NOTE_PX = 20,
+    EMULATOR_NOTE_COLOR = 0xF5A623
+};
 
 /* Timing. */
 enum {
@@ -468,20 +483,56 @@ static bento_status_t run_model(compare_t *compare)
     return status;
 }
 
+/* The BENTO Emulator's C runtime answers BENTO_E_UNSUPPORTED to every
+ * Edge AI call: the console says so. */
+static void print_emulator_note(void)
+{
+    (void)printf(
+        "%s / Edge AI from C is not in the BENTO Emulator yet: "
+        "run it on a Dev Kit or Eva Kit.\n",
+        EMULATOR_NOTE);
+}
+
+/* The same note as a label on the current screen. It is best effort,
+ * as a widget setter is, so its status is not checked. */
+static void add_emulator_note(bento_ui_t *ui)
+{
+    bento_ui_widget_args_t args;
+    bento_ui_id_t unused = 0U;
+
+    bento_ui_widget_args_init(&args);
+    args.text = EMULATOR_NOTE;
+    args.text_len = (uint32_t)strlen(EMULATOR_NOTE);
+    args.x = EMULATOR_NOTE_X;
+    args.y = EMULATOR_NOTE_Y;
+    args.color = EMULATOR_NOTE_COLOR;
+    args.font_px = EMULATOR_NOTE_PX;
+    (void)bento_ui_label_create(ui, &args, &unused);
+}
+
 int main(void)
 {
     compare_t compare;
     bool supported = false;
+    bool in_emulator = false;
     bool found = false;
     bento_status_t status;
 
     (void)memset(&compare, 0, sizeof(compare));
     compare.ui = bento_runtime_get_ui();
     status = bento_edgeai_supported(&supported);
-    if ((status == BENTO_OK) && !supported) {
+    in_emulator = status == BENTO_E_UNSUPPORTED;
+    if (in_emulator) {
+        (void)bento_ui_screen(compare.ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                              BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        add_emulator_note(compare.ui);
+        print_emulator_note();
+        status = BENTO_OK; /* on as if no model were on the board */
+    }
+    if ((status == BENTO_OK) && !supported && !in_emulator) {
         status = BENTO_E_UNSUPPORTED; /* import edge_ai fails */
     }
-    if (status == BENTO_OK) {
+    if ((status == BENTO_OK) && !in_emulator) {
         status = find_model(&compare, &found);
     }
     if ((status == BENTO_OK) && !found) {
