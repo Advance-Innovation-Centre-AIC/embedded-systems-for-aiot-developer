@@ -56,6 +56,8 @@
  *     initialized".
  *   - Stop ends the program quietly after the same cleanup, where
  *     MicroPython raises KeyboardInterrupt.
+ *   - In the BENTO Emulator, MQTT from C is not available yet: the
+ *     program says so and ends.
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -108,6 +110,7 @@ enum {
     COLOR_CARD = 0x171B22,
     COLOR_OK = 0x30A46C,
     COLOR_BAD = 0xE5484D,
+    COLOR_WARN = 0xF5A623,
     COLOR_INFO = 0x4A9EFF
 };
 
@@ -1333,6 +1336,22 @@ static bento_status_t watch_topic(command_app_t *app)
     return status;
 }
 
+/* The BENTO Emulator's C runtime has no MQTT yet (BENTO_E_UNSUPPORTED):
+ * the bottom line says so, and the console too. */
+static void tell_emulator(const command_screen_t *screen)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+
+    (void)bento_ui_set_color(screen->ui, screen->alive, COLOR_WARN);
+    set_text(screen->ui, screen->alive, note);
+    poll_display(screen->ui);
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
+}
+
 /* Wi-Fi, the broker, the topic. A step that fails says so and
  * ends the program normally. */
 static bento_status_t run_session(command_app_t *app,
@@ -1347,6 +1366,10 @@ static bento_status_t run_session(command_app_t *app,
     }
     if ((status == BENTO_OK) && joined) {
         status = open_broker(client_id, &app->broker, &online);
+    }
+    if (status == BENTO_E_UNSUPPORTED) {
+        tell_emulator(&app->screen);
+        status = BENTO_E_CANCELLED; /* a normal end: main returns 0 */
     }
     if ((status == BENTO_OK) && joined && !online) {
         show_link(&app->screen, false);
