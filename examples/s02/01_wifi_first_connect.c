@@ -41,6 +41,15 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* แก้สองบรรทัดนี้ให้ตรงกับเครือข่ายที่ผู้สอนแจกหน้าห้อง
+ * Set these two to the network the teacher hands out. */
+/* the team's phone hotspot: faculty Wi-Fi needs a login */
+static const char WIFI_SSID[] = "bento-teamXX";
+/* 8 characters or more */
+static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
+/* ---- end of settings ---- */
+
 /* Timing and text sizes. */
 enum {
     SETTLE_MS = 200,    /* let the cleared screen settle */
@@ -383,17 +392,6 @@ static void confirm_link(const wifi_screen_t *screen,
                  python_bool(linked));
 }
 
-/* Change these to the network the teacher hands out: the team's
- * phone hotspot (the faculty Wi-Fi needs a login the board cannot
- * do), and its password of 8 characters or more. */
-typedef struct {
-    const char *ssid;
-    const char *pass;
-} wifi_network_t;
-
-static const wifi_network_t NETWORK = {"bento-teamXX",
-                                       "<รหัส Hotspot ของทีม>"};
-
 /* wifi.connect(): waits for the join in slices so Stop can end it.
  * *joined is its True or False. */
 static bento_status_t join_wifi(bool *joined)
@@ -404,10 +402,10 @@ static bento_status_t join_wifi(bool *joined)
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = NETWORK.ssid;
-    params.ssid_len = (uint32_t)strlen(NETWORK.ssid);
-    params.pass = NETWORK.pass;
-    params.pass_len = (uint32_t)strlen(NETWORK.pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -437,7 +435,7 @@ static bento_status_t show_success(const wifi_screen_t *screen,
     bento_status_t status = BENTO_OK;
 
     set_color(screen, screen->seg, COLOR_OK);
-    (void)snprintf(text, sizeof(text), "ต่อสำเร็จ - %s", NETWORK.ssid);
+    (void)snprintf(text, sizeof(text), "ต่อสำเร็จ - %s", WIFI_SSID);
     set_text(screen, screen->state, text);
     set_color(screen, screen->state, COLOR_OK);
     read_ip(ip, sizeof(ip));
@@ -497,9 +495,9 @@ int main(void)
         drop_events(&screen);
         (void)bento_lcd_clear();
         (void)bento_lcd_console("<h2>ต่อ WiFi</h2>");
-        (void)snprintf(text, sizeof(text), "กำลังต่อวง %s", NETWORK.ssid);
+        (void)snprintf(text, sizeof(text), "กำลังต่อวง %s", WIFI_SSID);
         (void)bento_lcd_print(text);
-        (void)printf("กำลังต่อ %s - บรรทัดถัดไปจะบล็อก\n", NETWORK.ssid);
+        (void)printf("กำลังต่อ %s - บรรทัดถัดไปจะบล็อก\n", WIFI_SSID);
         status = connect_and_report(&screen);
     }
     return (status == BENTO_E_CANCELLED) ? 0 : (int)status;
