@@ -326,15 +326,16 @@ static void stop_here(const panel_t *panel, bento_ui_id_t label,
  * broker calls answer BENTO_E_UNSUPPORTED there. The program takes
  * the original's own "broker failed" way out: the step turns red with
  * the original's words, the reason line and the drawer say why, the
- * console gets the full sentence in Thai and English, and the
- * program ends normally. The screen line is the short form, within
- * the 126 bytes of a SET_TEXT. */
+ * console gets the sentence in Thai and English, and the program
+ * ends normally. The label stays within the 126 bytes of a
+ * SET_TEXT. */
 static void show_emulator_note(bento_ui_t *ui, bento_ui_id_t step,
                                const char *step_text,
                                bento_ui_id_t reason)
 {
-    static const char note[] =
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    /* the Emulator does not wrap a label by its width: \n does */
+    static const char note[] = "MQTT จาก C ยังไม่มีใน BENTO Emulator\n"
+                               "ให้รันบน Dev Kit หรือ Eva Kit";
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
 
@@ -348,10 +349,9 @@ static void show_emulator_note(bento_ui_t *ui, bento_ui_id_t step,
     (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
                         NULL);
     (void)bento_lcd_print(note); /* ignores a console not ready */
-    (void)printf("MQTT จากภาษา C ยังไม่มีใน BENTO Emulator "
-                 "ให้รันบนบอร์ด Dev Kit หรือ Eva Kit / MQTT from C is "
-                 "not in the BENTO Emulator yet: run it on a Dev Kit "
-                 "or Eva Kit.\n");
+    (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit "
+                 "หรือ Eva Kit / MQTT from C is not in the BENTO "
+                 "Emulator yet: run it on a Dev Kit or Eva Kit.\n");
 }
 
 /* Step 2: introduce the board to the broker. A client id another
