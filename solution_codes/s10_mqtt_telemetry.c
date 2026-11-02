@@ -67,10 +67,19 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
-/* The team's values sit in the function that uses each one: WiFi in
- * join_wifi(), the broker and the team id in open_broker(), the topics
- * in subscribe_commands() and where the telemetry is published. Set
- * them before you run it (NN is the team number). */
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASSWORD[] = "<รหัสผ่านของห้องเรียน>";
+/* the LAN IP of TESAIoT CE, not localhost */
+static const char BROKER[] = "192.168.1.50";
+/* the platform's device_id, <= 31 characters */
+static const char DEVICE_ID[] = "team03";
+/* the practice broker does not check it */
+static const char MQTT_PASS[] = "bento";
+/* wildcards (+ and #) are for subscribe only: in a publish nobody gets it */
+static const char TOPIC_PUB[] = "device/team03/telemetry";
+static const char TOPIC_CMD[] = "device/team03/commands";
+/* ---- end of settings ---- */
 
 enum {
     SEND_MS = 5000,
@@ -1152,16 +1161,14 @@ static bool read_sensors(reading_t *reading)
  * or timed-out join goes on offline; another failure ends the program. */
 static bento_status_t join_wifi(void)
 {
-    static const char wifi_ssid[] = "AIoT-Class";
-    static const char wifi_password[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = wifi_ssid;
-    params.ssid_len = (uint32_t)strlen(wifi_ssid);
-    params.pass = wifi_password;
-    params.pass_len = (uint32_t)strlen(wifi_password);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASSWORD;
+    params.pass_len = (uint32_t)strlen(WIFI_PASSWORD);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\n");
     status = bento_wifi_connect_start(&params);
@@ -1233,30 +1240,25 @@ static bento_status_t show_emulator_note(const telemetry_t *app)
  * not even start (no radio) ends the program, as the binding's raise. */
 static bento_status_t open_broker(telemetry_t *app, bool *connected)
 {
-    static const char broker_host[] =
-        "192.168.1.50"; /* the LAN IP of TESAIoT CE, not localhost */
-    static const char device_id[] =
-        "team03"; /* the platform's device_id, <= 31 characters */
-    static const char mqtt_pass[] = "bento";
     bento_mqtt_config_t config;
     bool in_emulator;
     bento_status_t status;
 
     bento_mqtt_config_init(&config);
-    config.host = broker_host;
-    config.host_len = (uint32_t)strlen(broker_host);
+    config.host = BROKER;
+    config.host_len = (uint32_t)strlen(BROKER);
     config.port = (uint16_t)BROKER_PORT;
     config.keepalive_s = (uint16_t)KEEPALIVE_S;
-    config.client_id = device_id;
-    config.client_id_len = (uint32_t)strlen(device_id);
-    config.user = device_id;
-    config.user_len = (uint32_t)strlen(device_id);
-    config.pass = mqtt_pass;
-    config.pass_len = (uint32_t)strlen(mqtt_pass);
+    config.client_id = DEVICE_ID;
+    config.client_id_len = (uint32_t)strlen(DEVICE_ID);
+    config.user = DEVICE_ID;
+    config.user_len = (uint32_t)strlen(DEVICE_ID);
+    config.pass = MQTT_PASS;
+    config.pass_len = (uint32_t)strlen(MQTT_PASS);
     status = bento_mqtt_open_start(&config, &app->broker);
     in_emulator = status == BENTO_E_UNSUPPORTED;
     if (status == BENTO_OK) {
-        (void)printf("[MQTT] Connecting to %s:%d ...\n", broker_host,
+        (void)printf("[MQTT] Connecting to %s:%d ...\n", BROKER,
                      BROKER_PORT);
         status = BENTO_E_IN_PROGRESS;
     }
@@ -1268,8 +1270,8 @@ static bento_status_t open_broker(telemetry_t *app, bool *connected)
     }
     *connected = status == BENTO_OK;
     if (*connected) {
-        (void)printf("[MQTT] Connected to %s:%d as '%s'\n", broker_host,
-                     BROKER_PORT, device_id);
+        (void)printf("[MQTT] Connected to %s:%d as '%s'\n", BROKER,
+                     BROKER_PORT, DEVICE_ID);
     } else if (in_emulator) {
         status = show_emulator_note(
             app); /* then offline, as a refused connect */
@@ -1286,14 +1288,13 @@ static bento_status_t open_broker(telemetry_t *app, bool *connected)
  * program goes on. */
 static void subscribe_commands(const telemetry_t *app)
 {
-    static const char topic_cmd[] = "device/team03/commands";
     uint8_t granted_qos = 0U;
     const bento_status_t status = bento_mqtt_subscribe(
-        app->broker, topic_cmd, (uint32_t)strlen(topic_cmd), 0U,
+        app->broker, TOPIC_CMD, (uint32_t)strlen(TOPIC_CMD), 0U,
         &granted_qos);
 
     if (status == BENTO_OK) {
-        (void)printf("[MQTT] Subscribed to '%s' (QoS=%d)\n", topic_cmd,
+        (void)printf("[MQTT] Subscribed to '%s' (QoS=%d)\n", TOPIC_CMD,
                      (int)granted_qos);
     } else if (status == BENTO_E_FAILED) {
         (void)printf("[MQTT] subscribe rejected by broker\n");
@@ -1318,8 +1319,6 @@ static bool broker_connected(const telemetry_t *app)
 static bool publish_telemetry(const telemetry_t *app,
                               reading_t *reading)
 {
-    /* wildcards (+ and #) are for subscribe only: in a publish nobody gets it */
-    static const char topic_pub[] = "device/team03/telemetry";
     char ax[BENTO_FMT_BUF_SIZE];
     char ay[BENTO_FMT_BUF_SIZE];
     char az[BENTO_FMT_BUF_SIZE];
@@ -1341,8 +1340,8 @@ static bool publish_telemetry(const telemetry_t *app,
             "{\"ax\": %s, \"ay\": %s, \"az\": %s, \"pot\": %s}", ax, ay,
             az, pot);
         /* a failed publish on a live link is the binding's False, counted as sent */
-        (void)bento_mqtt_publish(app->broker, topic_pub,
-                                 (uint32_t)strlen(topic_pub),
+        (void)bento_mqtt_publish(app->broker, TOPIC_PUB,
+                                 (uint32_t)strlen(TOPIC_PUB),
                                  (const uint8_t *)payload,
                                  (uint32_t)strlen(payload), 0U, 0U);
     }
