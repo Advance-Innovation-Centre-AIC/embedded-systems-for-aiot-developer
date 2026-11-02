@@ -40,6 +40,9 @@
  *   - The Stop exception is a stop text kept in the program state:
  *     the loop ends, the text goes on the status line in red and is
  *     printed, and the AI core is released, as the finally does.
+ *   - In the BENTO Emulator, Edge AI from C is not available yet:
+ *     the program says so and then shows the "Model not on this
+ *     board" card, as the .py does there.
  *   - gc.collect() and the free-heap print are left out: C has no
  *     garbage collector.
  *   - The scores are the engine's whole percentages, the same number
@@ -561,11 +564,15 @@ static bento_status_t find_model(model_t *model, bool *found)
     return status;
 }
 
-/* No model link at all, or a list that cannot be read: not found. */
-static void look_up_model(model_t *model, bool *found)
+/* No model link at all, or a list that cannot be read: not found.
+ * Answers true in the BENTO Emulator, whose C runtime has no Edge
+ * AI yet (every call answers BENTO_E_UNSUPPORTED there; a board
+ * without the model link answers BENTO_OK and false). */
+static bool look_up_model(model_t *model, bool *found)
 {
     bool supported = false;
     bento_status_t status = bento_edgeai_supported(&supported);
+    const bool in_emulator = status == BENTO_E_UNSUPPORTED;
 
     *found = false;
     if ((status == BENTO_OK) && supported) {
@@ -576,6 +583,24 @@ static void look_up_model(model_t *model, bool *found)
             *found = false;
         }
     }
+    return in_emulator;
+}
+
+/* The BENTO Emulator's note, under the "not on this board" card. */
+static bento_status_t show_emulator_note(bento_ui_t *ui)
+{
+    static const char note[] = "Edge AI จาก C ยังไม่มีใน BENTO Emulator "
+                               "ให้รันบน Dev Kit หรือ Eva Kit";
+    const spec_t place = {96, 300, 600, 60, COLOR_WARN, 20, 0, 0};
+    bento_ui_id_t unused;
+    const bento_status_t status = add_label(ui, note, &place, &unused);
+
+    (void)printf(
+        "%s / Edge AI from C is not in the BENTO Emulator yet: "
+        "run it on a Dev Kit or Eva Kit.\n",
+        note);
+    drain_events(ui);
+    return status;
 }
 
 /* edge_ai.select(i): loads and starts it, up to 15 s. */
@@ -1215,6 +1240,7 @@ int main(void)
         "Not on this board.";
     gesture_t *app = &g_gesture;
     bool found = false;
+    bool in_emulator;
     bento_status_t status;
 
     (void)memset(app, 0, sizeof(*app));
@@ -1225,10 +1251,13 @@ int main(void)
                     : "Move the board";
     app->pause_button.index = BUTTON_SW5;
     app->dwell_button.index = BUTTON_SW6;
-    look_up_model(&app->model, &found);
+    in_emulator = look_up_model(&app->model, &found);
     if (!found) {
         status = show_missing(app->ui, "Model not on this board",
                               missing_text);
+        if ((status == BENTO_OK) && in_emulator) {
+            status = show_emulator_note(app->ui);
+        }
     } else {
         status = run_program(app);
     }
