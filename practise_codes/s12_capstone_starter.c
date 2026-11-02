@@ -1102,12 +1102,14 @@ static bento_status_t alarm_round(tilt_alarm_t *monitor)
  * and in the Console, then carry on offline. */
 static bento_status_t add_emulator_notice(const alarm_screen_t *screen)
 {
+    /* The line breaks are in the text: the Emulator does not wrap a
+     * label at a width, so all of it stays on the screen. */
     static const widget_spec_t notice = {
         KIND_LABEL,
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit",
-        280,
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator\nให้รันบน Dev Kit หรือ Eva Kit",
+        232,
         0,
-        320,
+        -1,
         -1,
         COLOR_WARN,
         20,
@@ -1115,10 +1117,9 @@ static bento_status_t add_emulator_notice(const alarm_screen_t *screen)
         0};
     bento_ui_id_t unused = 0U;
 
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a "
-                 "Dev Kit or Eva Kit.\n",
-                 notice.text);
+    (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ "
+                 "Eva Kit / MQTT from C is not in the BENTO Emulator "
+                 "yet: run it on a Dev Kit or Eva Kit.\n");
     return add_widget(screen->ui, &notice, &unused);
 }
 
