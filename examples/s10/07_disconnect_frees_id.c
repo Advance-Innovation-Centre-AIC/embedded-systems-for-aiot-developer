@@ -42,6 +42,8 @@
  *     reset.
  *   - Stop ends the program quietly where MicroPython raises
  *     KeyboardInterrupt.
+ *   - In the BENTO Emulator, MQTT from C is not available yet: the
+ *     program says so and ends.
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -484,6 +486,22 @@ static void fail_first(const demo_t *demo, const char *step_text,
     lcd_line(log_line);
 }
 
+/* The BENTO Emulator's C runtime has no MQTT yet (BENTO_E_UNSUPPORTED):
+ * the note line says so, and the console too. */
+static void tell_emulator(const demo_t *demo)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+
+    set_color(demo, demo->note, (uint32_t)COL_WARN);
+    set_text(demo, demo->note, note);
+    drain_events(demo);
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
+}
+
 /* Step 1: the Wi-Fi, then the broker. *ok is false when the run
  * stops here. */
 static bento_status_t first_connect(demo_t *demo, bool *ok)
@@ -503,6 +521,11 @@ static bento_status_t first_connect(demo_t *demo, bool *ok)
         (void)snprintf(text, sizeof(text), "WiFi ได้ IP %s", address);
         lcd_line(text);
         status = open_broker(demo, ok);
+        if (status == BENTO_E_UNSUPPORTED) {
+            tell_emulator(demo);
+            status =
+                BENTO_E_CANCELLED; /* a normal end: main returns 0 */
+        }
     } else {
         /* Stop or an error ends the program */
     }
