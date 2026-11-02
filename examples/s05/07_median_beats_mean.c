@@ -52,9 +52,12 @@ enum {
     WINDOW_MAX = 15,
     PLAY_MS = 1500,
     LOOP_MS = 30,
-    CHART_MAX = 110, /* the chart's unit is the value times 10 */
-    AUTO = -1,       /* no w= or h= given: the widget's own size */
-    TEXT_BYTES = 128 /* a SET_TEXT carries at most 126 bytes */
+    CHART_MAX = 110,  /* the chart's unit is the value times 10 */
+    AUTO = -1,        /* no w= or h= given: the widget's own size */
+    TEXT_BYTES = 128, /* a SET_TEXT carries at most 126 bytes */
+    /* the start line: 57 fixed bytes, two reals of up to 35 bytes, an
+     * int32_t of up to 11, and the NUL */
+    START_LINE_BYTES = 140
 };
 
 /* Colours, 0xRRGGBB. A line has the very colour its label names. */
@@ -563,7 +566,7 @@ static void print_start(void)
 {
     char base_text[BENTO_FMT_BUF_SIZE];
     char spike_text[BENTO_FMT_BUF_SIZE];
-    char text[TEXT_BYTES];
+    char text[START_LINE_BYTES];
     uint32_t length = 0U;
 
     (void)bento_lcd_clear();
