@@ -69,6 +69,12 @@ static const char WIFI_SSID[] = "bento-teamXX";
 static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
 /* team01 to team19; unset, the program will not run */
 static const char TEAM[] = "teamXX";
+/* ไม่ต้องแก้ ทั้งห้องใช้ชุดเดียวกัน (no need to change: the whole class) */
+/* the spare is "test.mosquitto.org" */
+static const char BROKER[] = "broker.hivemq.com";
+static const char ROOT[] = "bento-aiot";
+/* DEVICE_ID = bento-aiot-TEAM, built in main() */
+/* TOPIC = ROOT/TEAM/telemetry, built in main() */
 /* ---- end of settings ---- */
 
 /* The link and the sending. */
@@ -229,8 +235,6 @@ static reading_t read_board(void)
 
 /* The same for the whole class. The device id and the topic are
  * built from TEAM in main(), so no two boards share a client id. */
-/* The spare broker is test.mosquitto.org. */
-static const char BROKER[] = "broker.hivemq.com";
 
 /* mqtt.connect(BROKER, port=, client_id=, keepalive=). *started is
  * false when no client could even start (the original's OSError),
@@ -985,8 +989,6 @@ static bento_status_t run_ladder(const panel_t *panel,
 
 int main(void)
 {
-    /* the whole class uses the same root; no need to change it */
-    static const char root[] = "bento-aiot";
     panel_t panel = {0};
     names_t names;
     uint32_t broker = 0U;
@@ -994,9 +996,9 @@ int main(void)
 
     (void)memset(g_networks, 0, sizeof(g_networks));
     (void)snprintf(names.device_id, sizeof(names.device_id), "%s-%s",
-                   root, TEAM);
+                   ROOT, TEAM);
     (void)snprintf(names.topic, sizeof(names.topic), "%s/%s/telemetry",
-                   root, TEAM);
+                   ROOT, TEAM);
     panel.ui = bento_runtime_get_ui();
     status = build_screen(&panel);
     if (status == BENTO_OK) {
