@@ -73,14 +73,34 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
-enum { /* times, in ms */
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* exact name, looked up every run */
+static const char MODEL[] = "AnomalousVibration";
+/* false = deployed from the Store */
+static const bool BUILTIN = false;
+enum {
+    /* K, N: event = K of the last N results at Confirm at */
+    K = 3,
+    N = 5,
+    /* no second event sooner than this */
+    REFRACT_MS = 1500
+};
+/* DEF_TH: Hearing at, Confirm at, clear below (fallback), % */
+static const int32_t DEF_THRESHOLDS[] = {40, 65, 30};
+enum {
     POLL_MS = 100,
-    DRAW_MS = 500,
+    DRAW_MS = 500
+};
+static const char HELP[] = "Running - SW6 = ACK, SW5 = pause";
+/* HELP on a board without buttons */
+static const char HELP_NO_BUTTONS[] = "Running";
+/* ---- end of settings ---- */
+
+enum { /* times, in ms */
     LOOP_MS = 20,
     LOAD_MS = 150,
     OP_POLL_MS = 20,
     FAIL_STOP_MS = 3000,
-    REFRACT_MS = 1500,  /* no second event sooner than this */
     HANDLED_POLLS = 50, /* 50 x 4 ms: the setter's 200 ms wait */
     HANDLED_MS = 4
 };
@@ -90,8 +110,6 @@ enum { /* sizes and limits */
     CLOCK_BYTES = 36, /* "HH:MM:SS"; three int32_t at worst */
     MAX_CLASSES = BENTO_EDGEAI_MAX_CLASSES,
     LABEL_BYTES = BENTO_EDGEAI_LABEL_LEN,
-    VOTE_K = 3, /* event = K of the last N results at Confirm at */
-    VOTE_N = 5,
     INFO_LINES = 2,
     LEVEL_KINDS = 3, /* Hearing at, Confirm at, clear below */
     SLIDERS = 2,     /* Hearing at and Confirm at */
@@ -101,12 +119,6 @@ enum { /* sizes and limits */
     NEEDLE_SHIFT = 16,
     SCALE_TICKS = 11,
     SCALE_MAJOR_EVERY = 2
-};
-
-enum { /* fallback thresholds, % */
-    DEF_ENTER = 40,
-    DEF_CONFIRM = 65,
-    DEF_EXIT = 30
 };
 
 enum { /* the episode's states */
@@ -147,9 +159,6 @@ enum { /* font sizes, px */
     TITLE_PX = 24,
     VERDICT_PX = 28
 };
-
-static const char MODEL[] =
-    "AnomalousVibration"; /* exact name, looked up every run */
 
 /* Where a widget goes and how it looks: MicroPython's keywords. */
 typedef struct {
@@ -213,7 +222,7 @@ typedef struct {
 /* The last N scores; K of them at or above a level = confirmed. */
 typedef struct {
     int32_t count;
-    int32_t scores[VOTE_N];
+    int32_t scores[N];
 } vote_t;
 
 /* info: NORMAL > HEARD > SEEN for HOLD_MS, no ACK.
@@ -538,15 +547,12 @@ static int32_t compiled_count(void)
  * "is not False". */
 static bool source_matches(int32_t row, int32_t compiled)
 {
-    const bool want_builtin =
-        false; /* BUILTIN: false = from the Store */
-    bool matches = want_builtin;
+    bool matches = BUILTIN;
 
     if (compiled >= 0) {
         const bool builtin = row < compiled;
 
-        matches =
-            (builtin && want_builtin) || (!builtin && !want_builtin);
+        matches = (builtin && BUILTIN) || (!builtin && !BUILTIN);
     }
     return matches;
 }
@@ -717,9 +723,12 @@ static void read_thresholds(uint32_t index, thresholds_t *out)
         bento_edgeai_thresholds(index, &board) == BENTO_OK;
     out->class_count = MAX_CLASSES;
     for (i = 0U; i < (uint32_t)MAX_CLASSES; i++) {
-        out->level[BENTO_EDGEAI_TH_ENTER][i] = DEF_ENTER;
-        out->level[BENTO_EDGEAI_TH_CONFIRM][i] = DEF_CONFIRM;
-        out->level[BENTO_EDGEAI_TH_EXIT][i] = DEF_EXIT;
+        out->level[BENTO_EDGEAI_TH_ENTER][i] =
+            DEF_THRESHOLDS[BENTO_EDGEAI_TH_ENTER];
+        out->level[BENTO_EDGEAI_TH_CONFIRM][i] =
+            DEF_THRESHOLDS[BENTO_EDGEAI_TH_CONFIRM];
+        out->level[BENTO_EDGEAI_TH_EXIT][i] =
+            DEF_THRESHOLDS[BENTO_EDGEAI_TH_EXIT];
     }
     if (out->from_board) {
         out->class_count = board.class_count;
@@ -870,8 +879,8 @@ static void vote_add(vote_t *vote, int32_t score)
 {
     int32_t i;
 
-    if (vote->count == VOTE_N) {
-        for (i = 1; i < VOTE_N; i++) {
+    if (vote->count == N) {
+        for (i = 1; i < N; i++) {
             vote->scores[i - 1] = vote->scores[i];
         }
         vote->count--;
@@ -902,13 +911,13 @@ static bool vote_hits(const vote_t *vote, int32_t level)
             hits++;
         }
     }
-    return hits >= VOTE_K;
+    return hits >= K;
 }
 
 /* N results, all below the level. */
 static bool vote_clear(const vote_t *vote, int32_t level)
 {
-    return (vote->count == VOTE_N) && (vote_max(vote) < level);
+    return (vote->count == N) && (vote_max(vote) < level);
 }
 
 /* A confirmed result: a new event unless one is latched or the last
@@ -1498,8 +1507,7 @@ int main(void)
     (void)memset(app, 0, sizeof(*app));
     app->ui = bento_runtime_get_ui();
     app->has_buttons = bento_buttons_count() > 0U;
-    app->help = app->has_buttons ? "Running - SW6 = ACK, SW5 = pause"
-                                 : "Running";
+    app->help = app->has_buttons ? HELP : HELP_NO_BUTTONS;
     app->pause_button.index = BUTTON_SW5;
     app->acknowledge_button.index = BUTTON_SW6;
     in_emulator = look_up_model(&app->model, &found);
