@@ -31,9 +31,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_fmt.h"
+#include "bento_runtime.h"
 #include "bento_sensors.h"
 #include "bento_time.h"
 
@@ -52,10 +51,12 @@ enum {
 
 /* timing, the chart's axis and the table */
 enum {
-    PERIOD_MS = 200, /* 5 samples a second: hand speed, and CM55 keeps up */
+    PERIOD_MS =
+        200, /* 5 samples a second: hand speed, and CM55 keeps up */
     SCREEN_SETTLE_MS = 200,
     MS_PER_SECOND = 1000,
-    CHART_LIMIT = 20, /* gravity is 9.81: room to rock it as much again */
+    CHART_LIMIT =
+        20, /* gravity is 9.81: room to rock it as much again */
     AXIS_COUNT = 3,
     TABLE_COLUMNS = 4,
     TABLE_FONT_PX = 16,
@@ -98,9 +99,11 @@ typedef struct {
 typedef struct {
     bento_ui_t *ui;
     bento_ui_id_t widgets[W_COUNT];
-    uint8_t series[AXIS_COUNT]; /* series 0 comes with the chart itself */
+    uint8_t
+        series[AXIS_COUNT]; /* series 0 comes with the chart itself */
     bento_real_t accel[AXIS_COUNT];
-    bento_real_t low[AXIS_COUNT]; /* what the chart forgets after 50 points */
+    bento_real_t
+        low[AXIS_COUNT]; /* what the chart forgets after 50 points */
     bento_real_t high[AXIS_COUNT];
     bool has_range[AXIS_COUNT];
     const char *record_text; /* changes only when a button is pressed */
@@ -128,24 +131,29 @@ static void drain_events(bento_ui_t *ui)
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
 
-    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
 }
 
 /* A setter's refusal was ignored before too (modui.c). */
-static void set_text(const recorder_t *recorder, widget_index_t widget, const char *text)
+static void set_text(const recorder_t *recorder, widget_index_t widget,
+                     const char *text)
 {
-    (void)bento_ui_set_text(recorder->ui, recorder->widgets[widget], text,
+    (void)bento_ui_set_text(recorder->ui, recorder->widgets[widget],
+                            text, (uint32_t)strlen(text));
+}
+
+static void set_cell(const recorder_t *recorder, int32_t row,
+                     int32_t column, const char *text)
+{
+    (void)bento_ui_set_cell(recorder->ui, recorder->widgets[W_TABLE],
+                            (uint8_t)row, (uint8_t)column, text,
                             (uint32_t)strlen(text));
 }
 
-static void set_cell(const recorder_t *recorder, int32_t row, int32_t column, const char *text)
-{
-    (void)bento_ui_set_cell(recorder->ui, recorder->widgets[W_TABLE], (uint8_t)row,
-                            (uint8_t)column, text, (uint32_t)strlen(text));
-}
-
 /* Creates specs[0..count) into widgets[first..]. */
-static bento_status_t add_widgets(recorder_t *recorder, const widget_spec_t *specs,
+static bento_status_t add_widgets(recorder_t *recorder,
+                                  const widget_spec_t *specs,
                                   int32_t first, int32_t count)
 {
     bento_ui_widget_args_t args;
@@ -157,7 +165,8 @@ static bento_status_t add_widgets(recorder_t *recorder, const widget_spec_t *spe
 
         bento_ui_widget_args_init(&args);
         args.text = spec->text;
-        args.text_len = (spec->text != NULL) ? (uint32_t)strlen(spec->text) : 0U;
+        args.text_len =
+            (spec->text != NULL) ? (uint32_t)strlen(spec->text) : 0U;
         args.x = spec->x;
         args.y = spec->y;
         args.w = spec->w;
@@ -166,7 +175,8 @@ static bento_status_t add_widgets(recorder_t *recorder, const widget_spec_t *spe
         args.font_px = spec->value;
         args.min_val = spec->min;
         args.max_val = spec->max;
-        status = bento_ui_create(recorder->ui, spec->type, &args, &recorder->widgets[first + i]);
+        status = bento_ui_create(recorder->ui, spec->type, &args,
+                                 &recorder->widgets[first + i]);
     }
     return status;
 }
@@ -175,18 +185,22 @@ static bento_status_t add_widgets(recorder_t *recorder, const widget_spec_t *spe
 static bento_status_t add_chart(recorder_t *recorder)
 {
     static const widget_spec_t specs[W_TABLE] = {
-        {UI_WIDGET_LABEL, "กราฟความเร่งสามแกน หน่วย m/s2", 24, 8, -1, -1, COLOR_TEXT, FONT_TITLE,
-         0, 0},
-        {UI_WIDGET_CHART, NULL, 24, 52, 292, 144, COLOR_AX, 0, -CHART_LIMIT, CHART_LIMIT}};
-    bento_status_t status = add_widgets(recorder, specs, W_TITLE, W_TABLE);
+        {UI_WIDGET_LABEL, "กราฟความเร่งสามแกน หน่วย m/s2", 24, 8, -1, -1,
+         COLOR_TEXT, FONT_TITLE, 0, 0},
+        {UI_WIDGET_CHART, NULL, 24, 52, 292, 144, COLOR_AX, 0,
+         -CHART_LIMIT, CHART_LIMIT}};
+    bento_status_t status =
+        add_widgets(recorder, specs, W_TITLE, W_TABLE);
 
     if (status == BENTO_OK) {
-        status = bento_ui_chart_add_series(recorder->ui, recorder->widgets[W_CHART], COLOR_AY,
-                                           &recorder->series[1]);
+        status = bento_ui_chart_add_series(
+            recorder->ui, recorder->widgets[W_CHART], COLOR_AY,
+            &recorder->series[1]);
     }
     if (status == BENTO_OK) {
-        status = bento_ui_chart_add_series(recorder->ui, recorder->widgets[W_CHART], COLOR_AZ,
-                                           &recorder->series[2]);
+        status = bento_ui_chart_add_series(
+            recorder->ui, recorder->widgets[W_CHART], COLOR_AZ,
+            &recorder->series[2]);
     }
     return status;
 }
@@ -198,22 +212,30 @@ static bento_status_t add_chart(recorder_t *recorder)
 static bento_status_t add_table(recorder_t *recorder)
 {
     static const widget_spec_t spec = {
-        UI_WIDGET_TABLE, NULL, 332, 52, 436, 280, 0U, TABLE_FONT_PX, TABLE_COLUMNS, 0};
-    static const int32_t widths_px[TABLE_COLUMNS] = {100, 108, 108, 108};
+        UI_WIDGET_TABLE, NULL,          332, 52, 436, 280, 0U,
+        TABLE_FONT_PX,   TABLE_COLUMNS, 0};
+    static const int32_t widths_px[TABLE_COLUMNS] = {100, 108, 108,
+                                                     108};
     static const char header[] = "แกน\0ต่ำสุด\0สูงสุด\0ล่าสุด";
-    static const char *const rows[AXIS_COUNT] = {"X\0-\0-\0-", "Y\0-\0-\0-", "Z\0-\0-\0-"};
-    const uint32_t row_bytes = 7U; /* one letter and three "-" cells, NUL between them */
+    static const char *const rows[AXIS_COUNT] = {
+        "X\0-\0-\0-", "Y\0-\0-\0-", "Z\0-\0-\0-"};
+    const uint32_t row_bytes =
+        7U; /* one letter and three "-" cells, NUL between them */
     bento_status_t status = add_widgets(recorder, &spec, W_TABLE, 1);
     const bento_ui_id_t table = recorder->widgets[W_TABLE];
     int32_t i;
 
     if (status == BENTO_OK) {
         for (i = 0; i < TABLE_COLUMNS; i++) {
-            (void)bento_ui_set_col_width(recorder->ui, table, i, widths_px[i]);
+            (void)bento_ui_set_col_width(recorder->ui, table, i,
+                                         widths_px[i]);
         }
-        (void)bento_ui_add_row(recorder->ui, table, 0U, header, (uint32_t)sizeof(header) - 1U);
+        (void)bento_ui_add_row(recorder->ui, table, 0U, header,
+                               (uint32_t)sizeof(header) - 1U);
         for (i = 0; i < AXIS_COUNT; i++) {
-            (void)bento_ui_add_row(recorder->ui, table, (uint8_t)(i + 1), rows[i], row_bytes);
+            (void)bento_ui_add_row(recorder->ui, table,
+                                   (uint8_t)(i + 1), rows[i],
+                                   row_bytes);
         }
     }
     return status;
@@ -225,12 +247,17 @@ static bento_status_t add_record_controls(recorder_t *recorder)
 {
     static const widget_spec_t specs[W_COUNT - W_RECORD_LAMP] = {
         {UI_WIDGET_LED, NULL, 24, 212, 48, 48, COLOR_RUN, 1, 0, 0},
-        {UI_WIDGET_LABEL, "กำลังบันทึก", 88, 216, -1, -1, COLOR_TEXT, FONT_BODY, 0, 0},
-        {UI_WIDGET_LABEL, "คาบลูป -- ms", 88, 252, -1, -1, COLOR_DIM, FONT_BODY, 0, 0},
-        {UI_WIDGET_BUTTON, "เริ่มบันทึก", 24, 296, 128, 88, COLOR_START, FONT_BODY, 0, 0},
-        {UI_WIDGET_BUTTON, "หยุดบันทึก", 184, 296, 128, 88, COLOR_STOP, FONT_BODY, 0, 0}};
+        {UI_WIDGET_LABEL, "กำลังบันทึก", 88, 216, -1, -1, COLOR_TEXT,
+         FONT_BODY, 0, 0},
+        {UI_WIDGET_LABEL, "คาบลูป -- ms", 88, 252, -1, -1, COLOR_DIM,
+         FONT_BODY, 0, 0},
+        {UI_WIDGET_BUTTON, "เริ่มบันทึก", 24, 296, 128, 88, COLOR_START,
+         FONT_BODY, 0, 0},
+        {UI_WIDGET_BUTTON, "หยุดบันทึก", 184, 296, 128, 88, COLOR_STOP,
+         FONT_BODY, 0, 0}};
 
-    return add_widgets(recorder, specs, W_RECORD_LAMP, W_COUNT - W_RECORD_LAMP);
+    return add_widgets(recorder, specs, W_RECORD_LAMP,
+                       W_COUNT - W_RECORD_LAMP);
 }
 
 /* "{:+.2f}": two decimals, with a '+' in front of a positive number. */
@@ -239,10 +266,12 @@ static void signed_text(bento_real_t value, char *text, size_t cap)
     char digits[BENTO_FMT_BUF_SIZE];
     uint32_t length = 0U;
 
-    if (bento_fmt_real_precision(digits, sizeof(digits), value, 2, &length) != BENTO_OK) {
+    if (bento_fmt_real_precision(digits, sizeof(digits), value, 2,
+                                 &length) != BENTO_OK) {
         digits[0] = '\0';
     }
-    (void)snprintf(text, cap, "%s%s", (digits[0] == '-') ? "" : "+", digits);
+    (void)snprintf(text, cap, "%s%s", (digits[0] == '-') ? "" : "+",
+                   digits);
 }
 
 /* The extremes of one axis: the chart cannot remember them. */
@@ -274,8 +303,9 @@ static void record_sample(recorder_t *recorder)
         recorder->accel[2] = (bento_real_t)imu.az;
     }
     for (axis = 0; axis < AXIS_COUNT; axis++) {
-        (void)bento_ui_chart_set_next(recorder->ui, recorder->widgets[W_CHART],
-                                      recorder->series[axis], (int32_t)recorder->accel[axis]);
+        (void)bento_ui_chart_set_next(
+            recorder->ui, recorder->widgets[W_CHART],
+            recorder->series[axis], (int32_t)recorder->accel[axis]);
     }
     for (axis = 0; axis < AXIS_COUNT; axis++) {
         note_extremes(recorder, axis);
@@ -294,8 +324,11 @@ static void set_recording(recorder_t *recorder, bool running)
             recorder->has_range[axis] = false;
         }
     }
-    (void)bento_ui_set_value(recorder->ui, recorder->widgets[W_RECORD_LAMP], running ? 1 : 0);
-    (void)bento_ui_set_color(recorder->ui, recorder->widgets[W_RECORD_TEXT],
+    (void)bento_ui_set_value(recorder->ui,
+                             recorder->widgets[W_RECORD_LAMP],
+                             running ? 1 : 0);
+    (void)bento_ui_set_color(recorder->ui,
+                             recorder->widgets[W_RECORD_TEXT],
                              running ? COLOR_TEXT : COLOR_DIM);
     recorder->record_text = running ? "กำลังบันทึก" : "หยุดแล้ว ค่าล่าสุด";
 }
@@ -309,7 +342,8 @@ static void handle_events(recorder_t *recorder)
     uint32_t count = 0U;
     uint32_t i;
 
-    if (bento_ui_poll(recorder->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+    if (bento_ui_poll(recorder->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
         count = 0U; /* ui.poll() answers no events when it fails */
     }
     for (i = 0U; i < count; i++) {
@@ -327,7 +361,8 @@ static void handle_events(recorder_t *recorder)
  * header, so X, Y and Z are rows 1, 2 and 3. */
 static void show_numbers(recorder_t *recorder)
 {
-    const int32_t second = (int32_t)(bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND);
+    const int32_t second =
+        (int32_t)(bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND);
     char text[TEXT_BYTES];
     int32_t axis;
 
@@ -348,7 +383,8 @@ static void show_numbers(recorder_t *recorder)
             signed_text(recorder->accel[axis], text, sizeof(text));
             set_cell(recorder, row, COLUMN_LATEST, text);
         }
-        (void)snprintf(text, sizeof(text), "คาบลูป %d ms", (int)recorder->period_ms);
+        (void)snprintf(text, sizeof(text), "คาบลูป %d ms",
+                       (int)recorder->period_ms);
         set_text(recorder, W_PERIOD_TEXT, text);
     }
 }
@@ -365,7 +401,8 @@ static bento_status_t record_once(recorder_t *recorder)
         record_sample(recorder);
     }
     now_ms = bento_time_ticks_ms();
-    recorder->period_ms = bento_time_ticks_diff(now_ms, recorder->last_ms);
+    recorder->period_ms =
+        bento_time_ticks_diff(now_ms, recorder->last_ms);
     recorder->last_ms = now_ms;
     handle_events(recorder);
     set_text(recorder, W_RECORD_TEXT, recorder->record_text);
@@ -391,7 +428,9 @@ static bento_status_t build_screen(recorder_t *recorder)
 
     if (status == BENTO_OK) {
         warm_up_sensor();
-        (void)bento_ui_clear(recorder->ui); /* a refused CLEAR_ALL is ignored, as modui.c does */
+        (void)bento_ui_clear(
+            recorder
+                ->ui); /* a refused CLEAR_ALL is ignored, as modui.c does */
         status = wait_ms(SCREEN_SETTLE_MS);
     }
     if (status == BENTO_OK) {
@@ -411,7 +450,8 @@ static bento_status_t build_screen(recorder_t *recorder)
 
 int main(void)
 {
-    const bento_real_t gravity = (bento_real_t)9.81; /* until the first read answers */
+    const bento_real_t gravity =
+        (bento_real_t)9.81; /* until the first read answers */
     recorder_t recorder;
     bento_status_t status;
 

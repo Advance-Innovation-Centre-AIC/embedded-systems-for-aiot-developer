@@ -46,46 +46,45 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_dsp.h"
 #include "bento_fmt.h"
+#include "bento_runtime.h"
 #include "bento_sensors.h"
 
 enum { /* the threshold the user sets, percent */
-       THRESHOLD_MIN = 10,
-       THRESHOLD_MAX = 95,
-       THRESHOLD_STEP = 5,
-       THRESHOLD_START = 70,
-       PERCENT_MAX = 100
+    THRESHOLD_MIN = 10,
+    THRESHOLD_MAX = 95,
+    THRESHOLD_STEP = 5,
+    THRESHOLD_START = 70,
+    PERCENT_MAX = 100
 };
 
-enum { /* the rulers and the threshold box */
-       SCALE_TICKS = 11, /* 0 20 40 60 80 100 under every second tick */
-       SCALE_MAJOR = 2,
-       THRESHOLD_DIGITS = 2, /* else the box shows 0070 */
-       CARD_RADIUS = 12
+enum {                /* the rulers and the threshold box */
+    SCALE_TICKS = 11, /* 0 20 40 60 80 100 under every second tick */
+    SCALE_MAJOR = 2,
+    THRESHOLD_DIGITS = 2, /* else the box shows 0070 */
+    CARD_RADIUS = 12
 };
 
 enum { /* times, ms */
-       CLEAR_MS = 200,
-       LOOP_MS = 200, /* faster loops send more draws than CM55 can draw */
-       MS_PER_SECOND = 1000
+    CLEAR_MS = 200,
+    LOOP_MS = 200, /* faster loops send more draws than CM55 can draw */
+    MS_PER_SECOND = 1000
 };
 
 enum { /* colours, 0xRRGGBB */
-       COLOR_TEXT = 0xE8EAED,
-       COLOR_DIM = 0x9AA3AF,
-       COLOR_CARD = 0x171B22,
-       COLOR_OK = 0x30A46C,
-       COLOR_WARN = 0xF5A623,
-       COLOR_BAD = 0xE5484D,
-       COLOR_BAR = 0x4A9EFF,
-       COLOR_BUTTON = 0x3A4150
+    COLOR_TEXT = 0xE8EAED,
+    COLOR_DIM = 0x9AA3AF,
+    COLOR_CARD = 0x171B22,
+    COLOR_OK = 0x30A46C,
+    COLOR_WARN = 0xF5A623,
+    COLOR_BAD = 0xE5484D,
+    COLOR_BAR = 0x4A9EFF,
+    COLOR_BUTTON = 0x3A4150
 };
 
 enum { /* a prefix, a number of up to BENTO_FMT_BUF_SIZE and a suffix */
-       TEXT_BYTES = 96
+    TEXT_BYTES = 96
 };
 
 /* The widgets the loop changes: their place in screen_t.ids. */
@@ -129,8 +128,8 @@ typedef struct {
     int16_t h;
     uint32_t color;
     int32_t value; /* font size, initial value or border width */
-    int32_t low;  /* min=: a range start or a border colour */
-    int32_t high; /* max=: a range end or a corner radius */
+    int32_t low;   /* min=: a range start or a border colour */
+    int32_t high;  /* max=: a range end or a corner radius */
     slot_t slot;
 } widget_spec_t;
 
@@ -159,17 +158,20 @@ typedef struct {
 } knob_panel_t;
 
 /* A setter's refusal was ignored by MicroPython too (modui.c). */
-static void set_text(bento_ui_t *ui, bento_ui_id_t widget, const char *text)
+static void set_text(bento_ui_t *ui, bento_ui_id_t widget,
+                     const char *text)
 {
     (void)bento_ui_set_text(ui, widget, text, (uint32_t)strlen(text));
 }
 
-static void set_value(const knob_panel_t *panel, slot_t slot, int32_t value)
+static void set_value(const knob_panel_t *panel, slot_t slot,
+                      int32_t value)
 {
     (void)bento_ui_set_value(panel->ui, panel->ids[slot], value);
 }
 
-static bento_status_t create_kind(bento_ui_t *ui, kind_t kind, const bento_ui_widget_args_t *args,
+static bento_status_t create_kind(bento_ui_t *ui, kind_t kind,
+                                  const bento_ui_widget_args_t *args,
                                   bento_ui_id_t *out_id)
 {
     bento_status_t status;
@@ -201,7 +203,8 @@ static bento_status_t create_kind(bento_ui_t *ui, kind_t kind, const bento_ui_wi
 }
 
 /* One widget; a ruler gets its ticks, the threshold box its digits. */
-static bento_status_t create_widget(knob_panel_t *panel, const widget_spec_t *spec)
+static bento_status_t create_widget(knob_panel_t *panel,
+                                    const widget_spec_t *spec)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t widget;
@@ -225,10 +228,12 @@ static bento_status_t create_widget(knob_panel_t *panel, const widget_spec_t *sp
         panel->ids[spec->slot] = widget;
     }
     if ((status == BENTO_OK) && (spec->kind == KIND_SCALE)) {
-        (void)bento_ui_set_ticks(panel->ui, widget, SCALE_TICKS, SCALE_MAJOR);
+        (void)bento_ui_set_ticks(panel->ui, widget, SCALE_TICKS,
+                                 SCALE_MAJOR);
     }
     if ((status == BENTO_OK) && (spec->kind == KIND_SPINBOX)) {
-        (void)bento_ui_set_digits(panel->ui, widget, THRESHOLD_DIGITS, 0);
+        (void)bento_ui_set_digits(panel->ui, widget, THRESHOLD_DIGITS,
+                                  0);
     }
     return status;
 }
@@ -239,42 +244,75 @@ static bento_status_t create_widget(knob_panel_t *panel, const widget_spec_t *sp
 static bento_status_t build_widgets(knob_panel_t *panel)
 {
     static const widget_spec_t WIDGETS[] = {
-        {KIND_LABEL, "แผงคุมลูกบิดกับแถบสัมผัส", 16, 8, -1, -1, COLOR_TEXT, 24, 0, 0, SLOT_NONE},
-        {KIND_PANEL, NULL, 12, 40, 468, 200, COLOR_CARD, 1, COLOR_DIM, CARD_RADIUS, SLOT_NONE},
-        {KIND_LABEL, "ลูกบิดเทียบพิสัย 0-100", 28, 48, -1, -1, COLOR_DIM, 20, 0, 0, SLOT_NONE},
-        {KIND_BAR, NULL, 28, 80, 428, 16, COLOR_BAR, 0, 0, PERCENT_MAX, SLOT_POT_BAR},
-        {KIND_SCALE, NULL, 28, 92, 428, 44, COLOR_TEXT, 0, 0, PERCENT_MAX, SLOT_NONE},
-        {KIND_LABEL, "เปอร์เซ็นต์ที่วัดได้", 28, 152, -1, -1, COLOR_DIM, 20, 0, 0, SLOT_NONE},
-        {KIND_LABEL, "0.0 %", 28, 180, -1, -1, COLOR_TEXT, 28, 0, 0, SLOT_PERCENT},
-        {KIND_LABEL, "ค่าดิบ 0", 252, 148, -1, -1, COLOR_DIM, 16, 0, 0, SLOT_RAW},
-        {KIND_LABEL, "โวลต์ 0.000 V", 252, 172, -1, -1, COLOR_DIM, 16, 0, 0, SLOT_VOLT},
-        {KIND_PANEL, NULL, 492, 40, 288, 224, COLOR_CARD, 1, COLOR_DIM, CARD_RADIUS, SLOT_NONE},
-        {KIND_LABEL, "เกณฑ์เตือน (เปอร์เซ็นต์)", 508, 48, -1, -1, COLOR_DIM, 20, 0, 0, SLOT_NONE},
-        {KIND_SPINBOX, NULL, 508, 76, 256, 88, COLOR_TEXT, THRESHOLD_START, THRESHOLD_MIN,
-         THRESHOLD_MAX, SLOT_SPIN},
-        {KIND_BUTTON, "เพิ่ม", 644, 172, 120, 88, COLOR_BUTTON, 16, 0, 0, SLOT_UP},
-        {KIND_BUTTON, "ลด", 508, 172, 120, 88, COLOR_BUTTON, 16, 0, 0, SLOT_DOWN},
-        {KIND_LABEL, "สถานะเทียบเกณฑ์", 492, 280, -1, -1, COLOR_DIM, 16, 0, 0, SLOT_NONE},
-        {KIND_LED, NULL, 492, 304, 48, 48, COLOR_OK, 1, 0, 0, SLOT_LED_OK},
-        {KIND_LABEL, "ต่ำกว่าเกณฑ์", 548, 320, -1, -1, COLOR_DIM, 16, 0, 0, SLOT_NONE},
-        {KIND_LED, NULL, 492, 348, 48, 48, COLOR_BAD, 0, 0, 0, SLOT_LED_BAD},
-        {KIND_LABEL, "เกิน", 548, 364, -1, -1, COLOR_DIM, 16, 0, 0, SLOT_NONE},
-        {KIND_PANEL, NULL, 12, 248, 468, 140, COLOR_CARD, 1, COLOR_DIM, CARD_RADIUS, SLOT_NONE},
-        {KIND_LABEL, "แถบสัมผัสและปุ่มทองแดง", 28, 256, -1, -1, COLOR_DIM, 20, 0, 0, SLOT_NONE},
-        {KIND_BAR, NULL, 28, 284, 428, 16, COLOR_BAR, 0, 0, PERCENT_MAX, SLOT_TOUCH_BAR},
-        {KIND_SCALE, NULL, 28, 300, 428, 40, COLOR_TEXT, 0, 0, PERCENT_MAX, SLOT_NONE},
-        {KIND_LED, NULL, 28, 344, 48, 48, COLOR_OK, 0, 0, 0, SLOT_LED_BUTTON0},
-        {KIND_LABEL, "ปุ่ม 0", 84, 356, -1, -1, COLOR_DIM, 20, 0, 0, SLOT_NONE},
-        {KIND_LED, NULL, 160, 344, 48, 48, COLOR_OK, 0, 0, 0, SLOT_LED_BUTTON1},
-        {KIND_LABEL, "ปุ่ม 1", 216, 356, -1, -1, COLOR_DIM, 20, 0, 0, SLOT_NONE},
-        {KIND_PANEL, NULL, 280, 336, 196, 52, COLOR_CARD, 1, COLOR_DIM, CARD_RADIUS, SLOT_NONE},
-        {KIND_LABEL, "คุณภาพของค่า", 292, 340, -1, -1, COLOR_DIM, 16, 0, 0, SLOT_NONE},
-        {KIND_LABEL, "อ่านค่าปกติ", 292, 364, -1, -1, COLOR_TEXT, 16, 0, 0, SLOT_HEALTH},
-        {KIND_LABEL, "ดิบ 0.00 %", 252, 196, -1, -1, COLOR_TEXT, 16, 0, 0, SLOT_RAW_LINE},
-        {KIND_LABEL, "กรอง 0.00 %", 368, 196, -1, -1, COLOR_TEXT, 16, 0, 0, SLOT_EMA_LINE},
-        {KIND_LABEL, "อัลฟา 0.2", 252, 216, -1, -1, COLOR_DIM, 16, 0, 0, SLOT_NONE},
+        {KIND_LABEL, "แผงคุมลูกบิดกับแถบสัมผัส", 16, 8, -1, -1, COLOR_TEXT,
+         24, 0, 0, SLOT_NONE},
+        {KIND_PANEL, NULL, 12, 40, 468, 200, COLOR_CARD, 1, COLOR_DIM,
+         CARD_RADIUS, SLOT_NONE},
+        {KIND_LABEL, "ลูกบิดเทียบพิสัย 0-100", 28, 48, -1, -1, COLOR_DIM, 20,
+         0, 0, SLOT_NONE},
+        {KIND_BAR, NULL, 28, 80, 428, 16, COLOR_BAR, 0, 0, PERCENT_MAX,
+         SLOT_POT_BAR},
+        {KIND_SCALE, NULL, 28, 92, 428, 44, COLOR_TEXT, 0, 0,
+         PERCENT_MAX, SLOT_NONE},
+        {KIND_LABEL, "เปอร์เซ็นต์ที่วัดได้", 28, 152, -1, -1, COLOR_DIM, 20, 0,
+         0, SLOT_NONE},
+        {KIND_LABEL, "0.0 %", 28, 180, -1, -1, COLOR_TEXT, 28, 0, 0,
+         SLOT_PERCENT},
+        {KIND_LABEL, "ค่าดิบ 0", 252, 148, -1, -1, COLOR_DIM, 16, 0, 0,
+         SLOT_RAW},
+        {KIND_LABEL, "โวลต์ 0.000 V", 252, 172, -1, -1, COLOR_DIM, 16, 0,
+         0, SLOT_VOLT},
+        {KIND_PANEL, NULL, 492, 40, 288, 224, COLOR_CARD, 1, COLOR_DIM,
+         CARD_RADIUS, SLOT_NONE},
+        {KIND_LABEL, "เกณฑ์เตือน (เปอร์เซ็นต์)", 508, 48, -1, -1, COLOR_DIM,
+         20, 0, 0, SLOT_NONE},
+        {KIND_SPINBOX, NULL, 508, 76, 256, 88, COLOR_TEXT,
+         THRESHOLD_START, THRESHOLD_MIN, THRESHOLD_MAX, SLOT_SPIN},
+        {KIND_BUTTON, "เพิ่ม", 644, 172, 120, 88, COLOR_BUTTON, 16, 0, 0,
+         SLOT_UP},
+        {KIND_BUTTON, "ลด", 508, 172, 120, 88, COLOR_BUTTON, 16, 0, 0,
+         SLOT_DOWN},
+        {KIND_LABEL, "สถานะเทียบเกณฑ์", 492, 280, -1, -1, COLOR_DIM, 16,
+         0, 0, SLOT_NONE},
+        {KIND_LED, NULL, 492, 304, 48, 48, COLOR_OK, 1, 0, 0,
+         SLOT_LED_OK},
+        {KIND_LABEL, "ต่ำกว่าเกณฑ์", 548, 320, -1, -1, COLOR_DIM, 16, 0, 0,
+         SLOT_NONE},
+        {KIND_LED, NULL, 492, 348, 48, 48, COLOR_BAD, 0, 0, 0,
+         SLOT_LED_BAD},
+        {KIND_LABEL, "เกิน", 548, 364, -1, -1, COLOR_DIM, 16, 0, 0,
+         SLOT_NONE},
+        {KIND_PANEL, NULL, 12, 248, 468, 140, COLOR_CARD, 1, COLOR_DIM,
+         CARD_RADIUS, SLOT_NONE},
+        {KIND_LABEL, "แถบสัมผัสและปุ่มทองแดง", 28, 256, -1, -1, COLOR_DIM,
+         20, 0, 0, SLOT_NONE},
+        {KIND_BAR, NULL, 28, 284, 428, 16, COLOR_BAR, 0, 0, PERCENT_MAX,
+         SLOT_TOUCH_BAR},
+        {KIND_SCALE, NULL, 28, 300, 428, 40, COLOR_TEXT, 0, 0,
+         PERCENT_MAX, SLOT_NONE},
+        {KIND_LED, NULL, 28, 344, 48, 48, COLOR_OK, 0, 0, 0,
+         SLOT_LED_BUTTON0},
+        {KIND_LABEL, "ปุ่ม 0", 84, 356, -1, -1, COLOR_DIM, 20, 0, 0,
+         SLOT_NONE},
+        {KIND_LED, NULL, 160, 344, 48, 48, COLOR_OK, 0, 0, 0,
+         SLOT_LED_BUTTON1},
+        {KIND_LABEL, "ปุ่ม 1", 216, 356, -1, -1, COLOR_DIM, 20, 0, 0,
+         SLOT_NONE},
+        {KIND_PANEL, NULL, 280, 336, 196, 52, COLOR_CARD, 1, COLOR_DIM,
+         CARD_RADIUS, SLOT_NONE},
+        {KIND_LABEL, "คุณภาพของค่า", 292, 340, -1, -1, COLOR_DIM, 16, 0,
+         0, SLOT_NONE},
+        {KIND_LABEL, "อ่านค่าปกติ", 292, 364, -1, -1, COLOR_TEXT, 16, 0, 0,
+         SLOT_HEALTH},
+        {KIND_LABEL, "ดิบ 0.00 %", 252, 196, -1, -1, COLOR_TEXT, 16, 0,
+         0, SLOT_RAW_LINE},
+        {KIND_LABEL, "กรอง 0.00 %", 368, 196, -1, -1, COLOR_TEXT, 16, 0,
+         0, SLOT_EMA_LINE},
+        {KIND_LABEL, "อัลฟา 0.2", 252, 216, -1, -1, COLOR_DIM, 16, 0, 0,
+         SLOT_NONE},
     };
-    const uint32_t count = (uint32_t)(sizeof(WIDGETS) / sizeof(WIDGETS[0]));
+    const uint32_t count =
+        (uint32_t)(sizeof(WIDGETS) / sizeof(WIDGETS[0]));
     bento_status_t status = BENTO_OK;
     uint32_t i;
 
@@ -300,7 +338,8 @@ static void drain_events(bento_ui_t *ui)
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
 
-    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
 }
 
 /* The first read after a reset may wait a while for the display core:
@@ -318,7 +357,8 @@ static bento_status_t build_screen(knob_panel_t *panel)
 {
     /* ui.screen() and ui.clear() are both sent, as the original does */
     bento_status_t status =
-        bento_ui_screen(panel->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(panel->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = bento_ui_clear(panel->ui);
@@ -401,7 +441,8 @@ static bento_status_t show_round(knob_panel_t *panel)
      * ขั้นบันไดที่นิ่ง ใช้ตอนต้องส่งค่าออกเครือข่าย จะลดจำนวนข้อความลงหลายเท่า */
 
     /* ครอบขอบเขตก่อนส่งเข้า widget เสมอ ค่าที่มาจากภายนอกโปรแกรมเราไม่มีใครรับประกันให้ */
-    set_value(panel, SLOT_TOUCH_BAR, clamp_percent((float)reading->slider));
+    set_value(panel, SLOT_TOUCH_BAR,
+              clamp_percent((float)reading->slider));
 
     /* เติม: ป้อน reading->percent เข้า bento_dsp_ema_state_update() กับ panel->ema
      * ได้ค่าที่กรองแล้วกลับมาใน panel->ema_percent แล้วเก็บผลไว้ใน status
@@ -413,8 +454,10 @@ static bento_status_t show_round(knob_panel_t *panel)
     panel->over = panel->ema_percent >= (float)panel->threshold;
     set_value(panel, SLOT_LED_OK, panel->over ? 0 : 1);
     set_value(panel, SLOT_LED_BAD, panel->over ? 1 : 0);
-    set_value(panel, SLOT_LED_BUTTON0, (reading->button0 != 0U) ? 1 : 0);
-    set_value(panel, SLOT_LED_BUTTON1, (reading->button1 != 0U) ? 1 : 0);
+    set_value(panel, SLOT_LED_BUTTON0,
+              (reading->button0 != 0U) ? 1 : 0);
+    set_value(panel, SLOT_LED_BUTTON1,
+              (reading->button1 != 0U) ? 1 : 0);
     return status;
 }
 
@@ -455,18 +498,21 @@ static void read_buttons(knob_panel_t *panel)
 }
 
 /* "<prefix><number with digits decimals><suffix>" into one label. */
-static void show_real(const knob_panel_t *panel, slot_t slot, const char *prefix, float value,
-                      int32_t digits, const char *suffix)
+static void show_real(const knob_panel_t *panel, slot_t slot,
+                      const char *prefix, float value, int32_t digits,
+                      const char *suffix)
 {
     char number[BENTO_FMT_BUF_SIZE];
     char text[TEXT_BYTES];
     uint32_t length = 0U;
 
-    if (bento_fmt_real_precision(number, sizeof(number), (bento_real_t)value, digits, &length) !=
-        BENTO_OK) {
+    if (bento_fmt_real_precision(number, sizeof(number),
+                                 (bento_real_t)value, digits,
+                                 &length) != BENTO_OK) {
         number[0] = '\0';
     }
-    (void)snprintf(text, sizeof(text), "%s%s%s", prefix, number, suffix);
+    (void)snprintf(text, sizeof(text), "%s%s%s", prefix, number,
+                   suffix);
     set_text(panel->ui, panel->ids[slot], text);
 }
 
@@ -478,15 +524,16 @@ static void pick_health(knob_panel_t *panel)
 
     if (!panel->reading.fresh) {
         (void)bento_ui_set_color(panel->ui, label, COLOR_WARN);
-        (void)snprintf(panel->health, sizeof(panel->health), "%s", "ค่าค้าง - เลขคือค่าล่าสุด");
+        (void)snprintf(panel->health, sizeof(panel->health), "%s",
+                       "ค่าค้าง - เลขคือค่าล่าสุด");
     } else if (panel->over) {
         (void)bento_ui_set_color(panel->ui, label, COLOR_BAD);
-        (void)snprintf(panel->health, sizeof(panel->health), "เกินเกณฑ์ %" PRId32 " %%",
-                       panel->threshold);
+        (void)snprintf(panel->health, sizeof(panel->health),
+                       "เกินเกณฑ์ %" PRId32 " %%", panel->threshold);
     } else {
         (void)bento_ui_set_color(panel->ui, label, COLOR_DIM);
-        (void)snprintf(panel->health, sizeof(panel->health), "ปกติ ต่ำกว่า %" PRId32 " %%",
-                       panel->threshold);
+        (void)snprintf(panel->health, sizeof(panel->health),
+                       "ปกติ ต่ำกว่า %" PRId32 " %%", panel->threshold);
     }
 }
 
@@ -495,17 +542,21 @@ static void pick_health(knob_panel_t *panel)
 static void show_numbers(knob_panel_t *panel)
 {
     const reading_t *reading = &panel->reading;
-    const int32_t second = (int32_t)(bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND);
+    const int32_t second =
+        (int32_t)(bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND);
     char text[TEXT_BYTES];
 
     if (second != panel->last_second) {
         panel->last_second = second;
         show_real(panel, SLOT_PERCENT, "", reading->percent, 1, " %");
-        (void)snprintf(text, sizeof(text), "ค่าดิบ %u", (unsigned int)reading->raw);
+        (void)snprintf(text, sizeof(text), "ค่าดิบ %u",
+                       (unsigned int)reading->raw);
         set_text(panel->ui, panel->ids[SLOT_RAW], text);
         show_real(panel, SLOT_VOLT, "โวลต์ ", reading->volts, 3, " V");
-        show_real(panel, SLOT_RAW_LINE, "ดิบ    ", reading->percent, 2, " %");
-        show_real(panel, SLOT_EMA_LINE, "กรอง  ", panel->ema_percent, 2, " %");
+        show_real(panel, SLOT_RAW_LINE, "ดิบ    ", reading->percent, 2,
+                  " %");
+        show_real(panel, SLOT_EMA_LINE, "กรอง  ", panel->ema_percent, 2,
+                  " %");
         pick_health(panel);
     }
 }
@@ -536,7 +587,8 @@ int main(void)
     panel.ui = bento_runtime_get_ui();
     panel.threshold = THRESHOLD_START;
     panel.last_second = -1;
-    (void)snprintf(panel.health, sizeof(panel.health), "%s", "อ่านค่าปกติ");
+    (void)snprintf(panel.health, sizeof(panel.health), "%s",
+                   "อ่านค่าปกติ");
     status = build_screen(&panel);
     /* ฟิลเตอร์ต้องเกิดนอกลูป เพราะมันต้องจำอดีต - สร้างในลูปเมื่อไร ค่าที่ได้จะเท่าค่าดิบเป๊ะ
      * เติม: สร้าง EMA alpha 0.2 ด้วย bento_dsp_ema_config_init() ตั้ง alpha แล้ว

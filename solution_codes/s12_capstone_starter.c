@@ -62,12 +62,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_dsp.h"
 #include "bento_fmt.h"
 #include "bento_gpio.h"
 #include "bento_mqtt.h"
+#include "bento_runtime.h"
 #include "bento_sensors.h"
 #include "bento_time.h"
 #include "bento_wifi.h"
@@ -86,13 +85,16 @@ static const char WIFI_PASS[] = "aiot12345";
 static const char BROKER[] = "test.mosquitto.org";
 static const char TOPIC[] = "bento/team01/telemetry";
 static const char UNIT[] = "deg";
-static const char BEACON_LED[] = "RGB_RED"; /* by name: the Eva Kit uses LED1 */
-static const bento_real_t WARN_LIMIT = (bento_real_t)8.0;   /* from the start pose */
-static const bento_real_t ALERT_LIMIT = (bento_real_t)15.0; /* above this = alarm */
+static const char BEACON_LED[] =
+    "RGB_RED"; /* by name: the Eva Kit uses LED1 */
+static const bento_real_t WARN_LIMIT =
+    (bento_real_t)8.0; /* from the start pose */
+static const bento_real_t ALERT_LIMIT =
+    (bento_real_t)15.0; /* above this = alarm */
 
 enum {
-    SCALE_MAX = 45,   /* the end of the meter on screen */
-    CONFIRM_N = 3,    /* rounds in a row before a level is believed */
+    SCALE_MAX = 45, /* the end of the meter on screen */
+    CONFIRM_N = 3,  /* rounds in a row before a level is believed */
     HEARTBEAT_MS = 30000,
     ALERT_GAP_MS = 15000,
     RETRY_MS = 10000,
@@ -110,27 +112,33 @@ enum {
 };
 
 enum { /* text sizes */
-       TEXT_BYTES = 128,
-       PAYLOAD_BYTES = 160,
-       NUMBER_BYTES = BENTO_FMT_BUF_SIZE,
-       CLIENT_ID_BYTES = BENTO_MQTT_CLIENT_ID_MAX + 1
+    TEXT_BYTES = 128,
+    PAYLOAD_BYTES = 160,
+    NUMBER_BYTES = BENTO_FMT_BUF_SIZE,
+    CLIENT_ID_BYTES = BENTO_MQTT_CLIENT_ID_MAX + 1
 };
 
 enum { /* colours, 0xRRGGBB */
-       COLOR_TEXT = 0xE8EAED,
-       COLOR_DIM = 0x9AA3AF,
-       COLOR_CARD = 0x171B22,
-       COLOR_OK = 0x30A46C,
-       COLOR_WARN = 0xF5A623,
-       COLOR_BAD = 0xE5484D,
-       COLOR_RUN = 0x4A9EFF,
-       COLOR_QUIET = 0x3A4150
+    COLOR_TEXT = 0xE8EAED,
+    COLOR_DIM = 0x9AA3AF,
+    COLOR_CARD = 0x171B22,
+    COLOR_OK = 0x30A46C,
+    COLOR_WARN = 0xF5A623,
+    COLOR_BAD = 0xE5484D,
+    COLOR_RUN = 0x4A9EFF,
+    COLOR_QUIET = 0x3A4150
 };
 
 /* The three levels, mildest first. */
-enum { LEVEL_OK = 0, LEVEL_WARN = 1, LEVEL_ALERT = 2, LEVEL_COUNT = 3 };
+enum {
+    LEVEL_OK = 0,
+    LEVEL_WARN = 1,
+    LEVEL_ALERT = 2,
+    LEVEL_COUNT = 3
+};
 
-static const char *const LEVEL_NAMES[LEVEL_COUNT] = {"OK", "WARN", "ALERT"};
+static const char *const LEVEL_NAMES[LEVEL_COUNT] = {"OK", "WARN",
+                                                     "ALERT"};
 static const char *const LEVEL_TEXTS[LEVEL_COUNT] = {
     "ปกติ ไม่ต้องทำอะไร", "เฝ้าดู ยังไม่ต้องเข้าไป", "ผิดปกติ ต้องมีคนไปดู"};
 
@@ -250,12 +258,14 @@ static bento_status_t wait_ms(uint32_t duration_ms)
 }
 
 /* MicroPython's widget setters ignore a refusal (modui.c). */
-static void set_text(bento_ui_t *ui, bento_ui_id_t widget, const char *text)
+static void set_text(bento_ui_t *ui, bento_ui_id_t widget,
+                     const char *text)
 {
     (void)bento_ui_set_text(ui, widget, text, (uint32_t)strlen(text));
 }
 
-static void set_value(bento_ui_t *ui, bento_ui_id_t widget, int32_t value)
+static void set_value(bento_ui_t *ui, bento_ui_id_t widget,
+                      int32_t value)
 {
     (void)bento_ui_set_value(ui, widget, value);
 }
@@ -271,8 +281,10 @@ static void real_text(bento_real_t value, int32_t digits, char *text)
 {
     uint32_t length = 0U;
     const bento_status_t status =
-        (digits < 0) ? bento_fmt_real(text, NUMBER_BYTES, value, &length)
-                     : bento_fmt_real_precision(text, NUMBER_BYTES, value, digits, &length);
+        (digits < 0)
+            ? bento_fmt_real(text, NUMBER_BYTES, value, &length)
+            : bento_fmt_real_precision(text, NUMBER_BYTES, value,
+                                       digits, &length);
 
     if (status != BENTO_OK) {
         text[0] = '\0';
@@ -280,7 +292,9 @@ static void real_text(bento_real_t value, int32_t digits, char *text)
 }
 
 /* One widget of a table. */
-static bento_status_t add_widget(bento_ui_t *ui, const widget_spec_t *spec, bento_ui_id_t *out_id)
+static bento_status_t add_widget(bento_ui_t *ui,
+                                 const widget_spec_t *spec,
+                                 bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
     bento_status_t status = BENTO_E_INVALID_ARGUMENT;
@@ -329,15 +343,18 @@ static bento_status_t add_widget(bento_ui_t *ui, const widget_spec_t *spec, bent
 
 /* A table of widgets in the original's order; outs[i] NULL = a widget
  * the program never changes. */
-static bento_status_t add_widgets(bento_ui_t *ui, const widget_spec_t *specs,
-                                  bento_ui_id_t *const *outs, size_t count)
+static bento_status_t add_widgets(bento_ui_t *ui,
+                                  const widget_spec_t *specs,
+                                  bento_ui_id_t *const *outs,
+                                  size_t count)
 {
     bento_ui_id_t unused = 0U;
     bento_status_t status = BENTO_OK;
     size_t i;
 
     for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
-        status = add_widget(ui, &specs[i], (outs[i] != NULL) ? outs[i] : &unused);
+        status = add_widget(ui, &specs[i],
+                            (outs[i] != NULL) ? outs[i] : &unused);
     }
     return status;
 }
@@ -347,11 +364,14 @@ static bento_status_t add_title(alarm_screen_t *screen)
 {
     static const widget_spec_t specs[] = {
         {KIND_LED, NULL, 606, 12, 18, 18, COLOR_OK, 0, 0, 0},
-        {KIND_LABEL, "MQTT: ออฟไลน์", 632, 10, -1, -1, COLOR_DIM, 16, 0, 0},
+        {KIND_LABEL, "MQTT: ออฟไลน์", 632, 10, -1, -1, COLOR_DIM, 16, 0,
+         0},
     };
-    bento_ui_id_t *const outs[] = {&screen->mqtt_lamp, &screen->mqtt_label};
+    bento_ui_id_t *const outs[] = {&screen->mqtt_lamp,
+                                   &screen->mqtt_label};
     char text[TEXT_BYTES];
-    widget_spec_t title = {KIND_LABEL, NULL, 24, 8, -1, -1, COLOR_TEXT, 20, 0, 0};
+    widget_spec_t title = {KIND_LABEL, NULL,       24, 8, -1,
+                           -1,         COLOR_TEXT, 20, 0, 0};
     bento_ui_id_t unused = 0U;
     bento_status_t status;
 
@@ -359,7 +379,8 @@ static bento_status_t add_title(alarm_screen_t *screen)
     title.text = text;
     status = add_widget(screen->ui, &title, &unused);
     if (status == BENTO_OK) {
-        status = add_widgets(screen->ui, specs, outs, sizeof(specs) / sizeof(specs[0]));
+        status = add_widgets(screen->ui, specs, outs,
+                             sizeof(specs) / sizeof(specs[0]));
     }
     return status;
 }
@@ -369,12 +390,15 @@ static bento_status_t add_title(alarm_screen_t *screen)
 static bento_status_t add_value_card(alarm_screen_t *screen)
 {
     static const widget_spec_t specs[] = {
-        {KIND_CARD, NULL, 24, 48, 464, 184, COLOR_CARD, 1, COLOR_DIM, 12},
-        {KIND_LABEL, "ค่าที่วัดได้ เทียบกับเกณฑ์", 40, 56, -1, -1, COLOR_DIM, 16, 0, 0},
+        {KIND_CARD, NULL, 24, 48, 464, 184, COLOR_CARD, 1, COLOR_DIM,
+         12},
+        {KIND_LABEL, "ค่าที่วัดได้ เทียบกับเกณฑ์", 40, 56, -1, -1, COLOR_DIM,
+         16, 0, 0},
         {KIND_LABEL, "--", 40, 88, -1, -1, COLOR_TEXT, 28, 0, 0},
         {KIND_LABEL, "รอค่าแรก", 248, 96, -1, -1, COLOR_DIM, 16, 0, 0},
         {KIND_BAR, NULL, 40, 136, 432, 16, COLOR_RUN, 0, 0, SCALE_MAX},
-        {KIND_SCALE, NULL, 40, 156, 432, 48, COLOR_TEXT, 0, 0, SCALE_MAX},
+        {KIND_SCALE, NULL, 40, 156, 432, 48, COLOR_TEXT, 0, 0,
+         SCALE_MAX},
     };
     bento_ui_id_t *const outs[] = {NULL,
                                    NULL,
@@ -385,17 +409,19 @@ static bento_status_t add_value_card(alarm_screen_t *screen)
     char warn[NUMBER_BYTES];
     char alert[NUMBER_BYTES];
     char text[TEXT_BYTES];
-    widget_spec_t limits = {KIND_LABEL, NULL, 40, 208, -1, -1, COLOR_DIM, 16, 0, 0};
+    widget_spec_t limits = {KIND_LABEL, NULL,      40, 208, -1,
+                            -1,         COLOR_DIM, 16, 0,   0};
     bento_ui_id_t unused = 0U;
-    bento_status_t status =
-        add_widgets(screen->ui, specs, outs, sizeof(specs) / sizeof(specs[0]));
+    bento_status_t status = add_widgets(
+        screen->ui, specs, outs, sizeof(specs) / sizeof(specs[0]));
 
     if (status == BENTO_OK) {
-        (void)bento_ui_set_ticks(screen->ui, screen->value_scale, SCALE_TICKS,
-                                 SCALE_MAJOR_EVERY);
+        (void)bento_ui_set_ticks(screen->ui, screen->value_scale,
+                                 SCALE_TICKS, SCALE_MAJOR_EVERY);
         real_text(WARN_LIMIT, -1, warn);
         real_text(ALERT_LIMIT, -1, alert);
-        (void)snprintf(text, sizeof(text), "เฝ้าระวัง %s - ผิดปกติ %s %s", warn, alert, UNIT);
+        (void)snprintf(text, sizeof(text), "เฝ้าระวัง %s - ผิดปกติ %s %s",
+                       warn, alert, UNIT);
         limits.text = text;
         status = add_widget(screen->ui, &limits, &unused);
     }
@@ -406,28 +432,43 @@ static bento_status_t add_value_card(alarm_screen_t *screen)
 static bento_status_t add_state_card(alarm_screen_t *screen)
 {
     static const widget_spec_t specs[] = {
-        {KIND_CARD, NULL, 24, 240, 464, 152, COLOR_CARD, 1, COLOR_DIM, 12},
-        {KIND_LABEL, "สถานะที่ตัดสินแล้ว", 40, 248, -1, -1, COLOR_DIM, 16, 0, 0},
-        {KIND_LABEL, "รอคนรับทราบ", 336, 244, -1, -1, COLOR_WARN, 20, 0, 0},
+        {KIND_CARD, NULL, 24, 240, 464, 152, COLOR_CARD, 1, COLOR_DIM,
+         12},
+        {KIND_LABEL, "สถานะที่ตัดสินแล้ว", 40, 248, -1, -1, COLOR_DIM, 16, 0,
+         0},
+        {KIND_LABEL, "รอคนรับทราบ", 336, 244, -1, -1, COLOR_WARN, 20, 0,
+         0},
         {KIND_LED, NULL, 40, 276, 48, 48, COLOR_OK, 1, 0, 0},
         {KIND_LED, NULL, 144, 276, 48, 48, COLOR_WARN, 0, 0, 0},
         {KIND_LED, NULL, 248, 276, 48, 48, COLOR_BAD, 0, 0, 0},
         {KIND_LABEL, "ปกติ", 40, 328, -1, -1, COLOR_DIM, 16, 0, 0},
         {KIND_LABEL, "เฝ้าระวัง", 144, 328, -1, -1, COLOR_DIM, 16, 0, 0},
         {KIND_LABEL, "ผิดปกติ", 248, 328, -1, -1, COLOR_DIM, 16, 0, 0},
-        {KIND_LABEL, "กำลังวัดท่าตั้งต้น", 40, 356, -1, -1, COLOR_TEXT, 20, 0, 0},
-        {KIND_BUTTON, "รับทราบ", 368, 276, 104, 88, COLOR_QUIET, 20, 0, 0},
+        {KIND_LABEL, "กำลังวัดท่าตั้งต้น", 40, 356, -1, -1, COLOR_TEXT, 20, 0,
+         0},
+        {KIND_BUTTON, "รับทราบ", 368, 276, 104, 88, COLOR_QUIET, 20, 0,
+         0},
     };
-    bento_ui_id_t *const outs[] = {
-        NULL, NULL, &screen->latch_label, &screen->lamp_ok, &screen->lamp_warn, &screen->lamp_bad,
-        NULL, NULL, NULL,                 &screen->state_label, &screen->acknowledge_button};
+    bento_ui_id_t *const outs[] = {NULL,
+                                   NULL,
+                                   &screen->latch_label,
+                                   &screen->lamp_ok,
+                                   &screen->lamp_warn,
+                                   &screen->lamp_bad,
+                                   NULL,
+                                   NULL,
+                                   NULL,
+                                   &screen->state_label,
+                                   &screen->acknowledge_button};
     const size_t latch_row = 2U;
-    bento_status_t status = add_widgets(screen->ui, specs, outs, latch_row + 1U);
+    bento_status_t status =
+        add_widgets(screen->ui, specs, outs, latch_row + 1U);
 
     if (status == BENTO_OK) { /* hidden before the lamps, as drawn */
         set_shown(screen->ui, screen->latch_label, false);
-        status = add_widgets(screen->ui, &specs[latch_row + 1U], &outs[latch_row + 1U],
-                             (sizeof(specs) / sizeof(specs[0])) - (latch_row + 1U));
+        status = add_widgets(
+            screen->ui, &specs[latch_row + 1U], &outs[latch_row + 1U],
+            (sizeof(specs) / sizeof(specs[0])) - (latch_row + 1U));
     }
     return status;
 }
@@ -437,15 +478,20 @@ static bento_status_t add_state_card(alarm_screen_t *screen)
 static bento_status_t add_beacon_card(alarm_screen_t *screen)
 {
     static const widget_spec_t specs[] = {
-        {KIND_CARD, NULL, 504, 48, 264, 344, COLOR_CARD, 1, COLOR_DIM, 12},
-        {KIND_LABEL, "ไฟเตือนหน้างาน", 520, 56, -1, -1, COLOR_DIM, 16, 0, 0},
+        {KIND_CARD, NULL, 504, 48, 264, 344, COLOR_CARD, 1, COLOR_DIM,
+         12},
+        {KIND_LABEL, "ไฟเตือนหน้างาน", 520, 56, -1, -1, COLOR_DIM, 16, 0,
+         0},
         {KIND_LED, NULL, 520, 88, 48, 48, COLOR_BAD, 0, 0, 0},
         {KIND_LABEL, "ไฟดับอยู่", 576, 100, -1, -1, COLOR_DIM, 20, 0, 0},
-        {KIND_LABEL, "สั่งปิดต้องยืนยันก่อน", 520, 144, -1, -1, COLOR_DIM, 16, 0, 0},
+        {KIND_LABEL, "สั่งปิดต้องยืนยันก่อน", 520, 144, -1, -1, COLOR_DIM, 16,
+         0, 0},
         {KIND_BUTTON, "เปิดไฟ", 520, 176, 96, 88, COLOR_OK, 20, 0, 0},
         {KIND_BUTTON, "ปิดไฟ", 648, 176, 96, 88, COLOR_QUIET, 20, 0, 0},
-        {KIND_LABEL, "net: starting", 520, 296, -1, -1, COLOR_DIM, 20, 0, 0},
-        {KIND_LABEL, "ส่งแล้ว 0 ใบ", 520, 336, -1, -1, COLOR_DIM, 16, 0, 0},
+        {KIND_LABEL, "net: starting", 520, 296, -1, -1, COLOR_DIM, 20,
+         0, 0},
+        {KIND_LABEL, "ส่งแล้ว 0 ใบ", 520, 336, -1, -1, COLOR_DIM, 16, 0,
+         0},
     };
     bento_ui_id_t *const outs[] = {NULL,
                                    NULL,
@@ -457,7 +503,8 @@ static bento_status_t add_beacon_card(alarm_screen_t *screen)
                                    &screen->net_label,
                                    &screen->sent_label};
 
-    return add_widgets(screen->ui, specs, outs, sizeof(specs) / sizeof(specs[0]));
+    return add_widgets(screen->ui, specs, outs,
+                       sizeof(specs) / sizeof(specs[0]));
 }
 
 /* The confirmation says what will happen, not "are you sure". The
@@ -466,17 +513,24 @@ static bento_status_t add_beacon_card(alarm_screen_t *screen)
 static bento_status_t add_confirm_box(alarm_screen_t *screen)
 {
     static const widget_spec_t box = {
-        KIND_MSGBOX, "ปิดไฟเตือน\nไฟหน้างานจะดับทันที", 112, 96, 568, 136, COLOR_CARD, 0, 0, 0};
+        KIND_MSGBOX, "ปิดไฟเตือน\nไฟหน้างานจะดับทันที",
+        112,         96,
+        568,         136,
+        COLOR_CARD,  0,
+        0,           0};
     static const widget_spec_t buttons[] = {
         {KIND_BUTTON, "ยืนยัน", 144, 248, 200, 88, COLOR_QUIET, 20, 0, 0},
-        {KIND_BUTTON, "ยกเลิก", 376, 248, 200, 88, COLOR_QUIET, 20, 0, 0},
+        {KIND_BUTTON, "ยกเลิก", 376, 248, 200, 88, COLOR_QUIET, 20, 0,
+         0},
     };
-    bento_ui_id_t *const outs[] = {&screen->yes_button, &screen->no_button};
+    bento_ui_id_t *const outs[] = {&screen->yes_button,
+                                   &screen->no_button};
     bento_status_t status = add_widget(screen->ui, &box, &screen->box);
 
     if (status == BENTO_OK) {
         set_shown(screen->ui, screen->box, false);
-        status = add_widgets(screen->ui, buttons, outs, sizeof(buttons) / sizeof(buttons[0]));
+        status = add_widgets(screen->ui, buttons, outs,
+                             sizeof(buttons) / sizeof(buttons[0]));
     }
     if (status == BENTO_OK) {
         set_shown(screen->ui, screen->yes_button, false);
@@ -491,8 +545,9 @@ static bento_status_t build_screen(alarm_screen_t *screen)
 {
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
-    bento_status_t status = bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
-                                            BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+    bento_status_t status =
+        bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = wait_ms(SETTLE_MS);
@@ -512,8 +567,10 @@ static bento_status_t build_screen(alarm_screen_t *screen)
     if (status == BENTO_OK) {
         status = add_confirm_box(screen);
     }
-    if (status == BENTO_OK) { /* this poll only keeps the queue moving */
-        (void)bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+    if (status ==
+        BENTO_OK) { /* this poll only keeps the queue moving */
+        (void)bento_ui_poll(screen->ui, events,
+                            BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
     }
     return status;
 }
@@ -531,14 +588,17 @@ static bento_status_t find_beacon(uint32_t *led)
     bento_gpio_board_info_init(&info);
     status = bento_gpio_board_info(&info);
     for (i = 0U; (i < info.leds) && (status == BENTO_OK); i++) {
-        if ((bento_gpio_led_name(i, &name) == BENTO_OK) && (strcmp(name, "RGB_GREEN") == 0)) {
+        if ((bento_gpio_led_name(i, &name) == BENTO_OK) &&
+            (strcmp(name, "RGB_GREEN") == 0)) {
             wanted = BEACON_LED; /* red on both boards */
         }
     }
     *led = 0U;
     for (i = info.leds; (i > 0U) && (status == BENTO_OK); i--) {
-        if ((bento_gpio_led_name(i - 1U, &name) == BENTO_OK) && (strcmp(name, wanted) == 0)) {
-            *led = i - 1U; /* the first match wins: the search runs down */
+        if ((bento_gpio_led_name(i - 1U, &name) == BENTO_OK) &&
+            (strcmp(name, wanted) == 0)) {
+            *led =
+                i - 1U; /* the first match wins: the search runs down */
         }
     }
     return status;
@@ -547,7 +607,8 @@ static bento_status_t find_beacon(uint32_t *led)
 /* One IMU read as (roll, pitch). A failed read keeps the last tilt and
  * marks it stale; BENTO_E_UNSUPPORTED (no such sensor) ends the
  * program. */
-static bento_status_t raw_tilt(tilt_t *tilt, bento_real_t *roll, bento_real_t *pitch)
+static bento_status_t raw_tilt(tilt_t *tilt, bento_real_t *roll,
+                               bento_real_t *pitch)
 {
     bento_sensors_imu6_t motion;
     float roll_deg = 0.0F;
@@ -557,7 +618,8 @@ static bento_status_t raw_tilt(tilt_t *tilt, bento_real_t *roll, bento_real_t *p
     bento_sensors_imu6_init(&motion);
     status = bento_sensors_bmi270_motion(&motion);
     if (status == BENTO_OK) { /* roll comes first */
-        status = bento_dsp_tilt(motion.ax, motion.ay, motion.az, &roll_deg, &pitch_deg);
+        status = bento_dsp_tilt(motion.ax, motion.ay, motion.az,
+                                &roll_deg, &pitch_deg);
     }
     tilt->stale = status != BENTO_OK;
     if (!tilt->stale) {
@@ -615,7 +677,8 @@ static bento_status_t read_value(tilt_t *tilt, bento_real_t *value)
     length = powf(square, half);
 #endif
     if (status == BENTO_OK) {
-        status = bento_dsp_ema_state_update(&tilt->smooth, (float)length, &smoothed);
+        status = bento_dsp_ema_state_update(&tilt->smooth,
+                                            (float)length, &smoothed);
     }
     *value = (bento_real_t)smoothed;
     return status;
@@ -638,20 +701,23 @@ static int32_t level_of(bento_real_t value)
 }
 
 /* The latch and the state text change only when they change. */
-static void show_state(const alarm_screen_t *screen, shown_t *shown, const decision_t *decision)
+static void show_state(const alarm_screen_t *screen, shown_t *shown,
+                       const decision_t *decision)
 {
     if (!shown->has_shown || (decision->state != shown->shown_state) ||
         (decision->latched != shown->shown_latched)) {
         shown->has_shown = true;
         shown->shown_state = decision->state;
         shown->shown_latched = decision->latched;
-        set_text(screen->ui, screen->state_label, LEVEL_TEXTS[decision->state]);
+        set_text(screen->ui, screen->state_label,
+                 LEVEL_TEXTS[decision->state]);
         set_shown(screen->ui, screen->latch_label, decision->latched);
     }
 }
 
 /* The numbers once a second. */
-static void show_numbers(const alarm_screen_t *screen, const tilt_alarm_t *monitor,
+static void show_numbers(const alarm_screen_t *screen,
+                         const tilt_alarm_t *monitor,
                          const char *net_text)
 {
     char number[NUMBER_BYTES];
@@ -663,9 +729,11 @@ static void show_numbers(const alarm_screen_t *screen, const tilt_alarm_t *monit
     set_text(screen->ui, screen->quality_label,
              monitor->tilt.stale ? "ค่าค้าง อ่านไม่ได้" : "ค่าปกติ");
     (void)bento_ui_set_color(screen->ui, screen->quality_label,
-                             monitor->tilt.stale ? (uint32_t)COLOR_WARN : (uint32_t)COLOR_DIM);
+                             monitor->tilt.stale ? (uint32_t)COLOR_WARN
+                                                 : (uint32_t)COLOR_DIM);
     set_text(screen->ui, screen->net_label, net_text);
-    (void)snprintf(text, sizeof(text), "ส่งแล้ว %ld ใบ", (long)monitor->decision.sent);
+    (void)snprintf(text, sizeof(text), "ส่งแล้ว %ld ใบ",
+                   (long)monitor->decision.sent);
     set_text(screen->ui, screen->sent_label, text);
 }
 
@@ -678,17 +746,23 @@ static void show(tilt_alarm_t *monitor, uint32_t now_ms)
     char net_text[TEXT_BYTES];
 
     set_value(screen->ui, screen->value_bar,
-              (decision->value < (bento_real_t)SCALE_MAX) ? (int32_t)decision->value : SCALE_MAX);
-    set_value(screen->ui, screen->lamp_ok, (decision->state == LEVEL_OK) ? 1 : 0);
-    set_value(screen->ui, screen->lamp_warn, (decision->state == LEVEL_WARN) ? 1 : 0);
-    set_value(screen->ui, screen->lamp_bad, (decision->state == LEVEL_ALERT) ? 1 : 0);
+              (decision->value < (bento_real_t)SCALE_MAX)
+                  ? (int32_t)decision->value
+                  : SCALE_MAX);
+    set_value(screen->ui, screen->lamp_ok,
+              (decision->state == LEVEL_OK) ? 1 : 0);
+    set_value(screen->ui, screen->lamp_warn,
+              (decision->state == LEVEL_WARN) ? 1 : 0);
+    set_value(screen->ui, screen->lamp_bad,
+              (decision->state == LEVEL_ALERT) ? 1 : 0);
     show_state(screen, &monitor->shown, decision);
     if (second != monitor->shown.last_second) {
         monitor->shown.last_second = second;
         if (monitor->link.online) {
             (void)snprintf(net_text, sizeof(net_text), "online");
         } else {
-            (void)snprintf(net_text, sizeof(net_text), "offline - missed %ld",
+            (void)snprintf(net_text, sizeof(net_text),
+                           "offline - missed %ld",
                            (long)decision->missed);
         }
         show_numbers(screen, monitor, net_text);
@@ -700,11 +774,13 @@ static bento_status_t set_beacon(const tilt_alarm_t *monitor, bool on)
 {
     const alarm_screen_t *screen = &monitor->screen;
     const bento_status_t status =
-        on ? bento_gpio_led_on(monitor->beacon_led) : bento_gpio_led_off(monitor->beacon_led);
+        on ? bento_gpio_led_on(monitor->beacon_led)
+           : bento_gpio_led_off(monitor->beacon_led);
 
     if (status == BENTO_OK) {
         set_value(screen->ui, screen->beacon_lamp, on ? 1 : 0);
-        set_text(screen->ui, screen->beacon_state, on ? "ไฟติดอยู่" : "ไฟดับอยู่");
+        set_text(screen->ui, screen->beacon_state,
+                 on ? "ไฟติดอยู่" : "ไฟดับอยู่");
     }
     return status;
 }
@@ -728,14 +804,17 @@ static void round_text(bento_real_t value, char *text)
 static bool broker_connected(const link_t *link)
 {
     uint32_t state = BENTO_MQTT_STATE_CLOSED;
-    const bool answered = link->open && (bento_mqtt_state(link->handle, &state) == BENTO_OK);
+    const bool answered =
+        link->open &&
+        (bento_mqtt_state(link->handle, &state) == BENTO_OK);
 
     return answered && (state == BENTO_MQTT_STATE_CONNECTED);
 }
 
 /* send(): *sent false instead of an error, so a dead link never takes
  * the screen down. An OSError from publish() ends the program. */
-static bento_status_t send_message(tilt_alarm_t *monitor, const char *kind, bool *sent)
+static bento_status_t send_message(tilt_alarm_t *monitor,
+                                   const char *kind, bool *sent)
 {
     const decision_t *decision = &monitor->decision;
     char number[NUMBER_BYTES];
@@ -746,21 +825,27 @@ static bento_status_t send_message(tilt_alarm_t *monitor, const char *kind, bool
     if (*sent) {
         round_text(decision->value, number);
         (void)snprintf(payload, sizeof(payload),
-                       "{\"state\": \"%s\", \"v\": %s, \"kind\": \"%s\", \"t\": %lu, "
+                       "{\"state\": \"%s\", \"v\": %s, \"kind\": "
+                       "\"%s\", \"t\": %lu, "
                        "\"id\": \"%s\", \"unit\": \"%s\"}",
                        LEVEL_NAMES[decision->state], number, kind,
-                       (unsigned long)bento_time_ticks_ms(), DEVICE_ID, UNIT);
-        status = bento_mqtt_publish(monitor->link.handle, TOPIC, (uint32_t)strlen(TOPIC),
-                                    (const uint8_t *)payload, (uint32_t)strlen(payload), 0U, 0U);
+                       (unsigned long)bento_time_ticks_ms(), DEVICE_ID,
+                       UNIT);
+        status = bento_mqtt_publish(monitor->link.handle, TOPIC,
+                                    (uint32_t)strlen(TOPIC),
+                                    (const uint8_t *)payload,
+                                    (uint32_t)strlen(payload), 0U, 0U);
         if (status != BENTO_E_SESSION) {
-            status = BENTO_OK; /* the binding's False, ignored by send() */
+            status =
+                BENTO_OK; /* the binding's False, ignored by send() */
         }
     }
     return status;
 }
 
 /* send_message(), counting what got out. */
-static bento_status_t send_counted(tilt_alarm_t *monitor, const char *kind)
+static bento_status_t send_counted(tilt_alarm_t *monitor,
+                                   const char *kind)
 {
     bool sent = false;
     const bento_status_t status = send_message(monitor, kind, &sent);
@@ -772,7 +857,8 @@ static bento_status_t send_counted(tilt_alarm_t *monitor, const char *kind)
 }
 
 /* send_message(), counting what got out and what did not. */
-static bento_status_t send_or_miss(tilt_alarm_t *monitor, const char *kind)
+static bento_status_t send_or_miss(tilt_alarm_t *monitor,
+                                   const char *kind)
 {
     bool sent = false;
     const bento_status_t status = send_message(monitor, kind, &sent);
@@ -819,14 +905,17 @@ static bento_status_t join_wifi(bool *joined)
         params.ssid_len = (uint32_t)strlen(WIFI_SSID);
         params.pass = WIFI_PASS;
         params.pass_len = (uint32_t)strlen(WIFI_PASS);
-        params.flags = BENTO_WIFI_F_SAVE_CREDS; /* as the binding does */
+        params.flags =
+            BENTO_WIFI_F_SAVE_CREDS; /* as the binding does */
         status = bento_wifi_connect_start(&params);
         if (status == BENTO_OK) {
             status = finish_join(joined);
         }
     }
-    return ((status == BENTO_E_CANCELLED) || (status == BENTO_E_UNSUPPORTED)) ? status
-                                                                               : BENTO_OK;
+    return ((status == BENTO_E_CANCELLED) ||
+            (status == BENTO_E_UNSUPPORTED))
+               ? status
+               : BENTO_OK;
 }
 
 /* mqtt.connect(BROKER, port=1883, client_id=CLIENT_ID). */
@@ -874,7 +963,8 @@ static bento_status_t go_online(link_t *link)
 static void show_link(const alarm_screen_t *screen, bool connected)
 {
     set_value(screen->ui, screen->mqtt_lamp, connected ? 1 : 0);
-    set_text(screen->ui, screen->mqtt_label, connected ? "MQTT: เชื่อมต่อแล้ว" : "MQTT: ออฟไลน์");
+    set_text(screen->ui, screen->mqtt_label,
+             connected ? "MQTT: เชื่อมต่อแล้ว" : "MQTT: ออฟไลน์");
 }
 
 /* A new level must repeat CONFIRM_N rounds before it is believed. */
@@ -886,14 +976,16 @@ static bool confirm_level(decision_t *decision, int32_t level)
         decision->pending = level;
         decision->streak = 1;
     }
-    return (decision->streak >= CONFIRM_N) && (decision->pending != decision->state);
+    return (decision->streak >= CONFIRM_N) &&
+           (decision->pending != decision->state);
 }
 
 /* An alarm latches the beacon and is sent, at most every
  * ALERT_GAP_MS. A missed event is dropped on purpose: a value held
  * back for long is no use. Back to normal is sent only when nobody
  * still has to acknowledge. */
-static bento_status_t enter_state(tilt_alarm_t *monitor, uint32_t now_ms)
+static bento_status_t enter_state(tilt_alarm_t *monitor,
+                                  uint32_t now_ms)
 {
     decision_t *decision = &monitor->decision;
     bool sent = false;
@@ -905,7 +997,8 @@ static bento_status_t enter_state(tilt_alarm_t *monitor, uint32_t now_ms)
         status = set_beacon(monitor, true);
         if ((status == BENTO_OK) &&
             (!decision->has_alert ||
-             (bento_time_ticks_diff(now_ms, decision->last_alert_ms) >= ALERT_GAP_MS))) {
+             (bento_time_ticks_diff(now_ms, decision->last_alert_ms) >=
+              ALERT_GAP_MS))) {
             status = send_message(monitor, "event", &sent);
             if (sent) {
                 decision->has_alert = true;
@@ -935,7 +1028,9 @@ static bento_status_t keep_link(tilt_alarm_t *monitor, uint32_t now_ms)
         show_link(&monitor->screen, false);
         monitor->decision.retry_ms = now_ms;
     }
-    if (!link->online && (bento_time_ticks_diff(now_ms, monitor->decision.retry_ms) >= RETRY_MS)) {
+    if (!link->online &&
+        (bento_time_ticks_diff(now_ms, monitor->decision.retry_ms) >=
+         RETRY_MS)) {
         status = go_online(link);
         if (status == BENTO_OK) {
             show_link(&monitor->screen, link->online);
@@ -956,7 +1051,8 @@ static void show_box(const alarm_screen_t *screen, bool shown)
 }
 
 /* One click: turning the beacon off goes through the box first. */
-static bento_status_t on_click(tilt_alarm_t *monitor, bento_ui_id_t widget)
+static bento_status_t on_click(tilt_alarm_t *monitor,
+                               bento_ui_id_t widget)
 {
     const alarm_screen_t *screen = &monitor->screen;
     decision_t *decision = &monitor->decision;
@@ -974,7 +1070,8 @@ static bento_status_t on_click(tilt_alarm_t *monitor, bento_ui_id_t widget)
     } else if ((widget == screen->no_button) && decision->asking) {
         decision->asking = false;
         show_box(screen, false);
-    } else if ((widget == screen->acknowledge_button) && decision->latched) {
+    } else if ((widget == screen->acknowledge_button) &&
+               decision->latched) {
         decision->latched = false;
         status = send_counted(monitor, "ack");
     } else {
@@ -991,8 +1088,9 @@ static bento_status_t read_buttons(tilt_alarm_t *monitor)
     uint32_t i;
     bento_status_t status = BENTO_OK;
 
-    if (bento_ui_poll(monitor->screen.ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) !=
-        BENTO_OK) {
+    if (bento_ui_poll(monitor->screen.ui, events,
+                      BENTO_UI_POLL_EVENTS_MAX, &count,
+                      NULL) != BENTO_OK) {
         count = 0U; /* a failed poll answers no events */
     }
     for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
@@ -1009,16 +1107,19 @@ static bento_status_t alarm_round(tilt_alarm_t *monitor)
 {
     decision_t *decision = &monitor->decision;
     const uint32_t now_ms = bento_time_ticks_ms();
-    bento_status_t status = read_value(&monitor->tilt, &decision->value);
+    bento_status_t status =
+        read_value(&monitor->tilt, &decision->value);
 
-    if ((status == BENTO_OK) && confirm_level(decision, level_of(decision->value))) {
+    if ((status == BENTO_OK) &&
+        confirm_level(decision, level_of(decision->value))) {
         status = enter_state(monitor, now_ms);
     }
     if (status == BENTO_OK) {
         status = keep_link(monitor, now_ms);
     }
     if ((status == BENTO_OK) &&
-        (bento_time_ticks_diff(now_ms, decision->beat_ms) >= HEARTBEAT_MS)) {
+        (bento_time_ticks_diff(now_ms, decision->beat_ms) >=
+         HEARTBEAT_MS)) {
         decision->beat_ms = now_ms;
         status = send_or_miss(monitor, "beat");
     }
@@ -1085,8 +1186,10 @@ int main(void)
     (void)memset(&monitor, 0, sizeof(monitor));
     monitor.screen.ui = bento_runtime_get_ui();
     /* a new suffix each run: a quick rerun never meets its old id */
-    (void)snprintf(monitor.link.client_id, sizeof(monitor.link.client_id), "%s-%04x", DEVICE_ID,
-                   (unsigned int)(bento_time_ticks_ms() & (uint32_t)CLIENT_SUFFIX_MASK));
+    (void)snprintf(monitor.link.client_id,
+                   sizeof(monitor.link.client_id), "%s-%04x", DEVICE_ID,
+                   (unsigned int)(bento_time_ticks_ms() &
+                                  (uint32_t)CLIENT_SUFFIX_MASK));
     monitor.decision.state = LEVEL_OK;
     monitor.decision.pending = LEVEL_OK;
     monitor.shown.last_second = -1;

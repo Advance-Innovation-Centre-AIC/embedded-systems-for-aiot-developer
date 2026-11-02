@@ -28,10 +28,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_dsp.h"
 #include "bento_fmt.h"
+#include "bento_runtime.h"
 #include "bento_sensors.h"
 #include "bento_time.h"
 
@@ -119,7 +118,8 @@ typedef struct {
 typedef struct {
     bento_ui_t *ui;
     bento_ui_id_t widgets[W_COUNT];
-    bento_dsp_ema_state_t roll_filter; /* a filter remembers: one per axis */
+    bento_dsp_ema_state_t
+        roll_filter; /* a filter remembers: one per axis */
     bento_dsp_ema_state_t pitch_filter;
     bento_real_t roll;
     bento_real_t pitch;
@@ -133,7 +133,8 @@ typedef struct {
     int32_t last_second; /* -1: no number written yet */
     bool ok_read;
     bool running;
-    char health[TEXT_BYTES]; /* the quality line, decided once a second */
+    char health
+        [TEXT_BYTES]; /* the quality line, decided once a second */
 } level_t;
 
 /* Sleeps, and turns Stop into BENTO_E_CANCELLED. */
@@ -148,25 +149,30 @@ static bento_status_t wait_ms(uint32_t duration_ms)
 }
 
 /* A setter's refusal was ignored before too (modui.c). */
-static void set_text(const level_t *level, widget_index_t widget, const char *text)
+static void set_text(const level_t *level, widget_index_t widget,
+                     const char *text)
 {
-    (void)bento_ui_set_text(level->ui, level->widgets[widget], text, (uint32_t)strlen(text));
+    (void)bento_ui_set_text(level->ui, level->widgets[widget], text,
+                            (uint32_t)strlen(text));
 }
 
-static void set_value(const level_t *level, widget_index_t widget, int32_t value)
+static void set_value(const level_t *level, widget_index_t widget,
+                      int32_t value)
 {
     (void)bento_ui_set_value(level->ui, level->widgets[widget], value);
 }
 
-static void set_color(const level_t *level, widget_index_t widget, uint32_t color)
+static void set_color(const level_t *level, widget_index_t widget,
+                      uint32_t color)
 {
     (void)bento_ui_set_color(level->ui, level->widgets[widget], color);
 }
 
 /* Creates specs[0..count) into widgets[first..]; a scale gets its ticks
  * and the spinbox its digits right after it is made, as in the original. */
-static bento_status_t add_widgets(level_t *level, const widget_spec_t *specs, int32_t first,
-                                  int32_t count)
+static bento_status_t add_widgets(level_t *level,
+                                  const widget_spec_t *specs,
+                                  int32_t first, int32_t count)
 {
     bento_ui_widget_args_t args;
     bento_status_t status = BENTO_OK;
@@ -178,7 +184,8 @@ static bento_status_t add_widgets(level_t *level, const widget_spec_t *specs, in
 
         bento_ui_widget_args_init(&args);
         args.text = spec->text;
-        args.text_len = (spec->text != NULL) ? (uint32_t)strlen(spec->text) : 0U;
+        args.text_len =
+            (spec->text != NULL) ? (uint32_t)strlen(spec->text) : 0U;
         args.x = spec->x;
         args.y = spec->y;
         args.w = spec->w;
@@ -188,11 +195,15 @@ static bento_status_t add_widgets(level_t *level, const widget_spec_t *specs, in
         args.min_val = spec->min;
         args.max_val = spec->max;
         status = bento_ui_create(level->ui, spec->type, &args, widget);
-        if ((status == BENTO_OK) && (spec->type == (uint8_t)UI_WIDGET_SCALE)) {
-            (void)bento_ui_set_ticks(level->ui, *widget, SCALE_TICKS, SCALE_MAJOR_EVERY);
+        if ((status == BENTO_OK) &&
+            (spec->type == (uint8_t)UI_WIDGET_SCALE)) {
+            (void)bento_ui_set_ticks(level->ui, *widget, SCALE_TICKS,
+                                     SCALE_MAJOR_EVERY);
         }
-        if ((status == BENTO_OK) && (spec->type == (uint8_t)UI_WIDGET_SPINBOX)) {
-            (void)bento_ui_set_digits(level->ui, *widget, TOL_DIGITS, 0);
+        if ((status == BENTO_OK) &&
+            (spec->type == (uint8_t)UI_WIDGET_SPINBOX)) {
+            (void)bento_ui_set_digits(level->ui, *widget, TOL_DIGITS,
+                                      0);
         }
     }
     return status;
@@ -202,24 +213,34 @@ static bento_status_t add_widgets(level_t *level, const widget_spec_t *specs, in
 static bento_status_t add_measure_widgets(level_t *level)
 {
     static const widget_spec_t specs[W_CONTROL_CARD] = {
-        {UI_WIDGET_LABEL, "เครื่องวัดระดับดิจิทัลสองแกน", 24, 8, -1, -1, COLOR_TEXT, FONT_TITLE,
-         0, 0},
-        {UI_WIDGET_LABEL, "กำลังวัดอยู่", 416, 12, -1, -1, COLOR_DIM, FONT_BODY, 0, 0},
-        {UI_WIDGET_PANEL, NULL, 24, 48, 576, 128, COLOR_CARD, 1, COLOR_DIM, CARD_RADIUS},
-        {UI_WIDGET_LABEL, "ROLL เอียงซ้าย-ขวา (องศา)", 40, 60, -1, -1, COLOR_DIM, FONT_SMALL, 0, 0},
-        {UI_WIDGET_BAR, NULL, 40, 96, 160, 16, COLOR_BAR, 0, -ANGLE_MAX, ANGLE_MAX},
-        {UI_WIDGET_SCALE, NULL, 40, 112, 160, 44, COLOR_TEXT, 0, -ANGLE_MAX, ANGLE_MAX},
+        {UI_WIDGET_LABEL, "เครื่องวัดระดับดิจิทัลสองแกน", 24, 8, -1, -1,
+         COLOR_TEXT, FONT_TITLE, 0, 0},
+        {UI_WIDGET_LABEL, "กำลังวัดอยู่", 416, 12, -1, -1, COLOR_DIM,
+         FONT_BODY, 0, 0},
+        {UI_WIDGET_PANEL, NULL, 24, 48, 576, 128, COLOR_CARD, 1,
+         COLOR_DIM, CARD_RADIUS},
+        {UI_WIDGET_LABEL, "ROLL เอียงซ้าย-ขวา (องศา)", 40, 60, -1, -1,
+         COLOR_DIM, FONT_SMALL, 0, 0},
+        {UI_WIDGET_BAR, NULL, 40, 96, 160, 16, COLOR_BAR, 0, -ANGLE_MAX,
+         ANGLE_MAX},
+        {UI_WIDGET_SCALE, NULL, 40, 112, 160, 44, COLOR_TEXT, 0,
+         -ANGLE_MAX, ANGLE_MAX},
         {UI_WIDGET_SEG7, "+00.0", 216, 96, 96, 56, COLOR_TEXT, 0, 0, 0},
-        {UI_WIDGET_LABEL, "PITCH เอียงหน้า-หลัง (องศา)", 328, 60, -1, -1, COLOR_DIM, FONT_SMALL,
-         0, 0},
-        {UI_WIDGET_BAR, NULL, 328, 96, 160, 16, COLOR_BAR, 0, -ANGLE_MAX, ANGLE_MAX},
-        {UI_WIDGET_SCALE, NULL, 328, 112, 160, 44, COLOR_TEXT, 0, -ANGLE_MAX, ANGLE_MAX},
+        {UI_WIDGET_LABEL, "PITCH เอียงหน้า-หลัง (องศา)", 328, 60, -1, -1,
+         COLOR_DIM, FONT_SMALL, 0, 0},
+        {UI_WIDGET_BAR, NULL, 328, 96, 160, 16, COLOR_BAR, 0,
+         -ANGLE_MAX, ANGLE_MAX},
+        {UI_WIDGET_SCALE, NULL, 328, 112, 160, 44, COLOR_TEXT, 0,
+         -ANGLE_MAX, ANGLE_MAX},
         {UI_WIDGET_SEG7, "+00.0", 504, 96, 80, 56, COLOR_TEXT, 0, 0, 0},
-        {UI_WIDGET_PANEL, NULL, 616, 48, 152, 128, COLOR_CARD, 1, COLOR_DIM, CARD_RADIUS},
+        {UI_WIDGET_PANEL, NULL, 616, 48, 152, 128, COLOR_CARD, 1,
+         COLOR_DIM, CARD_RADIUS},
         {UI_WIDGET_LED, NULL, 632, 72, 48, 48, COLOR_OK, 1, 0, 0},
         {UI_WIDGET_LED, NULL, 704, 72, 48, 48, COLOR_BAD, 0, 0, 0},
-        {UI_WIDGET_LABEL, "ผ่าน", 632, 128, -1, -1, COLOR_DIM, FONT_SMALL, 0, 0},
-        {UI_WIDGET_LABEL, "เกิน", 696, 128, -1, -1, COLOR_DIM, FONT_SMALL, 0, 0}};
+        {UI_WIDGET_LABEL, "ผ่าน", 632, 128, -1, -1, COLOR_DIM,
+         FONT_SMALL, 0, 0},
+        {UI_WIDGET_LABEL, "เกิน", 696, 128, -1, -1, COLOR_DIM,
+         FONT_SMALL, 0, 0}};
 
     return add_widgets(level, specs, W_TITLE, W_CONTROL_CARD);
 }
@@ -230,18 +251,27 @@ static bento_status_t add_measure_widgets(level_t *level)
 static bento_status_t add_control_widgets(level_t *level)
 {
     static const widget_spec_t specs[W_COUNT - W_CONTROL_CARD] = {
-        {UI_WIDGET_PANEL, NULL, 24, 192, 744, 188, COLOR_CARD, 1, COLOR_DIM, CARD_RADIUS},
-        {UI_WIDGET_LABEL, "เกณฑ์ยอมรับ (องศา)", 40, 204, -1, -1, COLOR_DIM, FONT_SMALL, 0, 0},
-        {UI_WIDGET_SPINBOX, NULL, 40, 240, 96, 88, COLOR_TEXT, TOL_START, TOL_MIN, TOL_MAX},
-        {UI_WIDGET_BUTTON, "ลด", 168, 240, 88, 88, COLOR_KEY, FONT_BODY, 0, 0},
-        {UI_WIDGET_BUTTON, "เพิ่ม", 288, 240, 88, 88, COLOR_KEY, FONT_BODY, 0, 0},
-        {UI_WIDGET_LABEL, "คำสั่ง", 472, 204, -1, -1, COLOR_DIM, FONT_SMALL, 0, 0},
-        {UI_WIDGET_BUTTON, "ตั้งศูนย์", 472, 240, 144, 88, COLOR_OK, FONT_BODY, 0, 0},
-        {UI_WIDGET_BUTTON, "จบการวัด", 648, 240, 104, 88, COLOR_KEY, FONT_BODY, 0, 0},
-        {UI_WIDGET_LABEL, "อ้างอิง R +0.0  P +0.0", 40, 336, -1, -1, COLOR_DIM, FONT_SMALL, 0,
-         0}};
+        {UI_WIDGET_PANEL, NULL, 24, 192, 744, 188, COLOR_CARD, 1,
+         COLOR_DIM, CARD_RADIUS},
+        {UI_WIDGET_LABEL, "เกณฑ์ยอมรับ (องศา)", 40, 204, -1, -1,
+         COLOR_DIM, FONT_SMALL, 0, 0},
+        {UI_WIDGET_SPINBOX, NULL, 40, 240, 96, 88, COLOR_TEXT,
+         TOL_START, TOL_MIN, TOL_MAX},
+        {UI_WIDGET_BUTTON, "ลด", 168, 240, 88, 88, COLOR_KEY, FONT_BODY,
+         0, 0},
+        {UI_WIDGET_BUTTON, "เพิ่ม", 288, 240, 88, 88, COLOR_KEY,
+         FONT_BODY, 0, 0},
+        {UI_WIDGET_LABEL, "คำสั่ง", 472, 204, -1, -1, COLOR_DIM,
+         FONT_SMALL, 0, 0},
+        {UI_WIDGET_BUTTON, "ตั้งศูนย์", 472, 240, 144, 88, COLOR_OK,
+         FONT_BODY, 0, 0},
+        {UI_WIDGET_BUTTON, "จบการวัด", 648, 240, 104, 88, COLOR_KEY,
+         FONT_BODY, 0, 0},
+        {UI_WIDGET_LABEL, "อ้างอิง R +0.0  P +0.0", 40, 336, -1, -1,
+         COLOR_DIM, FONT_SMALL, 0, 0}};
 
-    return add_widgets(level, specs, W_CONTROL_CARD, W_COUNT - W_CONTROL_CARD);
+    return add_widgets(level, specs, W_CONTROL_CARD,
+                       W_COUNT - W_CONTROL_CARD);
 }
 
 /* Two filters, one per signal, alpha 0.2. */
@@ -256,7 +286,8 @@ static bento_status_t start_filters(level_t *level)
         status = bento_dsp_ema_state_init(&level->roll_filter, &config);
     }
     if (status == BENTO_OK) {
-        status = bento_dsp_ema_state_init(&level->pitch_filter, &config);
+        status =
+            bento_dsp_ema_state_init(&level->pitch_filter, &config);
     }
     return status;
 }
@@ -267,10 +298,12 @@ static void signed_text(bento_real_t value, char *text, size_t cap)
     char digits[BENTO_FMT_BUF_SIZE];
     uint32_t length = 0U;
 
-    if (bento_fmt_real_precision(digits, sizeof(digits), value, 1, &length) != BENTO_OK) {
+    if (bento_fmt_real_precision(digits, sizeof(digits), value, 1,
+                                 &length) != BENTO_OK) {
         digits[0] = '\0';
     }
-    (void)snprintf(text, cap, "%s%s", (digits[0] == '-') ? "" : "+", digits);
+    (void)snprintf(text, cap, "%s%s", (digits[0] == '-') ? "" : "+",
+                   digits);
 }
 
 /* The bars are set to -90..90; a value past an end would stick there. */
@@ -304,7 +337,8 @@ static void read_tilt(level_t *level)
 
     bento_sensors_imu6_init(&imu);
     level->ok_read = (bento_sensors_bmi270_motion(&imu) == BENTO_OK) &&
-                     (bento_dsp_tilt(imu.ax, imu.ay, imu.az, &roll, &pitch) == BENTO_OK);
+                     (bento_dsp_tilt(imu.ax, imu.ay, imu.az, &roll,
+                                     &pitch) == BENTO_OK);
     if (level->ok_read) {
         level->roll = (bento_real_t)roll;
         level->pitch = (bento_real_t)pitch;
@@ -320,11 +354,12 @@ static bento_status_t filter_tilt(level_t *level)
     bento_status_t status = BENTO_OK;
 
     if (level->ok_read) {
-        status = bento_dsp_ema_state_update(&level->roll_filter, (float)level->roll, &roll);
+        status = bento_dsp_ema_state_update(&level->roll_filter,
+                                            (float)level->roll, &roll);
         if (status == BENTO_OK) {
             level->roll_filtered = (bento_real_t)roll;
-            status =
-                bento_dsp_ema_state_update(&level->pitch_filter, (float)level->pitch, &pitch);
+            status = bento_dsp_ema_state_update(
+                &level->pitch_filter, (float)level->pitch, &pitch);
         }
         if (status == BENTO_OK) {
             level->pitch_filtered = (bento_real_t)pitch;
@@ -359,7 +394,8 @@ static void handle_events(level_t *level)
     uint32_t count = 0U;
     uint32_t i;
 
-    if (bento_ui_poll(level->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+    if (bento_ui_poll(level->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
         count = 0U; /* ui.poll() answers no events when it fails */
     }
     for (i = 0U; i < count; i++) {
@@ -390,8 +426,9 @@ static void handle_events(level_t *level)
 static bool show_bars_and_lamps(const level_t *level)
 {
     const bento_real_t tolerance = (bento_real_t)level->tolerance;
-    const bool in_tolerance = (magnitude(level->roll_show) <= tolerance) &&
-                              (magnitude(level->pitch_show) <= tolerance);
+    const bool in_tolerance =
+        (magnitude(level->roll_show) <= tolerance) &&
+        (magnitude(level->pitch_show) <= tolerance);
 
     set_value(level, W_ROLL_BAR, clamp90(level->roll_show));
     set_value(level, W_PITCH_BAR, clamp90(level->pitch_show));
@@ -404,7 +441,8 @@ static bool show_bars_and_lamps(const level_t *level)
  * goes first: text and colour are two messages across the cores. */
 static void show_numbers(level_t *level, bool in_tolerance)
 {
-    const int32_t second = (int32_t)(bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND);
+    const int32_t second =
+        (int32_t)(bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND);
     char text[NUMBER_BYTES];
 
     if (second != level->last_second) {
@@ -419,11 +457,12 @@ static void show_numbers(level_t *level, bool in_tolerance)
                            "ค่าค้าง นี่คือค่าล่าสุด");
         } else if (in_tolerance) {
             set_color(level, W_HEALTH, COLOR_DIM);
-            (void)snprintf(level->health, sizeof(level->health), "อยู่ในเกณฑ์ %d องศา",
-                           (int)level->tolerance);
+            (void)snprintf(level->health, sizeof(level->health),
+                           "อยู่ในเกณฑ์ %d องศา", (int)level->tolerance);
         } else {
             set_color(level, W_HEALTH, COLOR_BAD);
-            (void)snprintf(level->health, sizeof(level->health), "เอียงเกินเกณฑ์ %d องศา",
+            (void)snprintf(level->health, sizeof(level->health),
+                           "เอียงเกินเกณฑ์ %d องศา",
                            (int)level->tolerance);
         }
     }
@@ -465,7 +504,9 @@ static bento_status_t start_level(level_t *level)
     bento_status_t status = bento_ui_screen_default(level->ui);
 
     if (status == BENTO_OK) {
-        (void)bento_ui_clear(level->ui); /* a refused CLEAR_ALL is ignored, as modui.c does */
+        (void)bento_ui_clear(
+            level
+                ->ui); /* a refused CLEAR_ALL is ignored, as modui.c does */
         status = wait_ms(SCREEN_SETTLE_MS);
     }
     if (status == BENTO_OK) {
@@ -491,13 +532,16 @@ int main(void)
     level.tolerance = TOL_START;
     level.last_second = -1;
     level.running = true;
-    (void)snprintf(level.health, sizeof(level.health), "%s", "กำลังวัดอยู่");
+    (void)snprintf(level.health, sizeof(level.health), "%s",
+                   "กำลังวัดอยู่");
     status = start_level(&level);
     while ((status == BENTO_OK) && level.running) {
         status = measure_once(&level);
     }
     if (status == BENTO_OK) {
-        (void)bento_ui_clear(level.ui); /* a refused CLEAR_ALL is ignored, as modui.c does */
+        (void)bento_ui_clear(
+            level
+                .ui); /* a refused CLEAR_ALL is ignored, as modui.c does */
         (void)printf("ปิดเครื่องวัดระดับแล้ว\n");
     }
     return (status == BENTO_E_CANCELLED) ? 0 : (int)status;

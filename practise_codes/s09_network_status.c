@@ -63,7 +63,7 @@ static const char NET_TEST_IP[] = "8.8.8.8"; /* Google Public DNS */
 
 enum {
     PING_TIMEOUT_MS = 1500, /* wait this long for one ping answer */
-    TOP_N = 3,              /* a 288 px table: the header and three rows */
+    TOP_N = 3, /* a 288 px table: the header and three rows */
     PING_EVERY_MS = 3000,
     RSSI_FLOOR = -90, /* the meter's range: next to nothing */
     RSSI_CEIL = -40,  /* ... to a full bar */
@@ -84,14 +84,14 @@ enum {
 };
 
 enum { /* colours, 0xRRGGBB (the session 8 dashboard set) */
-       COL_TEXT = 0xE8EAED,
-       COL_DIM = 0x9AA3AF,
-       COL_CARD = 0x171B22,
-       COL_OK = 0x30A46C,
-       COL_WARN = 0xF5A623,
-       COL_BAD = 0xE5484D,
-       COL_RUN = 0x4A9EFF,
-       COL_BUTTON = 0x3A4150
+    COL_TEXT = 0xE8EAED,
+    COL_DIM = 0x9AA3AF,
+    COL_CARD = 0x171B22,
+    COL_OK = 0x30A46C,
+    COL_WARN = 0xF5A623,
+    COL_BAD = 0xE5484D,
+    COL_RUN = 0x4A9EFF,
+    COL_BUTTON = 0x3A4150
 };
 
 /* One widget's place and look. */
@@ -153,24 +153,28 @@ static int32_t floor_div(int32_t dividend, int32_t divisor)
 {
     int32_t quotient = dividend / divisor;
 
-    if (((dividend % divisor) != 0) && ((dividend < 0) != (divisor < 0))) {
+    if (((dividend % divisor) != 0) &&
+        ((dividend < 0) != (divisor < 0))) {
         quotient--;
     }
     return quotient;
 }
 
 /* The widget setters ignore a refusal, as MicroPython's do (modui.c). */
-static void set_text(bento_ui_t *ui, bento_ui_id_t widget, const char *text)
+static void set_text(bento_ui_t *ui, bento_ui_id_t widget,
+                     const char *text)
 {
     (void)bento_ui_set_text(ui, widget, text, (uint32_t)strlen(text));
 }
 
-static void set_color(bento_ui_t *ui, bento_ui_id_t widget, uint32_t color)
+static void set_color(bento_ui_t *ui, bento_ui_id_t widget,
+                      uint32_t color)
 {
     (void)bento_ui_set_color(ui, widget, color);
 }
 
-static void set_value(bento_ui_t *ui, bento_ui_id_t widget, int32_t value)
+static void set_value(bento_ui_t *ui, bento_ui_id_t widget,
+                      int32_t value)
 {
     (void)bento_ui_set_value(ui, widget, value);
 }
@@ -181,7 +185,8 @@ static void keep_alive(bento_ui_t *ui)
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
 
-    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
 }
 
 static void args_from(const spec_t *spec, bento_ui_widget_args_t *args)
@@ -199,7 +204,8 @@ static void args_from(const spec_t *spec, bento_ui_widget_args_t *args)
     args->font_px = spec->value;
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const spec_t *spec, bento_ui_id_t *out)
+static bento_status_t add_label(bento_ui_t *ui, const spec_t *spec,
+                                bento_ui_id_t *out)
 {
     bento_ui_widget_args_t args;
 
@@ -207,7 +213,8 @@ static bento_status_t add_label(bento_ui_t *ui, const spec_t *spec, bento_ui_id_
     return bento_ui_label_create(ui, &args, out);
 }
 
-static bento_status_t add_led(bento_ui_t *ui, const spec_t *spec, bento_ui_id_t *out)
+static bento_status_t add_led(bento_ui_t *ui, const spec_t *spec,
+                              bento_ui_id_t *out)
 {
     bento_ui_widget_args_t args;
 
@@ -218,11 +225,16 @@ static bento_status_t add_led(bento_ui_t *ui, const spec_t *spec, bento_ui_id_t 
 /* The title, SSID, IP, the tick line and the scan button. */
 static bento_status_t add_header(net_screen_t *screen)
 {
-    static const spec_t title = {"สถานะเครือข่ายของทีม", 24, 8, -1, -1, COL_TEXT, 24};
-    static const spec_t ssid = {"SSID: -", 336, 12, -1, -1, COL_TEXT, 20};
-    static const spec_t address = {"IP: -", 24, 48, -1, -1, COL_TEXT, 20};
-    static const spec_t tick = {"กำลังสแกน", 336, 48, -1, -1, COL_DIM, 20};
-    static const spec_t scan = {"สแกนใหม่", 552, 8, 216, 88, COL_BUTTON, 20};
+    static const spec_t title = {
+        "สถานะเครือข่ายของทีม", 24, 8, -1, -1, COL_TEXT, 24};
+    static const spec_t ssid = {"SSID: -", 336,      12, -1,
+                                -1,        COL_TEXT, 20};
+    static const spec_t address = {"IP: -", 24,       48, -1,
+                                   -1,      COL_TEXT, 20};
+    static const spec_t tick = {"กำลังสแกน", 336,     48, -1,
+                                -1,         COL_DIM, 20};
+    static const spec_t scan = {"สแกนใหม่", 552,        8, 216,
+                                88,        COL_BUTTON, 20};
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
     bento_status_t status = add_label(screen->ui, &title, &unused);
@@ -238,7 +250,8 @@ static bento_status_t add_header(net_screen_t *screen)
     }
     if (status == BENTO_OK) {
         args_from(&scan, &args);
-        status = bento_ui_button_create(screen->ui, &args, &screen->scan);
+        status =
+            bento_ui_button_create(screen->ui, &args, &screen->scan);
     }
     return status;
 }
@@ -257,7 +270,8 @@ static bento_status_t add_table(net_screen_t *screen)
     args.min_val = TABLE_COLS; /* a Table takes cols= in min */
     status = bento_ui_table_create(screen->ui, &args, &screen->table);
     for (i = 0; (i < TABLE_COLS) && (status == BENTO_OK); i++) {
-        (void)bento_ui_set_col_width(screen->ui, screen->table, i, widths_px[i]);
+        (void)bento_ui_set_col_width(screen->ui, screen->table, i,
+                                     widths_px[i]);
     }
     return status;
 }
@@ -268,11 +282,15 @@ static bento_status_t add_link_card(net_screen_t *screen)
 {
     static const spec_t card = {NULL, 520, 104, 248, 288, COL_CARD, 1};
     static const spec_t led_up = {NULL, 536, 112, 48, 48, COL_OK, 0};
-    static const spec_t up_text = {"ต่ออยู่", 592, 124, -1, -1, COL_DIM, 16};
+    static const spec_t up_text = {"ต่ออยู่", 592,     124, -1,
+                                   -1,     COL_DIM, 16};
     static const spec_t led_down = {NULL, 536, 168, 48, 48, COL_BAD, 1};
-    static const spec_t down_text = {"ยังไม่ต่อ", 592, 180, -1, -1, COL_DIM, 16};
-    static const spec_t gateway = {"เกตเวย์ -", 536, 224, -1, -1, COL_DIM, 20};
-    static const spec_t internet = {"อินเทอร์เน็ต -", 536, 256, -1, -1, COL_DIM, 20};
+    static const spec_t down_text = {"ยังไม่ต่อ", 592,     180, -1,
+                                     -1,       COL_DIM, 16};
+    static const spec_t gateway = {"เกตเวย์ -", 536,     224, -1,
+                                   -1,         COL_DIM, 20};
+    static const spec_t internet = {"อินเทอร์เน็ต -", 536, 256, -1, -1,
+                                    COL_DIM,       20};
     const int32_t radius_px = 12;
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
@@ -308,18 +326,22 @@ static bento_status_t add_link_card(net_screen_t *screen)
  * the Console button's. */
 static bento_status_t add_meter(net_screen_t *screen)
 {
-    static const spec_t text = {"ความแรง - dBm", 536, 288, -1, -1, COL_TEXT, 20};
-    static const spec_t bar = {NULL, 536, 320, 152, 12, COL_RUN, RSSI_FLOOR};
+    static const spec_t text = {"ความแรง - dBm", 536, 288, -1, -1,
+                                COL_TEXT,        20};
+    static const spec_t bar = {NULL, 536,     320,       152,
+                               12,   COL_RUN, RSSI_FLOOR};
     static const spec_t scale = {NULL, 536, 340, 152, 44, COL_TEXT, 0};
     bento_ui_widget_args_t args;
     bento_ui_id_t ruler = 0U;
-    bento_status_t status = add_label(screen->ui, &text, &screen->rssi_text);
+    bento_status_t status =
+        add_label(screen->ui, &text, &screen->rssi_text);
 
     if (status == BENTO_OK) {
         args_from(&bar, &args);
         args.min_val = RSSI_FLOOR;
         args.max_val = RSSI_CEIL;
-        status = bento_ui_bar_create(screen->ui, &args, &screen->rssi_bar);
+        status =
+            bento_ui_bar_create(screen->ui, &args, &screen->rssi_bar);
     }
     if (status == BENTO_OK) {
         args_from(&scale, &args);
@@ -327,8 +349,10 @@ static bento_status_t add_meter(net_screen_t *screen)
         args.max_val = RSSI_CEIL;
         status = bento_ui_scale_create(screen->ui, &args, &ruler);
     }
-    if (status == BENTO_OK) { /* six numbers on a short ruler overlap: three */
-        (void)bento_ui_set_ticks(screen->ui, ruler, SCALE_TICKS, SCALE_MAJOR);
+    if (status ==
+        BENTO_OK) { /* six numbers on a short ruler overlap: three */
+        (void)bento_ui_set_ticks(screen->ui, ruler, SCALE_TICKS,
+                                 SCALE_MAJOR);
         keep_alive(screen->ui);
     }
     return status;
@@ -337,7 +361,8 @@ static bento_status_t add_meter(net_screen_t *screen)
 static bento_status_t build_screen(net_screen_t *screen)
 {
     bento_status_t status =
-        bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = wait_ms(SETTLE_MS);
@@ -360,7 +385,8 @@ static bento_status_t build_screen(net_screen_t *screen)
 /* RSSI is a negative dBm: -90 next to nothing, -40 a full bar. */
 static int32_t signal_percent(int32_t rssi)
 {
-    int32_t percent = floor_div((rssi - RSSI_FLOOR) * PERCENT, RSSI_CEIL - RSSI_FLOOR);
+    int32_t percent = floor_div((rssi - RSSI_FLOOR) * PERCENT,
+                                RSSI_CEIL - RSSI_FLOOR);
 
     if (percent < 0) {
         percent = 0;
@@ -396,7 +422,8 @@ static uint32_t gateway_of(uint32_t ip_v4)
 }
 
 /* ping answers -1 for no answer: say it in words, never "-1". */
-static void ms_text(const char *name, int32_t ms, char *text, size_t cap)
+static void ms_text(const char *name, int32_t ms, char *text,
+                    size_t cap)
 {
     if (ms < 0) {
         (void)snprintf(text, cap, "%s ไม่ตอบ", name);
@@ -417,9 +444,11 @@ static bento_status_t scan_networks(uint32_t *count)
     while (status == BENTO_E_IN_PROGRESS) {
         status = wait_ms(SLICE_MS);
         if (status == BENTO_OK) {
-            status = bento_wifi_scan_poll(g_networks, BENTO_WIFI_SCAN_MAX, count);
+            status = bento_wifi_scan_poll(g_networks,
+                                          BENTO_WIFI_SCAN_MAX, count);
         } else {
-            (void)bento_wifi_scan_cancel(); /* Stop: nothing to report */
+            (void)
+                bento_wifi_scan_cancel(); /* Stop: nothing to report */
         }
     }
     return status;
@@ -435,7 +464,8 @@ static void sort_by_rssi(uint32_t count)
         const bento_wifi_ap_t moving = g_networks[i];
         uint32_t place = i;
 
-        while ((place > 0U) && (g_networks[place - 1U].rssi_dbm < moving.rssi_dbm)) {
+        while ((place > 0U) &&
+               (g_networks[place - 1U].rssi_dbm < moving.rssi_dbm)) {
             g_networks[place] = g_networks[place - 1U];
             place--;
         }
@@ -444,20 +474,24 @@ static void sort_by_rssi(uint32_t count)
 }
 
 /* One table row: the four cells, each ended by a NUL. */
-static void add_row(const net_screen_t *screen, uint8_t row, const char *const cells[TABLE_COLS])
+static void add_row(const net_screen_t *screen, uint8_t row,
+                    const char *const cells[TABLE_COLS])
 {
     char packed[CELLS_BYTES];
     size_t used = 0U;
     int32_t i;
 
     for (i = 0; i < TABLE_COLS; i++) {
-        const int written = snprintf(&packed[used], sizeof(packed) - used, "%s", cells[i]);
+        const int written = snprintf(
+            &packed[used], sizeof(packed) - used, "%s", cells[i]);
 
-        if ((written >= 0) && ((used + (size_t)written + 1U) < sizeof(packed))) {
+        if ((written >= 0) &&
+            ((used + (size_t)written + 1U) < sizeof(packed))) {
             used += (size_t)written + 1U;
         }
     }
-    (void)bento_ui_add_row(screen->ui, screen->table, row, packed, (uint32_t)used);
+    (void)bento_ui_add_row(screen->ui, screen->table, row, packed,
+                           (uint32_t)used);
 }
 
 /* One network as a row: the name cut at 12 so it never wraps. */
@@ -469,9 +503,11 @@ static void add_network_row(const net_screen_t *screen, uint8_t row,
     char channel[NUMBER_BYTES];
     const char *cells[TABLE_COLS];
 
-    (void)snprintf(ssid, sizeof(ssid), "%.*s", (int)SSID_CUT, network->ssid);
+    (void)snprintf(ssid, sizeof(ssid), "%.*s", (int)SSID_CUT,
+                   network->ssid);
     (void)snprintf(rssi, sizeof(rssi), "%d", (int)network->rssi_dbm);
-    (void)snprintf(channel, sizeof(channel), "%u", (unsigned int)network->channel);
+    (void)snprintf(channel, sizeof(channel), "%u",
+                   (unsigned int)network->channel);
     cells[0] = ssid;
     cells[1] = rssi;
     cells[2] = channel;
@@ -495,9 +531,11 @@ static void show_team_signal(const net_screen_t *screen, uint32_t count)
 
             found = true;
             set_value(screen->ui, screen->rssi_bar, rssi);
-            set_color(screen->ui, screen->rssi_text, signal_color(rssi));
-            (void)snprintf(text, sizeof(text), "ความแรง %" PRId32 " dBm (%" PRId32 "%%)", rssi,
-                           signal_percent(rssi));
+            set_color(screen->ui, screen->rssi_text,
+                      signal_color(rssi));
+            (void)snprintf(text, sizeof(text),
+                           "ความแรง %" PRId32 " dBm (%" PRId32 "%%)",
+                           rssi, signal_percent(rssi));
             set_text(screen->ui, screen->rssi_text, text);
         }
     }
@@ -511,7 +549,8 @@ static void show_team_signal(const net_screen_t *screen, uint32_t count)
  * header wider than its column wraps and pushes the last row out. */
 static bento_status_t rescan(const net_screen_t *screen)
 {
-    static const char *const header[TABLE_COLS] = {"SSID", "dBm", "ช่อง", "รหัส"};
+    static const char *const header[TABLE_COLS] = {"SSID", "dBm", "ช่อง",
+                                                   "รหัส"};
     /* ตั้งไว้ว่างก่อน เพื่อให้กด Run ดูโครงหน้าจอได้ตั้งแต่ยังไม่ได้เติมอะไร
      * พอเติมบรรทัดถัดไปเสร็จ บรรทัดนี้จะถูกผลสแกนเขียนทับทันที */
     uint32_t count = 0U;
@@ -552,7 +591,8 @@ static void read_ip(uint32_t *ip_v4, char *text, uint32_t cap)
     if (bento_wifi_ip(BENTO_WIFI_IF_ANY, ip_v4) != BENTO_OK) {
         *ip_v4 = 0U;
     }
-    if (bento_wifi_ipv4_format(*ip_v4, text, cap, &length) != BENTO_OK) {
+    if (bento_wifi_ipv4_format(*ip_v4, text, cap, &length) !=
+        BENTO_OK) {
         (void)snprintf(text, cap, "0.0.0.0");
     }
 }
@@ -582,7 +622,8 @@ static bento_status_t connect_wifi(bool *joined)
         if (status == BENTO_OK) {
             status = bento_wifi_connect_poll();
         } else {
-            (void)bento_wifi_connect_cancel(); /* Stop: nothing to report */
+            (void)
+                bento_wifi_connect_cancel(); /* Stop: nothing to report */
         }
     }
     *joined = status == BENTO_OK;
@@ -590,7 +631,8 @@ static bento_status_t connect_wifi(bool *joined)
         read_ip(&ip_v4, address, (uint32_t)sizeof(address));
         (void)printf("[WiFi] Connected! IP=%s\n", address);
     }
-    if (*joined || (status == BENTO_E_TIMEOUT) || (status == BENTO_E_FAILED)) {
+    if (*joined || (status == BENTO_E_TIMEOUT) ||
+        (status == BENTO_E_FAILED)) {
         status = BENTO_OK;
     }
     return status;
@@ -598,10 +640,12 @@ static bento_status_t connect_wifi(bool *joined)
 
 /* wifi.ping(): the round trip, or -1 for no answer. *raised is the
  * OSError: the ping could not run. Only Stop is an error. */
-static bento_status_t ping_ms(uint32_t target, int32_t *answer_ms, bool *raised)
+static bento_status_t ping_ms(uint32_t target, int32_t *answer_ms,
+                              bool *raised)
 {
     uint32_t rtt_ms = 0U;
-    bento_status_t status = bento_wifi_ping_start(target, PING_TIMEOUT_MS);
+    bento_status_t status =
+        bento_wifi_ping_start(target, PING_TIMEOUT_MS);
 
     if (status == BENTO_OK) {
         status = BENTO_E_IN_PROGRESS;
@@ -611,7 +655,8 @@ static bento_status_t ping_ms(uint32_t target, int32_t *answer_ms, bool *raised)
         if (status == BENTO_OK) {
             status = bento_wifi_ping_poll(&rtt_ms);
         } else {
-            (void)bento_wifi_ping_cancel(); /* Stop: nothing to report */
+            (void)
+                bento_wifi_ping_cancel(); /* Stop: nothing to report */
         }
     }
     *answer_ms = (status == BENTO_OK) ? (int32_t)rtt_ms : -1;
@@ -620,7 +665,8 @@ static bento_status_t ping_ms(uint32_t target, int32_t *answer_ms, bool *raised)
 }
 
 /* Both pings; a link that drops on the way is no answer for both. */
-static bento_status_t measure(const net_screen_t *screen, link_state_t *state)
+static bento_status_t measure(const net_screen_t *screen,
+                              link_state_t *state)
 {
     char text[TEXT_BYTES];
     bool raised = false;
@@ -630,15 +676,18 @@ static bento_status_t measure(const net_screen_t *screen, link_state_t *state)
      * เติม: status = ping_ms(state->gateway_ip, &state->gateway_ms, &raised); */
 
     if ((status == BENTO_OK) && !raised) {
-        status = ping_ms(state->internet_ip, &state->internet_ms, &raised);
+        status =
+            ping_ms(state->internet_ip, &state->internet_ms, &raised);
     }
     if (raised) {
         state->gateway_ms = -1;
         state->internet_ms = -1;
     }
     if (status == BENTO_OK) {
-        set_color(screen->ui, screen->gateway, (state->gateway_ms >= 0) ? COL_TEXT : COL_BAD);
-        set_color(screen->ui, screen->internet, (state->internet_ms >= 0) ? COL_TEXT : COL_BAD);
+        set_color(screen->ui, screen->gateway,
+                  (state->gateway_ms >= 0) ? COL_TEXT : COL_BAD);
+        set_color(screen->ui, screen->internet,
+                  (state->internet_ms >= 0) ? COL_TEXT : COL_BAD);
         ms_text("เกตเวย์", state->gateway_ms, text, sizeof(text));
         set_text(screen->ui, screen->gateway, text);
         ms_text("อินเทอร์เน็ต", state->internet_ms, text, sizeof(text));
@@ -654,7 +703,8 @@ static void show_link_lights(const net_screen_t *screen, bool up)
 }
 
 /* The scan button: say so first, the scan blocks for seconds. */
-static bento_status_t read_touches(const net_screen_t *screen, link_state_t *state)
+static bento_status_t read_touches(const net_screen_t *screen,
+                                   link_state_t *state)
 {
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
@@ -666,11 +716,13 @@ static bento_status_t read_touches(const net_screen_t *screen, link_state_t *sta
      * เติม: เรียก bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX,
      * &count, NULL) และถ้ามันไม่ตอบ BENTO_OK ให้ตั้ง count = 0U */
     for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
-        if ((events[i].type == (uint8_t)BENTO_UI_EVENT_CLICKED) && (events[i].id == screen->scan)) {
+        if ((events[i].type == (uint8_t)BENTO_UI_EVENT_CLICKED) &&
+            (events[i].id == screen->scan)) {
             set_text(screen->ui, screen->tick, "กำลังสแกน");
             keep_alive(screen->ui);
             status = rescan(screen);
-            state->pinged_ms = bento_time_ticks_add(bento_time_ticks_ms(), -PING_EVERY_MS);
+            state->pinged_ms = bento_time_ticks_add(
+                bento_time_ticks_ms(), -PING_EVERY_MS);
             state->last_second = -1;
         }
     }
@@ -680,7 +732,8 @@ static bento_status_t read_touches(const net_screen_t *screen, link_state_t *sta
 /* One round of the live loop: touches, the link, the countdown. This
  * loop asks one question at a time (connected, then ping), which is
  * enough for this screen. */
-static bento_status_t link_round(const net_screen_t *screen, link_state_t *state)
+static bento_status_t link_round(const net_screen_t *screen,
+                                 link_state_t *state)
 {
     char text[TEXT_BYTES];
     bool connected = false;
@@ -688,12 +741,14 @@ static bento_status_t link_round(const net_screen_t *screen, link_state_t *state
     const uint32_t now_ms = bento_time_ticks_ms();
     bento_status_t status = read_touches(screen, state);
 
-    if ((status == BENTO_OK) && (bento_wifi_is_connected(&connected) != BENTO_OK)) {
+    if ((status == BENTO_OK) &&
+        (bento_wifi_is_connected(&connected) != BENTO_OK)) {
         connected = false; /* a state that cannot be read is no link */
     }
     if ((status == BENTO_OK) && connected) {
         show_link_lights(screen, true);
-        if (bento_time_ticks_diff(now_ms, state->pinged_ms) >= PING_EVERY_MS) {
+        if (bento_time_ticks_diff(now_ms, state->pinged_ms) >=
+            PING_EVERY_MS) {
             state->pinged_ms = now_ms;
             status = measure(screen, state);
         }
@@ -706,11 +761,13 @@ static bento_status_t link_round(const net_screen_t *screen, link_state_t *state
     } else {
         /* Stop during a scan */
     }
-    left_s = floor_div(PING_EVERY_MS - bento_time_ticks_diff(now_ms, state->pinged_ms),
-                       MS_PER_SECOND);
+    left_s = floor_div(
+        PING_EVERY_MS - bento_time_ticks_diff(now_ms, state->pinged_ms),
+        MS_PER_SECOND);
     if ((status == BENTO_OK) && (left_s != state->last_second)) {
         state->last_second = left_s;
-        (void)snprintf(text, sizeof(text), "วัดใหม่ใน %" PRId32 " วิ", left_s);
+        (void)snprintf(text, sizeof(text), "วัดใหม่ใน %" PRId32 " วิ",
+                       left_s);
         set_text(screen->ui, screen->tick, text);
     }
     if (status == BENTO_OK) {
@@ -733,9 +790,11 @@ static bento_status_t run_link(const net_screen_t *screen)
     (void)memset(&state, 0, sizeof(state));
     read_ip(&ip_v4, address, (uint32_t)sizeof(address));
     state.gateway_ip = gateway_of(ip_v4);
-    status = bento_wifi_ipv4_format(state.gateway_ip, gateway, (uint32_t)sizeof(gateway), &length);
+    status = bento_wifi_ipv4_format(state.gateway_ip, gateway,
+                                    (uint32_t)sizeof(gateway), &length);
     if (status == BENTO_OK) {
-        status = bento_wifi_ipv4_parse(NET_TEST_IP, (uint32_t)strlen(NET_TEST_IP),
+        status = bento_wifi_ipv4_parse(NET_TEST_IP,
+                                       (uint32_t)strlen(NET_TEST_IP),
                                        &state.internet_ip);
     }
     if (status == BENTO_OK) {
@@ -744,8 +803,10 @@ static bento_status_t run_link(const net_screen_t *screen)
         set_text(screen->ui, screen->ssid, text);
         (void)snprintf(text, sizeof(text), "IP: %s", address);
         set_text(screen->ui, screen->address, text);
-        (void)printf("connected, ip = %s gateway = %s\n", address, gateway);
-        state.pinged_ms = bento_time_ticks_add(bento_time_ticks_ms(), -PING_EVERY_MS);
+        (void)printf("connected, ip = %s gateway = %s\n", address,
+                     gateway);
+        state.pinged_ms =
+            bento_time_ticks_add(bento_time_ticks_ms(), -PING_EVERY_MS);
         state.last_second = -1;
         state.gateway_ms = -1;
         state.internet_ms = -1;
@@ -784,7 +845,8 @@ int main(void)
         /* joined ตั้ง false ไว้ก่อน เพื่อให้กด Run ดูโครงหน้าจอได้ตั้งแต่ยังไม่ได้เติมอะไร
          * การต่อรับชื่อวงกับรหัสผ่าน และรอจนกว่าจะรู้ผล
          * เติม: status = connect_wifi(&joined); */
-        (void)connect_wifi; /* called once the blank above is filled in */
+        (void)
+            connect_wifi; /* called once the blank above is filled in */
     }
     if ((status == BENTO_OK) && !joined) {
         show_join_failed(&screen);

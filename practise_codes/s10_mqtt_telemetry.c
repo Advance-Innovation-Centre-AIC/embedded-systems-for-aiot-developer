@@ -61,12 +61,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_fmt.h"
 #include "bento_gpio.h"
 #include "bento_lcd.h"
 #include "bento_mqtt.h"
+#include "bento_runtime.h"
 #include "bento_sensors.h"
 #include "bento_time.h"
 #include "bento_wifi.h"
@@ -74,8 +73,10 @@
 /* The team's values: set these before you run it. */
 static const char WIFI_SSID[] = "AIoT-Class";
 static const char WIFI_PASSWORD[] = "<รหัสผ่านของห้องเรียน>";
-static const char BROKER[] = "192.168.1.50"; /* the LAN IP of TESAIoT CE, not localhost */
-static const char DEVICE_ID[] = "team03";    /* the platform's device_id, <= 31 characters */
+static const char BROKER[] =
+    "192.168.1.50"; /* the LAN IP of TESAIoT CE, not localhost */
+static const char DEVICE_ID[] =
+    "team03"; /* the platform's device_id, <= 31 characters */
 static const char MQTT_PASS[] = "bento";
 /* Wildcards (+ and #) are for subscribe only: in a publish nobody gets it. */
 static const char TOPIC_PUB[] = "device/team03/telemetry";
@@ -83,9 +84,12 @@ static const char TOPIC_CMD[] = "device/team03/commands";
 
 enum {
     SEND_MS = 5000,
-    STALE_MS = 12000, /* two sends without a reading: the screen's value is old */
-    UI_EVERY_MS = 200, /* every screen poll is an IPC to the other core */
-    LOOP_MS = 100,     /* fast enough that get_message() sees each command */
+    STALE_MS =
+        12000, /* two sends without a reading: the screen's value is old */
+    UI_EVERY_MS =
+        200, /* every screen poll is an IPC to the other core */
+    LOOP_MS =
+        100, /* fast enough that get_message() sees each command */
     SETTLE_MS = 200,
     SLICE_MS = 20,
     BROKER_PORT = 1883,
@@ -105,13 +109,13 @@ enum {
 };
 
 enum { /* colours, 0xRRGGBB */
-       COL_TEXT = 0xE8EAED,
-       COL_DIM = 0x9AA3AF,
-       COL_CARD = 0x171B22,
-       COL_OK = 0x30A46C,
-       COL_WARN = 0xF5A623,
-       COL_RUN = 0x4A9EFF,
-       COL_BUTTON = 0x3A4150
+    COL_TEXT = 0xE8EAED,
+    COL_DIM = 0x9AA3AF,
+    COL_CARD = 0x171B22,
+    COL_OK = 0x30A46C,
+    COL_WARN = 0xF5A623,
+    COL_RUN = 0x4A9EFF,
+    COL_BUTTON = 0x3A4150
 };
 
 /* One widget's place and look. */
@@ -192,7 +196,8 @@ typedef struct {
     bento_ui_id_t hold;
     uint32_t broker; /* the MQTT client, 0 when none */
     uint32_t lamp;   /* the real LED someone else may switch */
-    bool led_on;     /* kept here: the pin answers its level, not the intent */
+    bool
+        led_on; /* kept here: the pin answers its level, not the intent */
     bool sending;
     bool stale_shown;
     int32_t sent;
@@ -241,7 +246,8 @@ static void reader_advance(json_reader_t *reader)
 }
 
 /* Appends bytes to a value's text, as far as the text holds. */
-static void value_append(json_value_t *value, const uint8_t *bytes, uint32_t count)
+static void value_append(json_value_t *value, const uint8_t *bytes,
+                         uint32_t count)
 {
     uint32_t i;
 
@@ -254,7 +260,8 @@ static void value_append(json_value_t *value, const uint8_t *bytes, uint32_t cou
     value->text[value->length] = '\0';
 }
 
-static void value_set(json_value_t *value, value_kind_t kind, const char *text)
+static void value_set(json_value_t *value, value_kind_t kind,
+                      const char *text)
 {
     value->kind = kind;
     value->length = 0U;
@@ -315,7 +322,8 @@ static uint32_t read_unicode_escape(json_reader_t *reader)
 /* The character a backslash escape stands for. */
 static uint8_t escaped_char(uint8_t letter)
 {
-    uint8_t result = letter; /* a quote, a backslash, a slash and any other: itself */
+    uint8_t result =
+        letter; /* a quote, a backslash, a slash and any other: itself */
 
     if (letter == (uint8_t)'b') {
         result = 0x08U;
@@ -359,7 +367,8 @@ static bool read_string(json_reader_t *reader, json_value_t *value)
     bool closed;
 
     value_set(value, KIND_TEXT, "");
-    while (!reader_at_end(reader) && (reader_peek(reader) != (uint8_t)'"')) {
+    while (!reader_at_end(reader) &&
+           (reader_peek(reader) != (uint8_t)'"')) {
         read_string_char(reader, value);
         reader_advance(reader);
     }
@@ -390,7 +399,8 @@ static bool is_digit(uint8_t character)
 
 /* int(text): a sign, then digits only. str() of it drops leading zeros
  * and the sign of zero. */
-static bool read_integer(const uint8_t *text, uint32_t length, json_value_t *value)
+static bool read_integer(const uint8_t *text, uint32_t length,
+                         json_value_t *value)
 {
     const bool negative = (text[0] == (uint8_t)'-');
     uint32_t first = negative ? 1U : 0U;
@@ -418,7 +428,8 @@ static bool read_integer(const uint8_t *text, uint32_t length, json_value_t *val
 /* float(text) as parsenum.c reads it: a sign, digits with at most one
  * '.', then at most one exponent that must not end the text right
  * after its 'e' and sign. Shown as it was sent. */
-static bool read_real(const uint8_t *text, uint32_t length, json_value_t *value)
+static bool read_real(const uint8_t *text, uint32_t length,
+                      json_value_t *value)
 {
     uint32_t at = ((text[0] == (uint8_t)'-') ? 1U : 0U);
     const uint32_t start = at;
@@ -433,11 +444,14 @@ static bool read_real(const uint8_t *text, uint32_t length, json_value_t *value)
         at++;
         if (is_digit(current)) {
             /* a digit of whatever part it is in */
-        } else if ((current == (uint8_t)'.') && !in_fraction && !in_exponent) {
+        } else if ((current == (uint8_t)'.') && !in_fraction &&
+                   !in_exponent) {
             in_fraction = true;
-        } else if (((current | 0x20U) == (uint8_t)'e') && !in_exponent) {
+        } else if (((current | 0x20U) == (uint8_t)'e') &&
+                   !in_exponent) {
             in_exponent = true;
-            if ((at < length) && ((text[at] == (uint8_t)'+') || (text[at] == (uint8_t)'-'))) {
+            if ((at < length) && ((text[at] == (uint8_t)'+') ||
+                                  (text[at] == (uint8_t)'-'))) {
                 at++;
             }
             valid = (at < length);
@@ -462,7 +476,8 @@ static bool read_number(json_reader_t *reader, json_value_t *value)
     while (more) {
         const uint8_t current = reader_peek(reader);
 
-        if ((current == (uint8_t)'.') || (current == (uint8_t)'e') || (current == (uint8_t)'E')) {
+        if ((current == (uint8_t)'.') || (current == (uint8_t)'e') ||
+            (current == (uint8_t)'E')) {
             is_real = true;
         } else if (!is_digit(current) && (current != (uint8_t)'+') &&
                    (current != (uint8_t)'-')) {
@@ -474,8 +489,10 @@ static bool read_number(json_reader_t *reader, json_value_t *value)
             reader_advance(reader);
         }
     }
-    return is_real ? read_real(&reader->text[start], reader->at - start, value)
-                   : read_integer(&reader->text[start], reader->at - start, value);
+    return is_real ? read_real(&reader->text[start], reader->at - start,
+                               value)
+                   : read_integer(&reader->text[start],
+                                  reader->at - start, value);
 }
 
 /* What one character starts. */
@@ -543,14 +560,16 @@ static step_t read_step(json_reader_t *reader, json_value_t *value)
 
 /* A value inside an object: a key, or the value of the pending key.
  * Only cmd's value in the outermost object is kept. */
-static bool place_in_object(json_reader_t *reader, const json_value_t *value, bool opens,
+static bool place_in_object(json_reader_t *reader,
+                            const json_value_t *value, bool opens,
                             command_t *command)
 {
     bool valid = true;
 
     if (!reader->key_pending) {
         reader->key_pending = true;
-        reader->key_is_cmd = (value->kind == KIND_TEXT) && (value->length == 3U) &&
+        reader->key_is_cmd = (value->kind == KIND_TEXT) &&
+                             (value->length == 3U) &&
                              (memcmp(value->text, "cmd", 3U) == 0);
         valid = !opens; /* a list or object cannot be a key */
     } else {
@@ -566,7 +585,8 @@ static bool place_in_object(json_reader_t *reader, const json_value_t *value, bo
 }
 
 /* After a value or an opening bracket. */
-static bool place_value(json_reader_t *reader, const json_value_t *value, bool opens,
+static bool place_value(json_reader_t *reader,
+                        const json_value_t *value, bool opens,
                         command_t *command)
 {
     bool valid = true;
@@ -574,7 +594,8 @@ static bool place_value(json_reader_t *reader, const json_value_t *value, bool o
     if (!reader->has_top) {
         reader->has_top = true;
         command->top = value->kind;
-    } else if (reader->kinds[reader->depth - 1U] == (uint8_t)KIND_DICT) {
+    } else if (reader->kinds[reader->depth - 1U] ==
+               (uint8_t)KIND_DICT) {
         valid = place_in_object(reader, value, opens, command);
     } else {
         /* a list item: nothing here reads it */
@@ -588,7 +609,8 @@ static bool place_value(json_reader_t *reader, const json_value_t *value, bool o
 
 /* A closing bracket: back to the parent, or the end of the document.
  * cmd's own list or object keeps its text. */
-static bool close_container(json_reader_t *reader, command_t *command, bool *finished)
+static bool close_container(json_reader_t *reader, command_t *command,
+                            bool *finished)
 {
     const bool valid = reader->has_top && (reader->depth > 0U);
 
@@ -599,7 +621,8 @@ static bool close_container(json_reader_t *reader, command_t *command, bool *fin
             json_value_t *action = &command->action;
 
             action->length = 0U;
-            value_append(action, &reader->text[reader->cmd_start], reader->at - reader->cmd_start);
+            value_append(action, &reader->text[reader->cmd_start],
+                         reader->at - reader->cmd_start);
             reader->cmd_open = false;
         }
         reader->depth--;
@@ -609,7 +632,8 @@ static bool close_container(json_reader_t *reader, command_t *command, bool *fin
     return valid;
 }
 
-static bool take_step(json_reader_t *reader, command_t *command, bool *finished)
+static bool take_step(json_reader_t *reader, command_t *command,
+                      bool *finished)
 {
     json_value_t value;
     const step_t step = read_step(reader, &value);
@@ -631,7 +655,8 @@ static bool take_step(json_reader_t *reader, command_t *command, bool *finished)
 /* unichar_isspace(): space, tab, LF, VT, FF, CR. */
 static bool is_space(uint8_t character)
 {
-    return (character == (uint8_t)' ') || ((character >= 0x09U) && (character <= 0x0DU));
+    return (character == (uint8_t)' ') ||
+           ((character >= 0x09U) && (character <= 0x0DU));
 }
 
 /* utf8_check(): what bytes.decode() accepts. */
@@ -662,7 +687,8 @@ static bool is_utf8(const uint8_t *bytes, uint32_t length)
 
 /* json.loads(payload.decode()) and its "cmd". The stream ends at the
  * first NUL byte, as modjson.c reads it. Not JSON is cmd = {}. */
-static void read_command(const uint8_t *payload, uint32_t length, command_t *command)
+static void read_command(const uint8_t *payload, uint32_t length,
+                         command_t *command)
 {
     json_reader_t reader;
     bool finished = false;
@@ -677,7 +703,8 @@ static void read_command(const uint8_t *payload, uint32_t length, command_t *com
     command->has_action = false;
     value_set(&command->action, KIND_TEXT, "");
     while (valid && !finished) {
-        valid = !reader_at_end(&reader) && take_step(&reader, command, &finished);
+        valid = !reader_at_end(&reader) &&
+                take_step(&reader, command, &finished);
     }
     while (valid && is_space(reader_peek(&reader))) {
         reader_advance(&reader);
@@ -700,8 +727,8 @@ static bool is_word(const json_value_t *action, const char *word)
 /* The Python type name of a document that is not an object. */
 static const char *type_name(value_kind_t kind)
 {
-    static const char *const names[] = {"NoneType", "bool", "int", "float",
-                                        "str",      "list", "dict"};
+    static const char *const names[] = {
+        "NoneType", "bool", "int", "float", "str", "list", "dict"};
 
     return names[kind];
 }
@@ -709,12 +736,14 @@ static const char *type_name(value_kind_t kind)
 /* ---- the screen ---- */
 
 /* The widget setters ignore a refusal, as MicroPython's do (modui.c). */
-static void set_text(bento_ui_t *ui, bento_ui_id_t widget, const char *text)
+static void set_text(bento_ui_t *ui, bento_ui_id_t widget,
+                     const char *text)
 {
     (void)bento_ui_set_text(ui, widget, text, (uint32_t)strlen(text));
 }
 
-static void set_value(bento_ui_t *ui, bento_ui_id_t widget, int32_t value)
+static void set_value(bento_ui_t *ui, bento_ui_id_t widget,
+                      int32_t value)
 {
     (void)bento_ui_set_value(ui, widget, value);
 }
@@ -725,7 +754,8 @@ static void keep_alive(bento_ui_t *ui)
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
 
-    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
 }
 
 static void args_from(const spec_t *spec, bento_ui_widget_args_t *args)
@@ -743,7 +773,8 @@ static void args_from(const spec_t *spec, bento_ui_widget_args_t *args)
     args->font_px = spec->value;
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const spec_t *spec, bento_ui_id_t *out)
+static bento_status_t add_label(bento_ui_t *ui, const spec_t *spec,
+                                bento_ui_id_t *out)
 {
     bento_ui_widget_args_t args;
 
@@ -773,8 +804,8 @@ static bento_status_t add_card(bento_ui_t *ui, int16_t x, int16_t w)
 }
 
 /* One light with its caption below. */
-static bento_status_t add_light(bento_ui_t *ui, const spec_t *light, const char *caption,
-                                bento_ui_id_t *out)
+static bento_status_t add_light(bento_ui_t *ui, const spec_t *light,
+                                const char *caption, bento_ui_id_t *out)
 {
     const int16_t caption_y = 72;
     const int32_t caption_px = 16;
@@ -799,8 +830,10 @@ static bento_status_t add_light(bento_ui_t *ui, const spec_t *light, const char 
  * someone else switches. */
 static bento_status_t add_header(telemetry_t *app)
 {
-    static const spec_t title = {"MQTT Telemetry - คาบ 10", 24, 36, -1, -1, COL_TEXT, 20};
-    static const spec_t link = {"MQTT: ออฟไลน์", 24, 72, -1, -1, COL_DIM, 16};
+    static const spec_t title = {
+        "MQTT Telemetry - คาบ 10", 24, 36, -1, -1, COL_TEXT, 20};
+    static const spec_t link = {"MQTT: ออฟไลน์", 24, 72, -1, -1,
+                                COL_DIM,        16};
     static const spec_t wifi = {NULL, 328, 16, 48, 48, COL_OK, 0};
     static const spec_t mqtt = {NULL, 440, 16, 48, 48, COL_OK, 0};
     static const spec_t stale = {NULL, 552, 16, 48, 48, COL_WARN, 0};
@@ -821,7 +854,8 @@ static bento_status_t add_header(telemetry_t *app)
         status = add_light(app->ui, &stale, "ค่าค้าง", &app->led_stale);
     }
     if (status == BENTO_OK) {
-        status = add_light(app->ui, &remote, "ไฟสั่งไกล", &app->led_remote);
+        status =
+            add_light(app->ui, &remote, "ไฟสั่งไกล", &app->led_remote);
     }
     return status;
 }
@@ -830,11 +864,13 @@ static bento_status_t add_header(telemetry_t *app)
  * labels on it, or it covers them without a word. */
 static bento_status_t add_value_card(telemetry_t *app)
 {
-    static const spec_t caption = {"ลูกบิดที่ส่งจริง", 40, 124, -1, -1, COL_DIM, 16};
+    static const spec_t caption = {"ลูกบิดที่ส่งจริง", 40,      124, -1,
+                                   -1,           COL_DIM, 16};
     static const spec_t pot = {"- %", 40, 160, -1, -1, COL_TEXT, 24};
     static const spec_t bar = {NULL, 40, 204, 200, 12, COL_RUN, 0};
     static const spec_t scale = {NULL, 40, 224, 200, 44, COL_TEXT, 0};
-    static const spec_t count = {"ส่งไปแล้ว (ใบ)", 40, 288, -1, -1, COL_DIM, 16};
+    static const spec_t count = {"ส่งไปแล้ว (ใบ)", 40, 288, -1, -1,
+                                 COL_DIM,        16};
     static const spec_t digits = {"0", 40, 324, 200, 48, COL_TEXT, 0};
     bento_ui_widget_args_t args;
     bento_ui_id_t ruler = 0U;
@@ -858,12 +894,14 @@ static bento_status_t add_value_card(telemetry_t *app)
         status = bento_ui_scale_create(app->ui, &args, &ruler);
     }
     if (status == BENTO_OK) {
-        (void)bento_ui_set_ticks(app->ui, ruler, SCALE_TICKS, SCALE_MAJOR);
+        (void)bento_ui_set_ticks(app->ui, ruler, SCALE_TICKS,
+                                 SCALE_MAJOR);
         status = add_label(app->ui, &count, &unused);
     }
     if (status == BENTO_OK) {
         args_from(&digits, &args);
-        status = bento_ui_seg7_create(app->ui, &args, &app->sent_digits);
+        status =
+            bento_ui_seg7_create(app->ui, &args, &app->sent_digits);
     }
     return status;
 }
@@ -871,10 +909,13 @@ static bento_status_t add_value_card(telemetry_t *app)
 /* Card 2: the last three messages and the command received. */
 static bento_status_t add_recent_card(telemetry_t *app)
 {
-    static const spec_t caption = {"สามใบล่าสุด", 288, 124, -1, -1, COL_DIM, 16};
+    static const spec_t caption = {"สามใบล่าสุด", 288,     124, -1,
+                                   -1,          COL_DIM, 16};
     static const spec_t list = {NULL, 288, 160, 208, 168, 0U, 0};
-    static const spec_t received = {"รับล่าสุด", 288, 344, -1, -1, COL_DIM, 16};
-    static const spec_t command = {"ยังไม่มี", 400, 344, -1, -1, COL_DIM, 20};
+    static const spec_t received = {"รับล่าสุด", 288,     344, -1,
+                                    -1,       COL_DIM, 16};
+    static const spec_t command = {"ยังไม่มี", 400,     344, -1,
+                                   -1,      COL_DIM, 20};
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
     bento_status_t status = add_card(app->ui, 272, 240);
@@ -900,10 +941,13 @@ static bento_status_t add_recent_card(telemetry_t *app)
  * button's. */
 static bento_status_t add_control_card(telemetry_t *app)
 {
-    static const spec_t caption = {"คำสั่งการส่งข้อมูล", 544, 124, -1, -1, COL_DIM, 16};
-    static const spec_t state = {"กำลังส่ง", 544, 160, -1, -1, COL_DIM, 20};
+    static const spec_t caption = {"คำสั่งการส่งข้อมูล", 544, 124, -1, -1,
+                                   COL_DIM,         16};
+    static const spec_t state = {"กำลังส่ง", 544,     160, -1,
+                                 -1,       COL_DIM, 20};
     static const spec_t go = {"เริ่มส่ง", 544, 240, 88, 88, COL_OK, 20};
-    static const spec_t hold = {"หยุดส่ง", 664, 240, 88, 88, COL_BUTTON, 20};
+    static const spec_t hold = {"หยุดส่ง", 664,        240, 88,
+                                88,      COL_BUTTON, 20};
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
     bento_status_t status = add_card(app->ui, 528, 240);
@@ -929,7 +973,8 @@ static bento_status_t add_control_card(telemetry_t *app)
 static bento_status_t build_screen(telemetry_t *app)
 {
     bento_status_t status =
-        bento_ui_screen(app->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(app->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = wait_ms(SETTLE_MS);
@@ -955,7 +1000,8 @@ static bento_status_t build_screen(telemetry_t *app)
 static void show_link(const telemetry_t *app, bool connected)
 {
     set_value(app->ui, app->led_mqtt, connected ? 1 : 0);
-    set_text(app->ui, app->mqtt_text, connected ? "MQTT: เชื่อมต่อแล้ว" : "MQTT: ออฟไลน์");
+    set_text(app->ui, app->mqtt_text,
+             connected ? "MQTT: เชื่อมต่อแล้ว" : "MQTT: ออฟไลน์");
 }
 
 /* ---- the board: the lamp and the sensors ---- */
@@ -964,7 +1010,8 @@ static void show_link(const telemetry_t *app, bool connected)
  * board to board, the name does not. Eva Kit: LED1 red, LED2 green,
  * RGB_RED shines blue. Dev Kit: RGB_RED, RGB_BLUE, RGB_GREEN (LED1 and
  * LED2 sit on the SoM, out of sight). Dev Kit's name first, then Eva's. */
-static uint32_t led_named(const char *const names[], uint32_t name_count, uint32_t fallback)
+static uint32_t led_named(const char *const names[],
+                          uint32_t name_count, uint32_t fallback)
 {
     const uint32_t leds = bento_gpio_num_leds();
     uint32_t found = fallback;
@@ -976,8 +1023,8 @@ static uint32_t led_named(const char *const names[], uint32_t name_count, uint32
         for (led = 0U; (led < leds) && !known; led++) {
             const char *name = NULL;
 
-            known = (bento_gpio_led_name(led, &name) == BENTO_OK) && (name != NULL) &&
-                    (strcmp(name, names[i]) == 0);
+            known = (bento_gpio_led_name(led, &name) == BENTO_OK) &&
+                    (name != NULL) && (strcmp(name, names[i]) == 0);
             if (known) {
                 found = led;
             }
@@ -1014,7 +1061,8 @@ static void real_text(bento_real_t value, char *text)
 {
     uint32_t length = 0U;
 
-    if (bento_fmt_real(text, BENTO_FMT_BUF_SIZE, value, &length) != BENTO_OK) {
+    if (bento_fmt_real(text, BENTO_FMT_BUF_SIZE, value, &length) !=
+        BENTO_OK) {
         text[0] = '\0';
     }
 }
@@ -1022,10 +1070,12 @@ static void real_text(bento_real_t value, char *text)
 /* The reading from one motion read and the knob, rounded: a small
  * payload, numbers as numbers (a dashboard cannot chart a string).
  * false: the knob could not be read. */
-static bool fill_reading(const bento_sensors_imu6_t *motion, reading_t *reading)
+static bool fill_reading(const bento_sensors_imu6_t *motion,
+                         reading_t *reading)
 {
     float pot_percent = 0.0F;
-    const bool good = bento_sensors_pot_percent(&pot_percent) == BENTO_OK;
+    const bool good =
+        bento_sensors_pot_percent(&pot_percent) == BENTO_OK;
 
     if (good) {
         reading->ax = round_to((bento_real_t)motion->ax, HUNDREDTHS);
@@ -1062,7 +1112,8 @@ static bento_status_t join_wifi(void)
         if (status == BENTO_OK) {
             status = bento_wifi_connect_poll();
         } else {
-            (void)bento_wifi_connect_cancel(); /* Stop: nothing to report */
+            (void)
+                bento_wifi_connect_cancel(); /* Stop: nothing to report */
         }
     }
     if ((status == BENTO_E_FAILED) || (status == BENTO_E_TIMEOUT)) {
@@ -1081,12 +1132,14 @@ static void show_wifi(const telemetry_t *app)
     bool connected = false;
 
     if ((bento_wifi_ip(BENTO_WIFI_IF_ANY, &ip_v4) != BENTO_OK) ||
-        (bento_wifi_ipv4_format(ip_v4, address, (uint32_t)sizeof(address), &length) !=
-         BENTO_OK)) {
+        (bento_wifi_ipv4_format(ip_v4, address,
+                                (uint32_t)sizeof(address),
+                                &length) != BENTO_OK)) {
         (void)snprintf(address, sizeof(address), "0.0.0.0");
     }
     (void)snprintf(line, sizeof(line), "WiFi: %s", address);
-    (void)bento_lcd_print(line); /* lcd.print ignores a refusal (modlcd.c) */
+    (void)bento_lcd_print(
+        line); /* lcd.print ignores a refusal (modlcd.c) */
     if (bento_wifi_is_connected(&connected) != BENTO_OK) {
         connected = false;
     }
@@ -1113,7 +1166,8 @@ static bento_status_t open_broker(telemetry_t *app, bool *connected)
     config.pass_len = (uint32_t)strlen(MQTT_PASS);
     status = bento_mqtt_open_start(&config, &app->broker);
     if (status == BENTO_OK) {
-        (void)printf("[MQTT] Connecting to %s:%d ...\n", BROKER, (int)BROKER_PORT);
+        (void)printf("[MQTT] Connecting to %s:%d ...\n", BROKER,
+                     (int)BROKER_PORT);
         status = BENTO_E_IN_PROGRESS;
     }
     while (status == BENTO_E_IN_PROGRESS) {
@@ -1124,9 +1178,11 @@ static bento_status_t open_broker(telemetry_t *app, bool *connected)
     }
     *connected = status == BENTO_OK;
     if (*connected) {
-        (void)printf("[MQTT] Connected to %s:%d as '%s'\n", BROKER, (int)BROKER_PORT, DEVICE_ID);
+        (void)printf("[MQTT] Connected to %s:%d as '%s'\n", BROKER,
+                     (int)BROKER_PORT, DEVICE_ID);
     } else if ((status != BENTO_E_CANCELLED) && (app->broker != 0U)) {
-        status = BENTO_OK; /* refused or timed out: False, go on offline */
+        status =
+            BENTO_OK; /* refused or timed out: False, go on offline */
     } else {
         /* no client, or Stop: the status ends the program */
     }
@@ -1139,10 +1195,12 @@ static void subscribe_commands(const telemetry_t *app)
 {
     uint8_t granted_qos = 0U;
     const bento_status_t status = bento_mqtt_subscribe(
-        app->broker, TOPIC_CMD, (uint32_t)strlen(TOPIC_CMD), 0U, &granted_qos);
+        app->broker, TOPIC_CMD, (uint32_t)strlen(TOPIC_CMD), 0U,
+        &granted_qos);
 
     if (status == BENTO_OK) {
-        (void)printf("[MQTT] Subscribed to '%s' (QoS=%d)\n", TOPIC_CMD, (int)granted_qos);
+        (void)printf("[MQTT] Subscribed to '%s' (QoS=%d)\n", TOPIC_CMD,
+                     (int)granted_qos);
     } else if (status == BENTO_E_FAILED) {
         (void)printf("[MQTT] subscribe rejected by broker\n");
     } else {
@@ -1152,7 +1210,8 @@ static void subscribe_commands(const telemetry_t *app)
 
 /* The JSON of a reading, published flat on TOPIC_PUB. Answers the
  * publish's status: True does not mean it reached the broker. */
-static bento_status_t publish_reading(const telemetry_t *app, const reading_t *reading)
+static bento_status_t publish_reading(const telemetry_t *app,
+                                      const reading_t *reading)
 {
     char ax[BENTO_FMT_BUF_SIZE];
     char ay[BENTO_FMT_BUF_SIZE];
@@ -1164,15 +1223,18 @@ static bento_status_t publish_reading(const telemetry_t *app, const reading_t *r
     real_text(reading->ay, ay);
     real_text(reading->az, az);
     real_text(reading->pot, pot);
-    (void)snprintf(payload, sizeof(payload), "{\"ax\": %s, \"ay\": %s, \"az\": %s, \"pot\": %s}", ax,
-                   ay, az, pot);
-    return bento_mqtt_publish(app->broker, TOPIC_PUB, (uint32_t)strlen(TOPIC_PUB),
-                              (const uint8_t *)payload, (uint32_t)strlen(payload), 0U, 0U);
+    (void)snprintf(payload, sizeof(payload),
+                   "{\"ax\": %s, \"ay\": %s, \"az\": %s, \"pot\": %s}",
+                   ax, ay, az, pot);
+    return bento_mqtt_publish(
+        app->broker, TOPIC_PUB, (uint32_t)strlen(TOPIC_PUB),
+        (const uint8_t *)payload, (uint32_t)strlen(payload), 0U, 0U);
 }
 
 /* Read, build the reading, publish. The reading stays empty until the
  * blanks are filled in. */
-static void publish_telemetry(const telemetry_t *app, reading_t *reading)
+static void publish_telemetry(const telemetry_t *app,
+                              reading_t *reading)
 {
     bento_sensors_imu6_t motion;
 
@@ -1184,14 +1246,16 @@ static void publish_telemetry(const telemetry_t *app, reading_t *reading)
     if (bento_sensors_bmi270_motion(&motion) == BENTO_OK) {
         /* เติม: (void)fill_reading(&motion, reading);
          * round ให้ payload เล็ก อย่าส่งตัวเลขเป็นสตริง dashboard จะวาดกราฟไม่ได้ */
-        (void)fill_reading; /* called once the blank above is filled in */
+        (void)
+            fill_reading; /* called once the blank above is filled in */
 
         /* publish() รับตามตำแหน่งเท่านั้น ไม่มีอาร์กิวเมนต์ retain
          * เติม: (void)publish_reading(app, reading);
          * ส่งแบน ห้ามห่อใต้ {"data": ...} แพลตฟอร์มห่อให้เอง
          * คืน True ไม่ได้แปลว่าถึง broker แล้ว */
-        (void)publish_reading; /* called once the blank above is filled in */
-        (void)app;             /* the blank above sends with it */
+        (void)
+            publish_reading; /* called once the blank above is filled in */
+        (void)app;           /* the blank above sends with it */
     }
 }
 
@@ -1204,11 +1268,13 @@ static void show_recent(telemetry_t *app, const char *pot)
 
     if (app->recent_count == (uint32_t)RECENT_MAX) {
         for (i = 1U; i < (uint32_t)RECENT_MAX; i++) {
-            (void)memcpy(app->recent[i - 1U], app->recent[i], sizeof(app->recent[0]));
+            (void)memcpy(app->recent[i - 1U], app->recent[i],
+                         sizeof(app->recent[0]));
         }
         app->recent_count--;
     }
-    (void)snprintf(app->recent[app->recent_count], sizeof(app->recent[0]), "ใบ %ld : %s",
+    (void)snprintf(app->recent[app->recent_count],
+                   sizeof(app->recent[0]), "ใบ %ld : %s",
                    (long)app->sent, pot);
     app->recent_count++;
     (void)bento_ui_items_clear(app->ui, app->sent_list);
@@ -1218,7 +1284,8 @@ static void show_recent(telemetry_t *app, const char *pot)
         item.a = (uint8_t)BENTO_UI_ICON_OK;
         item.text = app->recent[i];
         item.text_len = (uint32_t)strlen(app->recent[i]);
-        (void)bento_ui_item_append(app->ui, app->sent_list, &item); /* sent and forgotten */
+        (void)bento_ui_item_append(app->ui, app->sent_list,
+                                   &item); /* sent and forgotten */
     }
 }
 
@@ -1238,8 +1305,10 @@ static void send_round(telemetry_t *app)
     } else {
         (void)snprintf(pot, sizeof(pot), "-");
     }
-    (void)snprintf(line, sizeof(line), "ส่งครั้งที่ %ld | pot %s", (long)app->sent, pot);
-    (void)bento_lcd_print(line); /* lcd.print ignores a refusal (modlcd.c) */
+    (void)snprintf(line, sizeof(line), "ส่งครั้งที่ %ld | pot %s",
+                   (long)app->sent, pot);
+    (void)bento_lcd_print(
+        line); /* lcd.print ignores a refusal (modlcd.c) */
     app->last_send_ms = bento_time_ticks_ms();
     if (!reading.has_data) {
         (void)snprintf(pot, sizeof(pot), "0");
@@ -1255,7 +1324,8 @@ static void send_round(telemetry_t *app)
 
 /* mqtt.get_message(): the binding keeps one message, the newest, cut to
  * 255 bytes. Reading the client's ring empty gives the same. */
-static bool take_newest(const telemetry_t *app, uint8_t *payload, uint32_t *length)
+static bool take_newest(const telemetry_t *app, uint8_t *payload,
+                        uint32_t *length)
 {
     bento_mqtt_msg_t message;
     char topic[TOPIC_CHARS];
@@ -1265,7 +1335,8 @@ static bool take_newest(const telemetry_t *app, uint8_t *payload, uint32_t *leng
     while (more) {
         bento_mqtt_msg_init(&message);
         /* get_message() never raises: any refusal is "no message" */
-        more = (bento_mqtt_poll(app->broker, &message, topic, (uint32_t)sizeof(topic), payload,
+        more = (bento_mqtt_poll(app->broker, &message, topic,
+                                (uint32_t)sizeof(topic), payload,
                                 (uint32_t)PAYLOAD_MAX) == BENTO_OK);
         if (more) {
             found = true;
@@ -1277,7 +1348,8 @@ static bool take_newest(const telemetry_t *app, uint8_t *payload, uint32_t *leng
 
 /* A command: "toggle" switches the real lamp. Text that is not JSON
  * must not kill the program. */
-static bento_status_t carry_out(telemetry_t *app, const uint8_t *payload, uint32_t length)
+static bento_status_t carry_out(telemetry_t *app,
+                                const uint8_t *payload, uint32_t length)
 {
     command_t command;
     bento_status_t status = BENTO_OK;
@@ -1287,7 +1359,8 @@ static bento_status_t carry_out(telemetry_t *app, const uint8_t *payload, uint32
         app->bad_type = type_name(command.top); /* no .get() */
         status = BENTO_E_BAD_TYPE;
     }
-    if ((status == BENTO_OK) && command.has_action && is_word(&command.action, "toggle")) {
+    if ((status == BENTO_OK) && command.has_action &&
+        is_word(&command.action, "toggle")) {
         app->led_on = !app->led_on;
         /* เติม: status = bento_gpio_led_set_value(app->lamp, app->led_on ? 1U : 0U); */
         set_value(app->ui, app->led_remote, app->led_on ? 1 : 0);
@@ -1306,7 +1379,8 @@ static void read_buttons(telemetry_t *app)
     uint32_t count = 0U;
     uint32_t i;
 
-    if (bento_ui_poll(app->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+    if (bento_ui_poll(app->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                      NULL) != BENTO_OK) {
         count = 0U; /* a failed poll answers no events */
     }
     for (i = 0U; i < count; i++) {
@@ -1337,12 +1411,14 @@ static bento_status_t session_round(telemetry_t *app)
     (void)memset(payload, 0, sizeof(payload));
 
     if (app->sending &&
-        (bento_time_ticks_diff(bento_time_ticks_ms(), app->last_send_ms) >= SEND_MS)) {
+        (bento_time_ticks_diff(bento_time_ticks_ms(),
+                               app->last_send_ms) >= SEND_MS)) {
         send_round(app);
     }
     /* a value that cannot be read keeps the old number: the light says so,
      * written only when it changes, as a full display queue drops commands */
-    stale = bento_time_ticks_diff(bento_time_ticks_ms(), app->good_ms) >= STALE_MS;
+    stale = bento_time_ticks_diff(bento_time_ticks_ms(),
+                                  app->good_ms) >= STALE_MS;
     if (stale != app->stale_shown) {
         app->stale_shown = stale;
         set_value(app->ui, app->led_stale, stale ? 1 : 0);
@@ -1355,7 +1431,8 @@ static bento_status_t session_round(telemetry_t *app)
         status = carry_out(app, payload, length);
     }
     if ((status == BENTO_OK) &&
-        (bento_time_ticks_diff(bento_time_ticks_ms(), app->ui_ms) >= UI_EVERY_MS)) {
+        (bento_time_ticks_diff(bento_time_ticks_ms(), app->ui_ms) >=
+         UI_EVERY_MS)) {
         app->ui_ms = bento_time_ticks_ms();
         read_buttons(app);
     }
@@ -1378,12 +1455,15 @@ static bento_status_t run_session(telemetry_t *app)
     (void)open_broker; /* called once the blank above is filled in */
 
     if (status == BENTO_OK) {
-        (void)bento_lcd_print(connected ? "<span class=ok>MQTT ต่อแล้ว</span>" : "MQTT ต่อไม่ได้");
+        (void)bento_lcd_print(connected
+                                  ? "<span class=ok>MQTT ต่อแล้ว</span>"
+                                  : "MQTT ต่อไม่ได้");
         show_link(app, connected);
         keep_alive(app->ui);
         /* เติม: subscribe_commands(app);
          * เรียกครั้งเดียวก่อนเข้าลูปก็พอ */
-        (void)subscribe_commands; /* called once the blank above is filled in */
+        (void)
+            subscribe_commands; /* called once the blank above is filled in */
         app->sending = true;
         app->last_send_ms = bento_time_ticks_ms();
         app->good_ms = app->last_send_ms;
@@ -1399,7 +1479,8 @@ static bento_status_t run_session(telemetry_t *app)
 static void close_broker(telemetry_t *app)
 {
     if (app->broker != 0U) {
-        (void)bento_mqtt_close(app->broker); /* the client is freed either way */
+        (void)bento_mqtt_close(
+            app->broker); /* the client is freed either way */
         app->broker = 0U;
     }
     (void)printf("[MQTT] Disconnected\n");
@@ -1428,7 +1509,9 @@ int main(void)
         close_broker(&app);
     }
     if (status == BENTO_E_BAD_TYPE) {
-        (void)printf("AttributeError: '%s' object has no attribute 'get'\n", app.bad_type);
+        (void)printf(
+            "AttributeError: '%s' object has no attribute 'get'\n",
+            app.bad_type);
     }
     return (status == BENTO_E_CANCELLED) ? 0 : (int)status;
 }

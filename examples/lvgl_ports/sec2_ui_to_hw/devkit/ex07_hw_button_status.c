@@ -38,9 +38,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_buttons.h"
+#include "bento_runtime.h"
 
 /* Screen layout on the 792 x 398 canvas, top to bottom. */
 enum {
@@ -48,7 +47,8 @@ enum {
     FONT_PX = 14,
     STATE_FONT_PX = 16,
     TITLE_Y = 17,
-    COLUMN_HALF_GAP = 90, /* columns 180 px apart, centred on the screen */
+    COLUMN_HALF_GAP =
+        90, /* columns 180 px apart, centred on the screen */
     LED_SIZE = 70,
     LED_Y = 139,
     NAME_Y = 225,
@@ -167,13 +167,15 @@ static int16_t centered_at(int32_t center_x, const char *text)
  * screen's centre. */
 static int32_t column_center(int32_t column)
 {
-    return SCREEN_CENTER_X + (((column * 2) - (BUTTON_COUNT - 1)) * COLUMN_HALF_GAP);
+    return SCREEN_CENTER_X +
+           (((column * 2) - (BUTTON_COUNT - 1)) * COLUMN_HALF_GAP);
 }
 
 /* `import buttons` and gpio.button(0), in the original's order. */
 static bento_status_t check_buttons(void)
 {
-    bento_status_t status = (bento_buttons_count() > 0U) ? BENTO_OK : BENTO_E_UNSUPPORTED;
+    bento_status_t status =
+        (bento_buttons_count() > 0U) ? BENTO_OK : BENTO_E_UNSUPPORTED;
 
     if ((status == BENTO_OK) && (bento_gpio_num_buttons() == 0U)) {
         status = BENTO_E_INVALID_ARGUMENT;
@@ -203,8 +205,8 @@ static bento_status_t read_button(int32_t button, bool *pressed)
     return status;
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, int16_t x, int16_t y,
-                                uint32_t color)
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                int16_t x, int16_t y, uint32_t color)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t label;
@@ -238,7 +240,8 @@ static bento_status_t add_background(bento_ui_t *ui)
 }
 
 /* One column: the button's LED, its name and its state. */
-static bento_status_t add_column(buttons_screen_t *screen, int32_t button)
+static bento_status_t add_column(buttons_screen_t *screen,
+                                 int32_t button)
 {
     const int32_t center_x = column_center(button);
     const char *state = "Released";
@@ -252,10 +255,12 @@ static bento_status_t add_column(buttons_screen_t *screen, int32_t button)
     args.h = LED_SIZE;
     args.color = BUTTONS[button].color;
     args.font_px = 0;
-    status = bento_ui_led_create(screen->ui, &args, &screen->leds[button]);
+    status =
+        bento_ui_led_create(screen->ui, &args, &screen->leds[button]);
     if (status == BENTO_OK) {
         status = add_label(screen->ui, BUTTONS[button].name,
-                           centered_at(center_x, BUTTONS[button].name), NAME_Y, COLOR_TEXT);
+                           centered_at(center_x, BUTTONS[button].name),
+                           NAME_Y, COLOR_TEXT);
     }
     if (status == BENTO_OK) {
         bento_ui_widget_args_init(&args);
@@ -265,7 +270,8 @@ static bento_status_t add_column(buttons_screen_t *screen, int32_t button)
         args.y = STATE_Y;
         args.color = COLOR_RELEASED;
         args.font_px = STATE_FONT_PX;
-        status = bento_ui_label_create(screen->ui, &args, &screen->states[button]);
+        status = bento_ui_label_create(screen->ui, &args,
+                                       &screen->states[button]);
     }
     return status;
 }
@@ -276,10 +282,12 @@ static bento_status_t build_screen(buttons_screen_t *screen)
 {
     const char *title = "Part 1 Ex7: Hardware Button Status";
     const char *hint = "[Part II] Press the buttons on the board";
-    const char *footer = "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
+    const char *footer =
+        "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
     int32_t button;
     bento_status_t status =
-        bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = bento_time_sleep_ms(SETTLE_MS);
@@ -291,25 +299,30 @@ static bento_status_t build_screen(buttons_screen_t *screen)
         status = add_background(screen->ui);
     }
     if (status == BENTO_OK) {
-        status = add_label(screen->ui, title, centered_at(SCREEN_CENTER_X, title), TITLE_Y,
+        status = add_label(screen->ui, title,
+                           centered_at(SCREEN_CENTER_X, title), TITLE_Y,
                            COLOR_TEXT);
     }
-    for (button = 0; (button < BUTTON_COUNT) && (status == BENTO_OK); button++) {
+    for (button = 0; (button < BUTTON_COUNT) && (status == BENTO_OK);
+         button++) {
         status = add_column(screen, button);
     }
     if (status == BENTO_OK) {
-        status = add_label(screen->ui, hint, centered_at(SCREEN_CENTER_X, hint), HINT_Y,
+        status = add_label(screen->ui, hint,
+                           centered_at(SCREEN_CENTER_X, hint), HINT_Y,
                            COLOR_HINT);
     }
     if (status == BENTO_OK) {
-        status = add_label(screen->ui, footer, centered_at(SCREEN_CENTER_X, footer), FOOTER_Y,
-                           COLOR_FOOTER);
+        status = add_label(screen->ui, footer,
+                           centered_at(SCREEN_CENTER_X, footer),
+                           FOOTER_Y, COLOR_FOOTER);
     }
     return status;
 }
 
 /* Writes a column only when its state changed (or was never shown). */
-static void show_button(buttons_screen_t *screen, int32_t button, bool pressed)
+static void show_button(buttons_screen_t *screen, int32_t button,
+                        bool pressed)
 {
     const char *text = pressed ? "PRESSED" : "Released";
 
@@ -318,10 +331,13 @@ static void show_button(buttons_screen_t *screen, int32_t button, bool pressed)
         screen->known[button] = true;
         /* MicroPython's widget setters ignore a refusal (modui.c), so
          * the twin does too. */
-        (void)bento_ui_set_value(screen->ui, screen->leds[button], pressed ? 1 : 0);
-        (void)bento_ui_set_text(screen->ui, screen->states[button], text, (uint32_t)strlen(text));
+        (void)bento_ui_set_value(screen->ui, screen->leds[button],
+                                 pressed ? 1 : 0);
+        (void)bento_ui_set_text(screen->ui, screen->states[button],
+                                text, (uint32_t)strlen(text));
         (void)bento_ui_set_color(screen->ui, screen->states[button],
-                                 pressed ? COLOR_PRESSED : COLOR_RELEASED);
+                                 pressed ? COLOR_PRESSED
+                                         : COLOR_RELEASED);
     }
 }
 
@@ -335,8 +351,10 @@ static bento_status_t read_buttons(buttons_screen_t *screen)
     /* No widget here answers a tap (the "< Menu" button is left out),
      * so the events are not read, and ui.poll() answers no events
      * when it fails. */
-    (void)bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
-    for (button = 0; (button < BUTTON_COUNT) && (status == BENTO_OK); button++) {
+    (void)bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                        &count, NULL);
+    for (button = 0; (button < BUTTON_COUNT) && (status == BENTO_OK);
+         button++) {
         bool pressed = false;
 
         status = read_button(button, &pressed);
@@ -355,7 +373,8 @@ static bento_status_t run_loop(buttons_screen_t *screen)
     bento_status_t status = BENTO_OK;
 
     while ((status == BENTO_OK) &&
-           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) < RUN_MS)) {
+           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
+            RUN_MS)) {
         status = read_buttons(screen);
         if (status == BENTO_OK) {
             status = bento_time_sleep_ms(LOOP_MS);
@@ -415,7 +434,8 @@ int main(void)
     }
     /* lcd.print() ignores a console that is not ready (modlcd.c) */
     if (status == BENTO_OK) {
-        (void)snprintf(line, sizeof(line), "ex07: watching %" PRId32 " hardware buttons",
+        (void)snprintf(line, sizeof(line),
+                       "ex07: watching %" PRId32 " hardware buttons",
                        button_count);
         (void)bento_lcd_print(line);
         status = run_loop(&screen);

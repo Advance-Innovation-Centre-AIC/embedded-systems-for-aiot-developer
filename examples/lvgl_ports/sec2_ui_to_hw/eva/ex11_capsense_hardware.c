@@ -33,7 +33,6 @@
 #include <string.h>
 
 #include "bento_runtime.h"
-
 #include "bento_sensors.h"
 
 /* Screen layout on the 792 x 398 canvas. */
@@ -109,7 +108,8 @@ enum {
     LED_RED = 0,
     LED_GREEN = 1,
     LED_BLUE = 2,
-    LED_HIGHEST = 2 /* gpio.led() of each is made, so this one must exist */
+    LED_HIGHEST =
+        2 /* gpio.led() of each is made, so this one must exist */
 };
 
 /* The "example has ended" bar over the bottom rows. */
@@ -215,10 +215,13 @@ static bento_status_t check_leds(void)
 {
     const uint32_t highest_led = LED_HIGHEST;
 
-    return (highest_led < bento_gpio_num_leds()) ? BENTO_OK : BENTO_E_INVALID_ARGUMENT;
+    return (highest_led < bento_gpio_num_leds())
+               ? BENTO_OK
+               : BENTO_E_INVALID_ARGUMENT;
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, const place_t *place,
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                const place_t *place,
                                 bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
@@ -233,8 +236,8 @@ static bento_status_t add_label(bento_ui_t *ui, const char *text, const place_t 
     return bento_ui_label_create(ui, &args, out_id);
 }
 
-static bento_status_t add_led(bento_ui_t *ui, const place_t *place, int32_t size,
-                              bento_ui_id_t *out_id)
+static bento_status_t add_led(bento_ui_t *ui, const place_t *place,
+                              int32_t size, bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -250,8 +253,8 @@ static bento_status_t add_led(bento_ui_t *ui, const place_t *place, int32_t size
 
 /* A panel: min= is its border colour (the plain panels repeat their
  * own colour, as the original does), max= its radius. */
-static bento_status_t add_panel(bento_ui_t *ui, const int16_t place[4], uint32_t color,
-                                bool is_pad)
+static bento_status_t add_panel(bento_ui_t *ui, const int16_t place[4],
+                                uint32_t color, bool is_pad)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t panel;
@@ -271,24 +274,30 @@ static bento_status_t add_panel(bento_ui_t *ui, const int16_t place[4], uint32_t
 /* The background, the title and the connection line. */
 static bento_status_t add_header(const capsense_screen_t *screen)
 {
-    const int16_t screen_place[4] = {0, 0, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+    const int16_t screen_place[4] = {0, 0,
+                                     BENTO_RUNTIME_SCREEN_WIDTH_PX,
                                      BENTO_RUNTIME_SCREEN_HEIGHT_PX};
     const char *title = "Part 1 Ex11: CAPSENSE Hardware";
-    const char *connection =
-        screen->has_capsense ? "I2C: Connected (addr 0x08)" : "I2C: CAPSENSE not responding";
-    const place_t title_place = {centered_x(title), TITLE_Y, COLOR_TEXT, FONT_PX};
+    const char *connection = screen->has_capsense
+                                 ? "I2C: Connected (addr 0x08)"
+                                 : "I2C: CAPSENSE not responding";
+    const place_t title_place = {centered_x(title), TITLE_Y, COLOR_TEXT,
+                                 FONT_PX};
     const place_t connection_place = {
         centered_x(connection), CONNECTION_Y,
-        screen->has_capsense ? (uint32_t)COLOR_CONNECTED : (uint32_t)COLOR_NOT_CONNECTED,
+        screen->has_capsense ? (uint32_t)COLOR_CONNECTED
+                             : (uint32_t)COLOR_NOT_CONNECTED,
         FONT_PX};
     bento_ui_id_t unused;
-    bento_status_t status = add_panel(screen->ui, screen_place, COLOR_BACKGROUND, false);
+    bento_status_t status =
+        add_panel(screen->ui, screen_place, COLOR_BACKGROUND, false);
 
     if (status == BENTO_OK) {
         status = add_label(screen->ui, title, &title_place, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_label(screen->ui, connection, &connection_place, &unused);
+        status = add_label(screen->ui, connection, &connection_place,
+                           &unused);
     }
     return status;
 }
@@ -297,22 +306,29 @@ static bento_status_t add_header(const capsense_screen_t *screen)
  * and the small blue LED. */
 static bento_status_t add_slider_box(capsense_screen_t *screen)
 {
-    const int16_t box_place[4] = {SLIDER_BOX_X, SLIDER_BOX_Y, SLIDER_BOX_W, SLIDER_BOX_H};
-    const place_t name_place = {SLIDER_BOX_X + SLIDER_NAME_DX, SLIDER_BOX_Y + SLIDER_NAME_DY,
+    const int16_t box_place[4] = {SLIDER_BOX_X, SLIDER_BOX_Y,
+                                  SLIDER_BOX_W, SLIDER_BOX_H};
+    const place_t name_place = {SLIDER_BOX_X + SLIDER_NAME_DX,
+                                SLIDER_BOX_Y + SLIDER_NAME_DY,
                                 COLOR_TEXT, FONT_PX};
-    const place_t value_place = {SLIDER_BOX_X + SLIDER_VALUE_DX, SLIDER_BOX_Y + SLIDER_VALUE_DY,
+    const place_t value_place = {SLIDER_BOX_X + SLIDER_VALUE_DX,
+                                 SLIDER_BOX_Y + SLIDER_VALUE_DY,
                                  COLOR_TEXT, BIG_FONT_PX};
-    const place_t led_place = {SLIDER_BOX_X + OUT_LED_DX, SLIDER_BOX_Y + OUT_LED_DY,
+    const place_t led_place = {SLIDER_BOX_X + OUT_LED_DX,
+                               SLIDER_BOX_Y + OUT_LED_DY,
                                COLOR_LIGHT_BLUE, 0};
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
-    bento_status_t status = add_panel(screen->ui, box_place, COLOR_SLIDER_BOX, false);
+    bento_status_t status =
+        add_panel(screen->ui, box_place, COLOR_SLIDER_BOX, false);
 
     if (status == BENTO_OK) {
-        status = add_label(screen->ui, "SLIDER (CSS1)", &name_place, &unused);
+        status = add_label(screen->ui, "SLIDER (CSS1)", &name_place,
+                           &unused);
     }
     if (status == BENTO_OK) {
-        status = add_label(screen->ui, "0%", &value_place, &screen->slider_value);
+        status = add_label(screen->ui, "0%", &value_place,
+                           &screen->slider_value);
     }
     if (status == BENTO_OK) {
         bento_ui_widget_args_init(&args);
@@ -324,10 +340,12 @@ static bento_status_t add_slider_box(capsense_screen_t *screen)
         args.max_val = PERCENT_MAX;
         args.font_px = 0;
         args.color = COLOR_LIGHT_BLUE;
-        status = bento_ui_slider_create(screen->ui, &args, &screen->slider);
+        status =
+            bento_ui_slider_create(screen->ui, &args, &screen->slider);
     }
     if (status == BENTO_OK) {
-        status = add_led(screen->ui, &led_place, OUT_LED_SIZE, &screen->out_led);
+        status = add_led(screen->ui, &led_place, OUT_LED_SIZE,
+                         &screen->out_led);
     }
     return status;
 }
@@ -335,34 +353,42 @@ static bento_status_t add_slider_box(capsense_screen_t *screen)
 /* One pad: the panel, its name, its pin, its LED and its state. */
 static bento_status_t add_pad(capsense_screen_t *screen, int32_t pad)
 {
-    static const pad_look_t looks[PAD_COUNT] = {{-PAD_DX, "BTN0", "(CSB1)", COLOR_RED},
-                                                {PAD_DX, "BTN1", "(CSB2)", COLOR_GREEN}};
+    static const pad_look_t looks[PAD_COUNT] = {
+        {-PAD_DX, "BTN0", "(CSB1)", COLOR_RED},
+        {PAD_DX, "BTN1", "(CSB2)", COLOR_GREEN}};
     const pad_look_t *look = &looks[pad];
     const int32_t x = (SCREEN_CENTER_X + look->center_dx) - (PAD_W / 2);
     const int32_t middle_x = x + (PAD_W / 2);
     const int16_t pad_place[4] = {px(x), PAD_Y, PAD_W, PAD_H};
-    const place_t name_place = {middle_x - PAD_NAME_HALF_W, PAD_Y + PAD_NAME_DY, COLOR_TEXT,
+    const place_t name_place = {middle_x - PAD_NAME_HALF_W,
+                                PAD_Y + PAD_NAME_DY, COLOR_TEXT,
                                 BIG_FONT_PX};
-    const place_t pin_place = {middle_x - PAD_PIN_HALF_W, PAD_Y + PAD_PIN_DY, COLOR_HINT,
-                               FONT_PX};
-    const place_t led_place = {x + PAD_LED_DX, PAD_Y + PAD_LED_DY, look->led_color, 0};
-    const place_t state_place = {middle_x - PAD_STATE_HALF_W, PAD_Y + PAD_STATE_DY, COLOR_IDLE,
+    const place_t pin_place = {middle_x - PAD_PIN_HALF_W,
+                               PAD_Y + PAD_PIN_DY, COLOR_HINT, FONT_PX};
+    const place_t led_place = {x + PAD_LED_DX, PAD_Y + PAD_LED_DY,
+                               look->led_color, 0};
+    const place_t state_place = {middle_x - PAD_STATE_HALF_W,
+                                 PAD_Y + PAD_STATE_DY, COLOR_IDLE,
                                  FONT_PX};
     pad_t *widgets = &screen->pads[pad];
     bento_ui_id_t unused;
-    bento_status_t status = add_panel(screen->ui, pad_place, COLOR_PAD, true);
+    bento_status_t status =
+        add_panel(screen->ui, pad_place, COLOR_PAD, true);
 
     if (status == BENTO_OK) {
-        status = add_label(screen->ui, look->name, &name_place, &unused);
+        status =
+            add_label(screen->ui, look->name, &name_place, &unused);
     }
     if (status == BENTO_OK) {
         status = add_label(screen->ui, look->pin, &pin_place, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_led(screen->ui, &led_place, PAD_LED_SIZE, &widgets->led);
+        status = add_led(screen->ui, &led_place, PAD_LED_SIZE,
+                         &widgets->led);
     }
     if (status == BENTO_OK) {
-        status = add_label(screen->ui, "Ready", &state_place, &widgets->state);
+        status = add_label(screen->ui, "Ready", &state_place,
+                           &widgets->state);
     }
     return status;
 }
@@ -371,12 +397,15 @@ static bento_status_t add_pad(capsense_screen_t *screen, int32_t pad)
  * handles follow it). */
 static bento_status_t build_screen(capsense_screen_t *screen)
 {
-    const char *footer = "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
-    const place_t footer_place = {centered_x(footer), FOOTER_Y, COLOR_FOOTER, FONT_PX};
+    const char *footer =
+        "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
+    const place_t footer_place = {centered_x(footer), FOOTER_Y,
+                                  COLOR_FOOTER, FONT_PX};
     bento_ui_id_t unused;
     int32_t pad;
     bento_status_t status =
-        bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = bento_time_sleep_ms(SETTLE_MS);
@@ -400,7 +429,8 @@ static bento_status_t build_screen(capsense_screen_t *screen)
 }
 
 /* A pad whose state changed: its LED, state, real LED and a line. */
-static bento_status_t show_pad(capsense_screen_t *screen, int32_t pad, bool touched)
+static bento_status_t show_pad(capsense_screen_t *screen, int32_t pad,
+                               bool touched)
 {
     pad_t *widgets = &screen->pads[pad];
     const char *text = touched ? "TOUCHED" : "Ready";
@@ -409,13 +439,17 @@ static bento_status_t show_pad(capsense_screen_t *screen, int32_t pad, bool touc
     if (!widgets->known || (widgets->touched != touched)) {
         /* MicroPython's widget setters ignore a refusal (modui.c), so
          * the twin does too. */
-        (void)bento_ui_set_value(screen->ui, widgets->led, touched ? 1 : 0);
-        (void)bento_ui_set_text(screen->ui, widgets->state, text, (uint32_t)strlen(text));
-        (void)bento_ui_set_color(screen->ui, widgets->state, touched ? COLOR_TOUCHED : COLOR_IDLE);
-        status =
-            touched ? bento_gpio_led_on(widgets->hw_led) : bento_gpio_led_off(widgets->hw_led);
+        (void)bento_ui_set_value(screen->ui, widgets->led,
+                                 touched ? 1 : 0);
+        (void)bento_ui_set_text(screen->ui, widgets->state, text,
+                                (uint32_t)strlen(text));
+        (void)bento_ui_set_color(screen->ui, widgets->state,
+                                 touched ? COLOR_TOUCHED : COLOR_IDLE);
+        status = touched ? bento_gpio_led_on(widgets->hw_led)
+                         : bento_gpio_led_off(widgets->hw_led);
         if (status == BENTO_OK) {
-            (void)printf("[HW] BTN%" PRId32 ": %s\n", pad, touched ? "TOUCHED" : "Released");
+            (void)printf("[HW] BTN%" PRId32 ": %s\n", pad,
+                         touched ? "TOUCHED" : "Released");
         }
     }
     widgets->touched = touched;
@@ -426,7 +460,8 @@ static bento_status_t show_pad(capsense_screen_t *screen, int32_t pad, bool touc
 /* A slider value that changed: the slider, its percentage, the small
  * LED and the real blue LED. Values are never negative, so C's
  * division is the floor division. */
-static bento_status_t show_slider(capsense_screen_t *screen, int32_t level)
+static bento_status_t show_slider(capsense_screen_t *screen,
+                                  int32_t level)
 {
     char text[PCT_CHARS];
     bento_status_t status = BENTO_OK;
@@ -435,9 +470,12 @@ static bento_status_t show_slider(capsense_screen_t *screen, int32_t level)
         screen->prev_slider = level;
         (void)bento_ui_set_value(screen->ui, screen->slider, level);
         (void)snprintf(text, sizeof(text), "%" PRId32 "%%", level);
-        (void)bento_ui_set_text(screen->ui, screen->slider_value, text, (uint32_t)strlen(text));
-        (void)bento_ui_set_value(screen->ui, screen->out_led, (level != 0) ? 1 : 0);
-        (void)bento_ui_set_prop(screen->ui, screen->out_led, BENTO_UI_PROP_LED_BRIGHTNESS,
+        (void)bento_ui_set_text(screen->ui, screen->slider_value, text,
+                                (uint32_t)strlen(text));
+        (void)bento_ui_set_value(screen->ui, screen->out_led,
+                                 (level != 0) ? 1 : 0);
+        (void)bento_ui_set_prop(screen->ui, screen->out_led,
+                                BENTO_UI_PROP_LED_BRIGHTNESS,
                                 (level * LEVEL_MAX) / PERCENT_MAX);
         status = bento_gpio_led_brightness(screen->hw_blue, level);
     }
@@ -453,7 +491,8 @@ static bento_status_t read_capsense(capsense_screen_t *screen)
     bento_status_t status = BENTO_OK;
 
     if (screen->has_capsense) {
-        status = bento_sensors_capsense_read(&button0, &button1, &slider);
+        status =
+            bento_sensors_capsense_read(&button0, &button1, &slider);
         if (status == BENTO_OK) {
             status = show_pad(screen, 0, button0 != 0U);
         }
@@ -477,11 +516,13 @@ static bento_status_t run_loop(capsense_screen_t *screen)
     bento_status_t status = BENTO_OK;
 
     while ((status == BENTO_OK) &&
-           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) < RUN_MS)) {
+           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
+            RUN_MS)) {
         /* No widget here answers a tap (the "< Menu" button is left
          * out), so the events are not read, and ui.poll() answers no
          * events when it fails. */
-        (void)bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+        (void)bento_ui_poll(screen->ui, events,
+                            BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
         status = read_capsense(screen);
         if (status == BENTO_OK) {
             status = bento_time_sleep_ms(LOOP_MS);
@@ -545,12 +586,14 @@ int main(void)
         /* the probe: any failure means "not responding", as the
          * original's except Exception */
         screen.has_capsense =
-            (bento_sensors_capsense_read(&button0, &button1, &slider) == BENTO_OK);
+            (bento_sensors_capsense_read(&button0, &button1, &slider) ==
+             BENTO_OK);
         status = build_screen(&screen);
     }
     /* lcd.print() ignores a console that is not ready (modlcd.c) */
     if (status == BENTO_OK) {
-        (void)bento_lcd_print("ex11: touch the CAPSENSE pads on the board - watch LEDs follow");
+        (void)bento_lcd_print("ex11: touch the CAPSENSE pads on the "
+                              "board - watch LEDs follow");
         status = run_loop(&screen);
     }
     if (status == BENTO_OK) {

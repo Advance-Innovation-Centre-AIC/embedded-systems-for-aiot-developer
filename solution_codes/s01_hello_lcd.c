@@ -30,9 +30,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_lcd.h"
+#include "bento_runtime.h"
 #include "bento_time.h"
 
 enum { /* times, ms */
@@ -93,7 +92,8 @@ enum { /* colours, 0xRRGGBB */
 };
 
 enum { /* text buffers */
-    LINE_BYTES = 256, /* a console line before lcd cuts it at 127 bytes */
+    LINE_BYTES =
+        256, /* a console line before lcd cuts it at 127 bytes */
     ROW_BYTES = 128,  /* two table cells with the NUL between them */
     NUMBER_BYTES = 12 /* any int32_t with its sign and NUL */
 };
@@ -135,11 +135,13 @@ static void drain_events(bento_ui_t *ui)
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
 
-    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, int16_t x, int16_t y,
-                                uint32_t color, int32_t size_px)
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                int16_t x, int16_t y, uint32_t color,
+                                int32_t size_px)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t unused = 0U;
@@ -154,7 +156,8 @@ static bento_status_t add_label(bento_ui_t *ui, const char *text, int16_t x, int
     return bento_ui_label_create(ui, &args, &unused);
 }
 
-static bento_status_t add_light(bento_ui_t *ui, int16_t y, uint32_t color, int32_t lit,
+static bento_status_t add_light(bento_ui_t *ui, int16_t y,
+                                uint32_t color, int32_t lit,
                                 bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
@@ -170,18 +173,20 @@ static bento_status_t add_light(bento_ui_t *ui, int16_t y, uint32_t color, int32
 }
 
 /* One table row: the two cells travel as "left\0right". */
-static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row, const char *left,
-                    const char *right)
+static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row,
+                    const char *left, const char *right)
 {
     char cells[ROW_BYTES];
     const size_t left_bytes = strlen(left);
 
     if ((left_bytes + strlen(right) + 2U) <= sizeof(cells)) {
         (void)memcpy(cells, left, left_bytes + 1U);
-        (void)memcpy(&cells[left_bytes + 1U], right, strlen(right) + 1U);
+        (void)memcpy(&cells[left_bytes + 1U], right,
+                     strlen(right) + 1U);
         /* a setter's refusal was ignored in MicroPython too */
-        (void)bento_ui_add_row(ui, table, row, cells,
-                               (uint32_t)(left_bytes + 1U + strlen(right)));
+        (void)bento_ui_add_row(
+            ui, table, row, cells,
+            (uint32_t)(left_bytes + 1U + strlen(right)));
     }
 }
 
@@ -196,7 +201,8 @@ static bento_status_t write_console(void)
     /* start from a known state: the Playground may still hold the last program's lines */
     (void)bento_lcd_clear();
     (void)bento_lcd_console("<h2>AIoT in Action - คาบ 1</h2>");
-    (void)snprintf(line, sizeof(line), "<span class=muted>ทดสอบจอครั้งแรกของทีม %s</span>",
+    (void)snprintf(line, sizeof(line),
+                   "<span class=muted>ทดสอบจอครั้งแรกของทีม %s</span>",
                    TEAM_NAME);
     (void)bento_lcd_console(line);
     (void)snprintf(line, sizeof(line), "สวัสดีจากทีม %s", TEAM_NAME);
@@ -205,15 +211,18 @@ static bento_status_t write_console(void)
     (void)bento_lcd_print(line);
     (void)printf("ส่งข้อความทักทายขึ้นจอบอร์ดแล้ว ดูที่จอ ไม่ใช่ที่หน้าคอม\n");
     for (i = 0U; (i < member_count()) && (status == BENTO_OK); i++) {
-        (void)snprintf(line, sizeof(line), "สมาชิกคนที่ %" PRIu32 " : %s", i + 1U, MEMBERS[i]);
+        (void)snprintf(line, sizeof(line), "สมาชิกคนที่ %" PRIu32 " : %s",
+                       i + 1U, MEMBERS[i]);
         (void)bento_lcd_print(line);
-        status = wait_ms(MEMBER_PAUSE_MS); /* one name at a time, so people can read them */
+        status = wait_ms(
+            MEMBER_PAUSE_MS); /* one name at a time, so people can read them */
     }
     if (status == BENTO_OK) {
         /* two calls on purpose: together they pass 127 bytes and would be cut silently */
         (void)bento_lcd_print("<span class=ok>ขึ้นจอสำเร็จ</span>");
-        (void)snprintf(line, sizeof(line), "<span class=ok>%s%s%s</span>", TAIL_START, TEAM_NAME,
-                       TAIL_END);
+        (void)snprintf(line, sizeof(line),
+                       "<span class=ok>%s%s%s</span>", TAIL_START,
+                       TEAM_NAME, TAIL_END);
         (void)bento_lcd_print(line);
     }
     return status;
@@ -251,8 +260,10 @@ static bento_status_t add_table(badge_t *badge)
     args.min_val = TABLE_COLUMNS;
     status = bento_ui_table_create(badge->ui, &args, &badge->table);
     if (status == BENTO_OK) {
-        (void)bento_ui_set_col_width(badge->ui, badge->table, 0, NUMBER_COLUMN_W);
-        (void)bento_ui_set_col_width(badge->ui, badge->table, 1, NAME_COLUMN_W);
+        (void)bento_ui_set_col_width(badge->ui, badge->table, 0,
+                                     NUMBER_COLUMN_W);
+        (void)bento_ui_set_col_width(badge->ui, badge->table, 1,
+                                     NAME_COLUMN_W);
         add_row(badge->ui, badge->table, 0U, "ลำดับ", "ชื่อสมาชิก");
     }
     return status;
@@ -263,21 +274,26 @@ static bento_status_t add_table(badge_t *badge)
 static bento_status_t add_lights(badge_t *badge)
 {
     bento_status_t status =
-        add_label(badge->ui, "สถานะการเขียนตาราง", STATUS_X, STATUS_Y, COLOR_DIM, SMALL_PX);
+        add_label(badge->ui, "สถานะการเขียนตาราง", STATUS_X, STATUS_Y,
+                  COLOR_DIM, SMALL_PX);
 
     if (status == BENTO_OK) {
-        status = add_light(badge->ui, RUN_LIGHT_Y, COLOR_RUN, 1, &badge->run_light);
+        status = add_light(badge->ui, RUN_LIGHT_Y, COLOR_RUN, 1,
+                           &badge->run_light);
     }
     if (status == BENTO_OK) {
-        status = add_label(badge->ui, "กำลังเขียน", LIGHT_TEXT_X, RUN_LIGHT_Y + LIGHT_TEXT_DY,
-                           COLOR_DIM, SMALL_PX);
+        status =
+            add_label(badge->ui, "กำลังเขียน", LIGHT_TEXT_X,
+                      RUN_LIGHT_Y + LIGHT_TEXT_DY, COLOR_DIM, SMALL_PX);
     }
     if (status == BENTO_OK) {
-        status = add_light(badge->ui, DONE_LIGHT_Y, COLOR_OK, 0, &badge->done_light);
+        status = add_light(badge->ui, DONE_LIGHT_Y, COLOR_OK, 0,
+                           &badge->done_light);
     }
     if (status == BENTO_OK) {
-        status = add_label(badge->ui, "เขียนครบแล้ว", LIGHT_TEXT_X, DONE_LIGHT_Y + LIGHT_TEXT_DY,
-                           COLOR_DIM, SMALL_PX);
+        status = add_label(badge->ui, "เขียนครบแล้ว", LIGHT_TEXT_X,
+                           DONE_LIGHT_Y + LIGHT_TEXT_DY, COLOR_DIM,
+                           SMALL_PX);
     }
     return status;
 }
@@ -285,22 +301,27 @@ static bento_status_t add_lights(badge_t *badge)
 static bento_status_t build_badge(badge_t *badge)
 {
     bento_status_t status =
-        bento_ui_screen(badge->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(badge->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
-        status = wait_ms(SETTLE_MS); /* let CM55 finish clearing before anything is placed */
+        status = wait_ms(
+            SETTLE_MS); /* let CM55 finish clearing before anything is placed */
     }
     if (status == BENTO_OK) {
         status = add_card(badge->ui);
     }
     if (status == BENTO_OK) {
-        status = add_label(badge->ui, "ป้ายประจำทีม", TEXT_X, HEADING_Y, COLOR_DIM, SMALL_PX);
+        status = add_label(badge->ui, "ป้ายประจำทีม", TEXT_X, HEADING_Y,
+                           COLOR_DIM, SMALL_PX);
     }
     if (status == BENTO_OK) {
-        status = add_label(badge->ui, TEAM_NAME, TEXT_X, NAME_Y, COLOR_TEXT, NAME_PX);
+        status = add_label(badge->ui, TEAM_NAME, TEXT_X, NAME_Y,
+                           COLOR_TEXT, NAME_PX);
     }
     if (status == BENTO_OK) {
-        status = add_label(badge->ui, MOTTO, TEXT_X, MOTTO_Y, COLOR_DIM, SMALL_PX);
+        status = add_label(badge->ui, MOTTO, TEXT_X, MOTTO_Y, COLOR_DIM,
+                           SMALL_PX);
     }
     if (status == BENTO_OK) {
         status = add_table(badge);
@@ -320,7 +341,8 @@ static bento_status_t fill_table(const badge_t *badge)
 
     for (i = 0U; (i < member_count()) && (status == BENTO_OK); i++) {
         (void)snprintf(number, sizeof(number), "%" PRIu32, i + 1U);
-        add_row(badge->ui, badge->table, (uint8_t)(i + 1U), number, MEMBERS[i]);
+        add_row(badge->ui, badge->table, (uint8_t)(i + 1U), number,
+                MEMBERS[i]);
         drain_events(badge->ui);
         status = wait_ms(ROW_PAUSE_MS);
     }
@@ -336,13 +358,16 @@ static bento_status_t fill_table(const badge_t *badge)
  * A Thai letter is 3 bytes, so a short-looking line fills it fast. */
 static bento_status_t add_byte_meter(bento_ui_t *ui)
 {
-    const int32_t used = (int32_t)(strlen(TAIL_START) + strlen(TEAM_NAME) + strlen(TAIL_END));
+    const int32_t used =
+        (int32_t)(strlen(TAIL_START) + strlen(TEAM_NAME) +
+                  strlen(TAIL_END));
     char text[NUMBER_BYTES + sizeof(" ไบต์")];
     bento_ui_widget_args_t args;
     bento_ui_id_t bar = 0U;
     bento_ui_id_t unused = 0U;
-    bento_status_t status = add_label(ui, "ความยาวบรรทัดปิดท้าย จากเพดาน 127", STATUS_X,
-                                      METER_TITLE_Y, COLOR_DIM, SMALL_PX);
+    bento_status_t status =
+        add_label(ui, "ความยาวบรรทัดปิดท้าย จากเพดาน 127", STATUS_X,
+                  METER_TITLE_Y, COLOR_DIM, SMALL_PX);
 
     if (status == BENTO_OK) {
         bento_ui_widget_args_init(&args);
@@ -352,7 +377,8 @@ static bento_status_t add_byte_meter(bento_ui_t *ui)
         args.h = BAR_H;
         args.color = COLOR_OK;
         args.max_val = BYTE_LIMIT;
-        args.font_px = 0; /* created at 0: a Bar created with a value blanks the page */
+        args.font_px =
+            0; /* created at 0: a Bar created with a value blanks the page */
         status = bento_ui_bar_create(ui, &args, &bar);
     }
     if (status == BENTO_OK) {
@@ -368,7 +394,8 @@ static bento_status_t add_byte_meter(bento_ui_t *ui)
     }
     if (status == BENTO_OK) {
         (void)snprintf(text, sizeof(text), "%" PRId32 " ไบต์", used);
-        status = add_label(ui, text, METER_X, BYTES_Y, COLOR_TEXT, SMALL_PX);
+        status =
+            add_label(ui, text, METER_X, BYTES_Y, COLOR_TEXT, SMALL_PX);
     }
     return status;
 }
@@ -389,7 +416,8 @@ int main(void)
     }
     if (status == BENTO_OK) {
         drain_events(badge.ui);
-        (void)printf("โปรแกรมจบแล้ว ถ้าจอไม่ขึ้นข้อความ เช็กว่าเข้าเมนู Playground หรือยัง\n");
+        (void)printf("โปรแกรมจบแล้ว ถ้าจอไม่ขึ้นข้อความ เช็กว่าเข้าเมนู "
+                     "Playground หรือยัง\n");
     }
     return (status == BENTO_E_CANCELLED) ? 0 : (int)status;
 }

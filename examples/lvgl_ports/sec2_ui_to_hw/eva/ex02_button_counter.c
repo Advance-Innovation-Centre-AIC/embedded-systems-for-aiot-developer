@@ -104,16 +104,19 @@ static int32_t utf8_length(const char *text)
  * size, floor-divided by 4). */
 static int16_t centered_x(const char *text)
 {
-    return (int16_t)(SCREEN_CENTER_X - (((utf8_length(text) * FONT_PX) / 2) / 2));
+    return (int16_t)(SCREEN_CENTER_X -
+                     (((utf8_length(text) * FONT_PX) / 2) / 2));
 }
 
 /* True when the event is of this kind and came from this widget. */
-static bool event_is(const bento_ui_event_t *event, uint8_t kind, bento_ui_id_t widget)
+static bool event_is(const bento_ui_event_t *event, uint8_t kind,
+                     bento_ui_id_t widget)
 {
     return (event->type == kind) && (event->id == widget);
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, int16_t y, uint32_t color)
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                int16_t y, uint32_t color)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t label;
@@ -169,7 +172,8 @@ static bento_status_t build_screen(counter_screen_t *screen)
 {
     bento_ui_t *ui = screen->ui;
     bento_status_t status =
-        bento_ui_screen(ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = bento_time_sleep_ms(SETTLE_MS);
@@ -181,18 +185,21 @@ static bento_status_t build_screen(counter_screen_t *screen)
         status = add_background(ui);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "Part 1 - Example 2: Button Counter", TITLE_Y, COLOR_TEXT);
+        status = add_label(ui, "Part 1 - Example 2: Button Counter",
+                           TITLE_Y, COLOR_TEXT);
     }
     if (status == BENTO_OK) {
         status = add_button(screen);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "Learning: lv_button_create, lv_obj_add_event_cb", HINT_Y,
-                           COLOR_HINT);
+        status = add_label(
+            ui, "Learning: lv_button_create, lv_obj_add_event_cb",
+            HINT_Y, COLOR_HINT);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "Pattern: Event callback with LV_EVENT_CLICKED", HINT2_Y,
-                           COLOR_HINT);
+        status = add_label(
+            ui, "Pattern: Event callback with LV_EVENT_CLICKED",
+            HINT2_Y, COLOR_HINT);
     }
     if (status == BENTO_OK) {
         status = add_label(ui,
@@ -210,10 +217,12 @@ static void count_click(counter_screen_t *screen)
     char text[BUTTON_TEXT_CHARS];
 
     screen->clicks++;
-    (void)snprintf(text, sizeof(text), "Clicked: %" PRId32, screen->clicks);
+    (void)snprintf(text, sizeof(text), "Clicked: %" PRId32,
+                   screen->clicks);
     /* MicroPython's widget setters ignore a refusal (modui.c), so
      * the twin does too. */
-    (void)bento_ui_set_text(screen->ui, screen->button, text, (uint32_t)strlen(text));
+    (void)bento_ui_set_text(screen->ui, screen->button, text,
+                            (uint32_t)strlen(text));
     (void)printf("Button clicked %" PRId32 " times\n", screen->clicks);
 }
 
@@ -225,11 +234,13 @@ static void handle_events(counter_screen_t *screen)
 
     /* ui.poll() answers no events when it fails, so a failed poll is
      * not an error here. */
-    if (bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+    if (bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
         count = 0U;
     }
     for (i = 0U; i < count; i++) {
-        if (event_is(&events[i], BENTO_UI_EVENT_CLICKED, screen->button)) {
+        if (event_is(&events[i], BENTO_UI_EVENT_CLICKED,
+                     screen->button)) {
             count_click(screen);
         }
     }
@@ -243,7 +254,8 @@ static bento_status_t run_event_loop(counter_screen_t *screen)
     bento_status_t status = BENTO_OK;
 
     while ((status == BENTO_OK) &&
-           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) < RUN_MS)) {
+           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
+            RUN_MS)) {
         handle_events(screen);
         status = bento_time_sleep_ms(LOOP_MS);
         if ((status == BENTO_OK) && !bento_runtime_is_running()) {
@@ -293,13 +305,15 @@ int main(void)
 
     /* lcd.print() ignores a console that is not ready (modlcd.c) */
     if (status == BENTO_OK) {
-        (void)bento_lcd_print("ex02: tap the button - counter updates on the button itself");
+        (void)bento_lcd_print("ex02: tap the button - counter updates "
+                              "on the button itself");
     }
     if (status == BENTO_OK) {
         status = run_event_loop(&screen);
     }
     if (status == BENTO_OK) {
-        (void)printf("ex02_button_counter: done - %" PRId32 " clicks\n", screen.clicks);
+        (void)printf("ex02_button_counter: done - %" PRId32 " clicks\n",
+                     screen.clicks);
         status = show_end_banner(screen.ui);
     }
     return (status == BENTO_E_CANCELLED) ? 0 : (int)status;

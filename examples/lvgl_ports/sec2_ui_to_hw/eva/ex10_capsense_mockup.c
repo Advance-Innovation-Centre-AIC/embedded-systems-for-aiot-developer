@@ -97,7 +97,7 @@ enum {
     SLIDER_START = 50,
     DEMO_STEPS = 8,
     DEMO_PRESS_STEPS = 4, /* steps 0..3 press and release the pads */
-    DEMO_LEVEL_STEP = 33 /* steps 4..7 move the slider by this much */
+    DEMO_LEVEL_STEP = 33  /* steps 4..7 move the slider by this much */
 };
 
 /* The Eva Kit's three separate LEDs, by pin: red P16.7, green P16.6,
@@ -107,7 +107,8 @@ enum {
     LED_RED = 0,
     LED_GREEN = 1,
     LED_BLUE = 2,
-    LED_HIGHEST = 2 /* gpio.led() of each is made, so this one must exist */
+    LED_HIGHEST =
+        2 /* gpio.led() of each is made, so this one must exist */
 };
 
 /* The "example has ended" bar over the bottom rows. */
@@ -206,10 +207,13 @@ static bento_status_t check_leds(void)
 {
     const uint32_t highest_led = LED_HIGHEST;
 
-    return (highest_led < bento_gpio_num_leds()) ? BENTO_OK : BENTO_E_INVALID_ARGUMENT;
+    return (highest_led < bento_gpio_num_leds())
+               ? BENTO_OK
+               : BENTO_E_INVALID_ARGUMENT;
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, const label_place_t *place,
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                const label_place_t *place,
                                 bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
@@ -224,7 +228,8 @@ static bento_status_t add_label(bento_ui_t *ui, const char *text, const label_pl
     return bento_ui_label_create(ui, &args, out_id);
 }
 
-static bento_status_t add_led(bento_ui_t *ui, const label_place_t *place, int32_t size,
+static bento_status_t add_led(bento_ui_t *ui,
+                              const label_place_t *place, int32_t size,
                               bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
@@ -240,7 +245,8 @@ static bento_status_t add_led(bento_ui_t *ui, const label_place_t *place, int32_
 }
 
 /* A plain panel: min= repeats the colour, as the original does. */
-static bento_status_t add_plain_panel(bento_ui_t *ui, const int16_t place[4], uint32_t color)
+static bento_status_t
+add_plain_panel(bento_ui_t *ui, const int16_t place[4], uint32_t color)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t panel;
@@ -260,20 +266,25 @@ static bento_status_t add_plain_panel(bento_ui_t *ui, const int16_t place[4], ui
 /* The background, the title and the mode line. */
 static bento_status_t add_header(mockup_t *mockup)
 {
-    const int16_t screen_place[4] = {0, 0, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+    const int16_t screen_place[4] = {0, 0,
+                                     BENTO_RUNTIME_SCREEN_WIDTH_PX,
                                      BENTO_RUNTIME_SCREEN_HEIGHT_PX};
     const char *title = "Part 1 Ex10: CAPSENSE UI Mockup";
     const char *mode = "Mode: Auto Demo";
-    const label_place_t title_place = {centered_x(title), TITLE_Y, COLOR_TEXT, FONT_PX};
-    const label_place_t mode_place = {centered_x(mode), MODE_Y, COLOR_MODE, FONT_PX};
+    const label_place_t title_place = {centered_x(title), TITLE_Y,
+                                       COLOR_TEXT, FONT_PX};
+    const label_place_t mode_place = {centered_x(mode), MODE_Y,
+                                      COLOR_MODE, FONT_PX};
     bento_ui_id_t unused;
-    bento_status_t status = add_plain_panel(mockup->ui, screen_place, COLOR_BACKGROUND);
+    bento_status_t status =
+        add_plain_panel(mockup->ui, screen_place, COLOR_BACKGROUND);
 
     if (status == BENTO_OK) {
         status = add_label(mockup->ui, title, &title_place, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_label(mockup->ui, mode, &mode_place, &mockup->mode);
+        status =
+            add_label(mockup->ui, mode, &mode_place, &mockup->mode);
     }
     return status;
 }
@@ -282,22 +293,29 @@ static bento_status_t add_header(mockup_t *mockup)
  * small blue LED. */
 static bento_status_t add_slider_box(mockup_t *mockup)
 {
-    const int16_t box_place[4] = {SLIDER_BOX_X, SLIDER_BOX_Y, SLIDER_BOX_W, SLIDER_BOX_H};
+    const int16_t box_place[4] = {SLIDER_BOX_X, SLIDER_BOX_Y,
+                                  SLIDER_BOX_W, SLIDER_BOX_H};
     const label_place_t name_place = {SLIDER_BOX_X + SLIDER_NAME_DX,
-                                      SLIDER_BOX_Y + SLIDER_NAME_DY, COLOR_TEXT, FONT_PX};
+                                      SLIDER_BOX_Y + SLIDER_NAME_DY,
+                                      COLOR_TEXT, FONT_PX};
     const label_place_t value_place = {SLIDER_BOX_X + SLIDER_VALUE_DX,
-                                       SLIDER_BOX_Y + SLIDER_VALUE_DY, COLOR_TEXT, BIG_FONT_PX};
-    const label_place_t led_place = {SLIDER_BOX_X + OUT_LED_DX, SLIDER_BOX_Y + OUT_LED_DY,
+                                       SLIDER_BOX_Y + SLIDER_VALUE_DY,
+                                       COLOR_TEXT, BIG_FONT_PX};
+    const label_place_t led_place = {SLIDER_BOX_X + OUT_LED_DX,
+                                     SLIDER_BOX_Y + OUT_LED_DY,
                                      COLOR_LIGHT_BLUE, 1};
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
-    bento_status_t status = add_plain_panel(mockup->ui, box_place, COLOR_SLIDER_BOX);
+    bento_status_t status =
+        add_plain_panel(mockup->ui, box_place, COLOR_SLIDER_BOX);
 
     if (status == BENTO_OK) {
-        status = add_label(mockup->ui, "SLIDER (CSS1)", &name_place, &unused);
+        status = add_label(mockup->ui, "SLIDER (CSS1)", &name_place,
+                           &unused);
     }
     if (status == BENTO_OK) {
-        status = add_label(mockup->ui, "50%", &value_place, &mockup->slider_value);
+        status = add_label(mockup->ui, "50%", &value_place,
+                           &mockup->slider_value);
     }
     if (status == BENTO_OK) {
         bento_ui_widget_args_init(&args);
@@ -309,19 +327,23 @@ static bento_status_t add_slider_box(mockup_t *mockup)
         args.max_val = PERCENT_MAX;
         args.font_px = SLIDER_START;
         args.color = COLOR_LIGHT_BLUE;
-        status = bento_ui_slider_create(mockup->ui, &args, &mockup->slider);
+        status =
+            bento_ui_slider_create(mockup->ui, &args, &mockup->slider);
     }
     if (status == BENTO_OK) {
-        status = add_led(mockup->ui, &led_place, OUT_LED_SIZE, &mockup->out_led);
+        status = add_led(mockup->ui, &led_place, OUT_LED_SIZE,
+                         &mockup->out_led);
     }
     return status;
 }
 
 /* A pad's panel, which reports touches. */
-static bento_status_t add_pad_panel(bento_ui_t *ui, int32_t x, bento_ui_id_t *out_id)
+static bento_status_t add_pad_panel(bento_ui_t *ui, int32_t x,
+                                    bento_ui_id_t *out_id)
 {
     const uint32_t touch_events =
-        BENTO_UI_EVENT_MASK(BENTO_UI_EVENT_PRESSED) | BENTO_UI_EVENT_MASK(BENTO_UI_EVENT_RELEASED);
+        BENTO_UI_EVENT_MASK(BENTO_UI_EVENT_PRESSED) |
+        BENTO_UI_EVENT_MASK(BENTO_UI_EVENT_RELEASED);
     bento_ui_widget_args_t args;
     bento_status_t status;
 
@@ -354,32 +376,40 @@ typedef struct {
 /* One pad: the panel, its name, its pin, its LED and its state. */
 static bento_status_t add_pad(mockup_t *mockup, int32_t pad)
 {
-    static const pad_look_t looks[PAD_COUNT] = {{-PAD_DX, "BTN0", "(CSB1)", COLOR_RED},
-                                                {PAD_DX, "BTN1", "(CSB2)", COLOR_GREEN}};
+    static const pad_look_t looks[PAD_COUNT] = {
+        {-PAD_DX, "BTN0", "(CSB1)", COLOR_RED},
+        {PAD_DX, "BTN1", "(CSB2)", COLOR_GREEN}};
     const pad_look_t *look = &looks[pad];
     const int32_t x = (SCREEN_CENTER_X + look->center_dx) - (PAD_W / 2);
     const int32_t middle_x = x + (PAD_W / 2);
-    const label_place_t name_place = {middle_x - PAD_NAME_HALF_W, PAD_NAME_Y, COLOR_TEXT,
+    const label_place_t name_place = {middle_x - PAD_NAME_HALF_W,
+                                      PAD_NAME_Y, COLOR_TEXT,
                                       BIG_FONT_PX};
-    const label_place_t pin_place = {middle_x - PAD_PIN_HALF_W, PAD_PIN_Y, COLOR_HINT, FONT_PX};
-    const label_place_t led_place = {x + PAD_LED_DX, PAD_LED_Y, look->led_color, 0};
-    const label_place_t state_place = {middle_x - PAD_STATE_HALF_W, PAD_STATE_Y, COLOR_IDLE,
-                                       FONT_PX};
+    const label_place_t pin_place = {middle_x - PAD_PIN_HALF_W,
+                                     PAD_PIN_Y, COLOR_HINT, FONT_PX};
+    const label_place_t led_place = {x + PAD_LED_DX, PAD_LED_Y,
+                                     look->led_color, 0};
+    const label_place_t state_place = {
+        middle_x - PAD_STATE_HALF_W, PAD_STATE_Y, COLOR_IDLE, FONT_PX};
     pad_t *widgets = &mockup->pads[pad];
     bento_ui_id_t unused;
-    bento_status_t status = add_pad_panel(mockup->ui, x, &widgets->panel);
+    bento_status_t status =
+        add_pad_panel(mockup->ui, x, &widgets->panel);
 
     if (status == BENTO_OK) {
-        status = add_label(mockup->ui, look->name, &name_place, &unused);
+        status =
+            add_label(mockup->ui, look->name, &name_place, &unused);
     }
     if (status == BENTO_OK) {
         status = add_label(mockup->ui, look->pin, &pin_place, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_led(mockup->ui, &led_place, PAD_LED_SIZE, &widgets->led);
+        status = add_led(mockup->ui, &led_place, PAD_LED_SIZE,
+                         &widgets->led);
     }
     if (status == BENTO_OK) {
-        status = add_label(mockup->ui, "Ready", &state_place, &widgets->state);
+        status = add_label(mockup->ui, "Ready", &state_place,
+                           &widgets->state);
     }
     return status;
 }
@@ -388,12 +418,15 @@ static bento_status_t add_pad(mockup_t *mockup, int32_t pad)
  * handles follow it). */
 static bento_status_t build_screen(mockup_t *mockup)
 {
-    const char *footer = "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
-    const label_place_t footer_place = {centered_x(footer), FOOTER_Y, COLOR_FOOTER, FONT_PX};
+    const char *footer =
+        "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
+    const label_place_t footer_place = {centered_x(footer), FOOTER_Y,
+                                        COLOR_FOOTER, FONT_PX};
     bento_ui_id_t unused;
     int32_t pad;
     bento_status_t status =
-        bento_ui_screen(mockup->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(mockup->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = bento_time_sleep_ms(SETTLE_MS);
@@ -417,21 +450,27 @@ static bento_status_t build_screen(mockup_t *mockup)
 }
 
 /* A pad touched or let go: its real LED, panel, LED and state. */
-static bento_status_t press(const mockup_t *mockup, int32_t pad, bool touched)
+static bento_status_t press(const mockup_t *mockup, int32_t pad,
+                            bool touched)
 {
     const pad_t *widgets = &mockup->pads[pad];
     const char *text = touched ? "TOUCHED" : "Ready";
     const bento_status_t status =
-        touched ? bento_gpio_led_on(widgets->hw_led) : bento_gpio_led_off(widgets->hw_led);
+        touched ? bento_gpio_led_on(widgets->hw_led)
+                : bento_gpio_led_off(widgets->hw_led);
 
     if (status == BENTO_OK) {
         /* MicroPython's widget setters ignore a refusal (modui.c), so
          * the twin does too. */
         (void)bento_ui_set_color(mockup->ui, widgets->panel,
-                                 touched ? COLOR_PAD_TOUCHED : COLOR_PAD);
-        (void)bento_ui_set_value(mockup->ui, widgets->led, touched ? 1 : 0);
-        (void)bento_ui_set_text(mockup->ui, widgets->state, text, (uint32_t)strlen(text));
-        (void)bento_ui_set_color(mockup->ui, widgets->state, touched ? COLOR_TOUCHED : COLOR_IDLE);
+                                 touched ? COLOR_PAD_TOUCHED
+                                         : COLOR_PAD);
+        (void)bento_ui_set_value(mockup->ui, widgets->led,
+                                 touched ? 1 : 0);
+        (void)bento_ui_set_text(mockup->ui, widgets->state, text,
+                                (uint32_t)strlen(text));
+        (void)bento_ui_set_color(mockup->ui, widgets->state,
+                                 touched ? COLOR_TOUCHED : COLOR_IDLE);
     }
     return status;
 }
@@ -442,15 +481,17 @@ static bento_status_t press(const mockup_t *mockup, int32_t pad, bool touched)
 static bento_status_t slide(mockup_t *mockup, int32_t level)
 {
     char text[PCT_CHARS];
-    const bento_status_t status =
-        bento_gpio_led_brightness(mockup->hw_blue, (level >= PERCENT_MAX) ? PERCENT_MAX : level);
+    const bento_status_t status = bento_gpio_led_brightness(
+        mockup->hw_blue, (level >= PERCENT_MAX) ? PERCENT_MAX : level);
 
     mockup->level = level;
     if (status == BENTO_OK) {
         (void)snprintf(text, sizeof(text), "%" PRId32 "%%", level);
-        (void)bento_ui_set_text(mockup->ui, mockup->slider_value, text, (uint32_t)strlen(text));
+        (void)bento_ui_set_text(mockup->ui, mockup->slider_value, text,
+                                (uint32_t)strlen(text));
         (void)bento_ui_set_value(mockup->ui, mockup->out_led, 1);
-        (void)bento_ui_set_prop(mockup->ui, mockup->out_led, BENTO_UI_PROP_LED_BRIGHTNESS,
+        (void)bento_ui_set_prop(mockup->ui, mockup->out_led,
+                                BENTO_UI_PROP_LED_BRIGHTNESS,
                                 (level * LEVEL_MAX) / PERCENT_MAX);
     }
     return status;
@@ -463,7 +504,8 @@ static void go_manual(mockup_t *mockup)
 
     if (mockup->in_demo) {
         mockup->in_demo = false;
-        (void)bento_ui_set_text(mockup->ui, mockup->mode, text, (uint32_t)strlen(text));
+        (void)bento_ui_set_text(mockup->ui, mockup->mode, text,
+                                (uint32_t)strlen(text));
     }
 }
 
@@ -490,7 +532,8 @@ static bento_status_t demo_tick(mockup_t *mockup)
 }
 
 /* The pad whose panel this is, or PAD_COUNT when it is no pad's. */
-static int32_t pad_of_panel(const mockup_t *mockup, bento_ui_id_t widget)
+static int32_t pad_of_panel(const mockup_t *mockup,
+                            bento_ui_id_t widget)
 {
     int32_t found = PAD_COUNT;
     int32_t pad;
@@ -503,16 +546,19 @@ static int32_t pad_of_panel(const mockup_t *mockup, bento_ui_id_t widget)
     return found;
 }
 
-static bento_status_t handle_event(mockup_t *mockup, const bento_ui_event_t *event)
+static bento_status_t handle_event(mockup_t *mockup,
+                                   const bento_ui_event_t *event)
 {
     const int32_t pad = pad_of_panel(mockup, event->id);
     const bool touched = (event->type == BENTO_UI_EVENT_PRESSED);
     bento_status_t status = BENTO_OK;
 
-    if ((pad < PAD_COUNT) && (touched || (event->type == BENTO_UI_EVENT_RELEASED))) {
+    if ((pad < PAD_COUNT) &&
+        (touched || (event->type == BENTO_UI_EVENT_RELEASED))) {
         go_manual(mockup);
         status = press(mockup, pad, touched);
-    } else if ((event->id == mockup->slider) && (event->type == BENTO_UI_EVENT_VALUE_CHANGED)) {
+    } else if ((event->id == mockup->slider) &&
+               (event->type == BENTO_UI_EVENT_VALUE_CHANGED)) {
         go_manual(mockup);
         status = slide(mockup, event->value);
     } else {
@@ -532,19 +578,23 @@ static bento_status_t run_pass(mockup_t *mockup)
 
     /* ui.poll() answers no events when it fails, so a failed poll is
      * not an error here. */
-    if (bento_ui_poll(mockup->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+    if (bento_ui_poll(mockup->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
         count = 0U;
     }
     for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
         status = handle_event(mockup, &events[i]);
     }
     if ((status == BENTO_OK) && mockup->in_demo &&
-        (bento_time_ticks_diff(bento_time_ticks_ms(), mockup->last_step_ms) >= DEMO_MS)) {
+        (bento_time_ticks_diff(bento_time_ticks_ms(),
+                               mockup->last_step_ms) >= DEMO_MS)) {
         mockup->last_step_ms = bento_time_ticks_ms();
         status = demo_tick(mockup);
     }
-    if ((status == BENTO_OK) && (mockup->level > 0) && (mockup->level < PERCENT_MAX)) {
-        status = bento_gpio_led_brightness(mockup->hw_blue, mockup->level);
+    if ((status == BENTO_OK) && (mockup->level > 0) &&
+        (mockup->level < PERCENT_MAX)) {
+        status =
+            bento_gpio_led_brightness(mockup->hw_blue, mockup->level);
     }
     return status;
 }
@@ -557,7 +607,8 @@ static bento_status_t run_event_loop(mockup_t *mockup)
     bento_status_t status = BENTO_OK;
 
     while ((status == BENTO_OK) &&
-           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) < RUN_MS)) {
+           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
+            RUN_MS)) {
         status = run_pass(mockup);
         if (status == BENTO_OK) {
             status = bento_time_sleep_ms(LOOP_MS);
@@ -619,7 +670,8 @@ int main(void)
     }
     /* lcd.print() ignores a console that is not ready (modlcd.c) */
     if (status == BENTO_OK) {
-        (void)bento_lcd_print("ex10: auto demo walks the panel - touch anything to go Manual");
+        (void)bento_lcd_print("ex10: auto demo walks the panel - touch "
+                              "anything to go Manual");
         mockup.in_demo = true;
         mockup.step = 0;
         mockup.last_step_ms = bento_time_ticks_ms();

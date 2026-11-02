@@ -32,76 +32,77 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "bento_gpio.h"
 #include "bento_runtime.h"
 
-#include "bento_gpio.h"
-
 enum { /* the panel's three colours */
-       LED_COUNT = 3
+    LED_COUNT = 3
 };
 
 enum { /* layout, px */
-       TITLE_X = 24,
-       TITLE_Y = 8,
-       STATUS_X = 360,
-       STATUS_Y = 12,
-       ROW_TOP = 52,   /* the first row's top edge */
-       ROW_PITCH = 120, /* a button 88 high + 32 between touch targets */
-       LAMP_X = 24,
-       LAMP_DY = 20,
-       LAMP_SIZE = 48,
-       NAME_X = 88,
-       NAME_DY = 32,
-       ON_X = 184,
-       OFF_X = 360,
-       ROW_BUTTON_W = 144,
-       BUTTON_H = 88,
-       CARD_X = 520,
-       CARD_Y = 48,
-       CARD_W = 248,
-       CARD_H = 308,
-       CARD_RADIUS = 12,
-       CARD_INNER_X = 536,
-       COUNT_Y = 60,
-       SET_LABEL_Y = 96,
-       ALL_ON_Y = 132,
-       ALL_OFF_Y = 252,
-       ALL_W = 216,
-       BOX_X = 48,
-       BOX_Y = 88,
-       BOX_W = 496,
-       BOX_H = 160,
-       ANSWER_X = 568,
-       YES_Y = 88,
-       NO_Y = 208,
-       ANSWER_W = 152
+    TITLE_X = 24,
+    TITLE_Y = 8,
+    STATUS_X = 360,
+    STATUS_Y = 12,
+    ROW_TOP = 52,    /* the first row's top edge */
+    ROW_PITCH = 120, /* a button 88 high + 32 between touch targets */
+    LAMP_X = 24,
+    LAMP_DY = 20,
+    LAMP_SIZE = 48,
+    NAME_X = 88,
+    NAME_DY = 32,
+    ON_X = 184,
+    OFF_X = 360,
+    ROW_BUTTON_W = 144,
+    BUTTON_H = 88,
+    CARD_X = 520,
+    CARD_Y = 48,
+    CARD_W = 248,
+    CARD_H = 308,
+    CARD_RADIUS = 12,
+    CARD_INNER_X = 536,
+    COUNT_Y = 60,
+    SET_LABEL_Y = 96,
+    ALL_ON_Y = 132,
+    ALL_OFF_Y = 252,
+    ALL_W = 216,
+    BOX_X = 48,
+    BOX_Y = 88,
+    BOX_W = 496,
+    BOX_H = 160,
+    ANSWER_X = 568,
+    YES_Y = 88,
+    NO_Y = 208,
+    ANSWER_W = 152
 };
 
 enum { /* font sizes, px */
-       FONT_TITLE = 28,
-       FONT_VALUE = 20,
-       FONT_SMALL = 16
+    FONT_TITLE = 28,
+    FONT_VALUE = 20,
+    FONT_SMALL = 16
 };
 
-enum { /* times, ms */
-       CLEAR_MS = 200, /* let CM55 finish clearing before new commands */
-       LOOP_MS = 50
+enum {              /* times, ms */
+    CLEAR_MS = 200, /* let CM55 finish clearing before new commands */
+    LOOP_MS = 50
 };
 
 enum { /* colours, 0xRRGGBB */
-       COLOR_TEXT = 0xE8EAED,
-       COLOR_DIM = 0x9AA3AF,
-       COLOR_CARD = 0x171B22,
-       COLOR_GO = 0x30A46C,
-       COLOR_STOP = 0x3A4150
+    COLOR_TEXT = 0xE8EAED,
+    COLOR_DIM = 0x9AA3AF,
+    COLOR_CARD = 0x171B22,
+    COLOR_GO = 0x30A46C,
+    COLOR_STOP = 0x3A4150
 };
 
 enum { /* "ติดอยู่ " + any int32_t + " จาก " + any int32_t + " ดวง" */
-       TEXT_BYTES = 96
+    TEXT_BYTES = 96
 };
 
-static const char *const BUTTON_TEXT[LED_COUNT] = {"แดง", "เขียว", "น้ำเงิน"};
-static const uint32_t COLOR_ON[LED_COUNT] = {0xE53935U, 0x43A047U, 0x1E88E5U};
+static const char *const BUTTON_TEXT[LED_COUNT] = {"แดง", "เขียว",
+                                                   "น้ำเงิน"};
+static const uint32_t COLOR_ON[LED_COUNT] = {0xE53935U, 0x43A047U,
+                                             0x1E88E5U};
 
 /* The panel's widgets and its truth: led_on is what the program
  * commanded, never read back from the pins. */
@@ -139,7 +140,8 @@ static int16_t px(int32_t value)
 }
 
 /* A setter's refusal was ignored by MicroPython too (modui.c). */
-static void set_text(bento_ui_t *ui, bento_ui_id_t widget, const char *text)
+static void set_text(bento_ui_t *ui, bento_ui_id_t widget,
+                     const char *text)
 {
     (void)bento_ui_set_text(ui, widget, text, (uint32_t)strlen(text));
 }
@@ -149,8 +151,9 @@ static void set_shown(bento_ui_t *ui, bento_ui_id_t widget, bool shown)
     (void)bento_ui_set_visible(ui, widget, shown ? 1U : 0U);
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, const rect_t *place,
-                                uint32_t color, int32_t font_px, bento_ui_id_t *out_id)
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                const rect_t *place, uint32_t color,
+                                int32_t font_px, bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -164,8 +167,9 @@ static bento_status_t add_label(bento_ui_t *ui, const char *text, const rect_t *
     return bento_ui_label_create(ui, &args, out_id);
 }
 
-static bento_status_t add_button(bento_ui_t *ui, const char *text, const rect_t *place,
-                                 uint32_t color, bento_ui_id_t *out_id)
+static bento_status_t add_button(bento_ui_t *ui, const char *text,
+                                 const rect_t *place, uint32_t color,
+                                 bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -190,8 +194,8 @@ static bool find_led(const char *wanted, uint32_t *led)
     uint32_t i;
 
     for (i = 0U; (i < count) && !found; i++) {
-        if ((bento_gpio_led_name(i, &name) == BENTO_OK) && (name != NULL) &&
-            (strcmp(name, wanted) == 0)) {
+        if ((bento_gpio_led_name(i, &name) == BENTO_OK) &&
+            (name != NULL) && (strcmp(name, wanted) == 0)) {
             *led = i;
             found = true;
         }
@@ -203,7 +207,8 @@ static bool find_led(const char *wanted, uint32_t *led)
  * (Eva Kit: LED 2 is blue although it is called "RGB_RED"). */
 static void pick_leds(panel_t *panel)
 {
-    static const char *const RGB_NAMES[LED_COUNT] = {"RGB_RED", "RGB_GREEN", "RGB_BLUE"};
+    static const char *const RGB_NAMES[LED_COUNT] = {
+        "RGB_RED", "RGB_GREEN", "RGB_BLUE"};
     uint32_t found[LED_COUNT] = {0U};
     bool all_found = true;
     uint32_t i;
@@ -222,11 +227,12 @@ static bento_status_t add_title(panel_t *panel)
     const rect_t status_place = {STATUS_X, STATUS_Y, 0, 0};
     bento_ui_id_t unused;
     bento_status_t status =
-        add_label(panel->ui, "แผงควบคุม LED ของทีม", &title, COLOR_TEXT, FONT_TITLE, &unused);
+        add_label(panel->ui, "แผงควบคุม LED ของทีม", &title, COLOR_TEXT,
+                  FONT_TITLE, &unused);
 
     if (status == BENTO_OK) {
-        status = add_label(panel->ui, "พร้อมรับคำสั่ง", &status_place, COLOR_DIM, FONT_VALUE,
-                           &panel->status);
+        status = add_label(panel->ui, "พร้อมรับคำสั่ง", &status_place,
+                           COLOR_DIM, FONT_VALUE, &panel->status);
     }
     return status;
 }
@@ -251,8 +257,8 @@ static bento_status_t add_row(panel_t *panel, uint32_t row)
     args.font_px = 0;
     status = bento_ui_led_create(panel->ui, &args, &panel->lamps[row]);
     if (status == BENTO_OK) {
-        status =
-            add_label(panel->ui, BUTTON_TEXT[row], &name_place, COLOR_DIM, FONT_SMALL, &unused);
+        status = add_label(panel->ui, BUTTON_TEXT[row], &name_place,
+                           COLOR_DIM, FONT_SMALL, &unused);
     }
     if (status == BENTO_OK) {
         status = add_button(panel->ui, "เปิด", &on_place, COLOR_GO,
@@ -275,8 +281,10 @@ static bento_status_t add_set_card(panel_t *panel)
     char text[TEXT_BYTES];
     const rect_t count_place = {CARD_INNER_X, COUNT_Y, 0, 0};
     const rect_t set_place = {CARD_INNER_X, SET_LABEL_Y, 0, 0};
-    const rect_t all_on_place = {CARD_INNER_X, ALL_ON_Y, ALL_W, BUTTON_H};
-    const rect_t all_off_place = {CARD_INNER_X, ALL_OFF_Y, ALL_W, BUTTON_H};
+    const rect_t all_on_place = {CARD_INNER_X, ALL_ON_Y, ALL_W,
+                                 BUTTON_H};
+    const rect_t all_off_place = {CARD_INNER_X, ALL_OFF_Y, ALL_W,
+                                  BUTTON_H};
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
     bento_status_t status;
@@ -292,19 +300,22 @@ static bento_status_t add_set_card(panel_t *panel)
     args.font_px = 1;
     status = bento_ui_panel_create(panel->ui, &args, &unused);
     if (status == BENTO_OK) {
-        (void)snprintf(text, sizeof(text), "ติดอยู่ 0 จาก %d ดวง", (int)LED_COUNT);
-        status = add_label(panel->ui, text, &count_place, COLOR_TEXT, FONT_VALUE,
-                           &panel->count_label);
+        (void)snprintf(text, sizeof(text), "ติดอยู่ 0 จาก %d ดวง",
+                       (int)LED_COUNT);
+        status = add_label(panel->ui, text, &count_place, COLOR_TEXT,
+                           FONT_VALUE, &panel->count_label);
     }
     if (status == BENTO_OK) {
-        status = add_label(panel->ui, "คำสั่งทั้งชุด", &set_place, COLOR_DIM, FONT_SMALL, &unused);
+        status = add_label(panel->ui, "คำสั่งทั้งชุด", &set_place, COLOR_DIM,
+                           FONT_SMALL, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_button(panel->ui, "เปิดทั้งหมด", &all_on_place, COLOR_GO, &panel->all_on);
+        status = add_button(panel->ui, "เปิดทั้งหมด", &all_on_place,
+                            COLOR_GO, &panel->all_on);
     }
     if (status == BENTO_OK) {
-        status =
-            add_button(panel->ui, "ปิดทั้งหมด", &all_off_place, COLOR_STOP, &panel->all_off);
+        status = add_button(panel->ui, "ปิดทั้งหมด", &all_off_place,
+                            COLOR_STOP, &panel->all_off);
     }
     return status;
 }
@@ -328,10 +339,12 @@ static bento_status_t add_confirm(panel_t *panel)
     args.color = COLOR_CARD;
     status = bento_ui_msgbox_create(panel->ui, &args, &panel->box);
     if (status == BENTO_OK) {
-        status = add_button(panel->ui, "ปิดทั้งหมด", &yes_place, COLOR_STOP, &panel->yes);
+        status = add_button(panel->ui, "ปิดทั้งหมด", &yes_place,
+                            COLOR_STOP, &panel->yes);
     }
     if (status == BENTO_OK) {
-        status = add_button(panel->ui, "ไม่ปิด", &no_place, COLOR_STOP, &panel->no);
+        status = add_button(panel->ui, "ไม่ปิด", &no_place, COLOR_STOP,
+                            &panel->no);
     }
     if (status == BENTO_OK) {
         set_shown(panel->ui, panel->box, false);
@@ -344,7 +357,8 @@ static bento_status_t add_confirm(panel_t *panel)
 static bento_status_t build_screen(panel_t *panel)
 {
     bento_status_t status =
-        bento_ui_screen(panel->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(panel->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
     uint32_t row;
 
     if (status == BENTO_OK) {
@@ -356,7 +370,8 @@ static bento_status_t build_screen(panel_t *panel)
     if (status == BENTO_OK) {
         status = add_title(panel);
     }
-    for (row = 0U; (row < (uint32_t)LED_COUNT) && (status == BENTO_OK); row++) {
+    for (row = 0U; (row < (uint32_t)LED_COUNT) && (status == BENTO_OK);
+         row++) {
         status = add_row(panel, row);
     }
     if (status == BENTO_OK) {
@@ -380,7 +395,8 @@ static void show_status(const panel_t *panel)
             lit++;
         }
     }
-    (void)snprintf(text, sizeof(text), "ติดอยู่ %" PRId32 " จาก %d ดวง", lit, (int)LED_COUNT);
+    (void)snprintf(text, sizeof(text), "ติดอยู่ %" PRId32 " จาก %d ดวง",
+                   lit, (int)LED_COUNT);
     set_text(panel->ui, panel->count_label, text);
 }
 
@@ -398,7 +414,8 @@ static bento_status_t set_led(panel_t *panel, uint32_t row, bool on)
         status = bento_gpio_led_off(panel->led_index[row]);
     }
     if (status == BENTO_OK) {
-        (void)bento_ui_set_value(panel->ui, panel->lamps[row], on ? 1 : 0);
+        (void)bento_ui_set_value(panel->ui, panel->lamps[row],
+                                 on ? 1 : 0);
         show_status(panel);
     }
     return status;
@@ -409,14 +426,16 @@ static bento_status_t set_all(panel_t *panel, bool on)
     bento_status_t status = BENTO_OK;
     uint32_t row;
 
-    for (row = 0U; (row < (uint32_t)LED_COUNT) && (status == BENTO_OK); row++) {
+    for (row = 0U; (row < (uint32_t)LED_COUNT) && (status == BENTO_OK);
+         row++) {
         status = set_led(panel, row, on);
     }
     return status;
 }
 
 /* The row whose button this is, or -1. */
-static int32_t row_of(const bento_ui_id_t *buttons, uint32_t count, bento_ui_id_t widget)
+static int32_t row_of(const bento_ui_id_t *buttons, uint32_t count,
+                      bento_ui_id_t widget)
 {
     int32_t row = -1;
     uint32_t i;
@@ -446,7 +465,8 @@ static void show_confirm(panel_t *panel, bool shown)
 }
 
 /* A command that changes several real things at once asks first. */
-static bento_status_t handle_set_click(panel_t *panel, bento_ui_id_t widget)
+static bento_status_t handle_set_click(panel_t *panel,
+                                       bento_ui_id_t widget)
 {
     bento_status_t status = BENTO_OK;
 
@@ -478,8 +498,10 @@ static bento_status_t handle_set_click(panel_t *panel, bento_ui_id_t widget)
 /* "On" commands on, never a toggle: ten presses act like one. */
 static bento_status_t handle_click(panel_t *panel, bento_ui_id_t widget)
 {
-    const int32_t on_row = row_of(panel->on_buttons, panel->on_count, widget);
-    const int32_t off_row = row_of(panel->off_buttons, panel->off_count, widget);
+    const int32_t on_row =
+        row_of(panel->on_buttons, panel->on_count, widget);
+    const int32_t off_row =
+        row_of(panel->off_buttons, panel->off_count, widget);
     bento_status_t status = BENTO_OK;
 
     if (on_row >= 0) {
@@ -509,8 +531,8 @@ static bento_status_t run_event_loop(panel_t *panel)
 
     while (status == BENTO_OK) {
         /* ui.poll() answers no events when it fails */
-        if (bento_ui_poll(panel->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) !=
-            BENTO_OK) {
+        if (bento_ui_poll(panel->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                          &count, NULL) != BENTO_OK) {
             count = 0U;
         }
         for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
@@ -542,7 +564,8 @@ int main(void)
     }
     if (status == BENTO_OK) {
         panel.asking = false;
-        (void)printf("แผงควบคุมพร้อมแล้ว แตะปุ่มบนจอ แล้วมองหลอดไฟจริงบนบอร์ดด้วย\n");
+        (void)printf(
+            "แผงควบคุมพร้อมแล้ว แตะปุ่มบนจอ แล้วมองหลอดไฟจริงบนบอร์ดด้วย\n");
         status = run_event_loop(&panel);
     }
     return (status == BENTO_E_CANCELLED) ? 0 : (int)status;

@@ -33,9 +33,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_fmt.h"
+#include "bento_runtime.h"
 #include "bento_sensors.h"
 #include "bento_time.h"
 
@@ -61,11 +60,13 @@ enum {
 
 /* timing and limits */
 enum {
-    UI_TEXT_MS = 1000, /* a number a person reads changes once a second at most */
-    STALE_MS = 3000,   /* unread longer than this: the numbers are old */
-    LOOP_MS = 200,     /* proven to run a heavy dashboard for a long time */
+    UI_TEXT_MS =
+        1000, /* a number a person reads changes once a second at most */
+    STALE_MS = 3000, /* unread longer than this: the numbers are old */
+    LOOP_MS = 200, /* proven to run a heavy dashboard for a long time */
     SCREEN_SETTLE_MS = 200,
-    CHART_SCALE = 10, /* the chart takes whole numbers: tenths of m/s2 */
+    CHART_SCALE =
+        10, /* the chart takes whole numbers: tenths of m/s2 */
     CHART_LIMIT = 150,
     PERCENT_MAX = 100,
     THRESHOLD_START = 80,
@@ -173,20 +174,24 @@ static bento_status_t wait_ms(uint32_t duration_ms)
 }
 
 /* A setter's refusal was ignored before too (modui.c). */
-static void set_text(const dashboard_t *board, widget_index_t widget, const char *text)
+static void set_text(const dashboard_t *board, widget_index_t widget,
+                     const char *text)
 {
-    (void)bento_ui_set_text(board->ui, board->widgets[widget], text, (uint32_t)strlen(text));
+    (void)bento_ui_set_text(board->ui, board->widgets[widget], text,
+                            (uint32_t)strlen(text));
 }
 
-static void set_value(const dashboard_t *board, widget_index_t widget, int32_t value)
+static void set_value(const dashboard_t *board, widget_index_t widget,
+                      int32_t value)
 {
     (void)bento_ui_set_value(board->ui, board->widgets[widget], value);
 }
 
 /* Creates specs[0..count) into widgets[first..]; the chart gets its Y
  * and Z lines right after it is made, as in the original. */
-static bento_status_t add_widgets(dashboard_t *board, const widget_spec_t *specs, int32_t first,
-                                  int32_t count)
+static bento_status_t add_widgets(dashboard_t *board,
+                                  const widget_spec_t *specs,
+                                  int32_t first, int32_t count)
 {
     bento_ui_widget_args_t args;
     bento_status_t status = BENTO_OK;
@@ -198,7 +203,8 @@ static bento_status_t add_widgets(dashboard_t *board, const widget_spec_t *specs
 
         bento_ui_widget_args_init(&args);
         args.text = spec->text;
-        args.text_len = (spec->text != NULL) ? (uint32_t)strlen(spec->text) : 0U;
+        args.text_len =
+            (spec->text != NULL) ? (uint32_t)strlen(spec->text) : 0U;
         args.x = spec->x;
         args.y = spec->y;
         args.w = spec->w;
@@ -208,11 +214,14 @@ static bento_status_t add_widgets(dashboard_t *board, const widget_spec_t *specs
         args.min_val = spec->min;
         args.max_val = spec->max;
         status = bento_ui_create(board->ui, spec->type, &args, widget);
-        if ((status == BENTO_OK) && (spec->type == (uint8_t)UI_WIDGET_CHART)) {
-            status = bento_ui_chart_add_series(board->ui, *widget, COLOR_NORMAL, &board->series[1]);
+        if ((status == BENTO_OK) &&
+            (spec->type == (uint8_t)UI_WIDGET_CHART)) {
+            status = bento_ui_chart_add_series(
+                board->ui, *widget, COLOR_NORMAL, &board->series[1]);
             if (status == BENTO_OK) {
-                status =
-                    bento_ui_chart_add_series(board->ui, *widget, COLOR_LINE_Z, &board->series[2]);
+                status = bento_ui_chart_add_series(board->ui, *widget,
+                                                   COLOR_LINE_Z,
+                                                   &board->series[2]);
             }
         }
     }
@@ -225,10 +234,14 @@ static bento_status_t add_head(dashboard_t *board)
 {
     static const widget_spec_t specs[W_IMU_CARD - W_STALE_LAMP] = {
         {UI_WIDGET_LED, NULL, 400, 12, 48, 48, COLOR_WARN, 0, 0, 0},
-        {UI_WIDGET_LABEL, "ค่าค้าง", 400, 64, -1, -1, COLOR_GRAY, FONT_SMALL, 0, 0},
-        {UI_WIDGET_BUTTON, "เดินหน้า", 480, 4, 120, 88, COLOR_NORMAL, FONT_BODY, 0, 0},
-        {UI_WIDGET_BUTTON, "หยุดภาพ", 632, 4, 120, 88, COLOR_HOLD, FONT_BODY, 0, 0},
-        {UI_WIDGET_LABEL, "รอบที่ 0 | loop 0 ms", 24, 52, -1, -1, COLOR_GRAY, FONT_SMALL, 0, 0}};
+        {UI_WIDGET_LABEL, "ค่าค้าง", 400, 64, -1, -1, COLOR_GRAY,
+         FONT_SMALL, 0, 0},
+        {UI_WIDGET_BUTTON, "เดินหน้า", 480, 4, 120, 88, COLOR_NORMAL,
+         FONT_BODY, 0, 0},
+        {UI_WIDGET_BUTTON, "หยุดภาพ", 632, 4, 120, 88, COLOR_HOLD,
+         FONT_BODY, 0, 0},
+        {UI_WIDGET_LABEL, "รอบที่ 0 | loop 0 ms", 24, 52, -1, -1,
+         COLOR_GRAY, FONT_SMALL, 0, 0}};
     bento_ui_widget_args_t args;
     char text[TEXT_BYTES];
     bento_status_t status;
@@ -241,9 +254,11 @@ static bento_status_t add_head(dashboard_t *board)
     args.y = TITLE_Y;
     args.color = COLOR_WHITE;
     args.font_px = FONT_HEAD;
-    status = bento_ui_label_create(board->ui, &args, &board->widgets[W_TITLE]);
+    status = bento_ui_label_create(board->ui, &args,
+                                   &board->widgets[W_TITLE]);
     if (status == BENTO_OK) {
-        status = add_widgets(board, specs, W_STALE_LAMP, W_IMU_CARD - W_STALE_LAMP);
+        status = add_widgets(board, specs, W_STALE_LAMP,
+                             W_IMU_CARD - W_STALE_LAMP);
     }
     return status;
 }
@@ -254,19 +269,27 @@ static bento_status_t add_head(dashboard_t *board)
 static bento_status_t add_top_cards(dashboard_t *board)
 {
     static const widget_spec_t specs[W_TOUCH_CARD - W_IMU_CARD] = {
-        {UI_WIDGET_PANEL, NULL, 24, 100, 368, 136, COLOR_CARD, CARD_EDGE_PX, COLOR_IMU,
-         CARD_RADIUS},
-        {UI_WIDGET_LABEL, "ความเร่ง BMI270 (m/s2)", 40, 108, -1, -1, COLOR_IMU, FONT_SMALL, 0, 0},
-        {UI_WIDGET_CHART, NULL, 40, 136, 336, 56, COLOR_IMU, 0, -CHART_LIMIT, CHART_LIMIT},
-        {UI_WIDGET_LABEL, "X+0.0 Y+0.0 Z+9.8", 40, 200, -1, -1, COLOR_WHITE, FONT_BODY, 0, 0},
-        {UI_WIDGET_PANEL, NULL, 408, 100, 360, 136, COLOR_CARD, CARD_EDGE_PX, COLOR_COMPASS,
-         CARD_RADIUS},
-        {UI_WIDGET_LABEL, "เข็มทิศ BMM350", 424, 108, -1, -1, COLOR_COMPASS, FONT_SMALL, 0, 0},
-        {UI_WIDGET_COMPASS, NULL, 424, 132, 96, 96, COLOR_COMPASS, 0, 0, 0},
-        {UI_WIDGET_LABEL, "000 deg", 544, 140, -1, -1, COLOR_WHITE, FONT_BIG, 0, 0},
-        {UI_WIDGET_LABEL, "N", 544, 188, -1, -1, COLOR_COMPASS, FONT_HEAD, 0, 0}};
+        {UI_WIDGET_PANEL, NULL, 24, 100, 368, 136, COLOR_CARD,
+         CARD_EDGE_PX, COLOR_IMU, CARD_RADIUS},
+        {UI_WIDGET_LABEL, "ความเร่ง BMI270 (m/s2)", 40, 108, -1, -1,
+         COLOR_IMU, FONT_SMALL, 0, 0},
+        {UI_WIDGET_CHART, NULL, 40, 136, 336, 56, COLOR_IMU, 0,
+         -CHART_LIMIT, CHART_LIMIT},
+        {UI_WIDGET_LABEL, "X+0.0 Y+0.0 Z+9.8", 40, 200, -1, -1,
+         COLOR_WHITE, FONT_BODY, 0, 0},
+        {UI_WIDGET_PANEL, NULL, 408, 100, 360, 136, COLOR_CARD,
+         CARD_EDGE_PX, COLOR_COMPASS, CARD_RADIUS},
+        {UI_WIDGET_LABEL, "เข็มทิศ BMM350", 424, 108, -1, -1,
+         COLOR_COMPASS, FONT_SMALL, 0, 0},
+        {UI_WIDGET_COMPASS, NULL, 424, 132, 96, 96, COLOR_COMPASS, 0, 0,
+         0},
+        {UI_WIDGET_LABEL, "000 deg", 544, 140, -1, -1, COLOR_WHITE,
+         FONT_BIG, 0, 0},
+        {UI_WIDGET_LABEL, "N", 544, 188, -1, -1, COLOR_COMPASS,
+         FONT_HEAD, 0, 0}};
 
-    return add_widgets(board, specs, W_IMU_CARD, W_TOUCH_CARD - W_IMU_CARD);
+    return add_widgets(board, specs, W_IMU_CARD,
+                       W_TOUCH_CARD - W_IMU_CARD);
 }
 
 /* The bottom row: touch strip (left) and the knob with its alarm
@@ -275,35 +298,49 @@ static bento_status_t add_top_cards(dashboard_t *board)
 static bento_status_t add_bottom_cards(dashboard_t *board)
 {
     static const widget_spec_t specs[W_COUNT - W_TOUCH_CARD] = {
-        {UI_WIDGET_PANEL, NULL, 24, 252, 320, 136, COLOR_CARD, CARD_EDGE_PX, COLOR_TOUCH,
-         CARD_RADIUS},
-        {UI_WIDGET_LABEL, "แถบสัมผัส CapSense", 40, 260, -1, -1, COLOR_TOUCH, FONT_SMALL, 0, 0},
+        {UI_WIDGET_PANEL, NULL, 24, 252, 320, 136, COLOR_CARD,
+         CARD_EDGE_PX, COLOR_TOUCH, CARD_RADIUS},
+        {UI_WIDGET_LABEL, "แถบสัมผัส CapSense", 40, 260, -1, -1,
+         COLOR_TOUCH, FONT_SMALL, 0, 0},
         {UI_WIDGET_LED, NULL, 40, 288, 48, 48, COLOR_TOUCH, 0, 0, 0},
-        {UI_WIDGET_LABEL, "ปุ่ม 0", 96, 300, -1, -1, COLOR_GRAY, FONT_SMALL, 0, 0},
+        {UI_WIDGET_LABEL, "ปุ่ม 0", 96, 300, -1, -1, COLOR_GRAY,
+         FONT_SMALL, 0, 0},
         {UI_WIDGET_LED, NULL, 160, 288, 48, 48, COLOR_TOUCH, 0, 0, 0},
-        {UI_WIDGET_LABEL, "ปุ่ม 1", 216, 300, -1, -1, COLOR_GRAY, FONT_SMALL, 0, 0},
-        {UI_WIDGET_LABEL, "0 %", 272, 256, -1, -1, COLOR_WHITE, FONT_BODY, 0, 0},
-        {UI_WIDGET_BAR, NULL, 40, 348, 288, 16, COLOR_TOUCH, 0, 0, PERCENT_MAX},
-        {UI_WIDGET_PANEL, NULL, 360, 252, 408, 136, COLOR_CARD, CARD_EDGE_PX, COLOR_POT,
-         CARD_RADIUS},
-        {UI_WIDGET_LABEL, "ลูกบิด Potentiometer", 376, 260, -1, -1, COLOR_POT, FONT_SMALL, 0, 0},
+        {UI_WIDGET_LABEL, "ปุ่ม 1", 216, 300, -1, -1, COLOR_GRAY,
+         FONT_SMALL, 0, 0},
+        {UI_WIDGET_LABEL, "0 %", 272, 256, -1, -1, COLOR_WHITE,
+         FONT_BODY, 0, 0},
+        {UI_WIDGET_BAR, NULL, 40, 348, 288, 16, COLOR_TOUCH, 0, 0,
+         PERCENT_MAX},
+        {UI_WIDGET_PANEL, NULL, 360, 252, 408, 136, COLOR_CARD,
+         CARD_EDGE_PX, COLOR_POT, CARD_RADIUS},
+        {UI_WIDGET_LABEL, "ลูกบิด Potentiometer", 376, 260, -1, -1,
+         COLOR_POT, FONT_SMALL, 0, 0},
         {UI_WIDGET_ARC, NULL, 376, 288, 88, 88, 0U, 0, 0, PERCENT_MAX},
-        {UI_WIDGET_SEG7, NULL, 480, 288, 112, 44, COLOR_POT, 0, 0, PERCENT_MAX},
-        {UI_WIDGET_LABEL, "0.000 V", 480, 340, -1, -1, COLOR_WHITE, FONT_BODY, 0, 0},
-        {UI_WIDGET_LABEL, "เกณฑ์ (%)", 600, 260, -1, -1, COLOR_GRAY, FONT_SMALL, 0, 0},
-        {UI_WIDGET_SPINBOX, NULL, 600, 288, 88, 88, COLOR_WHITE, THRESHOLD_START, 0, PERCENT_MAX},
-        {UI_WIDGET_LABEL, "เกิน", 704, 260, -1, -1, COLOR_GRAY, FONT_SMALL, 0, 0},
+        {UI_WIDGET_SEG7, NULL, 480, 288, 112, 44, COLOR_POT, 0, 0,
+         PERCENT_MAX},
+        {UI_WIDGET_LABEL, "0.000 V", 480, 340, -1, -1, COLOR_WHITE,
+         FONT_BODY, 0, 0},
+        {UI_WIDGET_LABEL, "เกณฑ์ (%)", 600, 260, -1, -1, COLOR_GRAY,
+         FONT_SMALL, 0, 0},
+        {UI_WIDGET_SPINBOX, NULL, 600, 288, 88, 88, COLOR_WHITE,
+         THRESHOLD_START, 0, PERCENT_MAX},
+        {UI_WIDGET_LABEL, "เกิน", 704, 260, -1, -1, COLOR_GRAY,
+         FONT_SMALL, 0, 0},
         {UI_WIDGET_LED, NULL, 704, 288, 48, 48, COLOR_ALERT, 0, 0, 0}};
 
-    return add_widgets(board, specs, W_TOUCH_CARD, W_COUNT - W_TOUCH_CARD);
+    return add_widgets(board, specs, W_TOUCH_CARD,
+                       W_COUNT - W_TOUCH_CARD);
 }
 
 /* '%.<digits>f' as the board writes it; "" when it cannot be written. */
-static void real_text(bento_real_t value, int32_t digits, char *text, size_t cap)
+static void real_text(bento_real_t value, int32_t digits, char *text,
+                      size_t cap)
 {
     uint32_t length = 0U;
 
-    if (bento_fmt_real_precision(text, (uint32_t)cap, value, digits, &length) != BENTO_OK) {
+    if (bento_fmt_real_precision(text, (uint32_t)cap, value, digits,
+                                 &length) != BENTO_OK) {
         text[0] = '\0';
     }
 }
@@ -314,7 +351,8 @@ static void signed_text(bento_real_t value, char *text, size_t cap)
     char digits[BENTO_FMT_BUF_SIZE];
 
     real_text(value, 1, digits, sizeof(digits));
-    (void)snprintf(text, cap, "%s%s", (digits[0] == '-') ? "" : "+", digits);
+    (void)snprintf(text, cap, "%s%s", (digits[0] == '-') ? "" : "+",
+                   digits);
 }
 
 /* Python's x % 360.0: the remainder has the divisor's sign. */
@@ -345,11 +383,15 @@ static bool read_motion(dashboard_t *board)
         readings->accel[1] = (bento_real_t)imu.ay;
         readings->accel[2] = (bento_real_t)imu.az;
     }
-    for (axis = 0; axis < (int32_t)(sizeof(board->series) / sizeof(board->series[0])); axis++) {
-        const bento_real_t scaled = readings->accel[axis] * (bento_real_t)CHART_SCALE;
+    for (axis = 0; axis < (int32_t)(sizeof(board->series) /
+                                    sizeof(board->series[0]));
+         axis++) {
+        const bento_real_t scaled =
+            readings->accel[axis] * (bento_real_t)CHART_SCALE;
 
-        (void)bento_ui_chart_set_next(board->ui, board->widgets[W_IMU_CHART], board->series[axis],
-                                      (int32_t)scaled);
+        (void)bento_ui_chart_set_next(
+            board->ui, board->widgets[W_IMU_CHART], board->series[axis],
+            (int32_t)scaled);
     }
     return ok;
 }
@@ -373,8 +415,9 @@ static bool read_compass(dashboard_t *board)
 static bool read_touch(dashboard_t *board)
 {
     readings_t *readings = &board->readings;
-    const bool ok = bento_sensors_capsense_read(&readings->touch0, &readings->touch1,
-                                                &readings->slider) == BENTO_OK;
+    const bool ok = bento_sensors_capsense_read(
+                        &readings->touch0, &readings->touch1,
+                        &readings->slider) == BENTO_OK;
 
     if (!ok) {
         readings->touch0 = 0U;
@@ -423,8 +466,10 @@ static void read_sensors(dashboard_t *board)
 static void show_lamps(dashboard_t *board)
 {
     const bool stale =
-        bento_time_ticks_diff(bento_time_ticks_ms(), board->good_ms) >= (int32_t)STALE_MS;
-    const bool alarm = board->readings.percent >= (bento_real_t)board->threshold;
+        bento_time_ticks_diff(bento_time_ticks_ms(), board->good_ms) >=
+        (int32_t)STALE_MS;
+    const bool alarm =
+        board->readings.percent >= (bento_real_t)board->threshold;
 
     if (stale != board->stale_shown) {
         board->stale_shown = stale;
@@ -439,8 +484,8 @@ static void show_lamps(dashboard_t *board)
 /* The compass card's two texts: "{:03.0f} deg" and the direction. */
 static void show_heading(const dashboard_t *board)
 {
-    static const char *const directions[DIRECTION_COUNT] = {"N", "NE", "E", "SE",
-                                                            "S", "SW", "W", "NW"};
+    static const char *const directions[DIRECTION_COUNT] = {
+        "N", "NE", "E", "SE", "S", "SW", "W", "NW"};
     const bento_real_t half_sector = (bento_real_t)22.5;
     const bento_real_t sector = (bento_real_t)45.0;
     const bento_real_t heading = board->readings.heading;
@@ -453,10 +498,12 @@ static void show_heading(const dashboard_t *board)
     real_text(heading, 0, digits, sizeof(digits));
     length = strlen(digits);
     (void)snprintf(text, sizeof(text), "%s%s deg",
-                   (length < (size_t)HEADING_PAD) ? &zeros[length] : "", digits);
+                   (length < (size_t)HEADING_PAD) ? &zeros[length] : "",
+                   digits);
     set_text(board, W_COMPASS_DEGREES, text);
     set_text(board, W_COMPASS_DIRECTION,
-             directions[(int32_t)(shifted / sector) % (int32_t)DIRECTION_COUNT]);
+             directions[(int32_t)(shifted / sector) %
+                        (int32_t)DIRECTION_COUNT]);
 }
 
 /* The numbers a person reads, once a second. A Seg7 takes text, not a
@@ -473,22 +520,27 @@ static void show_numbers(dashboard_t *board)
     signed_text(readings->accel[0], x_text, sizeof(x_text));
     signed_text(readings->accel[1], y_text, sizeof(y_text));
     signed_text(readings->accel[2], z_text, sizeof(z_text));
-    (void)snprintf(text, sizeof(text), "X%s Y%s Z%s", x_text, y_text, z_text);
+    (void)snprintf(text, sizeof(text), "X%s Y%s Z%s", x_text, y_text,
+                   z_text);
     set_text(board, W_IMU_VALUE, text);
     show_heading(board);
-    (void)snprintf(text, sizeof(text), "%d %%", board->running ? (int)readings->slider : 0);
+    (void)snprintf(text, sizeof(text), "%d %%",
+                   board->running ? (int)readings->slider : 0);
     set_text(board, W_TOUCH_PERCENT, text);
     real_text(readings->percent, 1, text, sizeof(text));
     set_text(board, W_POT_SEG7, text);
     real_text(readings->volts, 3, x_text, sizeof(x_text));
     (void)snprintf(text, sizeof(text), "%s V", x_text);
     set_text(board, W_POT_VOLTS, text);
-    (void)snprintf(text, sizeof(text), "รอบที่ %d | loop %d ms", (int)board->rounds,
-                   (int)bento_time_ticks_diff(bento_time_ticks_ms(), board->round_start_ms));
+    (void)snprintf(text, sizeof(text), "รอบที่ %d | loop %d ms",
+                   (int)board->rounds,
+                   (int)bento_time_ticks_diff(bento_time_ticks_ms(),
+                                              board->round_start_ms));
     set_text(board, W_HEAD, text);
 }
 
-static bool event_is(const bento_ui_event_t *event, uint8_t kind, bento_ui_id_t widget)
+static bool event_is(const bento_ui_event_t *event, uint8_t kind,
+                     bento_ui_id_t widget)
 {
     return (event->type == kind) && (event->id == widget);
 }
@@ -501,13 +553,16 @@ static void handle_events(dashboard_t *board)
     uint32_t count = 0U;
     uint32_t i;
 
-    if (bento_ui_poll(board->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+    if (bento_ui_poll(board->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
         count = 0U; /* ui.poll() answers no events when it fails */
     }
     for (i = 0U; i < count; i++) {
-        if (event_is(&events[i], BENTO_UI_EVENT_CLICKED, board->widgets[W_RUN])) {
+        if (event_is(&events[i], BENTO_UI_EVENT_CLICKED,
+                     board->widgets[W_RUN])) {
             board->running = true;
-        } else if (event_is(&events[i], BENTO_UI_EVENT_CLICKED, board->widgets[W_HOLD])) {
+        } else if (event_is(&events[i], BENTO_UI_EVENT_CLICKED,
+                            board->widgets[W_HOLD])) {
             board->running = false;
         } else if (event_is(&events[i], BENTO_UI_EVENT_VALUE_CHANGED,
                             board->widgets[W_THRESHOLD])) {
@@ -526,7 +581,9 @@ static bento_status_t run_round(dashboard_t *board)
         read_sensors(board);
     }
     show_lamps(board);
-    if (bento_time_ticks_diff(bento_time_ticks_ms(), board->last_text_ms) >= (int32_t)UI_TEXT_MS) {
+    if (bento_time_ticks_diff(bento_time_ticks_ms(),
+                              board->last_text_ms) >=
+        (int32_t)UI_TEXT_MS) {
         show_numbers(board);
     }
     board->rounds++;
@@ -568,7 +625,8 @@ static bento_status_t build_screen(dashboard_t *board)
 
 int main(void)
 {
-    const bento_real_t gravity = (bento_real_t)9.81; /* until the first read answers */
+    const bento_real_t gravity =
+        (bento_real_t)9.81; /* until the first read answers */
     dashboard_t board;
     bento_status_t status;
 
@@ -581,14 +639,19 @@ int main(void)
     if (status == BENTO_OK) {
         board.last_text_ms = bento_time_ticks_ms();
         board.good_ms = bento_time_ticks_ms();
-        (void)printf("s08 dashboard started - 64 widgets - cadence 200 ms\n");
+        (void)printf(
+            "s08 dashboard started - 64 widgets - cadence 200 ms\n");
     }
     while (status == BENTO_OK) {
         status = run_round(&board);
     }
-    if ((status == BENTO_E_CANCELLED) && bento_runtime_acknowledge_stop()) {
-        (void)bento_ui_clear(board.ui); /* a refused CLEAR_ALL is ignored, as modui.c does */
-        (void)printf("dashboard stopped after %d rounds\n", (int)board.rounds);
+    if ((status == BENTO_E_CANCELLED) &&
+        bento_runtime_acknowledge_stop()) {
+        (void)bento_ui_clear(
+            board
+                .ui); /* a refused CLEAR_ALL is ignored, as modui.c does */
+        (void)printf("dashboard stopped after %d rounds\n",
+                     (int)board.rounds);
     }
     return (status == BENTO_E_CANCELLED) ? 0 : (int)status;
 }

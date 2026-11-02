@@ -33,22 +33,23 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_gpio.h"
 #include "bento_lcd.h"
+#include "bento_runtime.h"
 #include "bento_time.h"
 
-enum { /* the four values to play with */
-    STEP_MS = 150,    /* the chase's pace */
-    DEBOUNCE_MS = 40, /* stillness before a value is believed (under 10 bounces, over 200 lags) */
-    POLL_MS = 5,      /* how often the loop reads the button */
-    RUN_MS = 30000    /* the life of this run */
+enum {             /* the four values to play with */
+    STEP_MS = 150, /* the chase's pace */
+    DEBOUNCE_MS =
+        40, /* stillness before a value is believed (under 10 bounces, over 200 lags) */
+    POLL_MS = 5,   /* how often the loop reads the button */
+    RUN_MS = 30000 /* the life of this run */
 };
 
 enum { /* other times, ms */
     SETTLE_MS = 200,
-    UI_MS = 100, /* the screen is updated every 100 ms, not every loop round */
+    UI_MS =
+        100, /* the screen is updated every 100 ms, not every loop round */
     MS_PER_SECOND = 1000
 };
 
@@ -144,10 +145,11 @@ enum { /* colours, 0xRRGGBB */
 };
 
 enum { /* text buffers */
-    LINE_BYTES = 256,  /* a console line before lcd cuts it at 127 bytes */
+    LINE_BYTES =
+        256, /* a console line before lcd cuts it at 127 bytes */
     LABEL_BYTES = 64,  /* a short label with a number */
     NUMBER_BYTES = 12, /* any int32_t with its sign and NUL */
-    USER_BUTTON = 0    /* gpio opens one button on both boards: index 0 */
+    USER_BUTTON = 0 /* gpio opens one button on both boards: index 0 */
 };
 
 /* Where a button goes. */
@@ -179,7 +181,8 @@ typedef struct {
     panel_t panel;
     const char *button_name;
     uint32_t led_count;
-    uint32_t led_index; /* kept here: led.value() reads the pin, not what was asked */
+    uint32_t
+        led_index; /* kept here: led.value() reads the pin, not what was asked */
     int32_t count;
     bool raw;
     bool last_raw;
@@ -215,11 +218,13 @@ static void drain_events(bento_ui_t *ui)
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
 
-    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
 }
 
 /* The widget setters ignore a refusal, as modui.c does. */
-static void set_text(bento_ui_t *ui, bento_ui_id_t widget, const char *text)
+static void set_text(bento_ui_t *ui, bento_ui_id_t widget,
+                     const char *text)
 {
     (void)bento_ui_set_text(ui, widget, text, (uint32_t)strlen(text));
 }
@@ -229,8 +234,9 @@ static void set_shown(bento_ui_t *ui, bento_ui_id_t widget, bool shown)
     (void)bento_ui_set_visible(ui, widget, shown ? 1U : 0U);
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, int32_t x, int32_t y,
-                                uint32_t color, int32_t size_px, bento_ui_id_t *out_id)
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                int32_t x, int32_t y, uint32_t color,
+                                int32_t size_px, bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -244,14 +250,16 @@ static bento_status_t add_label(bento_ui_t *ui, const char *text, int32_t x, int
     return bento_ui_label_create(ui, &args, out_id);
 }
 
-static bento_status_t add_note(bento_ui_t *ui, const char *text, int32_t x, int32_t y)
+static bento_status_t add_note(bento_ui_t *ui, const char *text,
+                               int32_t x, int32_t y)
 {
     bento_ui_id_t unused = 0U;
 
     return add_label(ui, text, x, y, COLOR_DIM, NOTE_PX, &unused);
 }
 
-static bento_status_t add_card(bento_ui_t *ui, int32_t x, int32_t y, int32_t w, int32_t h)
+static bento_status_t add_card(bento_ui_t *ui, int32_t x, int32_t y,
+                               int32_t w, int32_t h)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t unused = 0U;
@@ -268,7 +276,8 @@ static bento_status_t add_card(bento_ui_t *ui, int32_t x, int32_t y, int32_t w, 
     return bento_ui_panel_create(ui, &args, &unused);
 }
 
-static bento_status_t add_light(bento_ui_t *ui, int32_t x, int32_t y, int32_t size, uint32_t color,
+static bento_status_t add_light(bento_ui_t *ui, int32_t x, int32_t y,
+                                int32_t size, uint32_t color,
                                 bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
@@ -283,8 +292,9 @@ static bento_status_t add_light(bento_ui_t *ui, int32_t x, int32_t y, int32_t si
     return bento_ui_led_create(ui, &args, out_id);
 }
 
-static bento_status_t add_button(bento_ui_t *ui, const char *text, const rect_t *place,
-                                 uint32_t color, bento_ui_id_t *out_id)
+static bento_status_t add_button(bento_ui_t *ui, const char *text,
+                                 const rect_t *place, uint32_t color,
+                                 bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -307,13 +317,15 @@ static bento_status_t greet(chase_t *chase)
 {
     bento_gpio_board_info_t info;
     char line[LINE_BYTES];
-    bento_status_t status = (bento_gpio_num_buttons() > (uint32_t)USER_BUTTON)
-                                ? BENTO_OK
-                                : BENTO_E_INVALID_ARGUMENT;
+    bento_status_t status =
+        (bento_gpio_num_buttons() > (uint32_t)USER_BUTTON)
+            ? BENTO_OK
+            : BENTO_E_INVALID_ARGUMENT;
 
     chase->led_count = bento_gpio_num_leds();
     if (status == BENTO_OK) {
-        status = bento_gpio_button_name(USER_BUTTON, &chase->button_name);
+        status =
+            bento_gpio_button_name(USER_BUTTON, &chase->button_name);
     }
     if (status == BENTO_OK) {
         bento_gpio_board_info_init(&info);
@@ -322,12 +334,15 @@ static bento_status_t greet(chase_t *chase)
     if (status == BENTO_OK) {
         (void)bento_lcd_clear();
         (void)bento_lcd_console("<h2>AIoT in Action - คาบ 3</h2>");
-        (void)snprintf(line, sizeof(line), "บอร์ด: %s | LED: %" PRIu32 " | ปุ่ม: %" PRIu32,
+        (void)snprintf(line, sizeof(line),
+                       "บอร์ด: %s | LED: %" PRIu32 " | ปุ่ม: %" PRIu32,
                        info.name, info.leds, info.buttons);
         (void)bento_lcd_print(line);
         /* two calls: together they pass 127 bytes and would be cut silently */
-        (void)bento_lcd_print("<span class=muted>ปุ่มผู้ใช้มีตัวเดียว ดัชนี 0</span>");
-        (void)snprintf(line, sizeof(line), "<span class=muted>โค้ดเรียกมันว่า %s</span>",
+        (void)bento_lcd_print(
+            "<span class=muted>ปุ่มผู้ใช้มีตัวเดียว ดัชนี 0</span>");
+        (void)snprintf(line, sizeof(line),
+                       "<span class=muted>โค้ดเรียกมันว่า %s</span>",
                        chase->button_name);
         (void)bento_lcd_print(line);
     }
@@ -356,14 +371,17 @@ static bento_status_t add_led_card(chase_t *chase)
     int32_t pitch = PITCH_WIDE;
     int32_t led_w;
     uint32_t i;
-    bento_status_t status = add_card(panel->ui, LEFT_X, TOP_Y, LEFT_W, TOP_H);
+    bento_status_t status =
+        add_card(panel->ui, LEFT_X, TOP_Y, LEFT_W, TOP_H);
 
     if (status == BENTO_OK) {
-        (void)snprintf(text, sizeof(text), "ไฟบนบอร์ด %" PRIu32 " ดวง", chase->led_count);
+        (void)snprintf(text, sizeof(text), "ไฟบนบอร์ด %" PRIu32 " ดวง",
+                       chase->led_count);
         status = add_note(panel->ui, text, LEFT_TEXT_X, TOP_TEXT_Y);
     }
     if ((status == BENTO_OK) && (chase->led_count == 0U)) {
-        status = BENTO_E_INVALID_ARGUMENT; /* the original divides by the LED count */
+        status =
+            BENTO_E_INVALID_ARGUMENT; /* the original divides by the LED count */
     }
     if (status == BENTO_OK) {
         if ((LED_SPACE / (int32_t)chase->led_count) < pitch) {
@@ -373,17 +391,21 @@ static bento_status_t add_led_card(chase_t *chase)
     led_w = (pitch >= PITCH_WIDE) ? LED_WIDE : LED_NARROW;
     for (i = 0U; (i < chase->led_count) && (status == BENTO_OK); i++) {
         const int32_t x = LEFT_TEXT_X + ((int32_t)i * pitch);
-        const int32_t gap = (pitch >= PITCH_WIDE) ? TAG_GAP_WIDE : TAG_GAP_NARROW;
+        const int32_t gap =
+            (pitch >= PITCH_WIDE) ? TAG_GAP_WIDE : TAG_GAP_NARROW;
 
-        status = add_light(panel->ui, x, LED_ROW_Y, led_w, COLOR_OK, &panel->leds[i]);
+        status = add_light(panel->ui, x, LED_ROW_Y, led_w, COLOR_OK,
+                           &panel->leds[i]);
         if (status == BENTO_OK) {
-            (void)snprintf(text, sizeof(text), "%s%" PRIu32, (pitch >= PITCH_WIDE) ? "ดวง " : "",
-                           i + 1U);
-            status = add_note(panel->ui, text, x + led_w + gap, LED_TAG_Y);
+            (void)snprintf(text, sizeof(text), "%s%" PRIu32,
+                           (pitch >= PITCH_WIDE) ? "ดวง " : "", i + 1U);
+            status =
+                add_note(panel->ui, text, x + led_w + gap, LED_TAG_Y);
         }
     }
     if (status == BENTO_OK) {
-        status = add_note(panel->ui, "จอสะท้อนคำสั่ง ไม่ใช่ค่าที่ขาอ่าน", LEFT_TEXT_X, MIRROR_NOTE_Y);
+        status = add_note(panel->ui, "จอสะท้อนคำสั่ง ไม่ใช่ค่าที่ขาอ่าน",
+                          LEFT_TEXT_X, MIRROR_NOTE_Y);
     }
     return status;
 }
@@ -394,21 +416,24 @@ static bento_status_t add_button_card(chase_t *chase)
     panel_t *panel = &chase->panel;
     bento_ui_widget_args_t args;
     char text[LABEL_BYTES];
-    bento_status_t status = add_card(panel->ui, RIGHT_X, TOP_Y, RIGHT_W, TOP_H);
+    bento_status_t status =
+        add_card(panel->ui, RIGHT_X, TOP_Y, RIGHT_W, TOP_H);
 
     if (status == BENTO_OK) {
         (void)snprintf(text, sizeof(text), "ปุ่ม %s", chase->button_name);
         status = add_note(panel->ui, text, RIGHT_TEXT_X, TOP_TEXT_Y);
     }
     if (status == BENTO_OK) {
-        status = add_light(panel->ui, RIGHT_TEXT_X, BUTTON_LIGHT_Y, BUTTON_LIGHT_SIZE, COLOR_RUN,
+        status = add_light(panel->ui, RIGHT_TEXT_X, BUTTON_LIGHT_Y,
+                           BUTTON_LIGHT_SIZE, COLOR_RUN,
                            &panel->button_light);
     }
     if (status == BENTO_OK) {
         status = add_note(panel->ui, "กำลังกด", RIGHT_TEXT_X, PRESSED_Y);
     }
     if (status == BENTO_OK) {
-        status = add_note(panel->ui, "นับได้ (ครั้ง)", COUNT_TITLE_X, COUNT_TITLE_Y);
+        status = add_note(panel->ui, "นับได้ (ครั้ง)", COUNT_TITLE_X,
+                          COUNT_TITLE_Y);
     }
     if (status == BENTO_OK) {
         bento_ui_widget_args_init(&args);
@@ -426,18 +451,24 @@ static bento_status_t add_button_card(chase_t *chase)
 
 static bento_status_t add_command_card(panel_t *panel)
 {
-    const rect_t run_place = {RUN_BUTTON_X, COMMAND_Y, COMMAND_W, COMMAND_H};
-    const rect_t stop_place = {STOP_BUTTON_X, COMMAND_Y, COMMAND_W, COMMAND_H};
-    bento_status_t status = add_card(panel->ui, LEFT_X, BOTTOM_Y, LEFT_W, BOTTOM_H);
+    const rect_t run_place = {RUN_BUTTON_X, COMMAND_Y, COMMAND_W,
+                              COMMAND_H};
+    const rect_t stop_place = {STOP_BUTTON_X, COMMAND_Y, COMMAND_W,
+                               COMMAND_H};
+    bento_status_t status =
+        add_card(panel->ui, LEFT_X, BOTTOM_Y, LEFT_W, BOTTOM_H);
 
     if (status == BENTO_OK) {
-        status = add_note(panel->ui, "คำสั่งไฟวิ่ง", LEFT_TEXT_X, BOTTOM_TEXT_Y);
+        status =
+            add_note(panel->ui, "คำสั่งไฟวิ่ง", LEFT_TEXT_X, BOTTOM_TEXT_Y);
     }
     if (status == BENTO_OK) {
-        status = add_button(panel->ui, "เดินไฟวิ่ง", &run_place, COLOR_RUN_BUTTON, &panel->run);
+        status = add_button(panel->ui, "เดินไฟวิ่ง", &run_place,
+                            COLOR_RUN_BUTTON, &panel->run);
     }
     if (status == BENTO_OK) {
-        status = add_button(panel->ui, "หยุดไฟวิ่ง", &stop_place, COLOR_IDLE_BUTTON, &panel->stop);
+        status = add_button(panel->ui, "หยุดไฟวิ่ง", &stop_place,
+                            COLOR_IDLE_BUTTON, &panel->stop);
     }
     return status;
 }
@@ -448,14 +479,17 @@ static bento_status_t add_time_card(panel_t *panel)
     const int32_t run_s = RUN_MS / MS_PER_SECOND;
     bento_ui_widget_args_t args;
     bento_ui_id_t scale = 0U;
-    bento_status_t status = add_card(panel->ui, RIGHT_X, BOTTOM_Y, RIGHT_W, BOTTOM_H);
+    bento_status_t status =
+        add_card(panel->ui, RIGHT_X, BOTTOM_Y, RIGHT_W, BOTTOM_H);
 
     if (status == BENTO_OK) {
-        status = add_note(panel->ui, "เวลาที่เหลือของรอบนี้", RIGHT_TEXT_X, BOTTOM_TEXT_Y);
+        status = add_note(panel->ui, "เวลาที่เหลือของรอบนี้", RIGHT_TEXT_X,
+                          BOTTOM_TEXT_Y);
     }
     if (status == BENTO_OK) {
-        status = add_label(panel->ui, "30 วิ", RIGHT_TEXT_X, LEFT_LABEL_Y, COLOR_TEXT,
-                           LEFT_LABEL_PX, &panel->time_left);
+        status =
+            add_label(panel->ui, "30 วิ", RIGHT_TEXT_X, LEFT_LABEL_Y,
+                      COLOR_TEXT, LEFT_LABEL_PX, &panel->time_left);
     }
     if (status == BENTO_OK) {
         bento_ui_widget_args_init(&args);
@@ -465,8 +499,10 @@ static bento_status_t add_time_card(panel_t *panel)
         args.h = BAR_H;
         args.color = COLOR_RUN;
         args.max_val = run_s;
-        args.font_px = 0; /* created at 0: a Bar created with a value blanks the page */
-        status = bento_ui_bar_create(panel->ui, &args, &panel->time_bar);
+        args.font_px =
+            0; /* created at 0: a Bar created with a value blanks the page */
+        status =
+            bento_ui_bar_create(panel->ui, &args, &panel->time_bar);
     }
     if (status == BENTO_OK) {
         (void)bento_ui_set_value(panel->ui, panel->time_bar, run_s);
@@ -480,7 +516,8 @@ static bento_status_t add_time_card(panel_t *panel)
         status = bento_ui_scale_create(panel->ui, &args, &scale);
     }
     if (status == BENTO_OK) {
-        (void)bento_ui_set_ticks(panel->ui, scale, SCALE_TICKS, SCALE_MAJOR_EVERY);
+        (void)bento_ui_set_ticks(panel->ui, scale, SCALE_TICKS,
+                                 SCALE_MAJOR_EVERY);
     }
     return status;
 }
@@ -505,10 +542,12 @@ static bento_status_t add_confirm(panel_t *panel)
     status = bento_ui_msgbox_create(panel->ui, &args, &panel->box);
     if (status == BENTO_OK) {
         set_shown(panel->ui, panel->box, false);
-        status = add_button(panel->ui, "ยืนยัน", &yes_place, COLOR_IDLE_BUTTON, &panel->yes);
+        status = add_button(panel->ui, "ยืนยัน", &yes_place,
+                            COLOR_IDLE_BUTTON, &panel->yes);
     }
     if (status == BENTO_OK) {
-        status = add_button(panel->ui, "ยกเลิก", &no_place, COLOR_IDLE_BUTTON, &panel->no);
+        status = add_button(panel->ui, "ยกเลิก", &no_place,
+                            COLOR_IDLE_BUTTON, &panel->no);
     }
     if (status == BENTO_OK) {
         set_shown(panel->ui, panel->yes, false);
@@ -524,18 +563,19 @@ static bento_status_t build_screen(chase_t *chase)
     panel_t *panel = &chase->panel;
     bento_ui_id_t unused = 0U;
     bento_status_t status =
-        bento_ui_screen(panel->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(panel->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = wait_ms(SETTLE_MS);
     }
     if (status == BENTO_OK) {
-        status = add_label(panel->ui, "แผงคุมไฟวิ่ง - คาบ 3", TITLE_X, TITLE_Y, COLOR_TEXT, TITLE_PX,
-                           &unused);
+        status = add_label(panel->ui, "แผงคุมไฟวิ่ง - คาบ 3", TITLE_X,
+                           TITLE_Y, COLOR_TEXT, TITLE_PX, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_label(panel->ui, "ไฟวิ่งกำลังเดิน", STATUS_X, STATUS_Y, COLOR_DIM, STATUS_PX,
-                           &panel->status);
+        status = add_label(panel->ui, "ไฟวิ่งกำลังเดิน", STATUS_X, STATUS_Y,
+                           COLOR_DIM, STATUS_PX, &panel->status);
     }
     if (status == BENTO_OK) {
         status = add_led_card(chase);
@@ -564,15 +604,20 @@ static bento_status_t step_chase(chase_t *chase, uint32_t now_ms)
     uint32_t i;
     bento_status_t status = BENTO_OK;
 
-    if (chase->chase_on && (bento_time_ticks_diff(now_ms, chase->last_step_ms) >= STEP_MS)) {
+    if (chase->chase_on &&
+        (bento_time_ticks_diff(now_ms, chase->last_step_ms) >=
+         STEP_MS)) {
         status = bento_gpio_led_off(chase->led_index);
-        chase->led_index = (chase->led_index + 1U) % chase->led_count; /* wraps back to 0 */
+        chase->led_index = (chase->led_index + 1U) %
+                           chase->led_count; /* wraps back to 0 */
         if (status == BENTO_OK) {
             status = bento_gpio_led_on(chase->led_index);
         }
-        chase->last_step_ms = now_ms; /* only inside the if, or the light never moves */
+        chase->last_step_ms =
+            now_ms; /* only inside the if, or the light never moves */
         for (i = 0U; i < chase->led_count; i++) {
-            (void)bento_ui_set_value(chase->panel.ui, chase->panel.leds[i],
+            (void)bento_ui_set_value(chase->panel.ui,
+                                     chase->panel.leds[i],
                                      (i == chase->led_index) ? 1 : 0);
         }
     }
@@ -583,7 +628,8 @@ static bento_status_t step_chase(chase_t *chase, uint32_t now_ms)
 static bento_status_t read_button(chase_t *chase, uint32_t now_ms)
 {
     char line[LABEL_BYTES];
-    bento_status_t status = bento_gpio_button_is_pressed(USER_BUTTON, &chase->raw);
+    bento_status_t status =
+        bento_gpio_button_is_pressed(USER_BUTTON, &chase->raw);
 
     if (status != BENTO_OK) {
         /* the read failed: the original raises */
@@ -592,12 +638,14 @@ static bento_status_t read_button(chase_t *chase, uint32_t now_ms)
         chase->last_raw = chase->raw;
         chase->last_change_ms = now_ms;
     } else if ((chase->raw != chase->stable) &&
-               (bento_time_ticks_diff(now_ms, chase->last_change_ms) >= DEBOUNCE_MS)) {
+               (bento_time_ticks_diff(now_ms, chase->last_change_ms) >=
+                DEBOUNCE_MS)) {
         chase->stable = chase->raw;
         if (chase->stable) {
             /* without this check the release counts too, and the number climbs by two */
             chase->count++;
-            (void)snprintf(line, sizeof(line), "กดครั้งที่ %" PRId32, chase->count);
+            (void)snprintf(line, sizeof(line), "กดครั้งที่ %" PRId32,
+                           chase->count);
             (void)bento_lcd_print(line);
         }
     } else {
@@ -634,7 +682,8 @@ static bento_status_t on_click(chase_t *chase, bento_ui_id_t widget)
     } else if ((widget == panel->yes) && chase->asking) {
         chase->asking = false;
         chase->chase_on = false;
-        for (i = 0U; (i < chase->led_count) && (status == BENTO_OK); i++) {
+        for (i = 0U; (i < chase->led_count) && (status == BENTO_OK);
+             i++) {
             status = bento_gpio_led_off(i);
             (void)bento_ui_set_value(panel->ui, panel->leds[i], 0);
         }
@@ -662,8 +711,10 @@ static bento_status_t refresh_screen(chase_t *chase, uint32_t now_ms)
     bento_status_t status = BENTO_OK;
 
     chase->last_ui_ms = now_ms;
-    (void)bento_ui_set_value(panel->ui, panel->button_light, chase->stable ? 1 : 0);
-    left_s = (RUN_MS - bento_time_ticks_diff(now_ms, chase->start_ms)) / MS_PER_SECOND;
+    (void)bento_ui_set_value(panel->ui, panel->button_light,
+                             chase->stable ? 1 : 0);
+    left_s = (RUN_MS - bento_time_ticks_diff(now_ms, chase->start_ms)) /
+             MS_PER_SECOND;
     if (left_s != chase->last_second) {
         chase->last_second = left_s;
         (void)snprintf(text, sizeof(text), "%" PRId32, chase->count);
@@ -672,7 +723,8 @@ static bento_status_t refresh_screen(chase_t *chase, uint32_t now_ms)
         set_text(panel->ui, panel->time_left, text);
         (void)bento_ui_set_value(panel->ui, panel->time_bar, left_s);
     }
-    if (bento_ui_poll(panel->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+    if (bento_ui_poll(panel->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
         count = 0U; /* ui.poll() answers no events when it fails */
     }
     for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
@@ -693,16 +745,20 @@ static bento_status_t run_loop(chase_t *chase)
     chase->last_step_ms = now_ms;
     chase->last_change_ms = now_ms;
     chase->last_ui_ms = now_ms;
-    while ((status == BENTO_OK) && (bento_time_ticks_diff(now_ms, chase->start_ms) < RUN_MS)) {
+    while ((status == BENTO_OK) &&
+           (bento_time_ticks_diff(now_ms, chase->start_ms) < RUN_MS)) {
         status = step_chase(chase, now_ms);
         if (status == BENTO_OK) {
             status = read_button(chase, now_ms);
         }
-        if ((status == BENTO_OK) && (bento_time_ticks_diff(now_ms, chase->last_ui_ms) >= UI_MS)) {
+        if ((status == BENTO_OK) &&
+            (bento_time_ticks_diff(now_ms, chase->last_ui_ms) >=
+             UI_MS)) {
             status = refresh_screen(chase, now_ms);
         }
         if (status == BENTO_OK) {
-            status = wait_ms(POLL_MS); /* the one place the program rests */
+            status =
+                wait_ms(POLL_MS); /* the one place the program rests */
         }
         now_ms = bento_time_ticks_ms();
     }
@@ -727,10 +783,12 @@ static bento_status_t finish(const chase_t *chase)
         set_text(panel->ui, panel->count, text);
         (void)bento_ui_set_value(panel->ui, panel->time_bar, 0);
         set_text(panel->ui, panel->time_left, "0 วิ");
-        set_text(panel->ui, panel->status, "รอบนี้จบแล้ว ตัวเลขข้างบนคือค่าสุดท้าย");
+        set_text(panel->ui, panel->status,
+                 "รอบนี้จบแล้ว ตัวเลขข้างบนคือค่าสุดท้าย");
         drain_events(panel->ui);
         (void)snprintf(text, sizeof(text),
-                       "<span class=ok>จบรอบทดสอบ กดปุ่มทั้งหมด %" PRId32 " ครั้ง</span>",
+                       "<span class=ok>จบรอบทดสอบ กดปุ่มทั้งหมด %" PRId32
+                       " ครั้ง</span>",
                        chase->count);
         (void)bento_lcd_print(text);
         (void)printf("โปรแกรมจบแล้ว - ไฟทุกดวงถูกดับเรียบร้อย\n");

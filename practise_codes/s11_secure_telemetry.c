@@ -52,52 +52,52 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_lcd.h"
+#include "bento_runtime.h"
 #include "bento_sensors.h"
 #include "bento_tesaiot.h"
 #include "bento_time.h"
 
 static const char TEAM_NAME[] = "BentoBuilders";
-static const char DEVICE_ID[] = "team03"; /* registered, under 31 chars */
+static const char DEVICE_ID[] =
+    "team03"; /* registered, under 31 chars */
 static const char API_KEY[] = "<api key ของทีม>";
 static const char MQTT_PASS[] = "<รหัสผ่าน MQTT 16 ตัว>";
 static const char BROKER[] = "<โฮสต์แพลตฟอร์ม>";
 
 enum { /* times */
-       SETTLE_MS = 200,
-       WAIT_CEILING_S = 30, /* the wait loop's ceiling, on screen too */
-       RETRY_READ_MS = 1000,
-       SEND_EVERY_MS = 5000
+    SETTLE_MS = 200,
+    WAIT_CEILING_S = 30, /* the wait loop's ceiling, on screen too */
+    RETRY_READ_MS = 1000,
+    SEND_EVERY_MS = 5000
 };
 
 enum { /* text sizes */
-       TEXT_BYTES = 128,
-       VALUE_BYTES = BENTO_TESAIOT_CONFIG_VALUE_MAX + 1,
-       KEY_BYTES = BENTO_TESAIOT_CONFIG_KEY_MAX + 1,
-       PAYLOAD_BYTES = 160
+    TEXT_BYTES = 128,
+    VALUE_BYTES = BENTO_TESAIOT_CONFIG_VALUE_MAX + 1,
+    KEY_BYTES = BENTO_TESAIOT_CONFIG_KEY_MAX + 1,
+    PAYLOAD_BYTES = 160
 };
 
 enum { /* layout that more than one widget shares */
-       CARD_RADIUS = 12,
-       CARD_BORDER = 1,
-       TABLE_COLUMNS = 2,
-       LEFT_COLUMN_W = 160,
-       RIGHT_COLUMN_W = 224,
-       SCALE_TICKS = 7,
-       SCALE_MAJOR_EVERY = 3
+    CARD_RADIUS = 12,
+    CARD_BORDER = 1,
+    TABLE_COLUMNS = 2,
+    LEFT_COLUMN_W = 160,
+    RIGHT_COLUMN_W = 224,
+    SCALE_TICKS = 7,
+    SCALE_MAJOR_EVERY = 3
 };
 
 enum { /* colours, 0xRRGGBB */
-       COLOR_TEXT = 0xE8EAED,
-       COLOR_DIM = 0x9AA3AF,
-       COLOR_CARD = 0x171B22,
-       COLOR_OK = 0x30A46C,
-       COLOR_RUN = 0x4A9EFF,
-       COLOR_BAD = 0xE5484D,
-       COLOR_CONNECT = 0x30A46C,
-       COLOR_QUIET = 0x3A4150
+    COLOR_TEXT = 0xE8EAED,
+    COLOR_DIM = 0x9AA3AF,
+    COLOR_CARD = 0x171B22,
+    COLOR_OK = 0x30A46C,
+    COLOR_RUN = 0x4A9EFF,
+    COLOR_BAD = 0xE5484D,
+    COLOR_CONNECT = 0x30A46C,
+    COLOR_QUIET = 0x3A4150
 };
 
 /* A widget as the original creates it; w and h -1 = automatic. */
@@ -151,16 +151,19 @@ static void drain_events(bento_ui_t *ui)
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
 
-    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
 }
 
 /* MicroPython's widget setters ignore a refusal (modui.c). */
-static void set_text(bento_ui_t *ui, bento_ui_id_t widget, const char *text)
+static void set_text(bento_ui_t *ui, bento_ui_id_t widget,
+                     const char *text)
 {
     (void)bento_ui_set_text(ui, widget, text, (uint32_t)strlen(text));
 }
 
-static void set_value(bento_ui_t *ui, bento_ui_id_t widget, int32_t value)
+static void set_value(bento_ui_t *ui, bento_ui_id_t widget,
+                      int32_t value)
 {
     (void)bento_ui_set_value(ui, widget, value);
 }
@@ -171,7 +174,8 @@ static void set_shown(bento_ui_t *ui, bento_ui_id_t widget, bool shown)
     (void)bento_ui_set_visible(ui, widget, shown ? 1U : 0U);
 }
 
-static void args_from(bento_ui_widget_args_t *args, const widget_spec_t *spec)
+static void args_from(bento_ui_widget_args_t *args,
+                      const widget_spec_t *spec)
 {
     bento_ui_widget_args_init(args);
     if (spec->text != NULL) {
@@ -186,7 +190,8 @@ static void args_from(bento_ui_widget_args_t *args, const widget_spec_t *spec)
     args->font_px = spec->value;
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const widget_spec_t *spec,
+static bento_status_t add_label(bento_ui_t *ui,
+                                const widget_spec_t *spec,
                                 bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
@@ -196,7 +201,8 @@ static bento_status_t add_label(bento_ui_t *ui, const widget_spec_t *spec,
 }
 
 /* A card: drawn before what sits on it, or it paints over them. */
-static bento_status_t add_card(bento_ui_t *ui, const widget_spec_t *spec)
+static bento_status_t add_card(bento_ui_t *ui,
+                               const widget_spec_t *spec)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t card = 0U;
@@ -210,7 +216,8 @@ static bento_status_t add_card(bento_ui_t *ui, const widget_spec_t *spec)
 }
 
 /* Labels that never change, in the order the original draws them. */
-static bento_status_t add_labels(bento_ui_t *ui, const widget_spec_t *specs, size_t count)
+static bento_status_t
+add_labels(bento_ui_t *ui, const widget_spec_t *specs, size_t count)
 {
     bento_ui_id_t unused = 0U;
     bento_status_t status = BENTO_OK;
@@ -227,7 +234,9 @@ static bento_status_t add_labels(bento_ui_t *ui, const widget_spec_t *specs, siz
 static void print_repr(const char *text)
 {
     const char quote =
-        ((strchr(text, '\'') != NULL) && (strchr(text, '"') == NULL)) ? '"' : '\'';
+        ((strchr(text, '\'') != NULL) && (strchr(text, '"') == NULL))
+            ? '"'
+            : '\'';
     const uint8_t printable_min = 0x20U;
     const uint8_t delete_byte = 0x7FU;
     size_t i;
@@ -257,25 +266,28 @@ static void print_repr(const char *text)
 static bool is_number_key(const char *key)
 {
     static const char *const number_keys[] = {
-        "port",       "qos",      "keepalive", "timeout_ms", "max_retries", "retry_interval_ms",
-        "api_port", "debug_level"};
+        "port",       "qos",         "keepalive",
+        "timeout_ms", "max_retries", "retry_interval_ms",
+        "api_port",   "debug_level"};
     bool found = false;
     size_t i;
 
-    for (i = 0U; i < (sizeof(number_keys) / sizeof(number_keys[0])); i++) {
+    for (i = 0U; i < (sizeof(number_keys) / sizeof(number_keys[0]));
+         i++) {
         found = found || (strcmp(key, number_keys[i]) == 0);
     }
     return found;
 }
 
 /* One config field as text; api_key is printed as the dict holds it. */
-static bento_status_t read_field(const char *key, char *value, uint32_t cap)
+static bento_status_t read_field(const char *key, char *value,
+                                 uint32_t cap)
 {
     uint32_t length = 0U;
 
-    return bento_tesaiot_config_get_field(key, (uint32_t)strlen(key),
-                                          BENTO_TESAIOT_CONFIG_REVEAL_SECRET, value, cap,
-                                          &length);
+    return bento_tesaiot_config_get_field(
+        key, (uint32_t)strlen(key), BENTO_TESAIOT_CONFIG_REVEAL_SECRET,
+        value, cap, &length);
 }
 
 /* print("config ปัจจุบัน:", tesaiot.config()) */
@@ -292,7 +304,8 @@ static bento_status_t print_config(void)
         (void)printf("config ปัจจุบัน: {");
     }
     for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
-        status = bento_tesaiot_config_key_at(i, key, (uint32_t)sizeof(key), &length);
+        status = bento_tesaiot_config_key_at(
+            i, key, (uint32_t)sizeof(key), &length);
         if (status == BENTO_OK) {
             status = read_field(key, value, (uint32_t)sizeof(value));
         }
@@ -314,8 +327,8 @@ static bento_status_t print_config(void)
 }
 
 /* One table row: two cells, each ended by a NUL. */
-static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row, const char *left,
-                    const char *right)
+static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row,
+                    const char *left, const char *right)
 {
     char cells[TEXT_BYTES];
     const size_t left_bytes = strlen(left) + 1U;
@@ -325,7 +338,8 @@ static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row, const char
         (void)memcpy(cells, left, left_bytes);
         (void)memcpy(&cells[left_bytes], right, right_bytes);
         /* a row is sent and forgotten, as modui.c does */
-        (void)bento_ui_add_row(ui, table, row, cells, (uint32_t)(left_bytes + right_bytes));
+        (void)bento_ui_add_row(ui, table, row, cells,
+                               (uint32_t)(left_bytes + right_bytes));
     }
 }
 
@@ -333,9 +347,12 @@ static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row, const char
  * unreadable, because an empty cell would read as "not set". */
 static bento_status_t add_identity(bento_ui_t *ui)
 {
-    static const widget_spec_t card = {NULL, 24, 48, 440, 344, COLOR_CARD, 1};
-    static const widget_spec_t title = {"ตัวตนที่บอร์ดใช้แนะนำตัว", 40, 60, -1, -1, COLOR_DIM, 16};
-    static const widget_spec_t table_spec = {NULL, 40, 96, 408, 288, 0U, 0};
+    static const widget_spec_t card = {NULL, 24,         48, 440,
+                                       344,  COLOR_CARD, 1};
+    static const widget_spec_t title = {
+        "ตัวตนที่บอร์ดใช้แนะนำตัว", 40, 60, -1, -1, COLOR_DIM, 16};
+    static const widget_spec_t table_spec = {NULL, 40, 96, 408,
+                                             288,  0U, 0};
     char mode[VALUE_BYTES];
     bento_ui_widget_args_t args;
     bento_ui_id_t table = 0U;
@@ -377,17 +394,21 @@ static bento_status_t add_lamps(tls_screen_t *screen)
         {"สำเร็จ", 592, 148, -1, -1, COLOR_DIM, 16},
         {"ล้มเหลว", 672, 148, -1, -1, COLOR_DIM, 16},
     };
-    bento_ui_id_t *const ids[] = {&screen->lamp_wait, &screen->lamp_ok, &screen->lamp_fail};
+    bento_ui_id_t *const ids[] = {&screen->lamp_wait, &screen->lamp_ok,
+                                  &screen->lamp_fail};
     bento_ui_widget_args_t args;
     bento_status_t status = BENTO_OK;
     size_t i;
 
-    for (i = 0U; (i < (sizeof(lamps) / sizeof(lamps[0]))) && (status == BENTO_OK); i++) {
+    for (i = 0U; (i < (sizeof(lamps) / sizeof(lamps[0]))) &&
+                 (status == BENTO_OK);
+         i++) {
         args_from(&args, &lamps[i]);
         status = bento_ui_led_create(screen->ui, &args, ids[i]);
     }
     if (status == BENTO_OK) {
-        status = add_labels(screen->ui, names, sizeof(names) / sizeof(names[0]));
+        status = add_labels(screen->ui, names,
+                            sizeof(names) / sizeof(names[0]));
     }
     return status;
 }
@@ -396,16 +417,20 @@ static bento_status_t add_lamps(tls_screen_t *screen)
  * the corner the firmware keeps for its Console button. */
 static bento_status_t add_buttons(tls_screen_t *screen)
 {
-    static const widget_spec_t connect = {"ต่อใหม่", 496, 184, 88, 88, COLOR_CONNECT, 20};
-    static const widget_spec_t disconnect = {"ตัดสาย", 616, 184, 88, 88, COLOR_QUIET, 20};
+    static const widget_spec_t connect = {
+        "ต่อใหม่", 496, 184, 88, 88, COLOR_CONNECT, 20};
+    static const widget_spec_t disconnect = {
+        "ตัดสาย", 616, 184, 88, 88, COLOR_QUIET, 20};
     bento_ui_widget_args_t args;
     bento_status_t status;
 
     args_from(&args, &connect);
-    status = bento_ui_button_create(screen->ui, &args, &screen->connect_button);
+    status = bento_ui_button_create(screen->ui, &args,
+                                    &screen->connect_button);
     if (status == BENTO_OK) {
         args_from(&args, &disconnect);
-        status = bento_ui_button_create(screen->ui, &args, &screen->disconnect_button);
+        status = bento_ui_button_create(screen->ui, &args,
+                                        &screen->disconnect_button);
     }
     return status;
 }
@@ -414,13 +439,18 @@ static bento_status_t add_buttons(tls_screen_t *screen)
  * Scale is only a ruler; the Bar above it moves. */
 static bento_status_t add_meter(tls_screen_t *screen)
 {
-    static const widget_spec_t seconds = {"0 วิ", 496, 284, -1, -1, COLOR_TEXT, 20};
-    static const widget_spec_t ceiling = {"เพดาน 30 วิ", 592, 284, -1, -1, COLOR_DIM, 16};
-    static const widget_spec_t bar = {NULL, 496, 320, 192, 12, COLOR_RUN, 0};
-    static const widget_spec_t ruler = {NULL, 496, 340, 192, 44, COLOR_TEXT, 0};
+    static const widget_spec_t seconds = {"0 วิ", 496,        284, -1,
+                                          -1,    COLOR_TEXT, 20};
+    static const widget_spec_t ceiling = {
+        "เพดาน 30 วิ", 592, 284, -1, -1, COLOR_DIM, 16};
+    static const widget_spec_t bar = {NULL, 496,       320, 192,
+                                      12,   COLOR_RUN, 0};
+    static const widget_spec_t ruler = {NULL, 496,        340, 192,
+                                        44,   COLOR_TEXT, 0};
     bento_ui_widget_args_t args;
     bento_ui_id_t unused = 0U;
-    bento_status_t status = add_label(screen->ui, &seconds, &screen->seconds_label);
+    bento_status_t status =
+        add_label(screen->ui, &seconds, &screen->seconds_label);
 
     if (status == BENTO_OK) {
         status = add_label(screen->ui, &ceiling, &unused);
@@ -429,7 +459,8 @@ static bento_status_t add_meter(tls_screen_t *screen)
         args_from(&args, &bar);
         args.min_val = 0;
         args.max_val = WAIT_CEILING_S;
-        status = bento_ui_bar_create(screen->ui, &args, &screen->seconds_bar);
+        status = bento_ui_bar_create(screen->ui, &args,
+                                     &screen->seconds_bar);
     }
     if (status == BENTO_OK) {
         args_from(&args, &ruler);
@@ -438,7 +469,8 @@ static bento_status_t add_meter(tls_screen_t *screen)
         status = bento_ui_scale_create(screen->ui, &args, &unused);
     }
     if (status == BENTO_OK) { /* room for three numbers: 0 15 30 */
-        (void)bento_ui_set_ticks(screen->ui, unused, SCALE_TICKS, SCALE_MAJOR_EVERY);
+        (void)bento_ui_set_ticks(screen->ui, unused, SCALE_TICKS,
+                                 SCALE_MAJOR_EVERY);
     }
     return status;
 }
@@ -448,10 +480,12 @@ static bento_status_t add_meter(tls_screen_t *screen)
  * made now and hidden. */
 static bento_status_t add_confirm_box(tls_screen_t *screen)
 {
-    static const widget_spec_t box = {"ตัดสาย\nต้องจับมือ TLS ใหม่ทั้งชุด", 112, 96, 568, 136,
-                                      COLOR_CARD, 0};
-    static const widget_spec_t yes = {"ตัดสาย", 144, 248, 200, 88, COLOR_QUIET, 20};
-    static const widget_spec_t no = {"ไม่ตัด", 376, 248, 200, 88, COLOR_QUIET, 20};
+    static const widget_spec_t box = {
+        "ตัดสาย\nต้องจับมือ TLS ใหม่ทั้งชุด", 112, 96, 568, 136, COLOR_CARD, 0};
+    static const widget_spec_t yes = {"ตัดสาย", 144,         248, 200,
+                                      88,      COLOR_QUIET, 20};
+    static const widget_spec_t no = {"ไม่ตัด", 376,         248, 200,
+                                     88,     COLOR_QUIET, 20};
     bento_ui_widget_args_t args;
     bento_status_t status;
 
@@ -459,11 +493,13 @@ static bento_status_t add_confirm_box(tls_screen_t *screen)
     status = bento_ui_msgbox_create(screen->ui, &args, &screen->box);
     if (status == BENTO_OK) {
         args_from(&args, &yes);
-        status = bento_ui_button_create(screen->ui, &args, &screen->yes_button);
+        status = bento_ui_button_create(screen->ui, &args,
+                                        &screen->yes_button);
     }
     if (status == BENTO_OK) {
         args_from(&args, &no);
-        status = bento_ui_button_create(screen->ui, &args, &screen->no_button);
+        status = bento_ui_button_create(screen->ui, &args,
+                                        &screen->no_button);
     }
     if (status == BENTO_OK) {
         set_shown(screen->ui, screen->box, false);
@@ -477,16 +513,21 @@ static bento_status_t add_confirm_box(tls_screen_t *screen)
 /* The title bar, the left card, then the right card. */
 static bento_status_t build_screen(tls_screen_t *screen)
 {
-    static const widget_spec_t sent = {"ส่งแล้ว 0 ใบ", 560, 8, -1, -1, COLOR_DIM, 20};
-    static const widget_spec_t right_card = {NULL, 480, 48, 288, 344, COLOR_CARD, 1};
-    static const widget_spec_t handshake = {"การจับมือ TLS", 496, 60, -1, -1, COLOR_DIM, 16};
+    static const widget_spec_t sent = {"ส่งแล้ว 0 ใบ", 560,       8, -1,
+                                       -1,           COLOR_DIM, 20};
+    static const widget_spec_t right_card = {NULL, 480,        48, 288,
+                                             344,  COLOR_CARD, 1};
+    static const widget_spec_t handshake = {
+        "การจับมือ TLS", 496, 60, -1, -1, COLOR_DIM, 16};
     char title_text[TEXT_BYTES];
     widget_spec_t title = {NULL, 24, 8, -1, -1, COLOR_TEXT, 20};
     bento_ui_id_t unused = 0U;
-    bento_status_t status = bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
-                                            BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+    bento_status_t status =
+        bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
-    (void)snprintf(title_text, sizeof(title_text), "MQTTs - ทีม %s", TEAM_NAME);
+    (void)snprintf(title_text, sizeof(title_text), "MQTTs - ทีม %s",
+                   TEAM_NAME);
     title.text = title_text;
     if (status == BENTO_OK) {
         status = wait_ms(SETTLE_MS);
@@ -552,9 +593,11 @@ static void show_handshake(const tls_screen_t *screen)
 
     set_value(screen->ui, screen->lamp_wait, 0);
     if (connected) {
-        (void)bento_lcd_console("<span class=ok>เชื่อมต่อ TLS สำเร็จ</span>");
+        (void)bento_lcd_console(
+            "<span class=ok>เชื่อมต่อ TLS สำเร็จ</span>");
     } else {
-        (void)bento_lcd_console("<span class=muted>ต่อไม่สำเร็จใน 30 วินาที</span>");
+        (void)bento_lcd_console(
+            "<span class=muted>ต่อไม่สำเร็จใน 30 วินาที</span>");
     }
     set_value(screen->ui, screen->lamp_ok, connected ? 1 : 0);
     set_value(screen->ui, screen->lamp_fail, connected ? 0 : 1);
@@ -563,7 +606,8 @@ static void show_handshake(const tls_screen_t *screen)
 
 /* The IMU is asked once. *read false is the original's except
  * OSError; BENTO_E_UNSUPPORTED (no such sensor) ends the program. */
-static bento_status_t read_payload(char *payload, size_t cap, bool *read)
+static bento_status_t read_payload(char *payload, size_t cap,
+                                   bool *read)
 {
     bento_sensors_imu6_t motion;
     bento_status_t status;
@@ -591,7 +635,8 @@ static bento_status_t read_payload(char *payload, size_t cap, bool *read)
 }
 
 /* No topic: the firmware builds it from device_id. */
-static bento_status_t send_payload(const tls_screen_t *screen, session_t *session,
+static bento_status_t send_payload(const tls_screen_t *screen,
+                                   session_t *session,
                                    const char *payload)
 {
     char mode[VALUE_BYTES];
@@ -599,8 +644,8 @@ static bento_status_t send_payload(const tls_screen_t *screen, session_t *sessio
     bento_status_t status;
 
     /* answers True or False, which the original ignores */
-    (void)bento_tesaiot_publish(NULL, 0U, (const uint8_t *)payload, (uint32_t)strlen(payload),
-                                0U, NULL);
+    (void)bento_tesaiot_publish(NULL, 0U, (const uint8_t *)payload,
+                                (uint32_t)strlen(payload), 0U, NULL);
     session->sent++;
 
     /* ท่าที่ 4: แสดงหลักฐานบนจอ ให้ตอบคำถาม MVP ได้ */
@@ -612,7 +657,8 @@ static bento_status_t send_payload(const tls_screen_t *screen, session_t *sessio
          *   is_connected() ก่อน "ทุกครั้ง" ที่ส่ง ไม่ใช่เช็กแค่ตอนเข้าลูป เพราะสายหลุดกลางทางได้
          *   และโปรแกรมที่ส่งต่อไปเฉย ๆ จะทำข้อมูลหายทั้งชั่วโมงโดยไม่มีใครรู้ตัวสักคน */
 
-        (void)snprintf(text, sizeof(text), "ส่งแล้ว %ld ใบ", (long)session->sent);
+        (void)snprintf(text, sizeof(text), "ส่งแล้ว %ld ใบ",
+                       (long)session->sent);
         set_text(screen->ui, screen->sent_label, text);
     }
     return status;
@@ -627,7 +673,8 @@ static void show_box(const tls_screen_t *screen, bool shown)
 
 /* One click. Disconnecting cannot be taken back at once (a whole new
  * TLS handshake), so it asks first. */
-static void on_click(const tls_screen_t *screen, session_t *session, bento_ui_id_t widget)
+static void on_click(const tls_screen_t *screen, session_t *session,
+                     bento_ui_id_t widget)
 {
     if ((widget == screen->disconnect_button) && !session->asking) {
         session->asking = true;
@@ -635,12 +682,14 @@ static void on_click(const tls_screen_t *screen, session_t *session, bento_ui_id
     } else if ((widget == screen->yes_button) && session->asking) {
         session->asking = false;
         show_box(screen, false);
-        (void)bento_tesaiot_disconnect(); /* answers True or False, ignored */
+        (void)
+            bento_tesaiot_disconnect(); /* answers True or False, ignored */
     } else if ((widget == screen->no_button) && session->asking) {
         session->asking = false;
         show_box(screen, false);
     } else if (widget == screen->connect_button) {
-        (void)bento_tesaiot_connect_start(); /* answers True or False, ignored */
+        (void)
+            bento_tesaiot_connect_start(); /* answers True or False, ignored */
     } else {
         /* another widget, or a button that is not live now */
     }
@@ -653,7 +702,8 @@ static void read_buttons(const tls_screen_t *screen, session_t *session)
     uint32_t count = 0U;
     uint32_t i;
 
-    if (bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+    if (bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
         count = 0U; /* a failed poll answers no events */
     }
     for (i = 0U; i < count; i++) {
@@ -665,11 +715,13 @@ static void read_buttons(const tls_screen_t *screen, session_t *session)
 
 /* One round: read, send, show, the buttons, then the rest. A failed
  * read waits a second and tries again, without sending. */
-static bento_status_t publish_round(const tls_screen_t *screen, session_t *session)
+static bento_status_t publish_round(const tls_screen_t *screen,
+                                    session_t *session)
 {
     char payload[PAYLOAD_BYTES];
     bool read = false;
-    bento_status_t status = read_payload(payload, sizeof(payload), &read);
+    bento_status_t status =
+        read_payload(payload, sizeof(payload), &read);
 
     if ((status == BENTO_OK) && !read) {
         status = wait_ms(RETRY_READ_MS);
@@ -699,9 +751,10 @@ static bento_status_t publish_loop(const tls_screen_t *screen)
         set_value(screen->ui, screen->lamp_ok, 0);
         set_value(screen->ui, screen->lamp_fail, 1);
         drain_events(screen->ui);
-        (void)snprintf(text, sizeof(text),
-                       "<span class=muted>หลุดการเชื่อมต่อ ส่งไป %ld ครั้ง</span>",
-                       (long)session.sent);
+        (void)snprintf(
+            text, sizeof(text),
+            "<span class=muted>หลุดการเชื่อมต่อ ส่งไป %ld ครั้ง</span>",
+            (long)session.sent);
         (void)bento_lcd_print(text);
     }
     return status;
@@ -755,7 +808,8 @@ int main(void)
     status = warm_up_sensors();
     if (status == BENTO_OK) {
         (void)bento_lcd_clear();
-        (void)snprintf(text, sizeof(text), "<h2>MQTTs - ทีม %s</h2>", TEAM_NAME);
+        (void)snprintf(text, sizeof(text), "<h2>MQTTs - ทีม %s</h2>",
+                       TEAM_NAME);
         (void)bento_lcd_console(text);
         set_identity();
         status = print_config();
@@ -764,7 +818,8 @@ int main(void)
         status = build_screen(&screen);
     }
     if (status == BENTO_OK) { /* ท่าที่ 3: สั่งต่อ แล้ววนรอจนกว่าจะต่อเสร็จจริง */
-        status = start_connect(); /* returns at once: not connected yet */
+        status =
+            start_connect(); /* returns at once: not connected yet */
         start_ms = bento_time_ticks_ms();
 
         /* ลูปรอทุกลูปต้องมี timeout ไม่งั้นวันที่เน็ตล่ม โปรแกรมจะค้างตรงนี้ตลอดกาล

@@ -44,9 +44,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_lcd.h"
+#include "bento_runtime.h"
 #include "bento_time.h"
 #include "bento_wifi.h"
 
@@ -54,7 +53,8 @@ enum { /* times, ms */
     SETTLE_MS = 200,
     ROW_PAUSE_MS = 400,
     JOIN_POLL_MS = 100,
-    WAIT_CEILING_MS = 85000, /* the longest a person waits before calling the board hung */
+    WAIT_CEILING_MS =
+        85000, /* the longest a person waits before calling the board hung */
     MS_PER_SECOND = 1000
 };
 
@@ -116,15 +116,18 @@ enum { /* colours, 0xRRGGBB */
 };
 
 enum { /* text buffers */
-    LINE_BYTES = 256, /* a console line before lcd cuts it at 127 bytes */
+    LINE_BYTES =
+        256, /* a console line before lcd cuts it at 127 bytes */
     ROW_BYTES = 128,  /* the cells of one table row, NUL between them */
     NUMBER_BYTES = 12 /* any int32_t with its sign and NUL */
 };
 
 /* Edit these first: the next team changes only this block. */
 static const char TEAM_NAME[] = "BentoBuilders";
-static const char WIFI_SSID[] = "bento-teamXX"; /* the team's phone hotspot */
-static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>"; /* at least 8 characters */
+static const char WIFI_SSID[] =
+    "bento-teamXX"; /* the team's phone hotspot */
+static const char WIFI_PASS[] =
+    "<รหัส Hotspot ของทีม>"; /* at least 8 characters */
 
 /* One trial, written down by hand on the board. */
 typedef struct {
@@ -177,17 +180,20 @@ static void drain_events(bento_ui_t *ui)
     bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
     uint32_t count = 0U;
 
-    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
 }
 
 /* The widget setters ignore a refusal, as modui.c does. */
-static void set_text(bento_ui_t *ui, bento_ui_id_t widget, const char *text)
+static void set_text(bento_ui_t *ui, bento_ui_id_t widget,
+                     const char *text)
 {
     (void)bento_ui_set_text(ui, widget, text, (uint32_t)strlen(text));
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, int16_t x, int16_t y,
-                                uint32_t color, bento_ui_id_t *out_id)
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                int16_t x, int16_t y, uint32_t color,
+                                bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -201,14 +207,16 @@ static bento_status_t add_label(bento_ui_t *ui, const char *text, int16_t x, int
     return bento_ui_label_create(ui, &args, out_id);
 }
 
-static bento_status_t add_note(bento_ui_t *ui, const char *text, int16_t x, int16_t y)
+static bento_status_t add_note(bento_ui_t *ui, const char *text,
+                               int16_t x, int16_t y)
 {
     bento_ui_id_t unused = 0U;
 
     return add_label(ui, text, x, y, COLOR_DIM, &unused);
 }
 
-static bento_status_t add_light(bento_ui_t *ui, int16_t x, int16_t y, uint32_t color, int32_t lit,
+static bento_status_t add_light(bento_ui_t *ui, int16_t x, int16_t y,
+                                uint32_t color, int32_t lit,
                                 bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
@@ -225,8 +233,8 @@ static bento_status_t add_light(bento_ui_t *ui, int16_t x, int16_t y, uint32_t c
 
 /* One table row: the cells travel one after the other, each ended by
  * a NUL. A row that does not fit the buffer is not sent. */
-static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row, const char *const cells[],
-                    uint32_t count)
+static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row,
+                    const char *const cells[], uint32_t count)
 {
     char packed[ROW_BYTES];
     size_t used = 0U;
@@ -244,7 +252,8 @@ static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row, const char
     }
     if (fits && (used > 0U)) {
         /* a setter's refusal was ignored in MicroPython too */
-        (void)bento_ui_add_row(ui, table, row, packed, (uint32_t)(used - 1U));
+        (void)bento_ui_add_row(ui, table, row, packed,
+                               (uint32_t)(used - 1U));
     }
 }
 
@@ -252,7 +261,8 @@ static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row, const char
  * each width for its longest text, or a row wraps to twice its height. */
 static bento_status_t add_table(notebook_t *book)
 {
-    static const char *const header[TABLE_COLUMNS] = {"ย่าน", "เงื่อนไข", "ผล", "ms"};
+    static const char *const header[TABLE_COLUMNS] = {"ย่าน", "เงื่อนไข",
+                                                      "ผล", "ms"};
     bento_ui_widget_args_t args;
     bento_status_t status;
 
@@ -264,10 +274,14 @@ static bento_status_t add_table(notebook_t *book)
     args.min_val = TABLE_COLUMNS;
     status = bento_ui_table_create(book->ui, &args, &book->table);
     if (status == BENTO_OK) {
-        (void)bento_ui_set_col_width(book->ui, book->table, 0, BAND_COLUMN_W);
-        (void)bento_ui_set_col_width(book->ui, book->table, 1, COND_COLUMN_W);
-        (void)bento_ui_set_col_width(book->ui, book->table, 2, RESULT_COLUMN_W);
-        (void)bento_ui_set_col_width(book->ui, book->table, 3, MS_COLUMN_W);
+        (void)bento_ui_set_col_width(book->ui, book->table, 0,
+                                     BAND_COLUMN_W);
+        (void)bento_ui_set_col_width(book->ui, book->table, 1,
+                                     COND_COLUMN_W);
+        (void)bento_ui_set_col_width(book->ui, book->table, 2,
+                                     RESULT_COLUMN_W);
+        (void)bento_ui_set_col_width(book->ui, book->table, 3,
+                                     MS_COLUMN_W);
         add_row(book->ui, book->table, 0U, header, TABLE_COLUMNS);
     }
     return status;
@@ -296,28 +310,35 @@ static bento_status_t add_link_card(notebook_t *book)
     bento_status_t status = add_card(book->ui);
 
     if (status == BENTO_OK) {
-        status = add_note(book->ui, "สถานะลิงก์ตอนนี้", CARD_TEXT_X, LINK_TITLE_Y);
+        status = add_note(book->ui, "สถานะลิงก์ตอนนี้", CARD_TEXT_X,
+                          LINK_TITLE_Y);
     }
     if (status == BENTO_OK) {
-        status = add_light(book->ui, UP_LIGHT_X, UP_LIGHT_Y, COLOR_OK, 0, &book->up_light);
+        status = add_light(book->ui, UP_LIGHT_X, UP_LIGHT_Y, COLOR_OK,
+                           0, &book->up_light);
     }
     if (status == BENTO_OK) {
         status = add_note(book->ui, "ต่ออยู่", UP_TEXT_X, UP_TEXT_Y);
     }
     if (status == BENTO_OK) {
-        status = add_light(book->ui, DOWN_LIGHT_X, DOWN_LIGHT_Y, COLOR_BAD, 1, &book->down_light);
+        status = add_light(book->ui, DOWN_LIGHT_X, DOWN_LIGHT_Y,
+                           COLOR_BAD, 1, &book->down_light);
     }
     if (status == BENTO_OK) {
         status = add_note(book->ui, "ยังไม่ต่อ", DOWN_TEXT_X, DOWN_TEXT_Y);
     }
     if (status == BENTO_OK) {
-        status = add_label(book->ui, "IP: ยังไม่มี", CARD_TEXT_X, IP_Y, COLOR_DIM, &book->ip_label);
+        status = add_label(book->ui, "IP: ยังไม่มี", CARD_TEXT_X, IP_Y,
+                           COLOR_DIM, &book->ip_label);
     }
-    if (status == BENTO_OK) { /* where a value comes from belongs on the same screen */
-        status = add_note(book->ui, "ตารางซ้าย = ค่าที่จดมือ", CARD_TEXT_X, SOURCE_Y);
+    if (status ==
+        BENTO_OK) { /* where a value comes from belongs on the same screen */
+        status = add_note(book->ui, "ตารางซ้าย = ค่าที่จดมือ", CARD_TEXT_X,
+                          SOURCE_Y);
     }
     if (status == BENTO_OK) {
-        status = add_note(book->ui, "ไม่ใช่ค่าที่วัดสดตอนนี้", CARD_TEXT_X, NOT_LIVE_Y);
+        status = add_note(book->ui, "ไม่ใช่ค่าที่วัดสดตอนนี้", CARD_TEXT_X,
+                          NOT_LIVE_Y);
     }
     return status;
 }
@@ -327,11 +348,12 @@ static bento_status_t add_wait_meter(notebook_t *book)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t scale = 0U;
-    bento_status_t status =
-        add_note(book->ui, "เวลาต่อเฉลี่ย เทียบเพดาน", METER_TITLE_X, METER_TITLE_Y);
+    bento_status_t status = add_note(book->ui, "เวลาต่อเฉลี่ย เทียบเพดาน",
+                                     METER_TITLE_X, METER_TITLE_Y);
 
     if (status == BENTO_OK) {
-        status = add_label(book->ui, "- วินาที", CARD_TEXT_X, WAIT_Y, COLOR_TEXT, &book->wait_label);
+        status = add_label(book->ui, "- วินาที", CARD_TEXT_X, WAIT_Y,
+                           COLOR_TEXT, &book->wait_label);
     }
     if (status == BENTO_OK) {
         bento_ui_widget_args_init(&args);
@@ -356,7 +378,8 @@ static bento_status_t add_wait_meter(notebook_t *book)
     }
     if (status == BENTO_OK) {
         /* six numbers on a short ruler overlap: three are enough */
-        (void)bento_ui_set_ticks(book->ui, scale, SCALE_TICKS, SCALE_MAJOR_EVERY);
+        (void)bento_ui_set_ticks(book->ui, scale, SCALE_TICKS,
+                                 SCALE_MAJOR_EVERY);
     }
     return status;
 }
@@ -366,7 +389,8 @@ static bento_status_t build_screen(notebook_t *book)
 {
     char title[LINE_BYTES];
     bento_status_t status =
-        bento_ui_screen(book->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(book->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = wait_ms(SETTLE_MS);
@@ -377,8 +401,10 @@ static bento_status_t build_screen(notebook_t *book)
     if (status == BENTO_OK) {
         bento_ui_id_t unused = 0U;
 
-        (void)snprintf(title, sizeof(title), "ผลการทดลองของทีม %s", TEAM_NAME);
-        status = add_label(book->ui, title, TABLE_X, TITLE_Y, COLOR_TEXT, &unused);
+        (void)snprintf(title, sizeof(title), "ผลการทดลองของทีม %s",
+                       TEAM_NAME);
+        status = add_label(book->ui, title, TABLE_X, TITLE_Y,
+                           COLOR_TEXT, &unused);
     }
     if (status == BENTO_OK) {
         status = add_link_card(book);
@@ -403,8 +429,8 @@ static bento_status_t print_trials(const notebook_t *book)
 
     for (i = 0U; (i < trial_count()) && (status == BENTO_OK); i++) {
         const trial_t *trial = &TRIALS[i];
-        const char *mark =
-            trial->hit ? "<span class=ok>ต่อติด</span>" : "<span class=error>ไม่ติด</span>";
+        const char *mark = trial->hit ? "<span class=ok>ต่อติด</span>"
+                                      : "<span class=error>ไม่ติด</span>";
 
         /* TODO ท่าที่ 4: เติม snprintf(line, sizeof(line), "%s | %s | %s | %" PRId32 " ms",
          *   trial->name, trial->cond, mark, trial->ms) แล้ว bento_lcd_print(line)
@@ -421,9 +447,11 @@ static bento_status_t print_trials(const notebook_t *book)
         cells[1] = trial->cond;
         cells[2] = trial->hit ? "ต่อติด" : "ไม่ติด";
         cells[3] = ms_text;
-        add_row(book->ui, book->table, (uint8_t)(i + 1U), cells, TABLE_COLUMNS);
+        add_row(book->ui, book->table, (uint8_t)(i + 1U), cells,
+                TABLE_COLUMNS);
         drain_events(book->ui);
-        status = wait_ms(ROW_PAUSE_MS); /* the rows climb one at a time */
+        status =
+            wait_ms(ROW_PAUSE_MS); /* the rows climb one at a time */
     }
     return status;
 }
@@ -435,7 +463,8 @@ static void summarise(const notebook_t *book)
     char line[LINE_BYTES];
     int32_t hits = 0;
     int32_t total_ms = 0;
-    int32_t average_ms = 0; /* the file runs before the blank below is filled in */
+    int32_t average_ms =
+        0; /* the file runs before the blank below is filled in */
     uint32_t i;
 
     for (i = 0U; i < trial_count(); i++) {
@@ -449,15 +478,18 @@ static void summarise(const notebook_t *book)
      *   คู่ไปด้วยเสมอ เพราะช่วงของค่าบอกเรื่องที่ค่าเฉลี่ยเดี่ยว ๆ กลบไว้หมด
      *   และเวลาที่จดต้องเป็นเวลาที่คนยืนรอจริง ไม่ใช่แค่ช่วงที่โปรแกรมนับได้ */
     (void)total_ms; /* used once ท่าที่ 5 is filled in */
-    (void)snprintf(line, sizeof(line), "สรุป: ต่อติด %" PRId32 " จาก %" PRIu32 " ครั้ง", hits,
+    (void)snprintf(line, sizeof(line),
+                   "สรุป: ต่อติด %" PRId32 " จาก %" PRIu32 " ครั้ง", hits,
                    trial_count());
     (void)bento_lcd_print(line);
-    (void)snprintf(line, sizeof(line), "เวลาที่ใช้ต่อ เฉลี่ย %" PRId32 " ms", average_ms);
+    (void)snprintf(line, sizeof(line), "เวลาที่ใช้ต่อ เฉลี่ย %" PRId32 " ms",
+                   average_ms);
     (void)bento_lcd_print(line);
     /* the meter moves once, after the sum: a number faster than once a second helps nobody.
      * ถ้ายังไม่เติม average_ms ข้างบน แถบนี้จะนิ่งอยู่ที่ศูนย์ นั่นคือคำตอบว่าเติมครบหรือยัง */
     (void)bento_ui_set_value(book->ui, book->wait_bar, average_ms);
-    (void)snprintf(line, sizeof(line), "%" PRId32 " วินาที", average_ms / MS_PER_SECOND);
+    (void)snprintf(line, sizeof(line), "%" PRId32 " วินาที",
+                   average_ms / MS_PER_SECOND);
     set_text(book->ui, book->wait_label, line);
     drain_events(book->ui);
 }
@@ -511,7 +543,8 @@ static void read_ip(char *text, uint32_t cap)
     uint32_t length = 0U;
 
     if ((bento_wifi_ip(BENTO_WIFI_IF_ANY, &address) != BENTO_OK) ||
-        (bento_wifi_ipv4_format(address, text, cap, &length) != BENTO_OK)) {
+        (bento_wifi_ipv4_format(address, text, cap, &length) !=
+         BENTO_OK)) {
         (void)snprintf(text, (size_t)cap, "0.0.0.0");
     }
 }
@@ -522,10 +555,12 @@ static bento_status_t report_link(const notebook_t *book)
 {
     char ip_text[BENTO_WIFI_IPV4_TEXT_MAX];
     char line[LINE_BYTES];
-    bool joined = false; /* set before the blank, so the file runs before it is filled in */
+    bool joined =
+        false; /* set before the blank, so the file runs before it is filled in */
     bento_status_t status = BENTO_OK;
 
-    (void)bento_lcd_print("<span class=muted>กำลังต่อ WiFi รอได้ถึง 85 วินาที</span>");
+    (void)bento_lcd_print(
+        "<span class=muted>กำลังต่อ WiFi รอได้ถึง 85 วินาที</span>");
     /* TODO ท่าที่ 6: เติม status = join_wifi(&joined);
      * join_wifi() (เขียนมาให้แล้ว ข้างบน) คืน joined เป็น true หรือ false ไม่มีข้อยกเว้นให้จับ
      * เราจึงต้องเช็กค่าที่คืนมาเอง ไม่มีใครเตือนเรา */
@@ -542,7 +577,8 @@ static bento_status_t report_link(const notebook_t *book)
         set_text(book->ui, book->ip_label, line);
     } else if (status == BENTO_OK) {
         /* always an else: a program that reports only success is silent when it matters most */
-        (void)bento_lcd_print("<span class=muted>ต่อไม่สำเร็จ ตรวจ SSID และรหัสผ่าน</span>");
+        (void)bento_lcd_print(
+            "<span class=muted>ต่อไม่สำเร็จ ตรวจ SSID และรหัสผ่าน</span>");
         (void)bento_ui_set_value(book->ui, book->up_light, 0);
         (void)bento_ui_set_value(book->ui, book->down_light, 1);
         set_text(book->ui, book->ip_label, "IP: ต่อไม่สำเร็จ");
@@ -565,7 +601,8 @@ int main(void)
      * ช่องทางถึงจอยังใช้ได้
      * TODO ท่าที่ 1: เติม bento_lcd_clear() ที่นี่
      * TODO ท่าที่ 1 (ต่อ): เติม bento_lcd_console("<h2>บันทึกการต่อเน็ต - คาบ 2</h2>") ต่อจากนั้น */
-    (void)snprintf(line, sizeof(line), "<span class=muted>ทีม %s - บันทึกผลการทดลอง</span>",
+    (void)snprintf(line, sizeof(line),
+                   "<span class=muted>ทีม %s - บันทึกผลการทดลอง</span>",
                    TEAM_NAME);
     (void)bento_lcd_console(line);
     status = build_screen(&book);
@@ -577,7 +614,8 @@ int main(void)
         status = report_link(&book);
     }
     if (status == BENTO_OK) {
-        (void)printf("จบการบันทึกผล - ถ้าจอเงียบ เช็กว่าเข้าเมนู Playground หรือยัง\n");
+        (void)printf(
+            "จบการบันทึกผล - ถ้าจอเงียบ เช็กว่าเข้าเมนู Playground หรือยัง\n");
     }
     return (status == BENTO_E_CANCELLED) ? 0 : (int)status;
 }
