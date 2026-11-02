@@ -28,6 +28,13 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char DEVICE_ID[] =
+    "team03"; /* ชื่อเดียวกับที่ขึ้นทะเบียนไว้ ยาวไม่เกิน 31 ตัวอักษร */
+static const char ROOT[] =
+    "bento"; /* รากของทั้งโครงการ กันชนกับข้อความของกลุ่มอื่นบน broker เดียวกัน */
+/* ---- end of settings ---- */
+
 enum { /* layout: grid 8, outer margin 24 */
     MARGIN_X = 24,
     TITLE_Y = 8,
@@ -58,11 +65,6 @@ enum { /* the course palette, one value per role (SPEC S7.13) */
     COLOR_PUBLISH = 0x30A46C, /* COL_OK: an address that really works */
     COLOR_SUBSCRIBE = 0xF5A623 /* COL_WARN: never put it in a publish */
 };
-
-static const char DEVICE_ID[] =
-    "team03"; /* as registered, at most 31 characters */
-static const char ROOT[] =
-    "bento"; /* keeps groups apart on one broker */
 
 typedef struct {
     int16_t x;
