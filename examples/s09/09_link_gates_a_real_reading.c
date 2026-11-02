@@ -61,6 +61,11 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+/* ---- end of settings ---- */
+
 /* MicroPython rounds a*b and +c separately: the compiler must not
  * fuse them, or the knob's temperature differs in the last digit. */
 #if defined(__clang__)
@@ -163,8 +168,6 @@ static bool read_temp(const bento_sensors_snapshot_t *snap,
     return found;
 }
 
-/* The class network the teacher hands out. */
-
 /* The board's address as text, "0.0.0.0" when it has none. */
 static void format_ip(char *text, uint32_t cap)
 {
@@ -184,19 +187,15 @@ static void format_ip(char *text, uint32_t cap)
  * the loop shows the link as it is. Only Stop ends the program. */
 static bento_status_t join_wifi(void)
 {
-    /* the classroom network, WIFI_SSID and WIFI_PASS in the .py: set
-     * them before you run */
-    static const char wifi_ssid[] = "AIoT-Class";
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = wifi_ssid;
-    params.ssid_len = (uint32_t)strlen(wifi_ssid);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS;
     (void)printf("[WiFi] Connecting...\n");
     status = bento_wifi_connect_start(&params);
