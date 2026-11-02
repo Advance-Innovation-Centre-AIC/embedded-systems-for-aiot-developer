@@ -3,16 +3,14 @@
  *
  * การ์ดเดียวกลางจอบอก SSID, IP และเวลา ping ไป 8.8.8.8 อัปเดตทุก
  * วินาที ทุกตัวเลขบนจอวัดมาจริง ลองถอดสาย LAN ของเราเตอร์แล้วดูว่า
- * ping เปลี่ยนเป็น "ไม่ตอบ" แต่ IP ยังอยู่ ก่อนกด Run ให้แก้ชื่อวง
- * WIFI_SSID (เหนือฟังก์ชัน connect_wifi) และรหัสผ่าน wifi_pass
- * (ต้นฟังก์ชัน connect_wifi) เป็นวงของห้องเรียน
+ * ping เปลี่ยนเป็น "ไม่ตอบ" แต่ IP ยังอยู่ ก่อนกด Run ให้แก้ WIFI_SSID
+ * และ WIFI_PASS ในกรอบ "แก้ก่อนรัน" ใต้ #include เป็นวงของห้องเรียน
  *
  * One card shows the SSID, the IP address and the ping time to
  * 8.8.8.8, updated every second; every number on it is measured.
  * Unplug the router's LAN cable and watch ping turn to "no answer"
- * while the IP stays. Before you run it, set the network name
- * WIFI_SSID (just above the function connect_wifi) and the password
- * wifi_pass (at the top of the function connect_wifi).
+ * while the IP stays. Before you run it, set WIFI_SSID and
+ * WIFI_PASS in the "แก้ก่อนรัน" settings block below the includes.
  *
  * Twin of 06_link_panel_hmi.py
  * (embedded-systems-for-aiot-developer/examples/s09/06_link_panel_hmi.py),
@@ -31,6 +29,11 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 #include "bento_wifi.h"
+
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+/* ---- end of settings ---- */
 
 /* Ping limits, in milliseconds. */
 enum {
@@ -377,19 +380,12 @@ static void show_join_failed(const link_screen_t *screen)
     keep_alive(screen->ui);
 }
 
-/* The classroom network the teacher hands out (its password is set
- * where the program joins). */
-static const char WIFI_SSID[] = "AIoT-Class";
-
 /* wifi.connect(): *joined is false when the network was not found or
  * refused us, as the original's False; other failures end the run.
  * The original's binding saves the network after a join, so the
  * twin asks for that too. */
 static bento_status_t connect_wifi(bool *joined)
 {
-    /* the classroom password, WIFI_PASS in the .py: set it before you
-     * run */
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_status_t status;
@@ -397,8 +393,8 @@ static bento_status_t connect_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS;
     (void)printf("[WiFi] Connecting...\n");
     status = bento_wifi_connect_start(&params);
