@@ -72,15 +72,12 @@
 #include "bento_wifi.h"
 
 /* ---- CONFIG: แก้ก่อนรัน ---- */
+/* The Wi-Fi, the broker, the topic and the beacon's LED name are also
+ * CONFIG; each lives in the one function that reads it (MISRA 8.9):
+ * join_wifi(), connect_broker(), send_message() and find_beacon(). */
 static const char DEVICE_ID[] =
-    "team01"; /* ห้ามซ้ำทีมอื่น (broker สาธารณะ) */
-static const char WIFI_SSID[] = "AIoT-Class";
-static const char WIFI_PASS[] = "aiot12345";
-static const char BROKER[] = "test.mosquitto.org";
-static const char TOPIC[] = "bento/team01/telemetry";
+    "team01";                     /* ห้ามซ้ำทีมอื่น (broker สาธารณะ) */
 static const char UNIT[] = "deg"; /* หน่วยต้องตรงกับของจริง */
-static const char BEACON_LED[] =
-    "RGB_RED"; /* by name: the Eva Kit uses LED1 */
 static const bento_real_t WARN_LIMIT =
     (bento_real_t)8.0; /* เกินเท่านี้ = เฝ้าดู */
 static const bento_real_t LIMIT =
@@ -106,7 +103,15 @@ enum { /* text sizes */
     TEXT_BYTES = 128,
     PAYLOAD_BYTES = 160,
     NUMBER_BYTES = BENTO_FMT_BUF_SIZE,
-    CLIENT_ID_BYTES = BENTO_MQTT_CLIENT_ID_MAX + 1
+    CLIENT_ID_BYTES = (int32_t)BENTO_MQTT_CLIENT_ID_MAX + 1
+};
+
+enum { /* the two labels whose text is built at run time */
+    TITLE_X = 24,
+    TITLE_Y = 8,
+    LIMITS_X = 40,
+    LIMITS_Y = 208,
+    LABEL_PX = 20
 };
 
 enum { /* colours, 0xRRGGBB */
@@ -127,11 +132,6 @@ enum {
     LEVEL_ALERT = 2,
     LEVEL_COUNT = 3
 };
-
-static const char *const LEVEL_NAMES[LEVEL_COUNT] = {"OK", "WARN",
-                                                     "ALERT"};
-static const char *const LEVEL_TEXTS[LEVEL_COUNT] = {
-    "ปกติ ไม่ต้องทำอะไร", "เฝ้าดู ยังไม่ต้องเข้าไป", "ผิดปกติ ต้องมีคนไปดู"};
 
 /* Which ui factory a row of a widget table calls. */
 typedef enum {
@@ -350,14 +350,15 @@ static bento_status_t add_title(alarm_screen_t *screen)
 {
     static const widget_spec_t specs[] = {
         {KIND_LED, NULL, 606, 12, 18, 18, COLOR_OK, 0, 0, 0},
-        {KIND_LABEL, "MQTT: ออฟไลน์", 632, 10, -1, -1, COLOR_DIM, 16, 0,
+        {KIND_LABEL, "MQTT: ออฟไลน์", 632, 10, -1, -1, COLOR_DIM, 20, 0,
          0},
     };
     bento_ui_id_t *const outs[] = {&screen->mqtt_lamp,
                                    &screen->mqtt_label};
     char text[TEXT_BYTES];
-    widget_spec_t title = {KIND_LABEL, NULL,       24, 8, -1,
-                           -1,         COLOR_TEXT, 20, 0, 0};
+    widget_spec_t title = {KIND_LABEL, NULL, TITLE_X,    TITLE_Y,
+                           -1,         -1,   COLOR_TEXT, LABEL_PX,
+                           0,          0};
     bento_ui_id_t unused = 0U;
     bento_status_t status;
 
@@ -379,9 +380,9 @@ static bento_status_t add_value_card(alarm_screen_t *screen)
         {KIND_CARD, NULL, 24, 48, 464, 184, COLOR_CARD, 1, COLOR_DIM,
          12},
         {KIND_LABEL, "ค่าที่วัดได้ เทียบกับเกณฑ์", 40, 56, -1, -1, COLOR_DIM,
-         16, 0, 0},
+         20, 0, 0},
         {KIND_LABEL, "--", 40, 88, -1, -1, COLOR_TEXT, 28, 0, 0},
-        {KIND_LABEL, "รอค่าแรก", 248, 96, -1, -1, COLOR_DIM, 16, 0, 0},
+        {KIND_LABEL, "รอค่าแรก", 248, 96, -1, -1, COLOR_DIM, 20, 0, 0},
         {KIND_BAR, NULL, 40, 136, 432, 16, COLOR_RUN, 0, 0, SCALE_MAX},
         {KIND_SCALE, NULL, 40, 156, 432, 48, COLOR_TEXT, 0, 0,
          SCALE_MAX},
@@ -395,8 +396,9 @@ static bento_status_t add_value_card(alarm_screen_t *screen)
     char warn[NUMBER_BYTES];
     char alert[NUMBER_BYTES];
     char text[TEXT_BYTES];
-    widget_spec_t limits = {KIND_LABEL, NULL,      40, 208, -1,
-                            -1,         COLOR_DIM, 16, 0,   0};
+    widget_spec_t limits = {KIND_LABEL, NULL, LIMITS_X,  LIMITS_Y,
+                            -1,         -1,   COLOR_DIM, LABEL_PX,
+                            0,          0};
     bento_ui_id_t unused = 0U;
     bento_status_t status = add_widgets(
         screen->ui, specs, outs, sizeof(specs) / sizeof(specs[0]));
@@ -420,16 +422,16 @@ static bento_status_t add_state_card(alarm_screen_t *screen)
     static const widget_spec_t specs[] = {
         {KIND_CARD, NULL, 24, 240, 464, 152, COLOR_CARD, 1, COLOR_DIM,
          12},
-        {KIND_LABEL, "สถานะที่ตัดสินแล้ว", 40, 248, -1, -1, COLOR_DIM, 16, 0,
+        {KIND_LABEL, "สถานะที่ตัดสินแล้ว", 40, 248, -1, -1, COLOR_DIM, 20, 0,
          0},
         {KIND_LABEL, "รอคนรับทราบ", 336, 244, -1, -1, COLOR_WARN, 20, 0,
          0},
         {KIND_LED, NULL, 40, 276, 48, 48, COLOR_OK, 1, 0, 0},
         {KIND_LED, NULL, 144, 276, 48, 48, COLOR_WARN, 0, 0, 0},
         {KIND_LED, NULL, 248, 276, 48, 48, COLOR_BAD, 0, 0, 0},
-        {KIND_LABEL, "ปกติ", 40, 328, -1, -1, COLOR_DIM, 16, 0, 0},
-        {KIND_LABEL, "เฝ้าระวัง", 144, 328, -1, -1, COLOR_DIM, 16, 0, 0},
-        {KIND_LABEL, "ผิดปกติ", 248, 328, -1, -1, COLOR_DIM, 16, 0, 0},
+        {KIND_LABEL, "ปกติ", 40, 328, -1, -1, COLOR_DIM, 20, 0, 0},
+        {KIND_LABEL, "เฝ้าระวัง", 144, 328, -1, -1, COLOR_DIM, 20, 0, 0},
+        {KIND_LABEL, "ผิดปกติ", 248, 328, -1, -1, COLOR_DIM, 20, 0, 0},
         {KIND_LABEL, "เริ่มทำงาน", 40, 356, -1, -1, COLOR_TEXT, 20, 0, 0},
         {KIND_BUTTON, "รับทราบ", 368, 276, 104, 88, COLOR_QUIET, 20, 0,
          0},
@@ -465,17 +467,17 @@ static bento_status_t add_beacon_card(alarm_screen_t *screen)
     static const widget_spec_t specs[] = {
         {KIND_CARD, NULL, 504, 48, 264, 344, COLOR_CARD, 1, COLOR_DIM,
          12},
-        {KIND_LABEL, "ไฟเตือนหน้างาน", 520, 56, -1, -1, COLOR_DIM, 16, 0,
+        {KIND_LABEL, "ไฟเตือนหน้างาน", 520, 56, -1, -1, COLOR_DIM, 20, 0,
          0},
         {KIND_LED, NULL, 520, 88, 48, 48, COLOR_BAD, 0, 0, 0},
         {KIND_LABEL, "ไฟดับอยู่", 576, 100, -1, -1, COLOR_DIM, 20, 0, 0},
-        {KIND_LABEL, "สั่งปิดต้องยืนยันก่อน", 520, 144, -1, -1, COLOR_DIM, 16,
+        {KIND_LABEL, "สั่งปิดต้องยืนยันก่อน", 520, 144, -1, -1, COLOR_DIM, 20,
          0, 0},
         {KIND_BUTTON, "เปิดไฟ", 520, 176, 96, 88, COLOR_OK, 20, 0, 0},
         {KIND_BUTTON, "ปิดไฟ", 648, 176, 96, 88, COLOR_QUIET, 20, 0, 0},
         {KIND_LABEL, "net: starting", 520, 296, -1, -1, COLOR_DIM, 20,
          0, 0},
-        {KIND_LABEL, "ส่งแล้ว 0 ใบ", 520, 336, -1, -1, COLOR_DIM, 16, 0,
+        {KIND_LABEL, "ส่งแล้ว 0 ใบ", 520, 336, -1, -1, COLOR_DIM, 20, 0,
          0},
     };
     bento_ui_id_t *const outs[] = {NULL,
@@ -564,6 +566,8 @@ static bento_status_t build_screen(alarm_screen_t *screen)
  * board to board, the name does not. Not found: LED 0. */
 static bento_status_t find_beacon(uint32_t *led)
 {
+    static const char beacon_led[] =
+        "RGB_RED"; /* by name: the Eva Kit uses LED1 */
     bento_gpio_board_info_t info;
     const char *wanted = "LED1";
     const char *name = NULL;
@@ -575,7 +579,7 @@ static bento_status_t find_beacon(uint32_t *led)
     for (i = 0U; (i < info.leds) && (status == BENTO_OK); i++) {
         if ((bento_gpio_led_name(i, &name) == BENTO_OK) &&
             (strcmp(name, "RGB_GREEN") == 0)) {
-            wanted = BEACON_LED; /* red on both boards */
+            wanted = beacon_led; /* red on both boards */
         }
     }
     *led = 0U;
@@ -655,13 +659,16 @@ static void on_state_change(int32_t old_state, int32_t new_state,
 static void show_state(const alarm_screen_t *screen, shown_t *shown,
                        const decision_t *decision)
 {
+    static const char *const level_texts[LEVEL_COUNT] = {
+        "ปกติ ไม่ต้องทำอะไร", "เฝ้าดู ยังไม่ต้องเข้าไป", "ผิดปกติ ต้องมีคนไปดู"};
+
     if (!shown->has_shown || (decision->state != shown->shown_state) ||
         (decision->latched != shown->shown_latched)) {
         shown->has_shown = true;
         shown->shown_state = decision->state;
         shown->shown_latched = decision->latched;
         set_text(screen->ui, screen->state_label,
-                 LEVEL_TEXTS[decision->state]);
+                 level_texts[decision->state]);
         set_shown(screen->ui, screen->latch_label, decision->latched);
     }
 }
@@ -695,7 +702,8 @@ static void show(tilt_alarm_t *monitor, uint32_t now_ms)
 {
     const alarm_screen_t *screen = &monitor->screen;
     const decision_t *decision = &monitor->decision;
-    const int32_t second = (int32_t)(now_ms / (uint32_t)MS_PER_S);
+    const uint32_t whole_seconds = now_ms / (uint32_t)MS_PER_S;
+    const int32_t second = (int32_t)whole_seconds;
     char net_text[TEXT_BYTES];
 
     set_value(screen->ui, screen->value_bar,
@@ -769,6 +777,9 @@ static bool broker_connected(const link_t *link)
 static bento_status_t send_message(tilt_alarm_t *monitor,
                                    const char *kind, bool *sent)
 {
+    static const char topic[] = "bento/team01/telemetry";
+    static const char *const level_names[LEVEL_COUNT] = {"OK", "WARN",
+                                                         "ALERT"};
     const decision_t *decision = &monitor->decision;
     char number[NUMBER_BYTES];
     char payload[PAYLOAD_BYTES];
@@ -781,12 +792,12 @@ static bento_status_t send_message(tilt_alarm_t *monitor,
                        "{\"state\": \"%s\", \"v\": %s, \"kind\": "
                        "\"%s\", \"t\": %lu, "
                        "\"id\": \"%s\", \"unit\": \"%s\"}",
-                       LEVEL_NAMES[decision->state], number, kind,
+                       level_names[decision->state], number, kind,
                        (unsigned long)bento_time_ticks_ms(), DEVICE_ID,
                        UNIT);
         /* ทีมเขียนเอง: เพิ่มหรือตัดฟิลด์ให้ตรงกับตาราง schema ที่ทีมออกแบบไว้ในใบงาน */
-        status = bento_mqtt_publish(monitor->link.handle, TOPIC,
-                                    (uint32_t)strlen(TOPIC),
+        status = bento_mqtt_publish(monitor->link.handle, topic,
+                                    (uint32_t)strlen(topic),
                                     (const uint8_t *)payload,
                                     (uint32_t)strlen(payload), 0U, 0U);
         if (status != BENTO_E_SESSION) {
@@ -848,6 +859,8 @@ static bento_status_t finish_join(bool *joined)
  * program. */
 static bento_status_t join_wifi(bool *joined)
 {
+    static const char wifi_ssid[] = "AIoT-Class";
+    static const char wifi_pass[] = "aiot12345";
     bento_wifi_connect_params_t params;
     bool connected = false;
     bento_status_t status = bento_wifi_is_connected(&connected);
@@ -855,10 +868,10 @@ static bento_status_t join_wifi(bool *joined)
     *joined = (status == BENTO_OK) && connected;
     if (!*joined && (status != BENTO_E_UNSUPPORTED)) {
         bento_wifi_connect_params_init(&params);
-        params.ssid = WIFI_SSID;
-        params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-        params.pass = WIFI_PASS;
-        params.pass_len = (uint32_t)strlen(WIFI_PASS);
+        params.ssid = wifi_ssid;
+        params.ssid_len = (uint32_t)strlen(wifi_ssid);
+        params.pass = wifi_pass;
+        params.pass_len = (uint32_t)strlen(wifi_pass);
         params.flags =
             BENTO_WIFI_F_SAVE_CREDS; /* as the binding does */
         status = bento_wifi_connect_start(&params);
@@ -875,6 +888,7 @@ static bento_status_t join_wifi(bool *joined)
 /* mqtt.connect(BROKER, port=1883, client_id=CLIENT_ID). */
 static bento_status_t connect_broker(link_t *link, bool *connected)
 {
+    static const char broker[] = "test.mosquitto.org";
     bento_mqtt_config_t config;
     bento_status_t answer = BENTO_E_IN_PROGRESS;
     bento_status_t status;
@@ -884,8 +898,8 @@ static bento_status_t connect_broker(link_t *link, bool *connected)
         link->open = false;
     }
     bento_mqtt_config_init(&config);
-    config.host = BROKER;
-    config.host_len = (uint32_t)strlen(BROKER);
+    config.host = broker;
+    config.host_len = (uint32_t)strlen(broker);
     config.port = MQTT_PORT;
     config.client_id = link->client_id;
     config.client_id_len = (uint32_t)strlen(link->client_id);
@@ -921,6 +935,24 @@ static void show_link(const alarm_screen_t *screen, bool connected)
              connected ? "MQTT: เชื่อมต่อแล้ว" : "MQTT: ออฟไลน์");
 }
 
+/* The alarm event, at most every ALERT_GAP_MS. */
+static bento_status_t send_alert(tilt_alarm_t *monitor, uint32_t now_ms)
+{
+    decision_t *decision = &monitor->decision;
+    bool sent = false;
+    const bento_status_t status = send_message(monitor, "event", &sent);
+
+    if (sent) {
+        decision->has_alert = true;
+        decision->last_alert_ms = now_ms;
+        decision->sent++;
+    } else {
+        decision->missed++;
+        /* ทีมเขียนเอง: ออฟไลน์แล้วจะ "ทิ้ง" หรือ "เก็บไว้ส่งทีหลัง" */
+    }
+    return status;
+}
+
 /* A new state: an alarm latches the beacon and is sent, at most every
  * ALERT_GAP_MS. */
 static bento_status_t enter_state(tilt_alarm_t *monitor,
@@ -931,7 +963,6 @@ static bento_status_t enter_state(tilt_alarm_t *monitor,
         !decision->has_alert ||
         (bento_time_ticks_diff(now_ms, decision->last_alert_ms) >=
          ALERT_GAP_MS);
-    bool sent = false;
     bento_status_t status = BENTO_OK;
 
     on_state_change(decision->state, new_state, decision->value);
@@ -940,15 +971,7 @@ static bento_status_t enter_state(tilt_alarm_t *monitor,
         decision->latched = true;
         status = set_beacon(monitor, true);
         if ((status == BENTO_OK) && ready) {
-            status = send_message(monitor, "event", &sent);
-            if (sent) {
-                decision->has_alert = true;
-                decision->last_alert_ms = now_ms;
-                decision->sent++;
-            } else {
-                decision->missed++;
-                /* ทีมเขียนเอง: ออฟไลน์แล้วจะ "ทิ้ง" หรือ "เก็บไว้ส่งทีหลัง" */
-            }
+            status = send_alert(monitor, now_ms);
         }
     }
     return status;
@@ -1094,6 +1117,7 @@ static bento_status_t run_alarm(tilt_alarm_t *monitor)
 static bento_status_t start_sensing(tilt_t *tilt)
 {
     bento_sensors_imu6_t motion;
+    const float smoothing = 0.2F; /* the original filter strength */
     bento_dsp_ema_config_t config;
     bento_status_t status;
 
@@ -1107,7 +1131,7 @@ static bento_status_t start_sensing(tilt_t *tilt)
         status = bento_dsp_ema_config_init(&config);
     }
     if (status == BENTO_OK) {
-        config.alpha = 0.2F;
+        config.alpha = smoothing;
         status = bento_dsp_ema_state_init(&tilt->smooth, &config);
     }
     return status;
