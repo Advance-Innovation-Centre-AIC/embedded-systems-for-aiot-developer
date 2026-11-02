@@ -99,6 +99,7 @@ enum {
     WAVE_POINTS = 64,
     SAMPLE_STEP = FFT_N / WAVE_POINTS,
     AMPLITUDE = 16000,
+    NOISE_SPAN = (2 * AMPLITUDE) + 1, /* -16000 to 16000 */
     WAVE_CHART_FULL = 100, /* the time chart shows -100 to 100 */
     PERCENT = 100,
     TRIANGLE_SLOPE = 4, /* up from -1 to 1 in half a period */
@@ -461,19 +462,29 @@ static uint32_t lfsr_next(uint32_t *lfsr)
     return *lfsr;
 }
 
+/* int(value): Python's int() of a real cuts toward zero, as the cast
+ * does; the real expression is worked out first, at the board's float
+ * width. */
+static int32_t int_of(bento_real_t value)
+{
+    return (int32_t)value;
+}
+
 /* The wave between -1 and 1 at phase (0 to 1 within one period). */
 static bento_real_t wave_at(int32_t wave, bento_real_t phase)
 {
     const bento_real_t half = (bento_real_t)0.5;
     const bento_real_t full_turn =
-        (bento_real_t)(2.0 * 3.141592653589793);
+        (bento_real_t)6.283185307179586; /* 2 pi */
     const bento_real_t slope = (bento_real_t)TRIANGLE_SLOPE * phase;
     bento_real_t value;
 
     if (wave == WAVE_SQUARE) {
         value = (phase < half) ? (bento_real_t)1 : (bento_real_t)-1;
     } else if (wave == WAVE_SINE) {
-        value = (bento_real_t)sin((double)(full_turn * phase));
+        const bento_real_t angle = full_turn * phase;
+
+        value = (bento_real_t)sin((double)angle);
     } else if (wave == WAVE_TRIANGLE) {
         value = (phase < half) ? (slope - (bento_real_t)1)
                                : ((bento_real_t)TRIANGLE_TOP - slope);
@@ -495,15 +506,16 @@ static void make_signal(analyzer_t *analyzer)
         int32_t value;
 
         if (analyzer->wave == WAVE_NOISE) {
-            value = (int32_t)(lfsr_next(&analyzer->lfsr) %
-                              (uint32_t)((2 * AMPLITUDE) + 1)) -
-                    AMPLITUDE;
+            const uint32_t draw =
+                lfsr_next(&analyzer->lfsr) % (uint32_t)NOISE_SPAN;
+
+            value = (int32_t)draw - AMPLITUDE;
         } else {
             const bento_real_t within =
                 (bento_real_t)fmod((double)i, (double)period);
 
-            value = (int32_t)(wave_at(analyzer->wave, within / period) *
-                              (bento_real_t)AMPLITUDE);
+            value = int_of(wave_at(analyzer->wave, within / period) *
+                           (bento_real_t)AMPLITUDE);
         }
         g_spectrum.samples[i] = (float)value;
     }
@@ -519,9 +531,9 @@ static bento_status_t draw_wave_time(const analyzer_t *analyzer)
     for (i = 0; (i < WAVE_POINTS) && (status == BENTO_OK); i++) {
         const int32_t index = i * SAMPLE_STEP;
         const int32_t sample = (int32_t)g_spectrum.samples[index];
+        const int32_t sample_x100 = sample * WAVE_CHART_FULL;
         const bento_real_t scaled =
-            (bento_real_t)(sample * WAVE_CHART_FULL) /
-            (bento_real_t)AMPLITUDE;
+            (bento_real_t)sample_x100 / (bento_real_t)AMPLITUDE;
 
         (void)bento_ui_chart_set_next(
             analyzer->ui, analyzer->wave_chart, 0U, (int32_t)scaled);
@@ -563,9 +575,9 @@ static bento_status_t draw_spectrum(const analyzer_t *analyzer)
     for (bin = 0; (bin < BINS) && (status == BENTO_OK); bin++) {
         const int32_t index = bin * BIN_STEP;
         const int32_t value =
-            (int32_t)(((bento_real_t)g_spectrum.magnitudes[index] *
-                       (bento_real_t)PERCENT) /
-                      top);
+            int_of(((bento_real_t)g_spectrum.magnitudes[index] *
+                    (bento_real_t)PERCENT) /
+                   top);
 
         (void)bento_ui_chart_set_next(
             analyzer->ui, analyzer->spectrum, 0U,

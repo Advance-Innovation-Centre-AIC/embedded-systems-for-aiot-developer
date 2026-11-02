@@ -91,7 +91,7 @@ enum {
     WARM_UP_MS = 20,
     DECIMATE_STEP = 2,
     POINTS = READ_SAMPLES / DECIMATE_STEP,
-    BYTE_BITS = 8U,
+    BYTE_BITS = 8,
     SIGN_BIT = 0x8000, /* an int16 above 32767 is negative */
     WORD = 0x10000
 };
@@ -272,8 +272,8 @@ static bento_status_t pause_ms(uint32_t ms)
     return status;
 }
 
-/* Python's a // b for a positive b: rounds toward minus infinity, where
- * C's / rounds toward zero. */
+/* Python's floor division by a positive divisor: it rounds toward
+ * minus infinity, where C's division rounds toward zero. */
 static int32_t floor_div(int32_t dividend, int32_t divisor)
 {
     int32_t quotient = dividend / divisor;
@@ -446,9 +446,9 @@ static int32_t log2_q8(uint32_t value)
         bits++;
     }
     if (bits <= MANTISSA_BITS) {
-        mantissa = value << (uint32_t)(MANTISSA_BITS - bits);
+        mantissa = value << ((uint32_t)MANTISSA_BITS - (uint32_t)bits);
     } else {
-        mantissa = value >> (uint32_t)(bits - MANTISSA_BITS);
+        mantissa = value >> ((uint32_t)bits - (uint32_t)MANTISSA_BITS);
     }
     return ((bits - 1) * Q8_ONE) + ((int32_t)mantissa - MANTISSA_BASE);
 }
@@ -479,9 +479,9 @@ static bento_status_t read_points(const scope_t *scope, uint32_t *count)
 
     for (i = 0; (i < READ_SAMPLES) && (status == BENTO_OK); i++) {
         const int32_t low_byte = i * SAMPLE_BYTES;
-        const uint32_t word =
-            (uint32_t)g_audio.bytes[low_byte] |
-            ((uint32_t)g_audio.bytes[low_byte + 1] << BYTE_BITS);
+        const uint32_t word = (uint32_t)g_audio.bytes[low_byte] |
+                              ((uint32_t)g_audio.bytes[low_byte + 1]
+                               << (uint32_t)BYTE_BITS);
         const int32_t value = (int32_t)word;
 
         g_audio.samples[i] =
@@ -560,6 +560,12 @@ static bento_status_t show_sound(const scope_t *scope)
     return status;
 }
 
+static bool event_is(const bento_ui_event_t *event, uint8_t kind,
+                     bento_ui_id_t widget)
+{
+    return (event->type == kind) && (event->id == widget);
+}
+
 /* Pause and Play: the button's text says what a tap does next.
  * ui.poll() answers no events when it fails, so a failed poll is not an
  * error here. */
@@ -574,8 +580,8 @@ static void check_button(scope_t *scope)
         count = 0U;
     }
     for (i = 0U; i < count; i++) {
-        if ((events[i].type == BENTO_UI_EVENT_CLICKED) &&
-            (events[i].id == scope->button)) {
+        if (event_is(&events[i], BENTO_UI_EVENT_CLICKED,
+                     scope->button)) {
             const char *text = scope->running ? "Play" : "Pause";
 
             scope->running = !scope->running;

@@ -295,8 +295,8 @@ static int32_t angle_to_gauge(float angle_deg)
     const bento_real_t scaled =
         ((bento_real_t)angle_deg * (bento_real_t)GAUGE_MIDDLE) /
         (bento_real_t)QUARTER_TURN_DEG;
-    const int32_t value =
-        (int32_t)((bento_real_t)GAUGE_MIDDLE + scaled);
+    const bento_real_t shifted = (bento_real_t)GAUGE_MIDDLE + scaled;
+    const int32_t value = (int32_t)shifted;
     int32_t kept = value;
 
     if (value < 0) {
@@ -314,7 +314,7 @@ static int32_t angle_to_gauge(float angle_deg)
 static void draw_needle(const gauge_screen_t *screen, int32_t value)
 {
     const uint32_t packed =
-        ((uint32_t)NEEDLE_PX << NEEDLE_LENGTH_SHIFT) |
+        ((uint32_t)NEEDLE_PX << (uint32_t)NEEDLE_LENGTH_SHIFT) |
         ((uint32_t)value & (uint32_t)NEEDLE_VALUE_MASK);
 
     (void)bento_ui_set_prop(screen->ui, screen->scale,

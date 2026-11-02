@@ -291,7 +291,10 @@ static bento_status_t build_screen(accel_screen_t *screen)
  * toward zero as int() cuts it. */
 static int32_t chart_point(float value, int32_t scale)
 {
-    return (int32_t)((bento_real_t)value * (bento_real_t)scale);
+    const bento_real_t product =
+        (bento_real_t)value * (bento_real_t)scale;
+
+    return (int32_t)product;
 }
 
 /* prefix + '%+.2f' % value: MicroPython's '+' flag puts a sign in

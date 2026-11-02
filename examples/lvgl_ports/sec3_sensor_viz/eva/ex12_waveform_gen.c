@@ -93,6 +93,7 @@ enum {
     CHART_MAX = 100,
     CHART_MIDDLE = 50,
     WAVE_AMPLITUDE = 20,
+    NOISE_SPAN = (2 * WAVE_AMPLITUDE) + 1, /* -20 to 20 */
     TRIANGLE_SLOPE = 4, /* up from -1 to 1 in half a period */
     TRIANGLE_TOP = 3,   /* and down again: 3 - 4 * phase */
     SLIDER_MAX = 100,
@@ -401,18 +402,28 @@ static uint32_t lfsr_next(uint32_t *lfsr)
     return *lfsr;
 }
 
+/* int(value): Python's int() of a real cuts toward zero, as the cast
+ * does; the real expression is worked out first, at the board's float
+ * width. */
+static int32_t int_of(bento_real_t value)
+{
+    return (int32_t)value;
+}
+
 /* The wave between -1 and 1 at phase (0 to 1 within one period). */
 static bento_real_t wave_at(int32_t wave, bento_real_t phase)
 {
     const bento_real_t half = (bento_real_t)0.5;
     const bento_real_t full_turn =
-        (bento_real_t)(2.0 * 3.141592653589793);
+        (bento_real_t)6.283185307179586; /* 2 pi */
     bento_real_t value;
 
     if (wave == WAVE_SQUARE) {
         value = (phase < half) ? (bento_real_t)1 : (bento_real_t)-1;
     } else if (wave == WAVE_SINE) {
-        value = (bento_real_t)sin((double)(full_turn * phase));
+        const bento_real_t angle = full_turn * phase;
+
+        value = (bento_real_t)sin((double)angle);
     } else if (wave == WAVE_TRIANGLE) {
         const bento_real_t slope = (bento_real_t)TRIANGLE_SLOPE * phase;
 
@@ -430,21 +441,20 @@ static int32_t next_point(generator_t *generator, int32_t offset)
     int32_t point;
 
     if (generator->wave == WAVE_NOISE) {
-        const uint32_t bits = lfsr_next(&generator->lfsr);
+        const uint32_t draw =
+            lfsr_next(&generator->lfsr) % (uint32_t)NOISE_SPAN;
 
-        point =
-            CHART_MIDDLE +
-            ((int32_t)(bits % (uint32_t)((2 * WAVE_AMPLITUDE) + 1)) -
-             WAVE_AMPLITUDE);
+        point = CHART_MIDDLE + ((int32_t)draw - WAVE_AMPLITUDE);
     } else {
         const bento_real_t period = (bento_real_t)SAMPLE_RATE_HZ /
                                     (bento_real_t)generator->freq_hz;
-        const bento_real_t within = (bento_real_t)fmod(
-            (double)(generator->phase + offset), (double)period);
+        const int32_t sample = generator->phase + offset;
+        const bento_real_t within =
+            (bento_real_t)fmod((double)sample, (double)period);
 
         point = CHART_MIDDLE +
-                (int32_t)(wave_at(generator->wave, within / period) *
-                          (bento_real_t)WAVE_AMPLITUDE);
+                int_of(wave_at(generator->wave, within / period) *
+                       (bento_real_t)WAVE_AMPLITUDE);
     }
     return point;
 }

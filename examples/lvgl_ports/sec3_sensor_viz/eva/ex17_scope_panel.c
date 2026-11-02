@@ -546,7 +546,7 @@ static bento_real_t wave_at(int32_t wave, bento_real_t phase,
 {
     const bento_real_t half = (bento_real_t)0.5;
     const bento_real_t full_turn =
-        (bento_real_t)(2.0 * 3.141592653589793);
+        (bento_real_t)6.283185307179586; /* 2 pi */
     const bento_real_t high_part =
         (bento_real_t)duty / (bento_real_t)PERCENT;
     bento_real_t value;
@@ -555,7 +555,9 @@ static bento_real_t wave_at(int32_t wave, bento_real_t phase,
         value =
             (phase < high_part) ? (bento_real_t)1 : (bento_real_t)-1;
     } else if (wave == WAVE_SINE) {
-        value = (bento_real_t)sin((double)(full_turn * phase));
+        const bento_real_t angle = full_turn * phase;
+
+        value = (bento_real_t)sin((double)angle);
     } else {
         const bento_real_t slope = (bento_real_t)TRIANGLE_SLOPE * phase;
 
@@ -575,6 +577,14 @@ static bento_real_t phase_of(int32_t sample, int32_t freq_hz,
         (bento_real_t)fmod((double)sample, (double)period);
 
     return within / period;
+}
+
+/* int(value): Python's int() of a real cuts toward zero, as the cast
+ * does; the real expression is worked out first, at the board's float
+ * width. */
+static int32_t int_of(bento_real_t value)
+{
+    return (int32_t)value;
 }
 
 /* What push_chunk() draws: a wave at a rate and a duty. */
@@ -602,7 +612,7 @@ static int32_t push_chunk(bento_ui_t *ui, bento_ui_id_t chart,
         (void)bento_ui_chart_set_next(
             ui, chart, 0U,
             CHART_MIDDLE +
-                (int32_t)(value * (bento_real_t)WAVE_AMPLITUDE));
+                int_of(value * (bento_real_t)WAVE_AMPLITUDE));
     }
     return phase + chunk->points;
 }
@@ -639,7 +649,7 @@ static bento_status_t fft_redraw(const scope_panel_t *panel)
             HALF_DUTY);
 
         g_fft.samples[i] =
-            (float)(int32_t)(value * (bento_real_t)SAMPLE_AMPLITUDE);
+            (float)int_of(value * (bento_real_t)SAMPLE_AMPLITUDE);
     }
     status = bento_dsp_fft_mag_f32(g_fft.samples, FFT_N, FFT_N,
                                    BENTO_DSP_FFT_DEFAULT, g_fft.scratch,
@@ -651,9 +661,9 @@ static bento_status_t fft_redraw(const scope_panel_t *panel)
         for (i = 0; i < BINS; i++) {
             const int32_t index = i * BIN_STEP;
             const int32_t value =
-                (int32_t)(((bento_real_t)g_fft.magnitudes[index] *
-                           (bento_real_t)PERCENT) /
-                          top);
+                int_of(((bento_real_t)g_fft.magnitudes[index] *
+                        (bento_real_t)PERCENT) /
+                       top);
 
             (void)bento_ui_chart_set_next(
                 panel->ui, panel->fft_chart, 0U,
@@ -677,6 +687,17 @@ static void show_value(bento_ui_t *ui, bento_ui_id_t label,
     (void)bento_ui_set_text(ui, label, text, (uint32_t)strlen(text));
 }
 
+static bool is_kind(const bento_ui_event_t *event, uint8_t kind)
+{
+    return event->type == kind;
+}
+
+static bool event_is(const bento_ui_event_t *event, uint8_t kind,
+                     bento_ui_id_t widget)
+{
+    return (event->type == kind) && (event->id == widget);
+}
+
 /* A page button: that page is shown. */
 static void handle_click(scope_panel_t *panel, bento_ui_id_t widget)
 {
@@ -693,20 +714,20 @@ static void handle_click(scope_panel_t *panel, bento_ui_id_t widget)
 static void handle_event(scope_panel_t *panel,
                          const bento_ui_event_t *event)
 {
-    if (event->type == BENTO_UI_EVENT_CLICKED) {
+    if (is_kind(event, BENTO_UI_EVENT_CLICKED)) {
         handle_click(panel, event->id);
-    } else if ((event->type == BENTO_UI_EVENT_TOGGLED) &&
-               (event->id == panel->run_switch)) {
+    } else if (event_is(event, BENTO_UI_EVENT_TOGGLED,
+                        panel->run_switch)) {
         panel->running = (event->value == 1);
         (void)bento_ui_set_prop(panel->ui, panel->run_led,
                                 BENTO_UI_PROP_LED_BRIGHTNESS,
                                 panel->running ? LED_FULL : LED_DIM);
-    } else if ((event->type == BENTO_UI_EVENT_VALUE_CHANGED) &&
-               (event->id == panel->freq_slider)) {
+    } else if (event_is(event, BENTO_UI_EVENT_VALUE_CHANGED,
+                        panel->freq_slider)) {
         panel->generator_freq_hz = event->value;
         show_value(panel->ui, panel->freq_text, event->value, " Hz");
-    } else if ((event->type == BENTO_UI_EVENT_VALUE_CHANGED) &&
-               (event->id == panel->duty_slider)) {
+    } else if (event_is(event, BENTO_UI_EVENT_VALUE_CHANGED,
+                        panel->duty_slider)) {
         panel->generator_duty = event->value;
         show_value(panel->ui, panel->duty_text, event->value, " %");
     } else {

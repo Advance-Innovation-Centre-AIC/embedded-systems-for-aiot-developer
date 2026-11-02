@@ -402,7 +402,18 @@ static bento_status_t build_screen(dashboard_t *board)
  * toward zero as int() cuts it. */
 static int32_t chart_point(float value, int32_t scale)
 {
-    return (int32_t)((bento_real_t)value * (bento_real_t)scale);
+    const bento_real_t product =
+        (bento_real_t)value * (bento_real_t)scale;
+
+    return (int32_t)product;
+}
+
+/* int(value): Python's int() of a real cuts toward zero, as the cast
+ * does; the real expression is worked out first, at the board's float
+ * width. */
+static int32_t int_of(bento_real_t value)
+{
+    return (int32_t)value;
 }
 
 /* value kept between low and high, as the original's two-sided
@@ -442,16 +453,17 @@ static void move_ball(const dashboard_t *board, const float *accel)
     const bento_real_t full_angle = (bento_real_t)1.2;
     const bento_real_t roll =
         (bento_real_t)atan2((double)accel[1], (double)accel[2]);
-    const bento_real_t across = (bento_real_t)sqrt(
-        (double)((accel[1] * accel[1]) + (accel[2] * accel[2])));
+    const float squares = (accel[1] * accel[1]) + (accel[2] * accel[2]);
+    const float minus_ax = -accel[0];
+    const bento_real_t across = (bento_real_t)sqrt((double)squares);
     const bento_real_t pitch =
-        (bento_real_t)atan2((double)(-accel[0]), (double)across);
+        (bento_real_t)atan2((double)minus_ax, (double)across);
     const int32_t x =
-        (int32_t)((bento_real_t)DOT_X +
-                  ((roll / full_angle) * (bento_real_t)ROLL_PX));
+        int_of((bento_real_t)DOT_X +
+               ((roll / full_angle) * (bento_real_t)ROLL_PX));
     const int32_t y =
-        (int32_t)((bento_real_t)DOT_Y -
-                  ((pitch / full_angle) * (bento_real_t)PITCH_PX));
+        int_of((bento_real_t)DOT_Y -
+               ((pitch / full_angle) * (bento_real_t)PITCH_PX));
 
     /* a setter's refusal is ignored, as MicroPython ignores it */
     (void)bento_ui_set_pos(board->ui, board->dot,
@@ -475,11 +487,10 @@ static bento_status_t show_round(const dashboard_t *board)
     }
     if (status == BENTO_OK) {
         for (axis = 0; axis < AXES; axis++) {
-            (void)bento_ui_set_value(
-                board->ui, board->bars[axis],
-                (int32_t)((bento_real_t)BAR_MIDDLE +
-                          ((bento_real_t)accel[axis] *
-                           (bento_real_t)BAR_SCALE)));
+            (void)bento_ui_set_value(board->ui, board->bars[axis],
+                                     int_of((bento_real_t)BAR_MIDDLE +
+                                            ((bento_real_t)accel[axis] *
+                                             (bento_real_t)BAR_SCALE)));
         }
         push_points(board->ui, &board->area, accel, ACCEL_SCALE);
         move_ball(board, accel);

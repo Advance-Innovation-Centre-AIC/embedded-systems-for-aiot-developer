@@ -417,7 +417,10 @@ static void show_adc(const dashboard_t *board, int32_t raw)
  * toward zero as int() cuts it. */
 static int32_t chart_point(float value, int32_t scale)
 {
-    return (int32_t)((bento_real_t)value * (bento_real_t)scale);
+    const bento_real_t product =
+        (bento_real_t)value * (bento_real_t)scale;
+
+    return (int32_t)product;
 }
 
 static void show_accel(const dashboard_t *board, const float *accel)
@@ -443,9 +446,10 @@ static void show_accel(const dashboard_t *board, const float *accel)
 /* int(50 + g / 5), kept on the arc's 0-100. */
 static int32_t gyro_to_arc(float rate_dps)
 {
-    const int32_t step = (int32_t)((bento_real_t)ARC_MIDDLE +
-                                   ((bento_real_t)rate_dps /
-                                    (bento_real_t)GYRO_PER_STEP));
+    const bento_real_t arc =
+        (bento_real_t)ARC_MIDDLE +
+        ((bento_real_t)rate_dps / (bento_real_t)GYRO_PER_STEP);
+    const int32_t step = (int32_t)arc;
     int32_t value = step;
 
     if (step < 0) {

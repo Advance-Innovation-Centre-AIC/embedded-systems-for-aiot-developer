@@ -281,7 +281,7 @@ static bento_status_t build_screen(gauge_screen_t *screen)
 static void draw_needle(const gauge_screen_t *screen, float value)
 {
     const uint32_t packed =
-        ((uint32_t)NEEDLE_PX << NEEDLE_LENGTH_SHIFT) |
+        ((uint32_t)NEEDLE_PX << (uint32_t)NEEDLE_LENGTH_SHIFT) |
         ((uint32_t)(int32_t)value & (uint32_t)NEEDLE_VALUE_MASK);
 
     (void)bento_ui_set_prop(screen->ui, screen->scale,

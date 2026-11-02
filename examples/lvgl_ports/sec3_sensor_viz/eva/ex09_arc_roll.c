@@ -276,8 +276,8 @@ static int32_t angle_to_gauge(float angle_deg)
     const bento_real_t scaled =
         ((bento_real_t)angle_deg * (bento_real_t)GAUGE_MIDDLE) /
         (bento_real_t)QUARTER_TURN_DEG;
-    const int32_t value =
-        (int32_t)((bento_real_t)GAUGE_MIDDLE + scaled);
+    const bento_real_t shifted = (bento_real_t)GAUGE_MIDDLE + scaled;
+    const int32_t value = (int32_t)shifted;
     int32_t kept = value;
 
     if (value < 0) {

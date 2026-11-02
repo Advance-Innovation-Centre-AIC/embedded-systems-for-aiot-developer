@@ -466,16 +466,21 @@ static bento_status_t set_output(hw_scope_t *scope, bool on)
     return status;
 }
 
+static bool event_is(const bento_ui_event_t *event, uint8_t kind,
+                     bento_ui_id_t widget)
+{
+    return (event->type == kind) && (event->id == widget);
+}
+
 static bento_status_t handle_event(hw_scope_t *scope,
                                    const bento_ui_event_t *event)
 {
     bento_status_t status = BENTO_OK;
 
-    if ((event->type == BENTO_UI_EVENT_TOGGLED) &&
-        (event->id == scope->output_switch)) {
+    if (event_is(event, BENTO_UI_EVENT_TOGGLED, scope->output_switch)) {
         status = set_output(scope, event->value == 1);
-    } else if ((event->type == BENTO_UI_EVENT_VALUE_CHANGED) &&
-               (event->id == scope->slider)) {
+    } else if (event_is(event, BENTO_UI_EVENT_VALUE_CHANGED,
+                        scope->slider)) {
         scope->freq_hz = event->value;
         show_number(scope->ui, scope->freq_text, "", scope->freq_hz,
                     " Hz");
@@ -534,9 +539,10 @@ static bento_status_t drive_led(hw_scope_t *scope)
 
     if (scope->freq_hz <= BLINK_MAX_HZ) {
         const int32_t period_ms = MS_PER_SECOND / scope->freq_hz;
-        const bool on_now =
-            (int32_t)(bento_time_ticks_ms() % (uint32_t)period_ms) <
-            ((period_ms * scope->duty) / PERCENT);
+        const uint32_t into_period =
+            bento_time_ticks_ms() % (uint32_t)period_ms;
+        const bool on_now = (int32_t)into_period <
+                            ((period_ms * scope->duty) / PERCENT);
 
         if (!scope->blinking || (on_now != scope->lit)) {
             scope->blinking = true;
@@ -564,8 +570,9 @@ static void push_square(hw_scope_t *scope)
     int32_t i;
 
     for (i = 0; i < POINTS_PER_ROUND; i++) {
-        const bento_real_t within = (bento_real_t)fmod(
-            (double)(scope->phase + i), (double)period);
+        const int32_t sample = scope->phase + i;
+        const bento_real_t within =
+            (bento_real_t)fmod((double)sample, (double)period);
 
         (void)bento_ui_chart_set_next(
             scope->ui, scope->chart, 0U,

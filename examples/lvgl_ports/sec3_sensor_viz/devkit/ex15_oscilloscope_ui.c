@@ -448,13 +448,15 @@ static bento_real_t wave_at(int32_t wave, bento_real_t phase)
 {
     const bento_real_t half = (bento_real_t)0.5;
     const bento_real_t full_turn =
-        (bento_real_t)(2.0 * 3.141592653589793);
+        (bento_real_t)6.283185307179586; /* 2 pi */
     bento_real_t value;
 
     if (wave == WAVE_SQUARE) {
         value = (phase < half) ? (bento_real_t)1 : (bento_real_t)-1;
     } else if (wave == WAVE_SINE) {
-        value = (bento_real_t)sin((double)(full_turn * phase));
+        const bento_real_t angle = full_turn * phase;
+
+        value = (bento_real_t)sin((double)angle);
     } else {
         const bento_real_t slope = (bento_real_t)TRIANGLE_SLOPE * phase;
 
@@ -476,12 +478,20 @@ static bento_real_t phase_of(int32_t sample, int32_t freq_hz)
     return within / period;
 }
 
+/* int(value): Python's int() of a real cuts toward zero, as the cast
+ * does; the real expression is worked out first, at the board's float
+ * width. */
+static int32_t int_of(bento_real_t value)
+{
+    return (int32_t)value;
+}
+
 /* gen_wave()'s sample number `sample`, in int16 units. */
 static int32_t wave_sample(const scope_t *scope, int32_t sample)
 {
-    return (int32_t)(wave_at(scope->wave,
-                             phase_of(sample, scope->freq_hz)) *
-                     (bento_real_t)SAMPLE_AMPLITUDE);
+    return int_of(
+        wave_at(scope->wave, phase_of(sample, scope->freq_hz)) *
+        (bento_real_t)SAMPLE_AMPLITUDE);
 }
 
 /* Sets a label's text; MicroPython's widget setters ignore a refusal
@@ -522,7 +532,7 @@ static void measure(const scope_t *scope)
         previous = value;
     }
     mean_square = (bento_real_t)squares / (bento_real_t)MEASURE_SAMPLES;
-    rms = (int32_t)(bento_real_t)sqrt((double)mean_square);
+    rms = int_of((bento_real_t)sqrt((double)mean_square));
     show_number(scope->ui, scope->vpp,
                 "Vpp: ", (high - low) / COUNTS_PER_VOLT, "");
     show_number(scope->ui, scope->freq_measured, "Freq: ",
@@ -544,7 +554,7 @@ static void push_chunk(scope_t *scope)
         (void)bento_ui_chart_set_next(
             scope->ui, scope->chart, 0U,
             CHART_MIDDLE +
-                (int32_t)(value * (bento_real_t)WAVE_AMPLITUDE));
+                int_of(value * (bento_real_t)WAVE_AMPLITUDE));
     }
     scope->phase += POINTS_PER_ROUND;
 }

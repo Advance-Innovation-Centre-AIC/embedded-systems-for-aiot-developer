@@ -64,6 +64,7 @@ enum {
     CHART_MAX = 100,
     NOISE_MIDDLE = 50,
     NOISE_AMPLITUDE = 20,
+    NOISE_SPAN = (2 * NOISE_AMPLITUDE) + 1, /* -20 to 20 */
     LFSR_START = 0xACE1,
     LFSR_TAPS = 0xB400
 };
@@ -310,11 +311,10 @@ static void push_noise(noise_t *noise)
     int32_t i;
 
     for (i = 0; i < POINTS_PER_ROUND; i++) {
-        const uint32_t bits = lfsr_next(&noise->lfsr);
+        const uint32_t draw =
+            lfsr_next(&noise->lfsr) % (uint32_t)NOISE_SPAN;
         const int32_t point =
-            NOISE_MIDDLE +
-            ((int32_t)(bits % (uint32_t)((2 * NOISE_AMPLITUDE) + 1)) -
-             NOISE_AMPLITUDE);
+            NOISE_MIDDLE + ((int32_t)draw - NOISE_AMPLITUDE);
 
         (void)bento_ui_chart_set_next(noise->ui, noise->chart, 0U,
                                       point);

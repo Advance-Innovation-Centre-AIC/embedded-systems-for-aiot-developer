@@ -106,7 +106,7 @@ static bento_status_t read_raw(int32_t *raw)
     const bento_status_t status = bento_sensors_pot_read(&value);
 
     if (status == BENTO_OK) {
-        *raw = (int32_t)((uint32_t)value >> POT_SHIFT);
+        *raw = (int32_t)(uint16_t)(value >> (uint32_t)POT_SHIFT);
     }
     return status;
 }

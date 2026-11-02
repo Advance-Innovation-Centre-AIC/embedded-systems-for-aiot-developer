@@ -508,7 +508,18 @@ static bento_status_t build_screen(dashboard_t *board)
  * toward zero as int() cuts it. */
 static int32_t chart_point(float value, int32_t scale)
 {
-    return (int32_t)((bento_real_t)value * (bento_real_t)scale);
+    const bento_real_t product =
+        (bento_real_t)value * (bento_real_t)scale;
+
+    return (int32_t)product;
+}
+
+/* int(value): Python's int() of a real cuts toward zero, as the cast
+ * does; the real expression is worked out first, at the board's float
+ * width. */
+static int32_t int_of(bento_real_t value)
+{
+    return (int32_t)value;
 }
 
 /* value kept between low and high, as the original's two-sided
@@ -552,9 +563,9 @@ static void show_bars(const dashboard_t *board, const float *accel)
 
     for (axis = 0; axis < AXES; axis++) {
         (void)bento_ui_set_value(board->ui, board->bars[axis],
-                                 (int32_t)((bento_real_t)BAR_MIDDLE +
-                                           ((bento_real_t)accel[axis] *
-                                            (bento_real_t)BAR_SCALE)));
+                                 int_of((bento_real_t)BAR_MIDDLE +
+                                        ((bento_real_t)accel[axis] *
+                                         (bento_real_t)BAR_SCALE)));
     }
 }
 
@@ -562,9 +573,9 @@ static void show_bars(const dashboard_t *board, const float *accel)
 static void show_tilt(const dashboard_t *board,
                       const reading_t *reading)
 {
-    const bento_real_t magnitude = (bento_real_t)sqrt(
-        (double)((reading->roll_deg * reading->roll_deg) +
-                 (reading->pitch_deg * reading->pitch_deg)));
+    const float squares = (reading->roll_deg * reading->roll_deg) +
+                          (reading->pitch_deg * reading->pitch_deg);
+    const bento_real_t magnitude = (bento_real_t)sqrt((double)squares);
     char number[BENTO_FMT_BUF_SIZE];
     char text[TILT_TEXT_BYTES];
 
@@ -579,14 +590,14 @@ static void show_tilt(const dashboard_t *board,
 static void show_ball(const dashboard_t *board,
                       const reading_t *reading)
 {
-    const int32_t x = (int32_t)((bento_real_t)DOT_X +
-                                (((bento_real_t)reading->roll_deg /
-                                  (bento_real_t)TILT_MAX_DEG) *
-                                 (bento_real_t)ROLL_PX));
-    const int32_t y = (int32_t)((bento_real_t)DOT_Y -
-                                (((bento_real_t)reading->pitch_deg /
-                                  (bento_real_t)TILT_MAX_DEG) *
-                                 (bento_real_t)PITCH_PX));
+    const int32_t x =
+        int_of((bento_real_t)DOT_X + (((bento_real_t)reading->roll_deg /
+                                       (bento_real_t)TILT_MAX_DEG) *
+                                      (bento_real_t)ROLL_PX));
+    const int32_t y = int_of((bento_real_t)DOT_Y -
+                             (((bento_real_t)reading->pitch_deg /
+                               (bento_real_t)TILT_MAX_DEG) *
+                              (bento_real_t)PITCH_PX));
     char roll[BENTO_FMT_BUF_SIZE];
     char pitch[BENTO_FMT_BUF_SIZE];
     char text[ANGLES_TEXT_BYTES];
@@ -622,12 +633,14 @@ static const char *direction_of(float heading_deg)
     const double half_sector = (double)SECTOR_DEG / 2.0;
     double turned =
         fmod((double)heading_deg + half_sector, (double)FULL_TURN_DEG);
+    double sectors;
     int32_t sector;
 
     if (turned < 0.0) {
         turned += (double)FULL_TURN_DEG;
     }
-    sector = (int32_t)(turned / (double)SECTOR_DEG);
+    sectors = turned / (double)SECTOR_DEG;
+    sector = (int32_t)sectors;
     /* a remainder below 360 gives 0-7; the test only guards the table */
     return directions[clamp(sector, 0, DIRECTIONS - 1)];
 }
