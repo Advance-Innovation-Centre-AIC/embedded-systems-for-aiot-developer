@@ -21,7 +21,7 @@
  * failure in MicroPython, so every status but BENTO_OK is False here.
  * device_id() raises OSError "Trust M device ID read failed" on failure;
  * here a failed status takes the except branch and prints that text.
- * In the BENTO Emulator, MQTT from C is not available yet: the program says
+ * In the BENTO Emulator, the TESAIoT platform from C is not available yet: the program says
  * so and ends (every bento_tesaiot_* call answers BENTO_E_UNSUPPORTED there).
  */
 #include <stdbool.h>
@@ -201,18 +201,20 @@ static void show(bento_ui_t *ui, bento_ui_id_t id, const char *text,
 
 /* The BENTO Emulator's C runtime has no TESAIoT link yet: slots() is the
  * first bento_tesaiot_* call, and it answers BENTO_E_UNSUPPORTED there. Say
- * so on the top card and on the console; the program then ends with 0. */
+ * so on the bottom card and on the console; the program then ends with 0. */
 static void show_emulator_note(const slots_screen_t *screen)
 {
-    static const char note[] =
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    static const char note[] = "TESAIoT จาก C ยังไม่มีใน BENTO "
+                               "Emulator\nให้รันบน Dev Kit หรือ Eva Kit";
 
-    show(screen->ui, screen->fast, note, (uint32_t)COLOR_WARN);
+    show(screen->ui, screen->dead_1, note, (uint32_t)COLOR_WARN);
+    show(screen->ui, screen->dead_2, "",
+         (uint32_t)COLOR_WARN); /* room for its second line */
     poll_screen(screen->ui);
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a Dev Kit or Eva "
-                 "Kit.\n",
-                 note);
+    (void)printf(
+        "TESAIoT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva "
+        "Kit / TESAIoT platform from C is not in the BENTO Emulator "
+        "yet: run it on a Dev Kit or Eva Kit.\n");
 }
 
 /* The top half: slots() answers at once, because it asks no chip. */
