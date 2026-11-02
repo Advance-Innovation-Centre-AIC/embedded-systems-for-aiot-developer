@@ -71,6 +71,9 @@ enum {
     SHOW_COUNT = 6,
     CELL_ROWS = 3,
     VALUE_BYTES = BENTO_TESAIOT_CONFIG_VALUE_MAX + 1U,
+    /* "  key = value": 2 + a key of 31 + 3 + a value of 127 + NUL */
+    CONFIG_LINE_BYTES = BENTO_TESAIOT_CONFIG_KEY_MAX +
+                        BENTO_TESAIOT_CONFIG_VALUE_MAX + 6U,
     TEXT_BYTES = 192
 };
 
@@ -429,15 +432,17 @@ static const char *config_value(const char *key)
 /* lcd.print() ignores a console that is not ready (modlcd.c). */
 static void print_config(void)
 {
-    char text[TEXT_BYTES];
+    char text[CONFIG_LINE_BYTES];
     uint32_t i;
 
     (void)snprintf(text, sizeof(text), "คลังค่าตั้งมีทั้งหมด %d คีย์",
                    CONFIG_KEYS);
     (void)bento_lcd_print(text);
     for (i = 0U; i < (uint32_t)CONFIG_KEYS; i++) {
-        (void)snprintf(text, sizeof(text), "  %s = %s",
-                       CONFIG_KEY_ORDER[i], g_config[i]);
+        /* a stored value is at most VALUE_BYTES - 1 bytes */
+        (void)snprintf(text, sizeof(text), "  %s = %.*s",
+                       CONFIG_KEY_ORDER[i], VALUE_BYTES - 1,
+                       g_config[i]);
         (void)bento_lcd_print(text);
     }
 }
