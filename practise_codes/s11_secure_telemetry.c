@@ -61,8 +61,6 @@
 static const char TEAM_NAME[] = "BentoBuilders";
 static const char DEVICE_ID[] =
     "team03"; /* registered, under 31 chars */
-static const char API_KEY[] = "<api key ของทีม>";
-static const char MQTT_PASS[] = "<รหัสผ่าน MQTT 16 ตัว>";
 static const char BROKER[] = "<โฮสต์แพลตฟอร์ม>";
 
 enum { /* times */
@@ -74,8 +72,8 @@ enum { /* times */
 
 enum { /* text sizes */
     TEXT_BYTES = 128,
-    VALUE_BYTES = BENTO_TESAIOT_CONFIG_VALUE_MAX + 1,
-    KEY_BYTES = BENTO_TESAIOT_CONFIG_KEY_MAX + 1,
+    VALUE_BYTES = (int32_t)BENTO_TESAIOT_CONFIG_VALUE_MAX + 1,
+    KEY_BYTES = (int32_t)BENTO_TESAIOT_CONFIG_KEY_MAX + 1,
     PAYLOAD_BYTES = 160
 };
 
@@ -87,6 +85,16 @@ enum { /* layout that more than one widget shares */
     RIGHT_COLUMN_W = 224,
     SCALE_TICKS = 7,
     SCALE_MAJOR_EVERY = 3
+};
+
+enum { /* the title, and the identity table's rows in order */
+    TITLE_X = 24,
+    TITLE_Y = 8,
+    TITLE_PX = 20,
+    ROW_DEVICE_ID = 0,
+    ROW_BROKER = 1,
+    ROW_TLS_MODE = 2,
+    ROW_MQTT_PASS = 3
 };
 
 enum { /* colours, 0xRRGGBB */
@@ -290,6 +298,20 @@ static bento_status_t read_field(const char *key, char *value,
         value, cap, &length);
 }
 
+/* One "'key': value" of the dict's repr. */
+static void print_entry(uint32_t index, const char *key,
+                        const char *value)
+{
+    (void)printf("%s", (index > 0U) ? ", " : "");
+    print_repr(key);
+    (void)printf(": ");
+    if (is_number_key(key)) {
+        (void)printf("%s", value);
+    } else {
+        print_repr(value);
+    }
+}
+
 /* print("config ปัจจุบัน:", tesaiot.config()) */
 static bento_status_t print_config(void)
 {
@@ -310,14 +332,7 @@ static bento_status_t print_config(void)
             status = read_field(key, value, (uint32_t)sizeof(value));
         }
         if (status == BENTO_OK) {
-            (void)printf("%s", (i > 0U) ? ", " : "");
-            print_repr(key);
-            (void)printf(": ");
-            if (is_number_key(key)) {
-                (void)printf("%s", value);
-            } else {
-                print_repr(value);
-            }
+            print_entry(i, key, value);
         }
     }
     if (status == BENTO_OK) {
@@ -326,13 +341,13 @@ static bento_status_t print_config(void)
     return status;
 }
 
-/* One table row: two cells, each ended by a NUL. */
+/* One table row: two cells, each ended by its NUL. */
 static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row,
                     const char *left, const char *right)
 {
     char cells[TEXT_BYTES];
     const size_t left_bytes = strlen(left) + 1U;
-    const size_t right_bytes = strlen(right);
+    const size_t right_bytes = strlen(right) + 1U;
 
     if ((left_bytes + right_bytes) <= sizeof(cells)) {
         (void)memcpy(cells, left, left_bytes);
@@ -350,7 +365,7 @@ static bento_status_t add_identity(bento_ui_t *ui)
     static const widget_spec_t card = {NULL, 24,         48, 440,
                                        344,  COLOR_CARD, 1};
     static const widget_spec_t title = {
-        "ตัวตนที่บอร์ดใช้แนะนำตัว", 40, 60, -1, -1, COLOR_DIM, 16};
+        "ตัวตนที่บอร์ดใช้แนะนำตัว", 40, 60, -1, -1, COLOR_DIM, 20};
     static const widget_spec_t table_spec = {NULL, 40, 96, 408,
                                              288,  0U, 0};
     char mode[VALUE_BYTES];
@@ -373,10 +388,10 @@ static bento_status_t add_identity(bento_ui_t *ui)
     if (status == BENTO_OK) {
         (void)bento_ui_set_col_width(ui, table, 0, LEFT_COLUMN_W);
         (void)bento_ui_set_col_width(ui, table, 1, RIGHT_COLUMN_W);
-        add_row(ui, table, 0U, "device_id", DEVICE_ID);
-        add_row(ui, table, 1U, "broker", BROKER);
-        add_row(ui, table, 2U, "tls_mode", mode);
-        add_row(ui, table, 3U, "mqtt_pass", "ตั้งแล้ว ดูไม่ได้");
+        add_row(ui, table, ROW_DEVICE_ID, "device_id", DEVICE_ID);
+        add_row(ui, table, ROW_BROKER, "broker", BROKER);
+        add_row(ui, table, ROW_TLS_MODE, "tls_mode", mode);
+        add_row(ui, table, ROW_MQTT_PASS, "mqtt_pass", "ตั้งแล้ว ดูไม่ได้");
     }
     return status;
 }
@@ -390,9 +405,9 @@ static bento_status_t add_lamps(tls_screen_t *screen)
         {NULL, 688, 96, 48, 48, COLOR_BAD, 0},
     };
     static const widget_spec_t names[] = {
-        {"กำลังต่อ", 496, 148, -1, -1, COLOR_DIM, 16},
-        {"สำเร็จ", 592, 148, -1, -1, COLOR_DIM, 16},
-        {"ล้มเหลว", 672, 148, -1, -1, COLOR_DIM, 16},
+        {"กำลังต่อ", 496, 148, -1, -1, COLOR_DIM, 20},
+        {"สำเร็จ", 592, 148, -1, -1, COLOR_DIM, 20},
+        {"ล้มเหลว", 672, 148, -1, -1, COLOR_DIM, 20},
     };
     bento_ui_id_t *const ids[] = {&screen->lamp_wait, &screen->lamp_ok,
                                   &screen->lamp_fail};
@@ -442,7 +457,7 @@ static bento_status_t add_meter(tls_screen_t *screen)
     static const widget_spec_t seconds = {"0 วิ", 496,        284, -1,
                                           -1,    COLOR_TEXT, 20};
     static const widget_spec_t ceiling = {
-        "เพดาน 30 วิ", 592, 284, -1, -1, COLOR_DIM, 16};
+        "เพดาน 30 วิ", 592, 284, -1, -1, COLOR_DIM, 20};
     static const widget_spec_t bar = {NULL, 496,       320, 192,
                                       12,   COLOR_RUN, 0};
     static const widget_spec_t ruler = {NULL, 496,        340, 192,
@@ -518,9 +533,10 @@ static bento_status_t build_screen(tls_screen_t *screen)
     static const widget_spec_t right_card = {NULL, 480,        48, 288,
                                              344,  COLOR_CARD, 1};
     static const widget_spec_t handshake = {
-        "การจับมือ TLS", 496, 60, -1, -1, COLOR_DIM, 16};
+        "การจับมือ TLS", 496, 60, -1, -1, COLOR_DIM, 20};
     char title_text[TEXT_BYTES];
-    widget_spec_t title = {NULL, 24, 8, -1, -1, COLOR_TEXT, 20};
+    widget_spec_t title = {NULL, TITLE_X,    TITLE_Y, -1,
+                           -1,   COLOR_TEXT, TITLE_PX};
     bento_ui_id_t unused = 0U;
     bento_status_t status =
         bento_ui_screen(screen->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
@@ -779,21 +795,27 @@ static bento_status_t warm_up_sensors(void)
 /* ท่าที่ 1: ตั้งค่าตัวตนของอุปกรณ์ (both blanks are empty, as in the .py) */
 static void set_identity(void)
 {
+    /* the team's own key and MQTT password: edit both before the run */
+    static const char api_key[] = "<api key ของทีม>";
+    static const char mqtt_pass[] = "<รหัสผ่าน MQTT 16 ตัว>";
+
     /* config_set() รับทีละคู่ (key, value) และเก็บไว้ในเฟิร์มแวร์ ไม่ได้ต่ออะไรทั้งสิ้น
      * เติม: เรียก bento_tesaiot_config_set() กับคีย์ "device_id" และค่า DEVICE_ID
-     *   แล้วอีกสองครั้งสำหรับ "api_key" (API_KEY) และ "mqtt_pass" (MQTT_PASS)
+     *   แล้วอีกสองครั้งสำหรับ "api_key" (api_key) และ "mqtt_pass" (mqtt_pass)
      * ตั้งค่าแล้วอยากตรวจว่าเข้าจริงไหม: examples/s11/01_config_store.py
      * เดินดูคลังค่าตั้งทั้ง 19 คีย์
      * และเตือนข้อที่จะทำให้เสียเวลาเปล่า - mqtt_pass ตั้งได้ แต่อ่านกลับไม่ได้
      * ถามหาคีย์ mqtt_pass ด้วย bento_tesaiot_config_get_field() บนบอร์ดจริงจะได้
      * BENTO_E_NOT_FOUND ไม่ใช่ค่าว่าง */
-    (void)API_KEY;   /* used once ท่าที่ 1 is filled in */
-    (void)MQTT_PASS; /* used once ท่าที่ 1 is filled in */
+    (void)DEVICE_ID; /* used once ท่าที่ 1 is filled in */
+    (void)api_key;   /* used once ท่าที่ 1 is filled in */
+    (void)mqtt_pass; /* used once ท่าที่ 1 is filled in */
 
     /* sni_hostname คือชื่อที่เดินไปก่อนการเข้ารหัส ต้องเป็นชื่อโฮสต์เดียวกับ broker
      * ถ้าตั้งไม่ตรง เซิร์ฟเวอร์จะยื่นใบรับรองผิดใบ แล้วการต่อจะล้มเงียบ ๆ โดยไม่มีข้อความ
      * เติม: เรียก bento_tesaiot_config_set() กับ "broker" และ BROKER
      *   แล้วครั้งถัดไปกับ "sni_hostname" และ BROKER */
+    (void)BROKER; /* used once ท่าที่ 1 is filled in */
 }
 
 int main(void)
