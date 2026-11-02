@@ -50,6 +50,10 @@
 #include "bento_sensors.h"
 #include "bento_time.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char DEVICE_ID[] = "team03";
+/* ---- end of settings ---- */
+
 /* MicroPython rounds a*b and +c separately: the compiler must not fuse
  * them into one multiply-add, or the knob temperature drifts. */
 #if defined(__clang__)
@@ -547,16 +551,15 @@ static bento_status_t act(const report_screen_t *screen,
  * MicroPython's hash table walks the three keys. */
 static void print_report(bool on, bento_real_t temp_c)
 {
-    static const char device_id[] = "team03";
     char number[BENTO_FMT_BUF_SIZE];
 
     format_tenth(number, sizeof(number), temp_c);
 #if defined(BENTO_TARGET_PSOC_EDGE)
     (void)printf("{\"temp_c\": %s, \"device\": \"%s\", \"fan\": %d}\n",
-                 number, device_id, on ? 1 : 0);
+                 number, DEVICE_ID, on ? 1 : 0);
 #else
     (void)printf("{\"fan\": %d, \"device\": \"%s\", \"temp_c\": %s}\n",
-                 on ? 1 : 0, device_id, number);
+                 on ? 1 : 0, DEVICE_ID, number);
 #endif
 }
 
