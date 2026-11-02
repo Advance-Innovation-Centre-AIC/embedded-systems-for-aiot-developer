@@ -5,16 +5,16 @@
  * ต่อ WiFi อ่านค่าไว้ แล้วสั่ง wifi.disconnect() อ่านค่าซ้ำ รอ 6 วินาที
  * แล้วต่อกลับ สี่บรรทัดบนเปลี่ยนพร้อมกันตอนตัดและตอนต่อใหม่ บรรทัด
  * "if wifi.ip():" ยังตอบ True ตอนหลุด เพราะ "0.0.0.0" ไม่ใช่สตริงว่าง
- * ถามสถานะด้วย is_connected() เท่านั้น ก่อนรันแก้ชื่อวง WIFI_SSID
- * (ใต้ #include) และรหัสผ่าน wifi_pass (ต้นฟังก์ชัน join_wifi)
+ * ถามสถานะด้วย is_connected() เท่านั้น ก่อนรันแก้ WIFI_SSID WIFI_PASS
+ * ในกรอบ "แก้ก่อนรัน" ใต้ #include
  *
  * Joins the Wi-Fi and reads the link, calls wifi.disconnect(),
  * reads it again, waits 6 s and joins again. The top four lines
  * change together when the link drops and when it comes back. The
  * "if wifi.ip():" line still says True while the link is down,
  * because "0.0.0.0" is not an empty text: ask is_connected(). Set
- * the network name WIFI_SSID (below the includes) and the password
- * wifi_pass (at the top of the function join_wifi) first.
+ * WIFI_SSID and WIFI_PASS in the "แก้ก่อนรัน" settings block below
+ * the includes first.
  *
  * Twin of 07_disconnect_rejoin.py
  * (embedded-systems-for-aiot-developer/examples/s09/07_disconnect_rejoin.py),
@@ -46,9 +46,10 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
-/* The classroom network the teacher hands out (its password is set
- * where the program joins). */
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
 static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+/* ---- end of settings ---- */
 
 /* The course palette, 0xRRGGBB. */
 enum {
@@ -395,9 +396,6 @@ static bento_status_t refresh(const screen_t *screen, const char *phase,
  * as the binding's OSError does. */
 static bento_status_t join_wifi(bool *joined)
 {
-    /* the classroom password, WIFI_PASS in the .py: set it before you
-     * run */
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     reading_t reading;
     bento_status_t status;
@@ -405,8 +403,8 @@ static bento_status_t join_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
