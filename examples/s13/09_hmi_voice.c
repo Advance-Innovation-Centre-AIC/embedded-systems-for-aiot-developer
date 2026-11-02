@@ -57,6 +57,12 @@
 #include "bento_edgeai.h"
 #include "bento_runtime.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* TEAM: the team number the teacher gives, used in session 12 (no
+ * need to change it in this session) */
+static const char TEAM[] = "teamXX";
+/* ---- end of settings ---- */
+
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
@@ -741,8 +747,6 @@ static void apply(voice_t *voice, int32_t command)
  * state is the chosen room's light. */
 static void print_snapshot(const voice_t *voice)
 {
-    static const char team[] =
-        "teamXX"; /* the team id the teacher gives */
     static const char kit[] = "voice";
     const bool on = voice->light[voice->room].on;
 
@@ -750,7 +754,7 @@ static void print_snapshot(const voice_t *voice)
         "{\"id\": \"%s\", \"kit\": \"%s\", \"model\": \"%s\", "
         "\"label\": \"%s\", \"conf\": %" PRId32 ", \"state\": "
         "\"%s\", \"events\": %" PRId32 ", \"n\": %" PRIu32 "}\n",
-        team, kit, voice->model_name, voice->label, voice->conf,
+        TEAM, kit, voice->model_name, voice->label, voice->conf,
         on ? "on" : "off", voice->events, voice->sequence);
 }
 
