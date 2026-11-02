@@ -45,10 +45,14 @@
 #include "bento_runtime.h"
 #include "bento_wifi.h"
 
-/* The networks, as the original names them. */
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
 static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+/* the fallback network: a name no other team uses, end it with
+ * your team number (ตั้งชื่อวงสำรองให้ไม่ซ้ำกับทีมอื่น) */
 static const char AP_SSID[] = "bento-team01";
-static const char AP_PASSWORD[] = "12345678";
+static const char AP_PASS[] = "12345678";
+/* ---- end of settings ---- */
 
 /* The scan's answer, at most 20 networks: too big for the 8 KB
  * program stack, so file scope, zeroed by the loader and set again at
@@ -471,9 +475,6 @@ static int32_t find_target(const fallback_t *board)
 /* wifi.connect(): true when joined; a failed join is False. */
 static bento_status_t join_wifi(bool *joined)
 {
-    /* the classroom password, WIFI_PASSWORD in the .py: set it before
-     * you run */
-    static const char wifi_password[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     bento_status_t answer = BENTO_E_IN_PROGRESS;
     bento_status_t status;
@@ -481,8 +482,8 @@ static bento_status_t join_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = wifi_password;
-    params.pass_len = (uint32_t)strlen(wifi_password);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* as the binding does */
     status = bento_wifi_connect_start(&params);
     while ((status == BENTO_OK) && (answer == BENTO_E_IN_PROGRESS)) {
@@ -540,8 +541,8 @@ static bool start_access_point(void)
     bento_wifi_softap_config_init(&config);
     config.ssid = AP_SSID;
     config.ssid_len = (uint32_t)strlen(AP_SSID);
-    config.pass = AP_PASSWORD;
-    config.pass_len = (uint32_t)strlen(AP_PASSWORD);
+    config.pass = AP_PASS;
+    config.pass_len = (uint32_t)strlen(AP_PASS);
     return bento_wifi_softap_start(&config) == BENTO_OK;
 }
 
@@ -557,7 +558,7 @@ static void show_access_point(const fallback_t *board, bool started)
         (void)snprintf(text, sizeof(text),
                        "บอร์ดอยู่ที่ 192.168.4.1  รหัส "
                        "%s",
-                       AP_PASSWORD);
+                       AP_PASS);
         show_text(board, ROLE_IP, text);
         show_text(board, ROLE_HINT,
                   "เอามือถือต่อวงนี้ "
