@@ -40,6 +40,11 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+/* ---- end of settings ---- */
+
 /* Rounds, times and sizes. */
 enum {
     ROUNDS = 20,
@@ -522,8 +527,6 @@ static void pick_targets(const ping_screen_t *screen, tally_t *tally)
     (void)printf("รอบ   เกตเวย์      อินเทอร์เน็ต\n");
 }
 
-static const char WIFI_SSID[] = "AIoT-Class";
-
 /* Draws the whole screen in the original's order. The verdict line
  * comes before connect(), which freezes the screen: the screen must
  * speak before it goes quiet. */
@@ -564,9 +567,6 @@ static bento_status_t build_screen(ping_screen_t *screen)
  * timed-out join is False; any other failure ends the program. */
 static bento_status_t join_wifi(bool *joined)
 {
-    /* the classroom password, WIFI_PASS in the .py: set it before you
-     * run */
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_wifi_connect_params_t params;
     uint32_t ip_v4 = 0U;
@@ -575,8 +575,8 @@ static bento_status_t join_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
