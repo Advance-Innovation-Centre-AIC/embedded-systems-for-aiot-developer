@@ -52,6 +52,13 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+static const char BROKER[] = "192.168.1.50";
+static const char DEVICE_ID[] = "team03";
+/* ---- end of settings ---- */
+
 /* Times, in milliseconds, and the backoff. */
 enum {
     SETTLE_MS = 200,   /* let the new screen settle */
@@ -405,18 +412,15 @@ static void show_countdown(const backoff_screen_t *screen,
  * program. */
 static bento_status_t join_wifi(bool *joined)
 {
-    /* The network, as the original names it. */
-    static const char wifi_ssid[] = "AIoT-Class";
-    static const char wifi_password[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     bento_status_t answer = BENTO_E_IN_PROGRESS;
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = wifi_ssid;
-    params.ssid_len = (uint32_t)strlen(wifi_ssid);
-    params.pass = wifi_password;
-    params.pass_len = (uint32_t)strlen(wifi_password);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* as the binding does */
     status = bento_wifi_connect_start(&params);
     while ((status == BENTO_OK) && (answer == BENTO_E_IN_PROGRESS)) {
@@ -460,7 +464,6 @@ static void show_emulator_note(backoff_screen_t *screen)
 static bento_status_t connect_broker(backoff_screen_t *screen,
                                      bool *connected)
 {
-    static const char broker[] = "192.168.1.50";
     broker_link_t *link = &screen->link;
     bento_mqtt_config_t config;
     bento_status_t answer = BENTO_E_IN_PROGRESS;
@@ -471,8 +474,8 @@ static bento_status_t connect_broker(backoff_screen_t *screen,
         link->open = false;
     }
     bento_mqtt_config_init(&config);
-    config.host = broker;
-    config.host_len = (uint32_t)strlen(broker);
+    config.host = BROKER;
+    config.host_len = (uint32_t)strlen(BROKER);
     config.port = MQTT_PORT;
     config.client_id = screen->client_id;
     config.client_id_len = (uint32_t)strlen(screen->client_id);
@@ -658,7 +661,6 @@ static void say_goodbye(const backoff_screen_t *screen)
 
 int main(void)
 {
-    static const char device_id[] = "team03";
     backoff_screen_t screen;
     bento_status_t status;
 
@@ -666,7 +668,7 @@ int main(void)
     screen.ui = bento_runtime_get_ui();
     /* a new suffix each run: a quick rerun never meets its old id */
     (void)snprintf(screen.client_id, sizeof(screen.client_id),
-                   "%s-%04x", device_id,
+                   "%s-%04x", DEVICE_ID,
                    (unsigned)(bento_time_ticks_ms() &
                               (uint32_t)CLIENT_SUFFIX_MASK));
     status = build_screen(&screen);
