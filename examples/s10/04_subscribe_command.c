@@ -1341,15 +1341,14 @@ static bento_status_t watch_topic(command_app_t *app)
 static void tell_emulator(const command_screen_t *screen)
 {
     static const char note[] =
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator\nให้รันบน Dev Kit หรือ Eva Kit";
 
     (void)bento_ui_set_color(screen->ui, screen->alive, COLOR_WARN);
     set_text(screen->ui, screen->alive, note);
     poll_display(screen->ui);
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a Dev Kit or Eva "
-                 "Kit.\n",
-                 note);
+    (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ "
+                 "Eva Kit / MQTT from C is not in the BENTO Emulator "
+                 "yet: run it on a Dev Kit or Eva Kit.\n");
 }
 
 /* Wi-Fi, the broker, the topic. A step that fails says so and
