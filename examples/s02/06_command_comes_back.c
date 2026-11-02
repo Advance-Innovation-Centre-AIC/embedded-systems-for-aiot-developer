@@ -19,6 +19,8 @@
  * Twin of 06_command_comes_back.py
  * (embedded-systems-for-aiot-developer/examples/s02/06_command_comes_back.py).
  * Style: CLEAN_C.md.
+ * In the BENTO Emulator, MQTT from C is not available yet: the
+ * program says so and ends.
  * Differs from the original:
  *   - There is no json module in C. read_command() below follows
  *     MicroPython's own json.loads (extmod/modjson.c): commas and
@@ -1153,6 +1155,38 @@ static void stop_here(const remote_screen_t *screen,
     listener->stopped = true;
 }
 
+/* The BENTO Emulator has no MQTT from C yet: bento_mqtt_* and the
+ * broker calls answer BENTO_E_UNSUPPORTED there. The program takes
+ * the original's own "broker failed" way out: the step turns red with
+ * the original's words, the reason line and the drawer say why, the
+ * console gets the full sentence in Thai and English, and the
+ * program ends normally. The screen line is the short form, within
+ * the 126 bytes of a SET_TEXT. */
+static void show_emulator_note(bento_ui_t *ui, bento_ui_id_t step,
+                               const char *step_text,
+                               bento_ui_id_t reason)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
+    uint32_t count = 0U;
+
+    /* the setters ignore a refusal, as in MicroPython (modui.c) */
+    (void)bento_ui_set_color(ui, step, COLOR_BAD);
+    (void)bento_ui_set_text(ui, step, step_text,
+                            (uint32_t)strlen(step_text));
+    (void)bento_ui_set_color(ui, reason, COLOR_BAD);
+    (void)bento_ui_set_text(ui, reason, note, (uint32_t)strlen(note));
+    /* ui.poll() answers no events when it fails; none are read */
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
+    (void)bento_lcd_print(note); /* ignores a console not ready */
+    (void)printf("MQTT จากภาษา C ยังไม่มีใน BENTO Emulator "
+                 "ให้รันบนบอร์ด Dev Kit หรือ Eva Kit / MQTT from C is "
+                 "not in the BENTO Emulator yet: run it on a Dev Kit "
+                 "or Eva Kit.\n");
+}
+
 /* mqtt.connect(): it raises only when the board's own Wi-Fi layer
  * is not ready (a client that cannot start here), and answers False
  * when the broker does not (the port blocked, a wrong name, the
@@ -1172,7 +1206,14 @@ static bento_status_t connect_broker(const remote_screen_t *screen,
     config.client_id = listener->device_id;
     config.client_id_len = (uint32_t)strlen(listener->device_id);
     status = bento_mqtt_open_start(&config, &listener->broker);
-    if (status != BENTO_OK) {
+    if (status == BENTO_E_UNSUPPORTED) {
+        show_emulator_note(screen->ui, screen->link_line,
+                           "ต่อ broker ไม่ได้", screen->note);
+        paint(screen->ui, screen->status_line, COLOR_BAD,
+              "จบตรงนี้ ยังไม่ได้เข้าส่วนรับคำสั่ง");
+        listener->stopped = true;
+        status = BENTO_OK;
+    } else if (status != BENTO_OK) {
         stop_here(screen, listener, "ต่อ broker ไม่ได้",
                   "ชั้น WiFi ของบอร์ดไม่พร้อม ลองรันใหม่");
         status = BENTO_OK;
