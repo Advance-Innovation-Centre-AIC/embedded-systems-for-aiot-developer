@@ -206,7 +206,8 @@ static void show_number(const tilt_screen_t *screen, int32_t slot,
                         const char *prefix, bento_real_t value,
                         const number_format_t *format)
 {
-    char number[TEXT_BYTES];
+    char number[BENTO_FMT_BUF_SIZE +
+                1U]; /* format_number(): a real and its sign */
     char text[TEXT_BYTES];
 
     format_number(number, sizeof(number), value, format);
@@ -453,7 +454,8 @@ static void show_angles(const tilt_screen_t *screen,
         absolute(angles->pitch - angles->my_pitch);
     const bento_real_t gap =
         (pitch_gap > roll_gap) ? pitch_gap : roll_gap;
-    char number[TEXT_BYTES];
+    char number[BENTO_FMT_BUF_SIZE +
+                1U]; /* format_number(): a real and its sign */
     char text[TEXT_BYTES];
 
     show_number(screen, SLOT_ROLL, "roll  ", angles->roll, &angle);
