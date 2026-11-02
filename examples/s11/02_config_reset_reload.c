@@ -25,6 +25,8 @@
  * any other status ends the program. A Stop seen after a poll, a widget
  * or a sleep ends the program with 0, where MicroPython raises
  * KeyboardInterrupt.
+ * In the BENTO Emulator, MQTT from C is not available yet: the program says
+ * so and ends (every bento_tesaiot_* call answers BENTO_E_UNSUPPORTED there).
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -175,6 +177,23 @@ static void show(bento_ui_t *ui, bento_ui_id_t id, const char *text,
 {
     (void)bento_ui_set_color(ui, id, color);
     (void)bento_ui_set_text(ui, id, text, (uint32_t)strlen(text));
+}
+
+/* The BENTO Emulator's C runtime has no TESAIoT link yet: the first
+ * bento_tesaiot_* call answers BENTO_E_UNSUPPORTED there. Say so on the
+ * note card and on the console; the program then ends with 0. */
+static void show_emulator_note(const reset_screen_t *screen)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+
+    show(screen->ui, screen->note_1, note, (uint32_t)COLOR_WARN);
+    (void)poll_screen(
+        screen->ui); /* the program ends here either way */
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
 }
 
 static bento_status_t add_step_card(reset_screen_t *screen)
@@ -591,6 +610,11 @@ int main(void)
         (void)bento_lcd_clear();
         (void)bento_lcd_console("<h2>คาบ 11 - reset กับ reload</h2>");
         status = step_before(&screen);
+    }
+    if (status == BENTO_E_UNSUPPORTED) {
+        show_emulator_note(&screen);
+        status =
+            BENTO_E_CANCELLED; /* nothing else can run: a quiet end */
     }
     if (status == BENTO_OK) {
         status = step_reset(&screen);
