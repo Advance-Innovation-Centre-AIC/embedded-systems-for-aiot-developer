@@ -84,6 +84,12 @@ static const char WIFI_SSID[] = "bento-teamXX";
 static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
 /* team01 to team19; unset, the program will not run */
 static const char TEAM[] = "teamXX";
+/* ไม่ต้องแก้ ชุดเดียวกับไฟล์ 05 (no need to change: as in file 05) */
+/* the spare is "test.mosquitto.org" */
+static const char BROKER[] = "broker.hivemq.com";
+static const char ROOT[] = "bento-aiot";
+/* DEVICE_ID = bento-aiot-TEAM, built in main() */
+/* TOPIC_CMD = ROOT/TEAM/cmd, built in main() */
 /* ---- end of settings ---- */
 
 /* The course palette, 0xRRGGBB. */
@@ -1090,9 +1096,6 @@ static bool going_on(bento_status_t status, const listener_t *listener)
     return (status == BENTO_OK) && !listener->stopped;
 }
 
-/* No need to edit: the same set as file 05. */
-static const char BROKER[] = "broker.hivemq.com";
-
 /* Prints the line wifi.connect() prints on success. */
 static void print_wifi_address(void)
 {
@@ -2004,8 +2007,6 @@ static bento_status_t run_listener(const remote_screen_t *screen,
 
 int main(void)
 {
-    /* the whole class uses the same root; no need to change it */
-    static const char root[] = "bento-aiot";
     remote_screen_t screen = {0};
     listener_t listener = {0};
     bento_status_t status;
@@ -2014,9 +2015,9 @@ int main(void)
     screen.ui = bento_runtime_get_ui();
     listener.led_count = bento_gpio_num_leds();
     (void)snprintf(listener.device_id, sizeof(listener.device_id),
-                   "%s-%s", root, TEAM);
+                   "%s-%s", ROOT, TEAM);
     (void)snprintf(listener.topic, sizeof(listener.topic), "%s/%s/cmd",
-                   root, TEAM);
+                   ROOT, TEAM);
     status = build_screen(&screen);
     if (status == BENTO_OK) { /* lcd.* ignore a console that is not
                                  ready (modlcd.c) */
