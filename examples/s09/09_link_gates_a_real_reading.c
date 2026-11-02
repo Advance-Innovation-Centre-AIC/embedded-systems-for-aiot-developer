@@ -65,9 +65,6 @@
 #pragma GCC optimize("fp-contract=off")
 #endif
 
-static const char WIFI_SSID[] = "AIoT-Class";
-static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
-
 /* The course palette, 0xRRGGBB. */
 enum {
     COLOR_TEXT = 0xE8EAED,
@@ -183,15 +180,19 @@ static void format_ip(char *text, uint32_t cap)
  * the loop shows the link as it is. Only Stop ends the program. */
 static bento_status_t join_wifi(void)
 {
+    /* the classroom network, WIFI_SSID and WIFI_PASS in the .py: set
+     * them before you run */
+    static const char wifi_ssid[] = "AIoT-Class";
+    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = WIFI_SSID;
-    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASS;
-    params.pass_len = (uint32_t)strlen(WIFI_PASS);
+    params.ssid = wifi_ssid;
+    params.ssid_len = (uint32_t)strlen(wifi_ssid);
+    params.pass = wifi_pass;
+    params.pass_len = (uint32_t)strlen(wifi_pass);
     params.flags = BENTO_WIFI_F_SAVE_CREDS;
     (void)printf("[WiFi] Connecting...\n");
     status = bento_wifi_connect_start(&params);

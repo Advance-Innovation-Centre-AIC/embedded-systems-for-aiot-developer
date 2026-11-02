@@ -44,9 +44,9 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
-/* Change these two lines to what the teacher hands out. */
+/* The classroom network the teacher hands out (its password is set
+ * where the program joins). */
 static const char WIFI_SSID[] = "AIoT-Class";
-static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
 
 /* The course palette, 0xRRGGBB. */
 enum {
@@ -393,6 +393,9 @@ static bento_status_t refresh(const screen_t *screen, const char *phase,
  * as the binding's OSError does. */
 static bento_status_t join_wifi(bool *joined)
 {
+    /* the classroom password, WIFI_PASS in the .py: set it before you
+     * run */
+    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     reading_t reading;
     bento_status_t status;
@@ -400,8 +403,8 @@ static bento_status_t join_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASS;
-    params.pass_len = (uint32_t)strlen(WIFI_PASS);
+    params.pass = wifi_pass;
+    params.pass_len = (uint32_t)strlen(wifi_pass);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);

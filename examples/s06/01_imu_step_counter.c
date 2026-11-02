@@ -133,6 +133,13 @@ typedef struct {
         waiting; /* 0 ready, 1 busy, -1 the label must be rewritten */
 } counter_t;
 
+/* int() of a real: truncates toward zero, as the cast does. A function,
+ * so that the cast never applies to a composite expression (MISRA 10.8). */
+static int32_t truncate_to_int(bento_real_t value)
+{
+    return (int32_t)value;
+}
+
 static bento_status_t add_label(bento_ui_t *ui, const char *text,
                                 const place_t *place,
                                 bento_ui_id_t *out_id)
@@ -377,6 +384,8 @@ static bento_status_t detect_step(const steps_screen_t *screen,
         }
     } else if (filtered < (THRESHOLD - hysteresis)) {
         counter->above = false;
+    } else {
+        /* between the two levels the detector keeps its state */
     }
     return status;
 }
@@ -420,15 +429,15 @@ static bento_status_t take_reading(const steps_screen_t *screen,
         const uint32_t now_ms = bento_time_ticks_ms();
         const bento_real_t scale = (bento_real_t)CHART_SCALE;
 
-        (void)bento_ui_chart_set_next(screen->ui, screen->chart,
-                                      screen->raw_series,
-                                      (int32_t)(magnitude * scale));
-        (void)bento_ui_chart_set_next(screen->ui, screen->chart,
-                                      screen->ema_series,
-                                      (int32_t)(filtered * scale));
-        (void)bento_ui_chart_set_next(screen->ui, screen->chart,
-                                      screen->threshold_series,
-                                      (int32_t)(THRESHOLD * scale));
+        (void)bento_ui_chart_set_next(
+            screen->ui, screen->chart, screen->raw_series,
+            truncate_to_int(magnitude * scale));
+        (void)bento_ui_chart_set_next(
+            screen->ui, screen->chart, screen->ema_series,
+            truncate_to_int(filtered * scale));
+        (void)bento_ui_chart_set_next(
+            screen->ui, screen->chart, screen->threshold_series,
+            truncate_to_int(THRESHOLD * scale));
         status = detect_step(screen, counter, filtered, now_ms);
         if (status == BENTO_OK) {
             show_state(screen, counter, now_ms);

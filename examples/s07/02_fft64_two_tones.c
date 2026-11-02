@@ -210,6 +210,13 @@ static bento_real_t real_sqrt(bento_real_t value)
 #endif
 }
 
+/* int() of a real: truncates toward zero, as the cast does. A function,
+ * so that the cast never applies to a composite expression (MISRA 10.8). */
+static int32_t truncate_to_int(bento_real_t value)
+{
+    return (int32_t)value;
+}
+
 /* "%.<digits>f" of value into text, which holds BENTO_FMT_BUF_SIZE
  * bytes: enough for every result, so the format cannot fail. */
 static void format_real(char *text, bento_real_t value, int32_t digits)
@@ -224,15 +231,15 @@ static void format_real(char *text, bento_real_t value, int32_t digits)
  * so they are put in that order first. */
 static int32_t bit_reverse(int32_t index, int32_t bits)
 {
-    int32_t rest = index;
-    int32_t reversed = 0;
+    uint32_t rest = (uint32_t)index;
+    uint32_t reversed = 0U;
     int32_t bit;
 
     for (bit = 0; bit < bits; bit++) {
-        reversed = (reversed << 1) | (rest & 1);
-        rest >>= 1;
+        reversed = (reversed << 1U) | (rest & 1U);
+        rest >>= 1U;
     }
-    return reversed;
+    return (int32_t)reversed;
 }
 
 static void swap_reals(bento_real_t *first, bento_real_t *second)
@@ -278,7 +285,7 @@ static void run_stage(fft_work_t *work, int32_t size)
     const bento_real_t math_pi = (bento_real_t)3.141592653589793;
     const bento_real_t step =
         ((bento_real_t)-2 * math_pi) / (bento_real_t)size;
-    const int32_t half = size >> 1;
+    const int32_t half = size / 2;
     int32_t start;
 
     for (start = 0; start < SAMPLE_COUNT; start += size) {
@@ -448,8 +455,8 @@ static void show_texts(const fft_screen_t *screen, int32_t peak,
 {
     const char *name = SIGNALS[screen->step].name;
     const int32_t peak_hz =
-        (int32_t)(((bento_real_t)peak * SAMPLE_RATE_HZ) /
-                  (bento_real_t)SAMPLE_COUNT);
+        truncate_to_int(((bento_real_t)peak * SAMPLE_RATE_HZ) /
+                        (bento_real_t)SAMPLE_COUNT);
     char text[TEXT_BYTES];
     char number[BENTO_FMT_BUF_SIZE];
 
@@ -489,7 +496,7 @@ static void show_step(const fft_screen_t *screen, fft_work_t *work)
         /* Chart.set_next() ignores a refusal (modui.c) */
         (void)bento_ui_chart_set_next(
             screen->ui, screen->chart, screen->time_series,
-            (int32_t)(work->signal[i] * scale));
+            truncate_to_int(work->signal[i] * scale));
     }
     for (i = 0; i < SAMPLE_COUNT; i++) {
         work->real[i] = work->signal[i];
@@ -860,11 +867,13 @@ int main(void)
     status = build_screen(&screen);
     if (status == BENTO_OK) {
         /* stages counted by shifting, no float log */
-        while ((1 << screen.stages) < SAMPLE_COUNT) {
+        while ((1U << (uint32_t)screen.stages) <
+               (uint32_t)SAMPLE_COUNT) {
             screen.stages++;
         }
-        screen.speedup = (bento_real_t)(SAMPLE_COUNT * SAMPLE_COUNT) /
-                         (bento_real_t)fft_products(&screen);
+        screen.speedup =
+            ((bento_real_t)SAMPLE_COUNT * (bento_real_t)SAMPLE_COUNT) /
+            (bento_real_t)fft_products(&screen);
         open_console();
         show_step(&screen, &g_work);
         print_numbers(&screen);

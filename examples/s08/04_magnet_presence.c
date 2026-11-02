@@ -133,6 +133,13 @@ static bento_real_t real_fabs(bento_real_t value)
 #endif
 }
 
+/* int() of a real: truncates toward zero, as the cast does. A function,
+ * so that the cast never applies to a composite expression (MISRA 10.8). */
+static int32_t truncate_to_int(bento_real_t value)
+{
+    return (int32_t)value;
+}
+
 /* The three-axis field's size, in the board's units (unverified, so
  * the program measures against its own baseline instead). */
 static bento_status_t magnitude(bento_real_t *out)
@@ -403,7 +410,7 @@ static bento_status_t take_baseline(detector_t *detector)
 static bento_status_t show_threshold(detector_t *detector)
 {
     const bento_real_t headroom = (bento_real_t)2.5;
-    const int32_t top = (int32_t)(detector->threshold * headroom);
+    const int32_t top = truncate_to_int(detector->threshold * headroom);
     bento_ui_widget_args_t args;
     char text[TEXT_BYTES];
     bento_status_t status;

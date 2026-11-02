@@ -106,8 +106,6 @@ enum {
 };
 
 /* The Earth's field in the textbooks, a ruler for the screen (uT). */
-static const bento_real_t EARTH_MIN = (bento_real_t)25.0;
-static const bento_real_t EARTH_MAX = (bento_real_t)65.0;
 
 /* A label to draw: its text, place, look, and the slot it fills. */
 typedef struct {
@@ -359,6 +357,9 @@ static bento_status_t read_magnet(reading_t *reading, bool *ok)
 static void show_field(const magnet_screen_t *screen,
                        const reading_t *reading)
 {
+    /* the Earth's field in the textbooks, a ruler for the screen (uT) */
+    const bento_real_t earth_min = (bento_real_t)25.0;
+    const bento_real_t earth_max = (bento_real_t)65.0;
     const number_format_t axis = {2, true, 9};
     const number_format_t size = {2, false, 9};
     const number_format_t whole = {0, false, 0};
@@ -375,9 +376,9 @@ static void show_field(const magnet_screen_t *screen,
     show_number(screen, SLOT_MY, "my  ", my, &axis);
     show_number(screen, SLOT_MZ, "mz  ", mz, &axis);
     show_number(screen, SLOT_MAGNITUDE, "|m| ", magnitude, &size);
-    if (magnitude < EARTH_MIN) {
+    if (magnitude < earth_min) {
         note = "ต่ำกว่าช่วงของโลก";
-    } else if (magnitude > EARTH_MAX) {
+    } else if (magnitude > earth_max) {
         note = "สูงกว่าช่วงของโลก";
     } else {
         /* inside the Earth's range: the note above stays */

@@ -465,10 +465,13 @@ static bento_status_t count_steps(filters_t *filters,
     const bento_real_t ax = (bento_real_t)motion->ax;
     const bento_real_t ay = (bento_real_t)motion->ay;
     const bento_real_t az = (bento_real_t)motion->az;
+    const bento_real_t ax_in_g = ax / gravity;
+    const bento_real_t ay_in_g = ay / gravity;
+    const bento_real_t az_in_g = az / gravity;
     bento_status_t status = bento_dsp_pedometer_state_update(
-        &filters->pedometer_g, (float)(ax / gravity),
-        (float)(ay / gravity), (float)(az / gravity),
-        bento_time_ticks_ms(), &steps->steps_g, &steps->active_g);
+        &filters->pedometer_g, (float)ax_in_g, (float)ay_in_g,
+        (float)az_in_g, bento_time_ticks_ms(), &steps->steps_g,
+        &steps->active_g);
 
     if (status == BENTO_OK) {
         status = bento_dsp_pedometer_state_update(

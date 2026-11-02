@@ -204,8 +204,6 @@ static void count_round(tally_t *tally, int32_t gateway_ms,
     }
 }
 
-static const char INTERNET_IP[] = "8.8.8.8"; /* Google Public DNS */
-
 /* ui.poll() here only keeps the queue empty; it answers no events
  * when it fails. */
 static void drain_events(bento_ui_t *ui)
@@ -497,6 +495,7 @@ static void show_verdict(const ping_screen_t *screen,
  * network; if this room does not, put the real number here. */
 static void pick_targets(const ping_screen_t *screen, tally_t *tally)
 {
+    static const char internet_ip[] = "8.8.8.8"; /* Google Public DNS */
     const uint32_t host_mask = 0xFFU;
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     char gateway[BENTO_WIFI_IPV4_TEXT_MAX];
@@ -508,8 +507,8 @@ static void pick_targets(const ping_screen_t *screen, tally_t *tally)
     }
     tally->gateway_ip = (ip_v4 & ~host_mask) | (uint32_t)GATEWAY_HOST;
     /* a fixed, valid dotted quad: parsing it cannot fail */
-    (void)bento_wifi_ipv4_parse(INTERNET_IP,
-                                (uint32_t)strlen(INTERNET_IP),
+    (void)bento_wifi_ipv4_parse(internet_ip,
+                                (uint32_t)strlen(internet_ip),
                                 &tally->internet_ip);
     address_text(ip_v4, address);
     address_text(tally->gateway_ip, gateway);
@@ -524,7 +523,6 @@ static void pick_targets(const ping_screen_t *screen, tally_t *tally)
 }
 
 static const char WIFI_SSID[] = "AIoT-Class";
-static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
 
 /* Draws the whole screen in the original's order. The verdict line
  * comes before connect(), which freezes the screen: the screen must
@@ -566,6 +564,9 @@ static bento_status_t build_screen(ping_screen_t *screen)
  * timed-out join is False; any other failure ends the program. */
 static bento_status_t join_wifi(bool *joined)
 {
+    /* the classroom password, WIFI_PASS in the .py: set it before you
+     * run */
+    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_wifi_connect_params_t params;
     uint32_t ip_v4 = 0U;
@@ -574,8 +575,8 @@ static bento_status_t join_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASS;
-    params.pass_len = (uint32_t)strlen(WIFI_PASS);
+    params.pass = wifi_pass;
+    params.pass_len = (uint32_t)strlen(wifi_pass);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);

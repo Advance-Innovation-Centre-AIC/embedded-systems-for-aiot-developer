@@ -44,7 +44,6 @@
 /* The program's settings. */
 enum {
     SENSITIVITY = 3, /* 1 to 5; anything else quietly becomes 3 */
-    SAMPLES = 256,   /* the window: 16 ms of real time at 16 kHz */
     PLOT_N = 50,     /* the chart is 50 points wide */
     RING_MS = 625,   /* what the audio queue holds */
     SLOW_MS = 300,   /* the right button slows the loop this much */
@@ -58,6 +57,7 @@ enum {
     MIC_RATE = 16000,
     MIC_DECIMATION = 96,
     MIC_BITS = 16,
+    SAMPLES = 256, /* the window: 16 ms of real time at 16 kHz */
     SAMPLE_BYTES = 2,
     MIC_BUFFER_BYTES = SAMPLES * SAMPLE_BYTES,
     WARM_UP_READS = 2,
@@ -256,9 +256,9 @@ static bento_status_t read_window(const microphone_t *microphone,
 static int32_t sample_at(int32_t place)
 {
     const uint32_t first = (uint32_t)place * (uint32_t)SAMPLE_BYTES;
-    const uint16_t bits =
-        (uint16_t)((uint32_t)g_mic_buffer[first] |
-                   ((uint32_t)g_mic_buffer[first + 1U] << BYTE_BITS));
+    const uint16_t bits = (uint16_t)((uint32_t)g_mic_buffer[first] |
+                                     ((uint32_t)g_mic_buffer[first + 1U]
+                                      << (uint32_t)BYTE_BITS));
 
     return (int32_t)(int16_t)bits;
 }

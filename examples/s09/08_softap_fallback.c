@@ -47,7 +47,6 @@
 
 /* The networks, as the original names them. */
 static const char WIFI_SSID[] = "AIoT-Class";
-static const char WIFI_PASSWORD[] = "<รหัสผ่านของห้องเรียน>";
 static const char AP_SSID[] = "bento-team01";
 static const char AP_PASSWORD[] = "12345678";
 
@@ -61,7 +60,6 @@ bento_wifi_ap_t g_networks[BENTO_WIFI_SCAN_MAX];
 enum {
     SETTLE_MS = 200,   /* let the new screen settle */
     WAIT_STEP_MS = 50, /* how often a scan or a join is polled */
-    SHOW_ROWS = 3,
     TITLE_PX = 24,
     TEXT_PX = 20, /* Thai below 20 px loses its strokes */
     ROW_Y = 200,
@@ -82,8 +80,9 @@ enum {
     COLOR_BAD = 0xE5484D
 };
 
-/* The labels the program changes. */
+/* The labels the program changes; SHOW_ROWS network rows are shown. */
 enum {
+    SHOW_ROWS = 3,
     ROLE_FIXED = 0,
     ROLE_FOUND = 1,
     ROLE_ACTION = 2,
@@ -472,6 +471,9 @@ static int32_t find_target(const fallback_t *board)
 /* wifi.connect(): true when joined; a failed join is False. */
 static bento_status_t join_wifi(bool *joined)
 {
+    /* the classroom password, WIFI_PASSWORD in the .py: set it before
+     * you run */
+    static const char wifi_password[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     bento_status_t answer = BENTO_E_IN_PROGRESS;
     bento_status_t status;
@@ -479,8 +481,8 @@ static bento_status_t join_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASSWORD;
-    params.pass_len = (uint32_t)strlen(WIFI_PASSWORD);
+    params.pass = wifi_password;
+    params.pass_len = (uint32_t)strlen(wifi_password);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* as the binding does */
     status = bento_wifi_connect_start(&params);
     while ((status == BENTO_OK) && (answer == BENTO_E_IN_PROGRESS)) {

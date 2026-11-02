@@ -86,7 +86,7 @@ enum {
 typedef struct {
     bento_ui_t *ui;
     bento_ui_id_t widgets[ROLE_COUNT];
-    char network[BENTO_WIFI_SSID_MAX + 1]; /* "" when none */
+    char network[BENTO_WIFI_SSID_MAX + 1U]; /* "" when none */
 } keyboard_screen_t;
 
 /* ---- Small helpers ---- */

@@ -151,6 +151,13 @@ static bento_real_t real_sqrt(bento_real_t value)
 #endif
 }
 
+/* int() of a real: truncates toward zero, as the cast does. A function,
+ * so that the cast never applies to a composite expression (MISRA 10.8). */
+static int32_t truncate_to_int(bento_real_t value)
+{
+    return (int32_t)value;
+}
+
 /* str(round(value, digits)) into text, which holds BENTO_FMT_BUF_SIZE
  * bytes: enough for every real, so the format cannot fail. */
 static void format_round(char *text, bento_real_t value, int32_t digits)
@@ -588,13 +595,13 @@ static void show_window(const monitor_t *monitor, bento_real_t rms,
     /* Chart.set_next() and the setters ignore a refusal (modui.c) */
     (void)bento_ui_chart_set_next(monitor->ui, monitor->chart,
                                   monitor->rms_series,
-                                  (int32_t)(rms * milli));
-    (void)bento_ui_chart_set_next(monitor->ui, monitor->chart,
-                                  monitor->warn_series,
-                                  (int32_t)(monitor->warn_at * milli));
-    (void)bento_ui_chart_set_next(monitor->ui, monitor->chart,
-                                  monitor->alarm_series,
-                                  (int32_t)(monitor->alarm_at * milli));
+                                  truncate_to_int(rms * milli));
+    (void)bento_ui_chart_set_next(
+        monitor->ui, monitor->chart, monitor->warn_series,
+        truncate_to_int(monitor->warn_at * milli));
+    (void)bento_ui_chart_set_next(
+        monitor->ui, monitor->chart, monitor->alarm_series,
+        truncate_to_int(monitor->alarm_at * milli));
     (void)bento_ui_set_value(monitor->ui, monitor->ratio_bar,
                              (int32_t)(ratio * (bento_real_t)PERCENT));
     format_round(number, ratio, 1);

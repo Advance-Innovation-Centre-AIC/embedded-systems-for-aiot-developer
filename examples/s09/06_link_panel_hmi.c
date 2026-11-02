@@ -374,12 +374,11 @@ static void show_join_failed(const link_screen_t *screen)
     keep_alive(screen->ui);
 }
 
-/* The classroom network: set both before you run the program. */
+/* The classroom network the teacher hands out (its password is set
+ * where the program joins). */
 static const char WIFI_SSID[] = "AIoT-Class";
-static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
 
 /* Google Public DNS: outside our network, and it always answers. */
-static const char PING_IP[] = "8.8.8.8";
 
 /* wifi.connect(): *joined is false when the network was not found or
  * refused us, as the original's False; other failures end the run.
@@ -387,6 +386,9 @@ static const char PING_IP[] = "8.8.8.8";
  * twin asks for that too. */
 static bento_status_t connect_wifi(bool *joined)
 {
+    /* the classroom password, WIFI_PASS in the .py: set it before you
+     * run */
+    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     char address[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_status_t status;
@@ -394,8 +396,8 @@ static bento_status_t connect_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASS;
-    params.pass_len = (uint32_t)strlen(WIFI_PASS);
+    params.pass = wifi_pass;
+    params.pass_len = (uint32_t)strlen(wifi_pass);
     params.flags = BENTO_WIFI_F_SAVE_CREDS;
     (void)printf("[WiFi] Connecting...\n");
     status = bento_wifi_connect_start(&params);
@@ -459,9 +461,10 @@ static bento_status_t wait_second(bento_ui_t *ui)
 /* Runs until Stop. */
 static bento_status_t run_loop(const link_screen_t *screen)
 {
+    static const char ping_ip[] = "8.8.8.8";
     uint32_t target = 0U;
     bento_status_t status = bento_wifi_ipv4_parse(
-        PING_IP, (uint32_t)strlen(PING_IP), &target);
+        ping_ip, (uint32_t)strlen(ping_ip), &target);
 
     while (status == BENTO_OK) {
         status = update_round(screen, target);

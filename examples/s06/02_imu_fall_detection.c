@@ -136,6 +136,13 @@ typedef struct {
     bool alerted;
 } detector_t;
 
+/* int() of a real: truncates toward zero, as the cast does. A function,
+ * so that the cast never applies to a composite expression (MISRA 10.8). */
+static int32_t truncate_to_int(bento_real_t value)
+{
+    return (int32_t)value;
+}
+
 static bento_status_t add_label(bento_ui_t *ui, const char *text,
                                 const place_t *place,
                                 bento_ui_id_t *out_id)
@@ -458,15 +465,15 @@ static bento_status_t run_round(const fall_screen_t *screen,
         const uint32_t now_ms = bento_time_ticks_ms();
         const bento_real_t scale = (bento_real_t)CHART_SCALE;
 
-        (void)bento_ui_chart_set_next(screen->ui, screen->chart,
-                                      screen->magnitude_series,
-                                      (int32_t)(magnitude * scale));
-        (void)bento_ui_chart_set_next(screen->ui, screen->chart,
-                                      screen->free_fall_series,
-                                      (int32_t)(FREE_FALL * scale));
+        (void)bento_ui_chart_set_next(
+            screen->ui, screen->chart, screen->magnitude_series,
+            truncate_to_int(magnitude * scale));
+        (void)bento_ui_chart_set_next(
+            screen->ui, screen->chart, screen->free_fall_series,
+            truncate_to_int(FREE_FALL * scale));
         (void)bento_ui_chart_set_next(screen->ui, screen->chart,
                                       screen->impact_series,
-                                      (int32_t)(IMPACT * scale));
+                                      truncate_to_int(IMPACT * scale));
         status = advance(screen, detector, magnitude, now_ms);
         show_stages(screen, detector, now_ms);
     }
