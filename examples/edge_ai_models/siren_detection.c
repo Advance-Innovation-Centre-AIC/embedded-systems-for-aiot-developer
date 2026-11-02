@@ -46,6 +46,9 @@
  *     score_pct exactly, and the percentages here are integers.
  *   - The IDE's Stop still runs the finally (the model is stopped),
  *     then the program returns 0.
+ *   - In the BENTO Emulator, Edge AI from C is not available yet: the
+ *     program says so and then shows the "Model not on this board"
+ *     card, as the original does where the model is missing.
  */
 #include <inttypes.h>
 #include <stdbool.h>
@@ -181,7 +184,8 @@ enum { /* layout */
     MISSING_TEXT_X = 120,
     MISSING_HEAD_Y = 126,
     MISSING_BODY_Y = 170,
-    MISSING_PX = 20
+    MISSING_PX = 20,
+    EMU_NOTE_Y = 310 /* below the missing card */
 };
 
 /* Where a text goes and how it looks. */
@@ -588,6 +592,32 @@ static bento_status_t show_missing(bento_ui_t *ui)
         /* set afterwards: a text sent this way fits 126 bytes */
         (void)bento_ui_set_text(ui, body_id, text,
                                 (uint32_t)strlen(text));
+        drain_events(ui);
+    }
+    return status;
+}
+
+/* The BENTO Emulator's C runtime has no Edge AI yet: it answers
+ * BENTO_E_UNSUPPORTED. The note goes below the missing card, as wide
+ * as the card, so it wraps there. */
+static bento_status_t show_emulator_note(bento_ui_t *ui)
+{
+    static const char note[] = "Edge AI จาก C ยังไม่มีใน BENTO Emulator "
+                               "ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_widget_args_t args;
+    bento_ui_id_t unused;
+    bento_status_t status;
+
+    bento_ui_widget_args_init(&args);
+    args.text = note;
+    args.text_len = (uint32_t)strlen(note);
+    args.x = MISSING_X;
+    args.y = EMU_NOTE_Y;
+    args.w = MISSING_W;
+    args.color = COLOR_WARN;
+    args.font_px = MISSING_PX;
+    status = bento_ui_label_create(ui, &args, &unused);
+    if (status == BENTO_OK) {
         drain_events(ui);
     }
     return status;
@@ -1463,15 +1493,34 @@ static bento_status_t run_then_release(alert_t *alert)
     return (status == BENTO_E_CANCELLED) ? stop_status : status;
 }
 
+/* The Emulator first says why, then does what the original does
+ * where the model is not on the board. */
+static bento_status_t run_in_emulator(bento_ui_t *ui)
+{
+    bento_status_t status;
+
+    (void)printf("Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit "
+                 "หรือ Eva Kit / Edge AI from C is not in the BENTO "
+                 "Emulator yet: run it on a Dev Kit or Eva Kit.\n");
+    status = show_missing(ui);
+    if (status == BENTO_OK) {
+        status = show_emulator_note(ui);
+    }
+    return status;
+}
+
 int main(void)
 {
     alert_t *alert = &g_alert;
+    bool supported = false;
     bento_status_t status;
 
     (void)memset(alert, 0, sizeof(*alert));
     alert->ui = bento_runtime_get_ui();
     alert->has_buttons = bento_buttons_count() > 0U;
-    if (!find_model(&alert->model)) {
+    if (bento_edgeai_supported(&supported) == BENTO_E_UNSUPPORTED) {
+        status = run_in_emulator(alert->ui);
+    } else if (!find_model(&alert->model)) {
         status = show_missing(alert->ui);
     } else {
         status = build_screen(alert);
