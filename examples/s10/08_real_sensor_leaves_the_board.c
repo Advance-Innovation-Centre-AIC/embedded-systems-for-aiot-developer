@@ -76,6 +76,16 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+static const char BROKER[] = "192.168.1.50";
+static const char DEVICE_ID[] = "team03";
+static const char MQTT_USER[] = "team03";
+static const char MQTT_PASS[] = "<รหัสผ่าน MQTT ของทีม>";
+static const char TOPIC[] = "bento/team03/telemetry";
+/* ---- end of settings ---- */
+
 /* The course palette, 0xRRGGBB. */
 enum {
     COLOR_TEXT = 0xE8EAED,
@@ -223,8 +233,6 @@ static bool read_temp(const bento_sensors_snapshot_t *snap,
     return found;
 }
 
-static const char DEVICE_ID[] = "team03";
-
 /* Prints the line wifi.connect() prints on success. */
 static void print_wifi_address(void)
 {
@@ -246,17 +254,14 @@ static void print_wifi_address(void)
  * timed-out join is False; any other failure ends the program. */
 static bento_status_t join_wifi(bool *joined)
 {
-    /* The class network, handed out by the teacher. */
-    static const char wifi_ssid[] = "AIoT-Class";
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     bento_wifi_connect_params_t params;
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = wifi_ssid;
-    params.ssid_len = (uint32_t)strlen(wifi_ssid);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -286,25 +291,22 @@ static bento_status_t join_wifi(bool *joined)
  * even start (no radio) ends the program, as the binding's raise. */
 static bento_status_t open_broker(uint32_t *broker)
 {
-    static const char broker_host[] = "192.168.1.50";
-    static const char mqtt_user[] = "team03";
-    static const char mqtt_pass[] = "<รหัสผ่าน MQTT ของทีม>";
     bento_mqtt_config_t config;
     bento_status_t status;
 
     bento_mqtt_config_init(&config);
-    config.host = broker_host;
-    config.host_len = (uint32_t)strlen(broker_host);
+    config.host = BROKER;
+    config.host_len = (uint32_t)strlen(BROKER);
     config.port = (uint16_t)BROKER_PORT;
     config.client_id = DEVICE_ID;
     config.client_id_len = (uint32_t)strlen(DEVICE_ID);
-    config.user = mqtt_user;
-    config.user_len = (uint32_t)strlen(mqtt_user);
-    config.pass = mqtt_pass;
-    config.pass_len = (uint32_t)strlen(mqtt_pass);
+    config.user = MQTT_USER;
+    config.user_len = (uint32_t)strlen(MQTT_USER);
+    config.pass = MQTT_PASS;
+    config.pass_len = (uint32_t)strlen(MQTT_PASS);
     status = bento_mqtt_open_start(&config, broker);
     if (status == BENTO_OK) { /* the binding raises before it prints */
-        (void)printf("[MQTT] Connecting to %s:%d ...\r\n", broker_host,
+        (void)printf("[MQTT] Connecting to %s:%d ...\r\n", BROKER,
                      BROKER_PORT);
         status = BENTO_E_IN_PROGRESS;
     }
@@ -315,8 +317,8 @@ static bento_status_t open_broker(uint32_t *broker)
         }
     }
     if (status == BENTO_OK) {
-        (void)printf("[MQTT] Connected to %s:%d as '%s'\r\n",
-                     broker_host, BROKER_PORT, DEVICE_ID);
+        (void)printf("[MQTT] Connected to %s:%d as '%s'\r\n", BROKER,
+                     BROKER_PORT, DEVICE_ID);
     } else if ((status != BENTO_E_CANCELLED) && (*broker != 0U)) {
         status = BENTO_OK;
     } else {
@@ -708,7 +710,6 @@ static void show_summary(const link_screen_t *screen,
 static void send_reading(const link_screen_t *screen, telemetry_t *tele,
                          uint32_t now_ms)
 {
-    static const char topic[] = "bento/team03/telemetry";
     char number[BENTO_FMT_BUF_SIZE];
     char payload[PAYLOAD_BYTES];
     char text[TEXT_BYTES];
@@ -720,7 +721,7 @@ static void send_reading(const link_screen_t *screen, telemetry_t *tele,
                          round_tenth(tele->last_value), &length);
     write_payload(payload, sizeof(payload), number, now_ms);
     sent_status = bento_mqtt_publish(
-        tele->broker, topic, (uint32_t)strlen(topic),
+        tele->broker, TOPIC, (uint32_t)strlen(TOPIC),
         (const uint8_t *)payload, (uint32_t)strlen(payload), 0U, 0U);
     if ((sent_status == BENTO_E_SESSION) ||
         (sent_status == BENTO_E_UNSUPPORTED)) {
