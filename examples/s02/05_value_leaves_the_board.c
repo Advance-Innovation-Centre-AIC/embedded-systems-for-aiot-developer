@@ -20,6 +20,8 @@
  * Twin of 05_value_leaves_the_board.py
  * (embedded-systems-for-aiot-developer/examples/s02/05_value_leaves_the_board.py).
  * Style: CLEAN_C.md.
+ * In the BENTO Emulator, MQTT from C is not available yet: the
+ * program says so and ends.
  * Differs from the original:
  *   - wifi.connect() and mqtt.connect() print console lines of their
  *     own. Here the program prints the ones C can know: "[WiFi]
@@ -248,7 +250,11 @@ static bento_status_t open_broker(const names_t *names,
         (void)printf("[MQTT] Connected to %s:%d as '%s'\n", BROKER,
                      PORT, names->device_id);
     }
-    return (status == BENTO_E_CANCELLED) ? status : BENTO_OK;
+    /* Stop, and the Emulator's missing MQTT, go back to the caller */
+    return ((status == BENTO_E_CANCELLED) ||
+            (status == BENTO_E_UNSUPPORTED))
+               ? status
+               : BENTO_OK;
 }
 
 /* MicroPython's widget setters ignore a refusal (modui.c), so the
@@ -316,6 +322,38 @@ static void stop_here(const panel_t *panel, bento_ui_id_t label,
     (void)printf("หยุดที่: %s\n", reason);
 }
 
+/* The BENTO Emulator has no MQTT from C yet: bento_mqtt_* and the
+ * broker calls answer BENTO_E_UNSUPPORTED there. The program takes
+ * the original's own "broker failed" way out: the step turns red with
+ * the original's words, the reason line and the drawer say why, the
+ * console gets the full sentence in Thai and English, and the
+ * program ends normally. The screen line is the short form, within
+ * the 126 bytes of a SET_TEXT. */
+static void show_emulator_note(bento_ui_t *ui, bento_ui_id_t step,
+                               const char *step_text,
+                               bento_ui_id_t reason)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
+    uint32_t count = 0U;
+
+    /* the setters ignore a refusal, as in MicroPython (modui.c) */
+    (void)bento_ui_set_color(ui, step, COLOR_BAD);
+    (void)bento_ui_set_text(ui, step, step_text,
+                            (uint32_t)strlen(step_text));
+    (void)bento_ui_set_color(ui, reason, COLOR_BAD);
+    (void)bento_ui_set_text(ui, reason, note, (uint32_t)strlen(note));
+    /* ui.poll() answers no events when it fails; none are read */
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
+    (void)bento_lcd_print(note); /* ignores a console not ready */
+    (void)printf("MQTT จากภาษา C ยังไม่มีใน BENTO Emulator "
+                 "ให้รันบนบอร์ด Dev Kit หรือ Eva Kit / MQTT from C is "
+                 "not in the BENTO Emulator yet: run it on a Dev Kit "
+                 "or Eva Kit.\n");
+}
+
 /* Step 2: introduce the board to the broker. A client id another
  * board uses makes the broker kick the older one, which is why the
  * id carries the team. */
@@ -340,7 +378,12 @@ static bento_status_t step_broker(const panel_t *panel,
                    BROKER);
     console_line(line);
     status = open_broker(names, broker, &started, passed);
-    if ((status == BENTO_OK) && !started) {
+    if (status == BENTO_E_UNSUPPORTED) {
+        show_emulator_note(panel->ui, panel->broker,
+                           "2) broker    ต่อไม่ได้", panel->note);
+        *passed = false; /* the ladder stops here, normally */
+        status = BENTO_OK;
+    } else if ((status == BENTO_OK) && !started) {
         stop_here(panel, panel->broker, "2) broker    ต่อไม่ได้",
                   "ชั้น WiFi ของบอร์ดไม่พร้อม ลองรันใหม่");
     } else if ((status == BENTO_OK) && !*passed) {
