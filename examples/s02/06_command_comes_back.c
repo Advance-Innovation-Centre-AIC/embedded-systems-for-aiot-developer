@@ -75,6 +75,17 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* แก้สามบรรทัดนี้ตามที่ผู้สอนแจก
+ * Set these three from what the teacher hands out. */
+/* the team's phone hotspot: faculty Wi-Fi needs a login */
+static const char WIFI_SSID[] = "bento-teamXX";
+/* 8 characters or more */
+static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
+/* team01 to team19; unset, the program will not run */
+static const char TEAM[] = "teamXX";
+/* ---- end of settings ---- */
+
 /* The course palette, 0xRRGGBB. */
 enum {
     COLOR_TEXT = 0xE8EAED,
@@ -1760,16 +1771,6 @@ static void finish(const remote_screen_t *screen,
                  listener->got, listener->bad);
 }
 
-/* Edit these three as the teacher hands them out. */
-typedef struct {
-    const char *ssid;
-    const char *pass;
-} wifi_network_t;
-
-static const wifi_network_t NETWORK = {"bento-teamXX",
-                                       "<รหัส Hotspot ของทีม>"};
-static const char TEAM[] = "teamXX"; /* team01 .. team19 */
-
 /* A scan's results: too big for the 8 KB program stack, so at file
  * scope, zeroed by the loader on every load and set again at the
  * start of main() (CLEAN_C.md C9, deviation BENTO-MISRA-E03/E04). */
@@ -1799,10 +1800,10 @@ static bento_status_t join_wifi(bool *joined)
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = NETWORK.ssid;
-    params.ssid_len = (uint32_t)strlen(NETWORK.ssid);
-    params.pass = NETWORK.pass;
-    params.pass_len = (uint32_t)strlen(NETWORK.pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -1849,8 +1850,8 @@ static bento_status_t hear_hotspot(bool *heard)
     }
     *heard = false;
     for (i = 0U; (status == BENTO_OK) && (i < count); i++) {
-        *heard = *heard ||
-                 (strcmp(g_scan_results[i].ssid, NETWORK.ssid) == 0);
+        *heard =
+            *heard || (strcmp(g_scan_results[i].ssid, WIFI_SSID) == 0);
     }
     if (status != BENTO_E_CANCELLED) {
         status = BENTO_OK;
@@ -1871,7 +1872,7 @@ static bento_status_t join_or_explain(const remote_screen_t *screen,
     paint(screen->ui, screen->status_line, COLOR_WARN,
           "กำลังต่อ WiFi จอจะนิ่งสักครู่");
     drain_events(screen->ui);
-    (void)snprintf(why, sizeof(why), "กำลังต่อ WiFi %s", NETWORK.ssid);
+    (void)snprintf(why, sizeof(why), "กำลังต่อ WiFi %s", WIFI_SSID);
     (void)bento_lcd_print(why);
     status = join_wifi(&joined);
     if ((status == BENTO_OK) && !joined) {
@@ -1882,11 +1883,11 @@ static bento_status_t join_or_explain(const remote_screen_t *screen,
             (void)snprintf(why, sizeof(why),
                            "ได้ยินวง %s แต่ต่อไม่ผ่าน "
                            "ตรวจรหัสผ่าน",
-                           NETWORK.ssid);
+                           WIFI_SSID);
         } else {
             (void)snprintf(why, sizeof(why),
                            "ไม่ได้ยินวง %s เลย ตรวจชื่อวงหรือย้ายที่",
-                           NETWORK.ssid);
+                           WIFI_SSID);
         }
         stop_here(screen, listener, "ต่อ WiFi ไม่ติด", why);
     }
