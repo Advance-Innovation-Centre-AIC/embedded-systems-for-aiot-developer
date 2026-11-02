@@ -58,24 +58,42 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
-enum {                 /* times, ms */
+/* A word that turns the cart, and the step it makes. */
+typedef struct {
+    const char *word;
+    int32_t step_x;
+    int32_t step_y;
+} direction_t;
+
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* The exact name, looked up every run. */
+static const char MODEL[] = "Voice Commands";
+/* false = deployed from the Store */
+static const bool BUILTIN = false;
+enum {
+    K = 2, /* word = K of the last N results at Confirm at */
+    N = 4,
     REFRACT_MS = 1000, /* no second word sooner than this */
-    HOLD_MS = 2000,    /* a word stays on screen this long */
+    HOLD_MS = 2000     /* a word stays on screen this long */
+};
+/* Hearing at, Confirm at, clear below (fallback), % */
+static const uint8_t DEF_THRESHOLDS[3] = {40U, 65U, 30U};
+enum {
     POLL_MS = 100,
-    DRAW_MS = 500,
+    DRAW_MS = 500
+};
+/* [0] without board buttons (Eva Kit), [1] with them */
+static const char *const HELP[2] = {
+    "Say a word", "Say a word - SW6 = Safe stop, SW5 = pause"};
+static const direction_t DIRS[4] = {
+    {"up", 0, -1}, {"down", 0, 1}, {"left", -1, 0}, {"right", 1, 0}};
+/* ---- end of settings ---- */
+
+enum { /* times, ms */
     LOOP_MS = 20,
     LOAD_MS = 150,
     OP_POLL_MS = 20,
     FAIL_MS = 3000
-};
-enum { /* a word = VOTE_HITS of the last VOTE_WINDOW results */
-    VOTE_HITS = 2,
-    VOTE_WINDOW = 4
-};
-enum { /* fallback thresholds, %: Hearing at, Confirm at, clear below */
-    DEFAULT_ENTER = 40,
-    DEFAULT_CONFIRM = 65,
-    DEFAULT_EXIT = 30
 };
 enum { /* the yard: YARD_CELLS x YARD_CELLS, the cart starts mid-yard */
     YARD_CELLS = 5,
@@ -117,22 +135,10 @@ enum { /* font sizes, px */
     HUGE_PX = 28
 };
 
-/* The exact name, looked up every run. */
 /* What the BENTO Emulator says: 119 bytes, within the 126 one
  * label takes; the label gets a width so it wraps. */
 static const char EMULATOR_TEXT[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
-static const char MODEL_NAME[] = "Voice Commands";
-
-/* A word that turns the cart, and the step it makes. */
-typedef struct {
-    const char *word;
-    int32_t step_x;
-    int32_t step_y;
-} direction_t;
-
-static const direction_t DIRECTIONS[DIRECTION_COUNT] = {
-    {"up", 0, -1}, {"down", 0, 1}, {"left", -1, 0}, {"right", 1, 0}};
 
 /* A rectangle on the screen; -1 = the widget's own size. */
 typedef struct {
@@ -189,7 +195,7 @@ typedef struct {
 
 /* The last N scores; K of them at or above a level = confirmed. */
 typedef struct {
-    uint8_t scores[VOTE_WINDOW];
+    uint8_t scores[N];
     uint32_t count;
 } vote_t;
 
@@ -214,7 +220,7 @@ typedef struct {
 typedef struct {
     int32_t x;
     int32_t y;
-    int32_t direction; /* index into DIRECTIONS */
+    int32_t direction; /* index into DIRS */
     bool going;
 } cart_t;
 
@@ -475,13 +481,10 @@ static int32_t compiled_count(void)
 /* BUILTIN true takes True or None; BUILTIN false takes only False. */
 static bool source_matches(int32_t index, int32_t compiled)
 {
-    const bool want_builtin =
-        false; /* false = deployed from the Store */
-    bool matches = want_builtin;
+    bool matches = BUILTIN;
 
     if (compiled >= 0) {
-        matches =
-            want_builtin ? (index < compiled) : (index >= compiled);
+        matches = BUILTIN ? (index < compiled) : (index >= compiled);
     }
     return matches;
 }
@@ -506,13 +509,13 @@ static void keep_model(model_t *model, uint32_t index,
     }
 }
 
-/* One row: counted, and kept when it is MODEL_NAME from the right
+/* One row: counted, and kept when it is MODEL from the right
  * source and nothing was found before. */
 static void consider_row(model_t *model, bool *found,
                          const bento_edgeai_model_info_t *info,
                          int32_t index, int32_t compiled)
 {
-    if (!*found && (strcmp(info->name, MODEL_NAME) == 0) &&
+    if (!*found && (strcmp(info->name, MODEL) == 0) &&
         source_matches(index, compiled)) {
         *found = true;
         keep_model(model, (uint32_t)index, info);
@@ -612,7 +615,7 @@ static bento_status_t missing_model(bento_ui_t *ui)
     (void)snprintf(text, sizeof(text),
                    "Deploy %s\nfrom edgeai-store.tesaiot.dev\n(sign in "
                    "with GitHub) on a Dev Kit.",
-                   MODEL_NAME);
+                   MODEL);
     return missing(ui, "Model not on this board", text);
 }
 
@@ -815,9 +818,9 @@ static void read_thresholds(steer_t *steer)
     if (bento_edgeai_thresholds(steer->model.index, thresholds) !=
         BENTO_OK) {
         for (i = 0U; i < (uint32_t)MAX_CLASSES; i++) {
-            thresholds->enter[i] = (uint8_t)DEFAULT_ENTER;
-            thresholds->confirm[i] = (uint8_t)DEFAULT_CONFIRM;
-            thresholds->exit[i] = (uint8_t)DEFAULT_EXIT;
+            thresholds->enter[i] = DEF_THRESHOLDS[0];
+            thresholds->confirm[i] = DEF_THRESHOLDS[1];
+            thresholds->exit[i] = DEF_THRESHOLDS[2];
         }
     }
 }
@@ -864,14 +867,11 @@ static bento_status_t select_model(const steer_t *steer,
 /* start(): on resume, Stop if a model was added or removed meanwhile. */
 static bento_status_t start_model(steer_t *steer, bool check_count)
 {
-    static const char help_buttons[] =
-        "Say a word - SW6 = Safe stop, SW5 = pause";
-    static const char help_touch[] = "Say a word";
     char text[TEXT_BYTES];
     bento_status_t status = BENTO_OK;
     bento_status_t link = BENTO_OK;
 
-    (void)snprintf(text, sizeof(text), "Loading %s ...", MODEL_NAME);
+    (void)snprintf(text, sizeof(text), "Loading %s ...", MODEL);
     put_text(steer->ui, &steer->screen.status, text);
     put_color(steer->ui, &steer->screen.status, COLOR_WARN);
     drain_events(steer->ui);
@@ -883,13 +883,12 @@ static bento_status_t start_model(steer_t *steer, bool check_count)
         status = select_model(steer, &link);
     }
     if ((status == BENTO_OK) && !steer->stopped && (link != BENTO_OK)) {
-        (void)snprintf(text, sizeof(text), "Cannot start %s",
-                       MODEL_NAME);
+        (void)snprintf(text, sizeof(text), "Cannot start %s", MODEL);
         raise_stop(steer, text);
     }
     if ((status == BENTO_OK) && !steer->stopped) {
         put_text(steer->ui, &steer->screen.status,
-                 steer->has_buttons ? help_buttons : help_touch);
+                 HELP[steer->has_buttons ? 1 : 0]);
         put_color(steer->ui, &steer->screen.status, COLOR_TEXT);
     }
     return status;
@@ -930,14 +929,14 @@ static void vote_add(vote_t *vote, uint8_t score)
 {
     uint32_t i;
 
-    if (vote->count < (uint32_t)VOTE_WINDOW) {
+    if (vote->count < (uint32_t)N) {
         vote->scores[vote->count] = score;
         vote->count++;
     } else {
-        for (i = 1U; i < (uint32_t)VOTE_WINDOW; i++) {
+        for (i = 1U; i < (uint32_t)N; i++) {
             vote->scores[i - 1U] = vote->scores[i];
         }
-        vote->scores[VOTE_WINDOW - 1] = score;
+        vote->scores[N - 1] = score;
     }
 }
 
@@ -951,7 +950,7 @@ static bool vote_hits(const vote_t *vote, uint8_t level)
             hits++;
         }
     }
-    return hits >= VOTE_HITS;
+    return hits >= K;
 }
 
 static uint8_t vote_max(const vote_t *vote)
@@ -969,8 +968,7 @@ static uint8_t vote_max(const vote_t *vote)
 
 static bool vote_clear(const vote_t *vote, uint8_t level)
 {
-    return (vote->count == (uint32_t)VOTE_WINDOW) &&
-           (vote_max(vote) < level);
+    return (vote->count == (uint32_t)N) && (vote_max(vote) < level);
 }
 
 /* No new word: a shown word stays HOLD_MS, then the state follows the
@@ -1046,7 +1044,7 @@ static void show_legend(steer_t *steer)
                    (unsigned int)thresholds->enter[1],
                    (unsigned int)thresholds->confirm[1],
                    (unsigned int)thresholds->enter[steer->stop_class],
-                   VOTE_WINDOW);
+                   N);
     put_text(steer->ui, &steer->screen.legend, text);
 }
 
@@ -1115,7 +1113,7 @@ static void add_log_line(steer_t *steer, const char *line)
 static void cart_step(steer_t *steer)
 {
     cart_t *cart = &steer->cart;
-    const direction_t *direction = &DIRECTIONS[cart->direction];
+    const direction_t *direction = &DIRS[cart->direction];
     const int32_t x = cart->x + direction->step_x;
     const int32_t y = cart->y + direction->step_y;
 
@@ -1139,7 +1137,7 @@ static void cart_hear(steer_t *steer, const char *word)
     int32_t i;
 
     for (i = 0; i < DIRECTION_COUNT; i++) {
-        if (strcmp(word, DIRECTIONS[i].word) == 0) {
+        if (strcmp(word, DIRS[i].word) == 0) {
             turn = i;
         }
     }
@@ -1307,7 +1305,7 @@ static void redraw(steer_t *steer, uint32_t now_ms)
     (void)snprintf(text, sizeof(text),
                    steer->cart.going ? "Going %s, 1 cell/s"
                                      : "Stopped, facing %s",
-                   DIRECTIONS[steer->cart.direction].word);
+                   DIRS[steer->cart.direction].word);
     put_text(steer->ui, &steer->screen.mode, text);
     if (steer->has_top) {
         draw_scores(steer);
