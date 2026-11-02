@@ -63,24 +63,31 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
-enum { /* settings */
-    VOTES_NEEDED =
-        3, /* an event = 3 of the last 5 results at Confirm at */
-    VOTES_KEPT = 5,
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char MODEL[] =
+    "Environment Sounds";          /* exact name, looked up every run */
+static const bool BUILTIN = false; /* false = deployed from the Store */
+enum {
+    K = 3, /* an event = K of the last N results at Confirm at */
+    N = 5,
     REFRACT_MS = 1500, /* no second event sooner than this */
-    HOLD_MS = 2000,    /* an event stays on screen this long */
-    DEF_HEARING =
-        40, /* fallback thresholds: Hearing at, Confirm at, clear below */
-    DEF_CONFIRM = 65,
-    DEF_CLEAR = 30,
+    HOLD_MS = 2000     /* an event stays on screen this long */
+};
+/* DEF_TH in the .py: Hearing at, Confirm at, clear below (fallback) */
+static const uint8_t DEF_THRESHOLDS[3] = {40U, 65U, 30U};
+enum {
     POLL_MS = 100,
     DRAW_MS = 500,
+    TRUTH_MS = 10000 /* a tile tap = "I play this sound for 10 s" */
+};
+/* ---- end of settings ---- */
+
+enum { /* times, counts and sizes */
     LOOP_MS = 20,
     LOAD_MS = 150,   /* let the screen settle after ui.screen() */
     OP_POLL_MS = 20, /* how often a started select or stop is asked */
     FAIL_STOP_MS =
-        3000,         /* result() failing this long ends the program */
-    TRUTH_MS = 10000, /* a tile tap = "I play this sound for 10 s" */
+        3000, /* result() failing this long ends the program */
     MS_PER_S = 1000,
     CLASSES_SHOWN = BENTO_EDGEAI_MAX_CLASSES,
     TILES = 8,
@@ -167,8 +174,6 @@ typedef enum {
     EPISODE_SEEN
 } episode_state_t;
 
-static const char MODEL_NAME[] = "Environment Sounds";
-
 /* One board button: one event per press, holding does not repeat. */
 typedef struct {
     uint32_t index;
@@ -217,9 +222,9 @@ typedef struct {
     char labels[MAX_CLASSES][BENTO_EDGEAI_LABEL_LEN];
 } model_t;
 
-/* The last VOTES_KEPT scores. */
+/* The last N scores. */
 typedef struct {
-    int32_t scores[VOTES_KEPT];
+    int32_t scores[N];
     uint32_t count;
 } vote_t;
 
@@ -623,7 +628,7 @@ static bento_status_t show_missing(bento_ui_t *ui)
     (void)snprintf(text, sizeof(text),
                    "Deploy %s\nfrom edgeai-store.tesaiot.dev\n(sign in "
                    "with GitHub) on a Dev Kit.",
-                   MODEL_NAME);
+                   MODEL);
     (void)printf("%s\n", text);
     status = bento_ui_screen_default(ui);
     if (status == BENTO_OK) {
@@ -653,13 +658,13 @@ static void vote_reset(vote_t *vote)
     vote->count = 0U;
 }
 
-/* Keeps the last VOTES_KEPT scores. */
+/* Keeps the last N scores. */
 static void vote_add(vote_t *vote, int32_t score)
 {
     uint32_t i;
 
-    if (vote->count == (uint32_t)VOTES_KEPT) {
-        for (i = 1U; i < (uint32_t)VOTES_KEPT; i++) {
+    if (vote->count == (uint32_t)N) {
+        for (i = 1U; i < (uint32_t)N; i++) {
             vote->scores[i - 1U] = vote->scores[i];
         }
         vote->count--;
@@ -681,7 +686,7 @@ static int32_t vote_max(const vote_t *vote)
     return best;
 }
 
-/* VOTES_NEEDED of the kept scores at or above the level = confirmed. */
+/* K of the kept scores at or above the level = confirmed. */
 static bool vote_hits(const vote_t *vote, int32_t level)
 {
     int32_t hits = 0;
@@ -692,14 +697,13 @@ static bool vote_hits(const vote_t *vote, int32_t level)
             hits++;
         }
     }
-    return hits >= VOTES_NEEDED;
+    return hits >= K;
 }
 
 /* A full window, every score below the level. */
 static bool vote_clear(const vote_t *vote, int32_t level)
 {
-    return (vote->count == (uint32_t)VOTES_KEPT) &&
-           (vote_max(vote) < level);
+    return (vote->count == (uint32_t)N) && (vote_max(vote) < level);
 }
 
 /* A confirm: true once per new event, then no other within
@@ -792,9 +796,12 @@ static void read_thresholds(lab_t *app)
     if (bento_edgeai_thresholds(app->model.index, &app->thresholds) !=
         BENTO_OK) {
         for (i = 0U; i < (uint32_t)MAX_CLASSES; i++) {
-            app->thresholds.enter[i] = DEF_HEARING;
-            app->thresholds.confirm[i] = DEF_CONFIRM;
-            app->thresholds.exit[i] = DEF_CLEAR;
+            app->thresholds.enter[i] =
+                DEF_THRESHOLDS[BENTO_EDGEAI_TH_ENTER];
+            app->thresholds.confirm[i] =
+                DEF_THRESHOLDS[BENTO_EDGEAI_TH_CONFIRM];
+            app->thresholds.exit[i] =
+                DEF_THRESHOLDS[BENTO_EDGEAI_TH_EXIT];
         }
     }
 }
@@ -1486,10 +1493,10 @@ int main(void)
     app->has_buttons = bento_buttons_count() > 0U;
     app->sw5.index = 1U;
     app->sw6.index = 0U;
-    app->model_name = MODEL_NAME;
+    app->model_name = MODEL;
     if (bento_edgeai_supported(&supported) == BENTO_E_UNSUPPORTED) {
         status = show_emulator_note(app->ui);
-    } else if (!find_model(MODEL_NAME, false, &app->model,
+    } else if (!find_model(MODEL, BUILTIN, &app->model,
                            &app->row_count)) {
         status = show_missing(app->ui);
     } else {
