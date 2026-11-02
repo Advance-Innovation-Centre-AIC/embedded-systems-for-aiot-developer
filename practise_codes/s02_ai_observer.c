@@ -29,8 +29,6 @@
  * (embedded-systems-for-aiot-developer/practise_codes/s02_ai_observer.py).
  * Style: CLEAN_C.md.
  * Differs from the original:
- *   - WIFI_SSID and WIFI_PASS sit at the top of join_wifi(), the one
- *     function that reads them (MISRA 8.9), not at the top of the file.
  *   - The list of (name, cond, hit, ms) tuples is a static const table
  *     of trial_t.
  *   - lcd.print() with several values joins them with spaces itself;
@@ -50,6 +48,15 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 #include "bento_wifi.h"
+
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* ทีมถัดไปที่มาอ่านต่อ แก้แค่ก้อนนี้ก็ได้รายงานของตัวเอง */
+static const char TEAM_NAME[] = "BentoBuilders";
+/* ชื่อ Hotspot มือถือของทีม (WiFi คณะต้อง login บอร์ดใช้ไม่ได้) */
+static const char WIFI_SSID[] = "bento-teamXX";
+/* รหัส Hotspot อย่างน้อย 8 ตัว */
+static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
+/* ---- end of settings ---- */
 
 enum { /* times, ms */
     SETTLE_MS = 200,
@@ -130,9 +137,6 @@ enum { /* text buffers */
     ROW_BYTES = 128,  /* the cells of one table row, NUL between them */
     NUMBER_BYTES = 12 /* any int32_t with its sign and NUL */
 };
-
-/* Edit this first, and the hotspot's name and password in join_wifi(). */
-static const char TEAM_NAME[] = "BentoBuilders";
 
 /* One trial, written down by hand on the board. */
 typedef struct {
@@ -520,18 +524,14 @@ static bento_status_t wait_for_join(void)
  * False. Only Stop ends the program here. */
 static bento_status_t join_wifi(bool *joined)
 {
-    /* แก้สองบรรทัดนี้ให้เป็น Hotspot มือถือของทีม (WiFi คณะต้อง login บอร์ดใช้ไม่ได้) */
-    static const char ssid[] = "bento-teamXX";
-    static const char password[] =
-        "<รหัส Hotspot ของทีม>"; /* at least 8 characters */
     bento_wifi_connect_params_t params;
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = ssid;
-    params.ssid_len = (uint32_t)strlen(ssid);
-    params.pass = password;
-    params.pass_len = (uint32_t)strlen(password);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.timeout_ms = 0U; /* the binding's own window */
     params.flags = BENTO_WIFI_F_SAVE_CREDS;
     status = bento_wifi_connect_start(&params);
