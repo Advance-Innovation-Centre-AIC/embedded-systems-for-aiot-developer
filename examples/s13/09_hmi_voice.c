@@ -61,6 +61,21 @@
 /* TEAM: the team number the teacher gives, used in session 12 (no
  * need to change it in this session) */
 static const char TEAM[] = "teamXX";
+static const char KIT[] = "voice";
+/* The rule, the screen's rhythm and the error screen. */
+enum {
+    CONF_MIN = 60, /* a result less sure than this does not count */
+    CONFIRM_N = 3, /* the same word must win this many times ... */
+    WINDOW_N = 5,  /* ... among this many latest results */
+    STEP_PCT = 10, /* up and down change the brightness this much */
+    DRAW_MS = 500,
+    HOLD_S = 30,    /* how long an error screen stays */
+    DEMO = 0,       /* 1 = simulated results: the C has no demo yet */
+    DEMO_PCT = 95,  /* the simulated result's percent ... */
+    DEMO_STEPS = 60 /* ... and how many model results it lasts */
+};
+/* DEMO_WORD: the word the demo would simulate, "go" in the original;
+ * left out here, as the C has no demo mode yet */
 /* ---- end of settings ---- */
 
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
@@ -69,17 +84,11 @@ static const char EMULATOR_NOTE[] =
 
 /* The rule, the screen's rhythm and the house's limits. */
 enum {
-    CONF_MIN = 60, /* a result less sure than this does not count */
-    CONFIRM_N = 3, /* the same word must win this many times ... */
-    WINDOW_N = 5,  /* ... among this many latest results */
-    STEP_PCT = 10, /* up and down change the brightness this much */
     FULL_PCT = 100,
     DIM_PCT = 10, /* the lowest brightness down reaches */
     ROOM_COUNT = 3,
     COMMAND_COUNT = 6,
     NO_WORD = -1, /* a result that did not pass */
-    DRAW_MS = 500,
-    HOLD_S = 30, /* how long an error screen stays */
     HOLD_POLLS_PER_S = 5,
     HOLD_POLL_MS = 200,
     LOOP_MS = 50,
@@ -390,7 +399,8 @@ static bento_status_t hold(bento_ui_t *ui, const hold_text_t *text,
             &unused);
     }
     for (poll = 0;
-         (poll < (HOLD_S * HOLD_POLLS_PER_S)) && (status == BENTO_OK);
+         (poll < ((int32_t)HOLD_S * (int32_t)HOLD_POLLS_PER_S)) &&
+         (status == BENTO_OK);
          poll++) {
         poll_drop(ui);
         status = pause_ms(HOLD_POLL_MS);
@@ -747,14 +757,13 @@ static void apply(voice_t *voice, int32_t command)
  * state is the chosen room's light. */
 static void print_snapshot(const voice_t *voice)
 {
-    static const char kit[] = "voice";
     const bool on = voice->light[voice->room].on;
 
     (void)printf(
         "{\"id\": \"%s\", \"kit\": \"%s\", \"model\": \"%s\", "
         "\"label\": \"%s\", \"conf\": %" PRId32 ", \"state\": "
         "\"%s\", \"events\": %" PRId32 ", \"n\": %" PRIu32 "}\n",
-        TEAM, kit, voice->model_name, voice->label, voice->conf,
+        TEAM, KIT, voice->model_name, voice->label, voice->conf,
         on ? "on" : "off", voice->events, voice->sequence);
 }
 
