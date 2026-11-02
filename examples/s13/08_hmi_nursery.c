@@ -43,6 +43,9 @@
  *  - Stop raises KeyboardInterrupt in MicroPython; here the wait
  *    returns and the program ends after the same finally (the model is
  *    stopped).
+ * In the BENTO Emulator, Edge AI from C is not available yet: the
+ * program says so, then goes on as the original does when no
+ * model is on the board.
  */
 #include <inttypes.h>
 #include <stdbool.h>
@@ -52,6 +55,10 @@
 
 #include "bento_edgeai.h"
 #include "bento_runtime.h"
+
+/* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
+static const char EMULATOR_NOTE[] =
+    "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
 
 /* The rule, the screen's rhythm and the panel's limits. */
 enum {
@@ -372,7 +379,17 @@ static void add_line(hold_text_t *text, const char *line)
     }
 }
 
-static bento_status_t hold_no_model(bento_ui_t *ui)
+/* The BENTO Emulator's C runtime answers BENTO_E_UNSUPPORTED to every
+ * Edge AI call: the console says so. */
+static void print_emulator_note(void)
+{
+    (void)printf(
+        "%s / Edge AI from C is not in the BENTO Emulator yet: "
+        "run it on a Dev Kit or Eva Kit.\n",
+        EMULATOR_NOTE);
+}
+
+static bento_status_t hold_no_model(bento_ui_t *ui, bool in_emulator)
 {
     hold_text_t text;
 
@@ -380,6 +397,9 @@ static bento_status_t hold_no_model(bento_ui_t *ui)
     add_line(&text, "ไม่พบโมเดลบนบอร์ด");
     add_line(&text, "Baby Cry Detection หรือ HomeSounds");
     add_line(&text, "deploy HomeSounds จาก Store");
+    if (in_emulator) {
+        add_line(&text, EMULATOR_NOTE);
+    }
     return hold(ui, &text, COLOR_BAD);
 }
 
@@ -919,6 +939,7 @@ int main(void)
 {
     nursery_t *nursery = &g_nursery;
     bool supported = false;
+    bool in_emulator = false;
     bool found = false;
     bento_status_t status;
 
@@ -927,17 +948,22 @@ int main(void)
     nursery->state = STATE_NORMAL;
     (void)snprintf(nursery->label, sizeof(nursery->label), "-");
     status = bento_edgeai_supported(&supported);
-    if ((status == BENTO_OK) && !supported) {
+    in_emulator = status == BENTO_E_UNSUPPORTED;
+    if (in_emulator) {
+        print_emulator_note();
+        status = BENTO_OK; /* on as if no model were on the board */
+    }
+    if ((status == BENTO_OK) && !supported && !in_emulator) {
         status = BENTO_E_UNSUPPORTED; /* import edge_ai fails */
     }
-    if (status == BENTO_OK) {
+    if ((status == BENTO_OK) && !in_emulator) {
         status = find_model(nursery, &found);
     }
     if ((status == BENTO_OK) && !found) {
         (void)printf(
             "none of these models is on the board: ('Baby Cry "
             "Detection', 'HomeSounds', 'Environment Sounds')\n");
-        status = hold_no_model(nursery->ui);
+        status = hold_no_model(nursery->ui, in_emulator);
     } else if (status == BENTO_OK) {
         (void)printf("found %s at index %" PRIu32 "\n",
                      nursery->model_name, nursery->model);
