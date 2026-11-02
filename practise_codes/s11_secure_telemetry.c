@@ -369,20 +369,21 @@ static void add_row(bento_ui_t *ui, bento_ui_id_t table, uint8_t row,
  * and in the Console. */
 static bento_status_t add_emulator_notice(bento_ui_t *ui)
 {
+    /* The line breaks are in the text: the Emulator does not wrap a
+     * label at a width, so all of it stays on the screen. */
     static const widget_spec_t notice = {
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit",
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator\nให้รันบน Dev Kit หรือ Eva Kit",
         40,
         316,
-        400,
+        -1,
         -1,
         COLOR_TEXT,
         20};
     bento_ui_id_t unused = 0U;
 
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a "
-                 "Dev Kit or Eva Kit.\n",
-                 notice.text);
+    (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ "
+                 "Eva Kit / MQTT from C is not in the BENTO Emulator "
+                 "yet: run it on a Dev Kit or Eva Kit.\n");
     return add_label(ui, &notice, &unused);
 }
 
