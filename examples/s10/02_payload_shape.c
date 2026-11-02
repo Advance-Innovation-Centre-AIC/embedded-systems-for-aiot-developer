@@ -45,6 +45,11 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char DEVICE_ID[] =
+    "team03"; /* จานสีของหลักสูตร - บทบาทละหนึ่งค่า ตาม SPEC §S7.13 */
+/* ---- end of settings ---- */
+
 /* The course palette, 0xRRGGBB, one value per role. */
 enum {
     COLOR_TEXT = 0xE8EAED,
@@ -98,7 +103,6 @@ static void format_real(bento_real_t value, char *out, uint32_t cap)
 /* The three payloads, written as json.dumps writes them. */
 static void build_payloads(payloads_t *data, uint32_t uptime_ms)
 {
-    static const char device_id[] = "team03";
     const bento_real_t loose_temp = (bento_real_t)25.123456789012345;
     const bento_real_t tight_temp = (bento_real_t)25.1;
     const uint32_t uptime_s = uptime_ms / (uint32_t)MS_PER_S;
@@ -116,7 +120,7 @@ static void build_payloads(payloads_t *data, uint32_t uptime_ms)
     (void)snprintf(shapes[SHAPE_GOOD].json, JSON_CHARS,
                    "{\"id\": \"%s\", \"uptime_s\": %lu, "
                    "\"count\": %d, \"unit\": \"s\"}",
-                   device_id, (unsigned long)uptime_s, COUNTER);
+                   DEVICE_ID, (unsigned long)uptime_s, COUNTER);
 }
 
 /* Names, colours, and the byte count of each text: an ASCII
