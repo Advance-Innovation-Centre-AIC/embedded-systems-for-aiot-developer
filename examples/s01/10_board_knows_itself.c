@@ -35,6 +35,7 @@
  *  - Stop during a sleep ends the program with 0 at once (MicroPython
  *    raises KeyboardInterrupt there).
  */
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -55,7 +56,6 @@ enum {
 
 /* The table of questions: two columns of four cells. */
 enum {
-    ASK_COUNT = 8,
     CELL_ROWS = 4,
     CELL_LEFT_X = 40,
     CELL_RIGHT_X = 380,
@@ -82,6 +82,7 @@ enum {
     SLOT_BUTTON_ROW = 1,
     SLOT_NOTE = 2,
     SLOT_CELL = 3, /* ASK_COUNT cells from here */
+    ASK_COUNT = 8, /* the questions: two columns of four cells */
     SLOT_COUNT = SLOT_CELL + ASK_COUNT,
     SLOT_NONE = SLOT_COUNT /* a widget nobody changes again */
 };
@@ -387,9 +388,9 @@ static bento_status_t add_cells(board_screen_t *screen)
     bento_status_t status = BENTO_OK;
 
     for (i = 0U; (i < ASK_COUNT) && (status == BENTO_OK); i++) {
-        const int32_t row = (int32_t)(i % (uint32_t)CELL_ROWS);
+        const int32_t row = (int32_t)i % CELL_ROWS;
 
-        cell.slot = (uint8_t)(SLOT_CELL + i);
+        cell.slot = (uint8_t)((uint32_t)SLOT_CELL + i);
         cell.x = (i < (uint32_t)CELL_ROWS) ? CELL_LEFT_X : CELL_RIGHT_X;
         cell.y = (int16_t)(CELL_TOP_Y + (row * CELL_STEP_Y));
         status = add_widget(screen, &cell, cell.text);
@@ -472,6 +473,26 @@ static void tell_counts(const bento_gpio_board_info_t *info)
     console_line(line);
 }
 
+/* One name: its console line, and "i=NAME  " added to the row. */
+static bento_status_t list_one(const char *call, bool is_led,
+                               uint32_t index, char *row,
+                               size_t row_size)
+{
+    char piece[TEXT_BYTES];
+    const char *name = NULL;
+    const bento_status_t status = name_of(is_led, index, &name);
+
+    if (status == BENTO_OK) {
+        (void)snprintf(piece, sizeof(piece), "  %s(%" PRIu32 ") = %s",
+                       call, index, name);
+        console_line(piece);
+        (void)snprintf(piece, sizeof(piece), "%" PRIu32 "=%s  ", index,
+                       name);
+        append_text(row, row_size, piece);
+    }
+    return status;
+}
+
 /* One console line per LED (or button), then the same names in one
  * row on the screen: "gpio.led(i) -> 0=NAME  1=NAME  ". */
 static bento_status_t list_names(const board_screen_t *screen,
@@ -481,23 +502,12 @@ static bento_status_t list_names(const board_screen_t *screen,
     const uint32_t count =
         is_led ? screen->info.leds : screen->info.buttons;
     char row[TEXT_BYTES];
-    char piece[TEXT_BYTES];
     uint32_t i;
     bento_status_t status = BENTO_OK;
 
     (void)snprintf(row, sizeof(row), "%s(i) -> ", call);
     for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
-        const char *name = NULL;
-
-        status = name_of(is_led, i, &name);
-        if (status == BENTO_OK) {
-            (void)snprintf(piece, sizeof(piece), "  %s(%lu) = %s", call,
-                           (unsigned long)i, name);
-            console_line(piece);
-            (void)snprintf(piece, sizeof(piece), "%lu=%s  ",
-                           (unsigned long)i, name);
-            append_text(row, sizeof(row), piece);
-        }
+        status = list_one(call, is_led, i, row, sizeof(row));
     }
     if (status == BENTO_OK) {
         show_text(screen, is_led ? SLOT_LED_ROW : SLOT_BUTTON_ROW, row);

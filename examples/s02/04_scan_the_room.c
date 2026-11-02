@@ -125,19 +125,6 @@ typedef struct {
 static const char *const KEY_NAMES[KEY_COUNT] = {"mode", "connected",
                                                  "ip", "ssid", "rssi"};
 
-/* wifi.status() in its dict's order: the reTerminal's MicroPython
- * hashes a qstr in 2 bytes, the PSoC Edge's in 1 (main.c). */
-static const status_key_t STATUS_ORDER_RETERMINAL[KEY_COUNT] = {
-    KEY_MODE, KEY_IP, KEY_RSSI, KEY_SSID, KEY_CONNECTED};
-static const status_key_t STATUS_ORDER_PSOC[KEY_COUNT] = {
-    KEY_IP, KEY_RSSI, KEY_CONNECTED, KEY_MODE, KEY_SSID};
-
-/* The reTerminal's MicroPython has unicode str; the PSoC Edge's
- * (CORE_FEATURES) keeps a str as bytes, so a slice cuts bytes and
- * repr() prints bytes of 0x80 and up as they are. */
-static const bool UNICODE_TEXT_RETERMINAL = true;
-static const bool UNICODE_TEXT_PSOC = false;
-
 /* Is this the reTerminal? Asked at run time, by the name the board
  * gives (gpio.board_info()["name"]), so one Emulator build serves
  * both of its board models. A board that cannot say keeps the build
@@ -159,18 +146,26 @@ static bool on_reterminal(void)
     return answer;
 }
 
-/* A str of this board: characters, or bytes. */
+/* A str of this board: characters, or bytes. The reTerminal's
+ * MicroPython has unicode str; the PSoC Edge's (CORE_FEATURES) keeps a
+ * str as bytes, so a slice cuts bytes and repr() prints bytes of 0x80
+ * and up as they are. */
 static bool unicode_text(void)
 {
-    return on_reterminal() ? UNICODE_TEXT_RETERMINAL
-                           : UNICODE_TEXT_PSOC;
+    return on_reterminal();
 }
 
-/* The keys of wifi.status() in this board's dict order. */
+/* The keys of wifi.status() in this board's dict order: the
+ * reTerminal's MicroPython hashes a qstr in 2 bytes, the PSoC Edge's
+ * in 1. */
 static const status_key_t *status_order(void)
 {
-    return on_reterminal() ? STATUS_ORDER_RETERMINAL
-                           : STATUS_ORDER_PSOC;
+    static const status_key_t reterminal_order[KEY_COUNT] = {
+        KEY_MODE, KEY_IP, KEY_RSSI, KEY_SSID, KEY_CONNECTED};
+    static const status_key_t psoc_order[KEY_COUNT] = {
+        KEY_IP, KEY_RSSI, KEY_CONNECTED, KEY_MODE, KEY_SSID};
+
+    return on_reterminal() ? reterminal_order : psoc_order;
 }
 
 /* Sleeps, and turns Stop into BENTO_E_CANCELLED. */

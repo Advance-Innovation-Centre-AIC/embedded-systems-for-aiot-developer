@@ -419,8 +419,8 @@ static void log_change(const link_screen_t *screen, bool up,
 static void tell_summary(const link_screen_t *screen,
                          const watch_t *watch)
 {
-    const long percent_up =
-        (long)((watch->online_ms * PERCENT) / WATCH_MS);
+    const int32_t scaled_ms = watch->online_ms * (int32_t)PERCENT;
+    const long percent_up = (long)(scaled_ms / (int32_t)WATCH_MS);
     ip_text_t ip;
     char text[TEXT_BYTES];
 
@@ -446,10 +446,10 @@ static void tell_summary(const link_screen_t *screen,
                  (long)watch->drops, ip.text);
 }
 
-/* Change these two to the network the teacher hands out. A faculty
- * Wi-Fi that needs a login page cannot be used by the board. */
-static const char WIFI_SSID[] = "bento-teamXX"; /* the team's hotspot */
-static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>"; /* 8 or more */
+typedef struct {
+    const char *ssid;
+    const char *pass;
+} wifi_network_t;
 
 /* One round: ask again, never trust the old answer, then sleep what
  * is left of TICK_MS. */
@@ -504,13 +504,18 @@ static bento_status_t watch_link(const link_screen_t *screen,
 
 static bento_status_t run(const link_screen_t *screen)
 {
+    /* Change these two to the network the teacher hands out. A
+     * faculty Wi-Fi that needs a login page cannot be used by the
+     * board. */
+    static const wifi_network_t network = {"bento-teamXX",
+                                           "<รหัส Hotspot ของทีม>"};
     watch_t watch = {0, 0, UNKNOWN};
     bool joined = false;
     bento_status_t status;
 
     show(screen, SLOT_STATE, "กำลังต่อเน็ต จอจะนิ่งสักครู่", COL_WARN);
     poll_ui(screen->ui);
-    status = join_wifi(WIFI_SSID, WIFI_PASS, &joined);
+    status = join_wifi(network.ssid, network.pass, &joined);
     if ((status == BENTO_OK) && !joined) {
         tell_no_join(screen);
     } else if (status == BENTO_OK) {

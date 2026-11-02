@@ -443,9 +443,13 @@ static bento_status_t show_filters(const filter_screen_t *screen,
             &run->median, (float)magnitude, &median);
     }
     if (status == BENTO_OK) {
-        const int32_t raw_x10 = (int32_t)(magnitude * SCALE_X10);
-        const int32_t ema_x10 = (int32_t)(ema * SCALE_X10);
-        const int32_t median_x10 = (int32_t)(median * SCALE_X10);
+        const float scale = (float)SCALE_X10;
+        const bento_real_t raw_scaled = magnitude * (bento_real_t)scale;
+        const float ema_scaled = ema * scale;
+        const float median_scaled = median * scale;
+        const int32_t raw_x10 = (int32_t)raw_scaled;
+        const int32_t ema_x10 = (int32_t)ema_scaled;
+        const int32_t median_x10 = (int32_t)median_scaled;
 
         (void)bento_ui_chart_set_next(screen->ui, screen->chart,
                                       RAW_SERIES, raw_x10);

@@ -130,22 +130,9 @@ enum {
  * a RuntimeError at once; a wrong name later through .icon() does
  * nothing, silently. */
 static const char ICON_UP[] = "arrow_up";
-static const char ICON_DOWN[] = "arrow_down";
-
-/* modui.c's widget_type_name(), indexed by UI_WIDGET_* (0 and 17, the
- * sprite, have no name there). */
-static const char *const TYPE_NAMES[] = {
-    "Unknown",   "Button",   "Label",     "Slider",   "Switch",
-    "Checkbox",  "Arc",      "Bar",       "Spinner",  "Dropdown",
-    "Textarea",  "Seg7",     "DotMatrix", "Chart",    "Image",
-    "Panel",     "Compass",  "Unknown",   "Led",      "Scale",
-    "Spinbox",   "Table",    "List",      "Roller",   "ButtonMatrix",
-    "MsgBox",    "Keyboard", "Tabview",   "Tileview", "Win",
-    "Line",      "Picture",  "Container", "Menu",     "MenuPage",
-    "SpanGroup", "Calendar"};
 
 enum {
-    TYPE_NAME_COUNT = sizeof(TYPE_NAMES) / sizeof(TYPE_NAMES[0])
+    TYPE_NAME_COUNT = 37 /* UI_WIDGET_* runs from 0 to 36 */
 };
 
 /* ui.list()'s answer: 64 x 8 bytes, too big for the program stack, so
@@ -242,9 +229,23 @@ static uint32_t list_widgets(bento_ui_t *ui)
 
 static const char *type_name(uint8_t widget_type)
 {
+    /* modui.c's widget_type_name(), indexed by UI_WIDGET_* (0 and
+     * 17, the sprite, have no name there) */
+    static const char *const names[TYPE_NAME_COUNT] = {
+        "Unknown",      "Button",   "Label",    "Slider",
+        "Switch",       "Checkbox", "Arc",      "Bar",
+        "Spinner",      "Dropdown", "Textarea", "Seg7",
+        "DotMatrix",    "Chart",    "Image",    "Panel",
+        "Compass",      "Unknown",  "Led",      "Scale",
+        "Spinbox",      "Table",    "List",     "Roller",
+        "ButtonMatrix", "MsgBox",   "Keyboard", "Tabview",
+        "Tileview",     "Win",      "Line",     "Picture",
+        "Container",    "Menu",     "MenuPage", "SpanGroup",
+        "Calendar"};
+
     return (widget_type < (uint32_t)TYPE_NAME_COUNT)
-               ? TYPE_NAMES[widget_type]
-               : TYPE_NAMES[0];
+               ? names[widget_type]
+               : names[0];
 }
 
 static bento_status_t add_caption(bento_ui_t *ui,
@@ -572,7 +573,8 @@ static void show_value(const faces_t *faces, int32_t value, bool high)
 {
     char text[TEXT_BYTES];
     const uint32_t color = high ? COLOR_WARN : COLOR_OK;
-    const char *icon = high ? ICON_UP : ICON_DOWN;
+    static const char icon_down[] = "arrow_down";
+    const char *icon = high ? ICON_UP : icon_down;
 
     (void)bento_ui_set_value(faces->ui, faces->arc, value);
     (void)bento_ui_set_value(faces->ui, faces->bar, value);

@@ -94,9 +94,6 @@ enum {
 static const char LONG_LINE[] = "บอร์ดนี้มีสมองสองก้อนคือคอร์สามสามกับ"
                                 "คอร์ห้าห้าทำงานคนละหน้าที่กัน";
 
-/* An empty tag eats bytes before a single character is printed. */
-static const char TAG[] = "<span class=muted></span>";
-
 typedef struct {
     const char *name;
     const char *text;
@@ -321,10 +318,12 @@ static bento_status_t measure(const byte_screen_t *screen,
 
 static bento_status_t measure_fixed(const byte_screen_t *screen)
 {
+    /* an empty tag eats bytes before a single character is printed */
+    static const char tag[] = "<span class=muted></span>";
     static const item_t items[FIXED_COUNT] = {
         {"hello - อังกฤษ 5 ตัว", "hello"},
         {"สวัสดี - ไทย 6 ตัว", "สวัสดี"},
-        {"แท็ก span เปล่า ๆ", TAG},
+        {"แท็ก span เปล่า ๆ", tag},
         {"ประโยคยาว ส่งทั้งก้อน", LONG_LINE},
     };
     bento_status_t status = BENTO_OK;

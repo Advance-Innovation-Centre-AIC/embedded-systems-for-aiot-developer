@@ -332,7 +332,8 @@ static bool read_word(json_reader_t *reader, const char *word)
     bool same = (reader->len - reader->offset) >= length;
 
     if (same) {
-        same = memcmp(&reader->text[reader->offset], word, length) == 0;
+        same = strncmp((const char *)&reader->text[reader->offset],
+                       word, length) == 0;
     }
     if (same) {
         reader->offset += length;
@@ -528,7 +529,8 @@ static uint32_t unicode_number(const uint8_t *digits)
     uint32_t i;
 
     for (i = 0U; i < hex_digits; i++) {
-        uint8_t digit = (uint8_t)((digits[i] | lower_case) - '0');
+        uint8_t digit =
+            (uint8_t)((digits[i] | lower_case) - (uint8_t)'0');
 
         if (digit > digit_max) {
             digit = (uint8_t)(digit - letter_gap);
@@ -544,6 +546,7 @@ static uint32_t encode_utf8(uint32_t number, uint8_t *bytes)
     static const uint8_t leads[UTF8_MAX_BYTES] = {
         0U, UTF8_LEAD_TWO, UTF8_LEAD_THREE, UTF8_LEAD_FOUR};
     uint32_t count = UTF8_MAX_BYTES;
+    uint32_t rest = number;
     uint32_t i;
 
     if (number < (uint32_t)UTF8_ONE_END) {
@@ -557,10 +560,10 @@ static uint32_t encode_utf8(uint32_t number, uint8_t *bytes)
     }
     for (i = count - 1U; i > 0U; i--) {
         bytes[i] = (uint8_t)((uint32_t)UTF8_FOLLOW |
-                             (number & (uint32_t)UTF8_SIX_BITS));
-        number >>= (uint32_t)UTF8_SHIFT;
+                             (rest & (uint32_t)UTF8_SIX_BITS));
+        rest >>= (uint32_t)UTF8_SHIFT;
     }
-    bytes[0] = (uint8_t)(leads[count - 1U] | number);
+    bytes[0] = (uint8_t)(leads[count - 1U] | rest);
     return count;
 }
 
@@ -635,7 +638,7 @@ static int32_t field_index(const char *key, uint32_t length)
 
     for (i = 0; i < FIELD_COUNT; i++) {
         if ((length == (uint32_t)strlen(names[i])) &&
-            (memcmp(key, names[i], length) == 0)) {
+            (strncmp(key, names[i], length) == 0)) {
             found = i;
         }
     }
@@ -950,7 +953,10 @@ static bool led_number(const uint8_t *payload,
 
         usable = (digits[0] != '-') && (length <= digits_max);
         for (i = 0U; usable && (i < length); i++) {
-            *led = (*led * decimal_base) + (uint32_t)(digits[i] - '0');
+            const uint32_t digit =
+                (uint32_t)(uint8_t)digits[i] - (uint32_t)(uint8_t)'0';
+
+            *led = (*led * decimal_base) + digit;
         }
     } else {
         usable = (value->kind == JSON_MISSING) ||
@@ -962,7 +968,7 @@ static bool led_number(const uint8_t *payload,
 static bool text_is(const char *text, uint32_t length, const char *word)
 {
     return (length == (uint32_t)strlen(word)) &&
-           (memcmp(text, word, length) == 0);
+           (strncmp(text, word, length) == 0);
 }
 
 static void line_add_bytes(line_t *line, const uint8_t *bytes,
@@ -1323,10 +1329,11 @@ static void do_led(const remote_screen_t *screen, listener_t *listener,
                    const message_t *message, const command_t *command)
 {
     const json_value_t *number = &command->fields[FIELD_N];
-    char number_text[VALUE_BYTES] = "0"; /* a missing "n" is 0 */
+    char number_text[VALUE_BYTES] = {0};
     char text[LABEL_BYTES];
     uint32_t led = 0U;
 
+    number_text[0] = '0'; /* a missing "n" is 0 */
     if (number->kind != JSON_MISSING) {
         (void)value_text(message->payload, number, number_text,
                          sizeof(number_text));
@@ -1365,7 +1372,7 @@ static void do_say(const remote_screen_t *screen,
                    const command_t *command)
 {
     const json_value_t *said = &command->fields[FIELD_TEXT];
-    char text[VALUE_BYTES] = "";
+    char text[VALUE_BYTES] = {0};
     char what[TEXT_BYTES];
     uint32_t length = 0U;
 
@@ -1404,7 +1411,7 @@ static void run_action(const remote_screen_t *screen,
                        const command_t *command)
 {
     const json_value_t *action = &command->fields[FIELD_CMD];
-    char text[VALUE_BYTES] = "";
+    char text[VALUE_BYTES] = {0};
     uint32_t length = 0U;
     bool is_string = action->kind == JSON_STRING;
 
@@ -1713,10 +1720,14 @@ static void finish(const remote_screen_t *screen,
 }
 
 /* Edit these three as the teacher hands them out. */
-static const char WIFI_SSID[] = "bento-teamXX";
-static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
+typedef struct {
+    const char *ssid;
+    const char *pass;
+} wifi_network_t;
+
+static const wifi_network_t NETWORK = {"bento-teamXX",
+                                       "<รหัส Hotspot ของทีม>"};
 static const char TEAM[] = "teamXX"; /* team01 .. team19 */
-static const char ROOT[] = "bento-aiot";
 
 /* A scan's results: too big for the 8 KB program stack, so at file
  * scope, zeroed by the loader on every load and set again at the
@@ -1747,10 +1758,10 @@ static bento_status_t join_wifi(bool *joined)
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = WIFI_SSID;
-    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASS;
-    params.pass_len = (uint32_t)strlen(WIFI_PASS);
+    params.ssid = NETWORK.ssid;
+    params.ssid_len = (uint32_t)strlen(NETWORK.ssid);
+    params.pass = NETWORK.pass;
+    params.pass_len = (uint32_t)strlen(NETWORK.pass);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -1797,8 +1808,8 @@ static bento_status_t hear_hotspot(bool *heard)
     }
     *heard = false;
     for (i = 0U; (status == BENTO_OK) && (i < count); i++) {
-        *heard =
-            *heard || (strcmp(g_scan_results[i].ssid, WIFI_SSID) == 0);
+        *heard = *heard ||
+                 (strcmp(g_scan_results[i].ssid, NETWORK.ssid) == 0);
     }
     if (status != BENTO_E_CANCELLED) {
         status = BENTO_OK;
@@ -1819,7 +1830,7 @@ static bento_status_t join_or_explain(const remote_screen_t *screen,
     paint(screen->ui, screen->status_line, COLOR_WARN,
           "กำลังต่อ WiFi จอจะนิ่งสักครู่");
     drain_events(screen->ui);
-    (void)snprintf(why, sizeof(why), "กำลังต่อ WiFi %s", WIFI_SSID);
+    (void)snprintf(why, sizeof(why), "กำลังต่อ WiFi %s", NETWORK.ssid);
     (void)bento_lcd_print(why);
     status = join_wifi(&joined);
     if ((status == BENTO_OK) && !joined) {
@@ -1830,11 +1841,11 @@ static bento_status_t join_or_explain(const remote_screen_t *screen,
             (void)snprintf(why, sizeof(why),
                            "ได้ยินวง %s แต่ต่อไม่ผ่าน "
                            "ตรวจรหัสผ่าน",
-                           WIFI_SSID);
+                           NETWORK.ssid);
         } else {
             (void)snprintf(why, sizeof(why),
                            "ไม่ได้ยินวง %s เลย ตรวจชื่อวงหรือย้ายที่",
-                           WIFI_SSID);
+                           NETWORK.ssid);
         }
         stop_here(screen, listener, "ต่อ WiFi ไม่ติด", why);
     }
@@ -1951,6 +1962,8 @@ static bento_status_t run_listener(const remote_screen_t *screen,
 
 int main(void)
 {
+    /* the whole class uses the same root; no need to change it */
+    static const char root[] = "bento-aiot";
     remote_screen_t screen = {0};
     listener_t listener = {0};
     bento_status_t status;
@@ -1959,9 +1972,9 @@ int main(void)
     screen.ui = bento_runtime_get_ui();
     listener.led_count = bento_gpio_num_leds();
     (void)snprintf(listener.device_id, sizeof(listener.device_id),
-                   "%s-%s", ROOT, TEAM);
+                   "%s-%s", root, TEAM);
     (void)snprintf(listener.topic, sizeof(listener.topic), "%s/%s/cmd",
-                   ROOT, TEAM);
+                   root, TEAM);
     status = build_screen(&screen);
     if (status == BENTO_OK) { /* lcd.* ignore a console that is not
                                  ready (modlcd.c) */

@@ -89,13 +89,6 @@ enum {
     COLOR_INFO = 0x4A9EFF
 };
 
-static const char STORY[] =
-    "บอร์ดนี้มีคอร์สองก้อนทำงานพร้อมกัน "
-    "ก้อนแรกรัน Python ที่เราเขียน อีกก้อนวาดจอกับรันโมเดล "
-    "สองก้อนคุยกันผ่านกล่องจดหมายที่เรียกว่า IPC "
-    "เวลาเราสั่ง lcd.print "
-    "ข้อความจึงต้องเดินทางข้ามไปอีกก้อนก่อนถึงจะขึ้นจอ";
-
 typedef struct {
     int16_t x;
     int16_t y;
@@ -399,10 +392,16 @@ static bento_status_t safe_print(const print_screen_t *screen,
 
 int main(void)
 {
+    static const char story[] =
+        "บอร์ดนี้มีคอร์สองก้อนทำงานพร้อมกัน "
+        "ก้อนแรกรัน Python ที่เราเขียน อีกก้อนวาดจอกับรันโมเดล "
+        "สองก้อนคุยกันผ่านกล่องจดหมายที่เรียกว่า IPC "
+        "เวลาเราสั่ง lcd.print "
+        "ข้อความจึงต้องเดินทางข้ามไปอีกก้อนก่อนถึงจะขึ้นจอ";
     print_screen_t screen = {
         bento_runtime_get_ui(), 0U, 0U, 0U, 0U, 0U};
     char text[TEXT_BYTES];
-    const int32_t total = (int32_t)strlen(STORY);
+    const int32_t total = (int32_t)strlen(story);
     int32_t pieces = 0;
     bento_status_t status = build_screen(&screen);
 
@@ -417,7 +416,7 @@ int main(void)
         (void)snprintf(text, sizeof(text), "ข้อความยาว %d ไบต์",
                        (int)total);
         (void)bento_lcd_print(text);
-        status = safe_print(&screen, STORY, &pieces);
+        status = safe_print(&screen, story, &pieces);
     }
     if (status == BENTO_OK) {
         (void)snprintf(text, sizeof(text),

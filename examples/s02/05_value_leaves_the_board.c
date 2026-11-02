@@ -675,10 +675,14 @@ static void summarize(const panel_t *panel, uint32_t broker,
  * Wi-Fi needs a login the board cannot do: use the team's phone
  * hotspot. TEAM is team01 to team19; unset, the program will not
  * run. */
-static const char WIFI_SSID[] = "bento-teamXX";
-static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
+typedef struct {
+    const char *ssid;
+    const char *pass;
+} wifi_network_t;
+
+static const wifi_network_t NETWORK = {"bento-teamXX",
+                                       "<รหัส Hotspot ของทีม>"};
 static const char TEAM[] = "teamXX";
-static const char ROOT[] = "bento-aiot";
 
 /* The scan's answers: too big for the 8 KB program stack, so at
  * file scope, zeroed by the loader and set again in main()
@@ -710,10 +714,10 @@ static bento_status_t connect_wifi(bool *joined)
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = WIFI_SSID;
-    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = WIFI_PASS;
-    params.pass_len = (uint32_t)strlen(WIFI_PASS);
+    params.ssid = NETWORK.ssid;
+    params.ssid_len = (uint32_t)strlen(NETWORK.ssid);
+    params.pass = NETWORK.pass;
+    params.pass_len = (uint32_t)strlen(NETWORK.pass);
     params.flags = BENTO_WIFI_F_SAVE_CREDS;
     (void)printf("[WiFi] Connecting...\n");
     status = bento_wifi_connect_start(&params);
@@ -752,7 +756,8 @@ static bento_status_t network_heard(bool *heard)
         }
     }
     for (i = 0U; (status == BENTO_OK) && (i < count); i++) {
-        *heard = *heard || (strcmp(g_networks[i].ssid, WIFI_SSID) == 0);
+        *heard =
+            *heard || (strcmp(g_networks[i].ssid, NETWORK.ssid) == 0);
     }
     if (status == BENTO_E_CANCELLED) {
         (void)bento_wifi_scan_cancel(); /* answers BENTO_OK always */
@@ -771,11 +776,11 @@ static bento_status_t explain_no_join(const panel_t *panel)
             (void)snprintf(reason, sizeof(reason),
                            "ได้ยินวง %s แต่ต่อไม่ผ่าน "
                            "ตรวจรหัสผ่าน",
-                           WIFI_SSID);
+                           NETWORK.ssid);
         } else {
             (void)snprintf(reason, sizeof(reason),
                            "ไม่ได้ยินวง %s เลย ตรวจชื่อวงหรือย้ายที่",
-                           WIFI_SSID);
+                           NETWORK.ssid);
         }
         stop_here(panel, panel->wifi, "1) WiFi      ต่อไม่ติด", reason);
     }
@@ -792,12 +797,13 @@ static bento_status_t step_wifi(const panel_t *panel, bool *passed)
     bento_status_t status;
 
     (void)snprintf(line, sizeof(line), "1) WiFi      กำลังต่อ %s",
-                   WIFI_SSID);
+                   NETWORK.ssid);
     show(panel, panel->wifi, COLOR_WARN, line);
     show(panel, panel->note, COLOR_WARN,
          "ครั้งแรกอาจรอนาน จอจะนิ่ง อย่ากดรีเซ็ต");
     flush_screen(panel->ui);
-    (void)snprintf(line, sizeof(line), "1) กำลังต่อ WiFi %s", WIFI_SSID);
+    (void)snprintf(line, sizeof(line), "1) กำลังต่อ WiFi %s",
+                   NETWORK.ssid);
     console_line(line);
     start_ms = bento_time_ticks_ms();
     status = connect_wifi(&joined);
@@ -940,6 +946,8 @@ static bento_status_t run_ladder(const panel_t *panel,
 
 int main(void)
 {
+    /* the whole class uses the same root; no need to change it */
+    static const char root[] = "bento-aiot";
     panel_t panel = {0};
     names_t names;
     uint32_t broker = 0U;
@@ -947,9 +955,9 @@ int main(void)
 
     (void)memset(g_networks, 0, sizeof(g_networks));
     (void)snprintf(names.device_id, sizeof(names.device_id), "%s-%s",
-                   ROOT, TEAM);
+                   root, TEAM);
     (void)snprintf(names.topic, sizeof(names.topic), "%s/%s/telemetry",
-                   ROOT, TEAM);
+                   root, TEAM);
     panel.ui = bento_runtime_get_ui();
     status = build_screen(&panel);
     if (status == BENTO_OK) {
