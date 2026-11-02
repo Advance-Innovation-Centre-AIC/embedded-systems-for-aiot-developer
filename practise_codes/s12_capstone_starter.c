@@ -76,24 +76,33 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
-/* ---- CONFIG: แก้ก่อนรัน ---- */
-/* The Wi-Fi, the broker, the topic and the beacon's LED name are also
- * CONFIG; each lives in the one function that reads it (MISRA 8.9):
- * join_wifi(), connect_broker(), send_message() and find_beacon(). */
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
 static const char DEVICE_ID[] =
-    "team01";                     /* ห้ามซ้ำทีมอื่น (broker สาธารณะ) */
+    "team01"; /* ห้ามซ้ำทีมอื่น (broker สาธารณะ) */
+/* CLIENT_ID = DEVICE_ID + "-xxxx" is built in main(): a new suffix each run */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "aiot12345";
+static const char BROKER[] = "test.mosquitto.org";
+static const char TOPIC[] = "bento/team01/telemetry";
 static const char UNIT[] = "deg"; /* หน่วยต้องตรงกับของจริง */
+enum {
+    SCALE_MAX = 45 /* ปลายพิสัยของมาตรวัดบนจอ */
+};
 static const bento_real_t WARN_LIMIT =
     (bento_real_t)8.0; /* เกินเท่านี้ = เฝ้าดู */
 static const bento_real_t LIMIT =
     (bento_real_t)15.0; /* เกินเท่านี้ = ผิดปกติ */
-
+static const char BEACON_LED[] =
+    "RGB_RED"; /* ไฟเตือนหน้างาน ระบุเป็น "ชื่อ" (Eva ใช้ LED1 แทน) */
 enum {
-    SCALE_MAX = 45,       /* the end of the meter on screen */
     HEARTBEAT_MS = 30000, /* ส่ง "ยังอยู่ดี" ทุก 30 วิ */
     ALERT_GAP_MS = 15000, /* เตือนซ้ำได้ถี่สุดทุก 15 วิ */
     RETRY_MS = 10000,     /* ลองต่อเน็ตใหม่ทุก 10 วิ */
-    LOOP_MS = 200,        /* เร็วกว่านี้เฟรมหายเงียบ ๆ */
+    LOOP_MS = 200         /* เร็วกว่านี้เฟรมหายเงียบ ๆ */
+};
+/* ---- end of settings ---- */
+
+enum {
     SETTLE_MS = 200,
     NET_STEP_MS = 50, /* how often a blocking connect is asked */
     MQTT_PORT = 1883,
@@ -572,8 +581,6 @@ static bento_status_t build_screen(alarm_screen_t *screen)
  * board to board, the name does not. Not found: LED 0. */
 static bento_status_t find_beacon(uint32_t *led)
 {
-    static const char beacon_led[] =
-        "RGB_RED"; /* by name: the Eva Kit uses LED1 */
     bento_gpio_board_info_t info;
     const char *wanted = "LED1";
     const char *name = NULL;
@@ -585,7 +592,7 @@ static bento_status_t find_beacon(uint32_t *led)
     for (i = 0U; (i < info.leds) && (status == BENTO_OK); i++) {
         if ((bento_gpio_led_name(i, &name) == BENTO_OK) &&
             (strcmp(name, "RGB_GREEN") == 0)) {
-            wanted = beacon_led; /* red on both boards */
+            wanted = BEACON_LED; /* red on both boards */
         }
     }
     *led = 0U;
@@ -783,7 +790,6 @@ static bool broker_connected(const link_t *link)
 static bento_status_t send_message(tilt_alarm_t *monitor,
                                    const char *kind, bool *sent)
 {
-    static const char topic[] = "bento/team01/telemetry";
     static const char *const level_names[LEVEL_COUNT] = {"OK", "WARN",
                                                          "ALERT"};
     const decision_t *decision = &monitor->decision;
@@ -802,8 +808,8 @@ static bento_status_t send_message(tilt_alarm_t *monitor,
                        (unsigned long)bento_time_ticks_ms(), DEVICE_ID,
                        UNIT);
         /* ทีมเขียนเอง: เพิ่มหรือตัดฟิลด์ให้ตรงกับตาราง schema ที่ทีมออกแบบไว้ในใบงาน */
-        status = bento_mqtt_publish(monitor->link.handle, topic,
-                                    (uint32_t)strlen(topic),
+        status = bento_mqtt_publish(monitor->link.handle, TOPIC,
+                                    (uint32_t)strlen(TOPIC),
                                     (const uint8_t *)payload,
                                     (uint32_t)strlen(payload), 0U, 0U);
         if (status != BENTO_E_SESSION) {
@@ -865,8 +871,6 @@ static bento_status_t finish_join(bool *joined)
  * program. */
 static bento_status_t join_wifi(bool *joined)
 {
-    static const char wifi_ssid[] = "AIoT-Class";
-    static const char wifi_pass[] = "aiot12345";
     bento_wifi_connect_params_t params;
     bool connected = false;
     bento_status_t status = bento_wifi_is_connected(&connected);
@@ -874,10 +878,10 @@ static bento_status_t join_wifi(bool *joined)
     *joined = (status == BENTO_OK) && connected;
     if (!*joined && (status != BENTO_E_UNSUPPORTED)) {
         bento_wifi_connect_params_init(&params);
-        params.ssid = wifi_ssid;
-        params.ssid_len = (uint32_t)strlen(wifi_ssid);
-        params.pass = wifi_pass;
-        params.pass_len = (uint32_t)strlen(wifi_pass);
+        params.ssid = WIFI_SSID;
+        params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+        params.pass = WIFI_PASS;
+        params.pass_len = (uint32_t)strlen(WIFI_PASS);
         params.flags =
             BENTO_WIFI_F_SAVE_CREDS; /* as the binding does */
         status = bento_wifi_connect_start(&params);
@@ -894,7 +898,6 @@ static bento_status_t join_wifi(bool *joined)
 /* mqtt.connect(BROKER, port=1883, client_id=CLIENT_ID). */
 static bento_status_t connect_broker(link_t *link, bool *connected)
 {
-    static const char broker[] = "test.mosquitto.org";
     bento_mqtt_config_t config;
     bento_status_t answer = BENTO_E_IN_PROGRESS;
     bento_status_t status;
@@ -904,8 +907,8 @@ static bento_status_t connect_broker(link_t *link, bool *connected)
         link->open = false;
     }
     bento_mqtt_config_init(&config);
-    config.host = broker;
-    config.host_len = (uint32_t)strlen(broker);
+    config.host = BROKER;
+    config.host_len = (uint32_t)strlen(BROKER);
     config.port = MQTT_PORT;
     config.client_id = link->client_id;
     config.client_id_len = (uint32_t)strlen(link->client_id);
