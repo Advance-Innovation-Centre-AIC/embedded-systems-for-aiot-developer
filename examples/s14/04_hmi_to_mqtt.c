@@ -70,6 +70,18 @@ static const char TEAM[] = "teamXX"; /* from the teacher, e.g. team05 */
 static const char KIT[] = "machine";
 /* BROKER: test.mosquitto.org is the spare */
 static const char BROKER[] = "broker.hivemq.com";
+/* The rules and the rhythm, as the original sets them. */
+enum {
+    CONF_MIN = 60, /* a result less sure than this does not count */
+    CONFIRM_N = 3, /* wins needed ... */
+    WINDOW_N = 5,  /* ... among this many latest results */
+    ALIVE_EVERY_MS = 2000, /* nothing changed: sent again this often */
+    GAP_MS = 200,          /* never sent closer than this */
+    WIFI_WAIT_S = 5,       /* seconds to wait for a saved WiFi */
+    DRAW_MS = 500,         /* the screen is redrawn this often */
+    RUN_S = 300,           /* the program runs this many seconds */
+    HOLD_S = 30            /* an error screen stays this long */
+};
 /* ---- end of settings ---- */
 
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
@@ -78,18 +90,9 @@ static const char EMULATOR_NOTE[] =
 
 /* The alert rule, the network and the screen's rhythm. */
 enum {
-    CONF_MIN = 60,
     SIREN_CONF_MIN = 45, /* the firmware's confirm level for sirens */
-    CONFIRM_N = 3,
-    WINDOW_N = 5,
-    ALIVE_EVERY_MS = 2000, /* nothing changed: sent again this often */
-    GAP_MS = 200,          /* never sent closer than this */
-    WIFI_WAIT_S = 5,       /* seconds to wait for a saved WiFi */
     WIFI_POLLS_PER_S = 10,
     WIFI_POLL_MS = 100,
-    DRAW_MS = 500,
-    RUN_S = 300,
-    HOLD_S = 30, /* an error screen stays this long */
     HOLD_POLLS_PER_S = 5,
     HOLD_POLL_MS = 200,
     MS_PER_S = 1000,
@@ -518,7 +521,8 @@ static bento_status_t hold(bento_ui_t *ui, const hold_text_t *text,
             &unused);
     }
     for (poll = 0;
-         (poll < (HOLD_S * HOLD_POLLS_PER_S)) && (status == BENTO_OK);
+         (poll < ((int32_t)HOLD_S * (int32_t)HOLD_POLLS_PER_S)) &&
+         (status == BENTO_OK);
          poll++) {
         poll_drop(ui);
         status = pause_ms(HOLD_POLL_MS);
@@ -698,8 +702,9 @@ static int32_t danger_class_of(const hmi_t *hmi)
 /* The confirm threshold of the firmware for this model (as file 07). */
 static int32_t conf_min_for(const char *name)
 {
-    return (strcmp(name, "Siren Detection") == 0) ? SIREN_CONF_MIN
-                                                  : CONF_MIN;
+    return (strcmp(name, "Siren Detection") == 0)
+               ? (int32_t)SIREN_CONF_MIN
+               : (int32_t)CONF_MIN;
 }
 
 /* Waits for a started select or stop; Stop cancels it. */
@@ -809,8 +814,9 @@ static bento_status_t wifi_up(const hmi_t *hmi, bool *joined)
     int32_t poll;
 
     *joined = false;
-    for (poll = 0; (poll < (WIFI_WAIT_S * WIFI_POLLS_PER_S)) &&
-                   !*joined && (status == BENTO_OK);
+    for (poll = 0;
+         (poll < ((int32_t)WIFI_WAIT_S * (int32_t)WIFI_POLLS_PER_S)) &&
+         !*joined && (status == BENTO_OK);
          poll++) {
         if (bento_wifi_is_connected(joined) != BENTO_OK) {
             *joined = false; /* an unanswered question is not joined */
@@ -1201,7 +1207,7 @@ static bento_status_t run_hmi(hmi_t *hmi)
     while (
         (status == BENTO_OK) && started &&
         (bento_time_ticks_diff(bento_time_ticks_ms(), hmi->start_ms) <
-         (RUN_S * MS_PER_S))) {
+         ((int32_t)RUN_S * (int32_t)MS_PER_S))) {
         status = run_once(hmi);
     }
     stop_model();
