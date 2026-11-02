@@ -52,6 +52,18 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "AIoT-Class";
+static const char WIFI_PASS[] = "<รหัสผ่านของห้องเรียน>";
+static const char BROKER[] =
+    "192.168.1.50"; /* IP ของเครื่องที่รัน broker ในแลน ไม่ใช่ localhost */
+static const char DEVICE_ID[] = "team03";
+static const char MQTT_USER[] =
+    "team03"; /* ต้องเท่ากับ client_id ฝั่ง CE ตรวจข้อนี้ */
+static const char MQTT_PASS[] = "<รหัสผ่าน MQTT ของทีม>";
+static const char TOPIC[] = "bento/team03/telemetry";
+/* ---- end of settings ---- */
+
 enum {
     MESSAGES = 10, /* the original's N */
     BROKER_PORT = 1883,
@@ -387,29 +399,22 @@ static void tell_summary(const publish_screen_t *screen, int32_t done)
     console_line("ดูฝั่ง MQTT Explorer ว่าครบสิบข้อความไหม");
 }
 
-/* the broker's machine on the LAN, not localhost */
-static const char BROKER[] = "192.168.1.50";
-static const char DEVICE_ID[] = "team03";
-
 /* The "connecting" label goes up before connect(): the screen does
  * not change while it waits. */
 static bento_status_t step_wifi(const publish_screen_t *screen,
                                 bool *joined)
 {
-    /* Change these to the classroom's network, broker and team. */
-    static const char wifi_ssid[] = "AIoT-Class";
-    static const char wifi_pass[] = "<รหัสผ่านของห้องเรียน>";
     char line[TEXT_BYTES];
     ip_text_t ip;
     bento_status_t status;
 
     (void)snprintf(line, sizeof(line), "1) WiFi        กำลังต่อ %s",
-                   wifi_ssid);
+                   WIFI_SSID);
     show_text(screen, SLOT_WIFI, line);
     poll_ui(screen->ui);
-    (void)snprintf(line, sizeof(line), "1) กำลังต่อ WiFi %s", wifi_ssid);
+    (void)snprintf(line, sizeof(line), "1) กำลังต่อ WiFi %s", WIFI_SSID);
     console_line(line);
-    status = join_wifi(wifi_ssid, wifi_pass, joined);
+    status = join_wifi(WIFI_SSID, WIFI_PASS, joined);
     if ((status == BENTO_OK) && !*joined) {
         show_step(screen, SLOT_WIFI, COL_BAD,
                   "1) WiFi        "
@@ -439,9 +444,6 @@ static bento_status_t step_wifi(const publish_screen_t *screen,
  * other off all lesson long. *client is 0 when nothing was opened. */
 static bento_status_t open_broker(uint32_t *client, bool *connected)
 {
-    /* the CE checks that the user equals the client id */
-    static const char mqtt_user[] = "team03";
-    static const char mqtt_pass[] = "<รหัสผ่าน MQTT ของทีม>";
     bento_mqtt_config_t config;
     bento_status_t status;
 
@@ -452,10 +454,10 @@ static bento_status_t open_broker(uint32_t *client, bool *connected)
     config.keepalive_s = KEEPALIVE_S;
     config.client_id = DEVICE_ID;
     config.client_id_len = (uint32_t)strlen(DEVICE_ID);
-    config.user = mqtt_user;
-    config.user_len = (uint32_t)strlen(mqtt_user);
-    config.pass = mqtt_pass;
-    config.pass_len = (uint32_t)strlen(mqtt_pass);
+    config.user = MQTT_USER;
+    config.user_len = (uint32_t)strlen(MQTT_USER);
+    config.pass = MQTT_PASS;
+    config.pass_len = (uint32_t)strlen(MQTT_PASS);
     status = bento_mqtt_open_start(&config, client);
     if (status == BENTO_OK) {
         status = wait_for_broker(*client);
@@ -512,7 +514,6 @@ static bento_status_t publish_one(const publish_screen_t *screen,
                                   uint32_t client, int32_t count,
                                   bool *sent)
 {
-    static const char topic[] = "bento/team03/telemetry";
     char payload[TEXT_BYTES];
     char line[TEXT_BYTES];
     uint32_t state = BENTO_MQTT_STATE_CLOSED;
@@ -536,7 +537,7 @@ static bento_status_t publish_one(const publish_screen_t *screen,
         status = BENTO_OK;
     } else {
         status =
-            bento_mqtt_publish(client, topic, (uint32_t)strlen(topic),
+            bento_mqtt_publish(client, TOPIC, (uint32_t)strlen(TOPIC),
                                (const uint8_t *)payload,
                                (uint32_t)strlen(payload), 0U, 0U);
         *sent = (status == BENTO_OK);
