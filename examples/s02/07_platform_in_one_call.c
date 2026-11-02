@@ -4,16 +4,16 @@
  *
  * บอร์ดจำได้เองว่าจะต่อไปที่ไหน แม้ถอดไฟแล้วเสียบใหม่ ค่าตั้งอยู่บนแฟลชของบอร์ด
  * ตั้งครั้งเดียว ทุกโปรแกรมอ่านได้ จอแสดงหกคีย์จากคลังค่าตั้ง แล้วเวลารอต่อ
- * วันนี้ PLATFORM.broker ว่าง จึงอ่านอย่างเดียว เพราะ tesaiot.connect() ใช้ TLS
+ * วันนี้ PLATFORM_BROKER ว่าง จึงอ่านอย่างเดียว เพราะ tesaiot.connect() ใช้ TLS
  * พอร์ต 8883/8884 เสมอ แต่ broker.hivemq.com รับที่ 1883 ไม่เข้ารหัส
  * กับดัก: connect() คืนค่าทันที ต้องวนถาม is_connected() และมีกำหนดเวลาเลิกรอ
  *
  * The board remembers where to connect, even after a power cycle: the
  * settings live on its flash, set once and readable by every program.
  * The screen shows six keys of the store, then how long the link took.
- * Today PLATFORM.broker is empty, so the program only reads: connect()
+ * Today PLATFORM_BROKER is empty, so the program only reads: connect()
  * always uses TLS on 8883/8884, and broker.hivemq.com takes the board
- * on 1883 without TLS. Fill PLATFORM.broker (session 10) and it writes
+ * on 1883 without TLS. Fill PLATFORM_BROKER (session 10) and it writes
  * two keys, joins Wi-Fi, connects and publishes six cards. Trap:
  * connect() returns at once; ask is_connected() in a loop, with a
  * deadline.
@@ -32,9 +32,9 @@
  * reTerminal. class Stop / raise Stop becomes a status chain that
  * ends the program normally. The OPTIGA half of tesaiot is not used.
  *
- * ตาคุณ: รันแบบ PLATFORM.broker ว่าง จด port กับ tls_mode แล้วตอบว่าทำไม
+ * ตาคุณ: รันแบบ PLATFORM_BROKER ว่าง จด port กับ tls_mode แล้วตอบว่าทำไม
  * port ที่เห็นอาจไม่ใช่พอร์ตที่ connect() ใช้จริง
- * Your turn: run with PLATFORM.broker empty, note port and tls_mode,
+ * Your turn: run with PLATFORM_BROKER empty, note port and tls_mode,
  * and explain why that port may not be the one connect() really uses
  * (hint: tesaiot.config_reset() restores the factory values).
  */
@@ -51,23 +51,17 @@
 #include "bento_time.h"
 #include "bento_wifi.h"
 
-/* Change these to what the teacher hands out: the team's phone
- * hotspot (the faculty Wi-Fi needs a login the board cannot do), its
- * password of 8 characters or more, and the platform's TLS broker
- * (session 10; never broker.hivemq.com). */
-typedef struct {
-    const char *ssid;
-    const char *pass;
-} wifi_network_t;
-
-static const wifi_network_t NETWORK = {"bento-teamXX",
-                                       "<รหัส Hotspot ของทีม>"};
-typedef struct {
-    const char *device_id;
-    const char *broker;
-} platform_t;
-
-static const platform_t PLATFORM = {"team03", ""};
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* แก้ให้ตรงกับที่ผู้สอนแจก
+ * Set these from what the teacher hands out. */
+/* the team's phone hotspot: faculty Wi-Fi needs a login */
+static const char WIFI_SSID[] = "bento-teamXX";
+/* 8 characters or more */
+static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>";
+static const char DEVICE_ID[] = "team03";
+/* the platform's TLS broker, handed out in session 10; never broker.hivemq.com */
+static const char PLATFORM_BROKER[] = "";
+/* ---- end of settings ---- */
 
 enum {
     CARDS = 6, /* cards sent once linked */
@@ -512,13 +506,13 @@ static bento_status_t write_keys(const platform_screen_t *screen)
 {
     char text[TEXT_BYTES];
     bento_status_t status = bento_tesaiot_config_set(
-        "device_id", (uint32_t)strlen("device_id"), PLATFORM.device_id,
-        (uint32_t)strlen(PLATFORM.device_id));
+        "device_id", (uint32_t)strlen("device_id"), DEVICE_ID,
+        (uint32_t)strlen(DEVICE_ID));
 
     if (status == BENTO_OK) {
         status = bento_tesaiot_config_set(
-            "broker", (uint32_t)strlen("broker"), PLATFORM.broker,
-            (uint32_t)strlen(PLATFORM.broker));
+            "broker", (uint32_t)strlen("broker"), PLATFORM_BROKER,
+            (uint32_t)strlen(PLATFORM_BROKER));
     }
     if (status == BENTO_OK) {
         status = read_config();
@@ -548,10 +542,10 @@ static bento_status_t join_wifi(bool *joined)
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = NETWORK.ssid;
-    params.ssid_len = (uint32_t)strlen(NETWORK.ssid);
-    params.pass = NETWORK.pass;
-    params.pass_len = (uint32_t)strlen(NETWORK.pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     status = bento_wifi_connect_start(&params);
     if (status == BENTO_OK) {
@@ -590,8 +584,7 @@ static bento_status_t hear_network(bool *heard)
     status = (status == BENTO_OK) ? scan : status;
     *heard = false;
     for (i = 0U; (status == BENTO_OK) && (i < count); i++) {
-        *heard =
-            *heard || (strcmp(g_networks[i].ssid, NETWORK.ssid) == 0);
+        *heard = *heard || (strcmp(g_networks[i].ssid, WIFI_SSID) == 0);
     }
     return status;
 }
@@ -603,10 +596,10 @@ static void show_no_wifi(const platform_screen_t *screen, bool heard)
 
     if (heard) {
         (void)snprintf(why, sizeof(why),
-                       "ได้ยินวง %s แต่ต่อไม่ผ่าน ตรวจรหัสผ่าน", NETWORK.ssid);
+                       "ได้ยินวง %s แต่ต่อไม่ผ่าน ตรวจรหัสผ่าน", WIFI_SSID);
     } else {
         (void)snprintf(why, sizeof(why),
-                       "ไม่ได้ยินวง %s เลย ตรวจชื่อวงหรือย้ายที่", NETWORK.ssid);
+                       "ไม่ได้ยินวง %s เลย ตรวจชื่อวงหรือย้ายที่", WIFI_SSID);
     }
     show(screen, screen->link, COLOR_BAD, "ไม่มีเน็ต");
     show(screen, screen->status, COLOR_BAD,
@@ -650,7 +643,7 @@ static bento_status_t go_online(const platform_screen_t *screen,
 
     show(screen, screen->status, COLOR_WARN, "กำลังต่อ WiFi จอจะนิ่งสักครู่");
     poll_once(screen->ui);
-    (void)snprintf(text, sizeof(text), "กำลังต่อ WiFi %s", NETWORK.ssid);
+    (void)snprintf(text, sizeof(text), "กำลังต่อ WiFi %s", WIFI_SSID);
     (void)bento_lcd_print(text);
     status = join_wifi(online);
     if ((status == BENTO_OK) && !*online) {
@@ -928,7 +921,7 @@ int main(void)
     }
     if ((status == BENTO_OK) && !done) {
         print_config();
-        if (PLATFORM.broker[0] == '\0') {
+        if (PLATFORM_BROKER[0] == '\0') {
             show_read_only(&screen);
         } else {
             status = connect_and_send(&screen);
