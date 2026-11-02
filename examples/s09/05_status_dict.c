@@ -450,7 +450,7 @@ static void skip_watch(const screen_t *screen)
     set_color(screen, screen->phase, COL_BAD);
     set_text(screen, screen->phase, "ยังไม่ได้ต่อ ข้ามรอบเฝ้าดู");
     set_text(screen, screen->same,
-             "ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์");
+             "ตรวจ WIFI_SSID กับรหัส Wi-Fi ในโค้ดไฟล์นี้");
     drain_events(screen);
     lcd_line("<span class=err>ยังไม่ได้ต่อ ข้ามรอบเฝ้าดู</span>");
 }

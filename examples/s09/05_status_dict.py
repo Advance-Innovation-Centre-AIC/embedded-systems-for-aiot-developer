@@ -144,7 +144,7 @@ try:
         l_same.color(COL_BAD)
         l_phase.color(COL_BAD)
         l_phase.text("ยังไม่ได้ต่อ ข้ามรอบเฝ้าดู")
-        l_same.text("ตรวจ WIFI_SSID กับ WIFI_PASS ที่หัวไฟล์")
+        l_same.text("ตรวจ WIFI_SSID กับรหัส Wi-Fi ในโค้ดไฟล์นี้")
         ui.poll()
         lcd.print("<span class=err>ยังไม่ได้ต่อ ข้ามรอบเฝ้าดู</span>")
         raise Stop
