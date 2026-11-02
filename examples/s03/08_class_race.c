@@ -24,6 +24,8 @@
  * Twin of 08_class_race.py
  * (embedded-systems-for-aiot-developer/examples/s03/08_class_race.py).
  * Style: CLEAN_C.md.
+ * In the BENTO Emulator, MQTT from C is not available yet: the
+ * program says so and ends.
  * Differs from the original:
  *   - json.dumps writes a dict in MicroPython's hash-table order,
  *     which follows the size of the qstr hash: 1 byte on the PSoC
@@ -2003,14 +2005,49 @@ static bento_status_t open_broker(const race_screen_t *screen,
     return status;
 }
 
+/* The BENTO Emulator has no MQTT from C yet: bento_mqtt_* and the
+ * broker calls answer BENTO_E_UNSUPPORTED there. The program takes
+ * the original's own "broker failed" way out: the step turns red with
+ * the original's words, the reason line and the drawer say why, the
+ * console gets the full sentence in Thai and English, and the
+ * program ends normally. The screen line is the short form, within
+ * the 126 bytes of a SET_TEXT. */
+static void show_emulator_note(bento_ui_t *ui, bento_ui_id_t step,
+                               const char *step_text,
+                               bento_ui_id_t reason)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_event_t events[BENTO_UI_POLL_EVENTS_MAX];
+    uint32_t count = 0U;
+
+    /* the setters ignore a refusal, as in MicroPython (modui.c) */
+    (void)bento_ui_set_color(ui, step, COLOR_BAD);
+    (void)bento_ui_set_text(ui, step, step_text,
+                            (uint32_t)strlen(step_text));
+    (void)bento_ui_set_color(ui, reason, COLOR_BAD);
+    (void)bento_ui_set_text(ui, reason, note, (uint32_t)strlen(note));
+    /* ui.poll() answers no events when it fails; none are read */
+    (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count,
+                        NULL);
+    (void)bento_lcd_print(note); /* ignores a console not ready */
+    (void)printf("MQTT จากภาษา C ยังไม่มีใน BENTO Emulator "
+                 "ให้รันบนบอร์ด Dev Kit หรือ Eva Kit / MQTT from C is "
+                 "not in the BENTO Emulator yet: run it on a Dev Kit "
+                 "or Eva Kit.\n");
+}
+
 /* What the original's except OSError and "if not linked" catch. */
 static void explain_no_broker(race_screen_t *screen,
                               bento_status_t answer)
 {
     char text[TEXT_BYTES];
 
-    if ((answer == BENTO_E_NOT_READY) ||
-        (answer == BENTO_E_UNSUPPORTED)) {
+    if (answer == BENTO_E_UNSUPPORTED) {
+        show_emulator_note(screen->ui, screen->headline, "broker ไม่ตอบ",
+                           screen->note);
+        screen->stopped = true;
+    } else if (answer == BENTO_E_NOT_READY) {
         (void)snprintf(text, sizeof(text), "ต่อ %s ไม่ได้ ลองตัวสำรอง",
                        BROKER);
         stop_here(screen, "broker ไม่ตอบ", text);
