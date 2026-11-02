@@ -64,10 +64,12 @@ enum {
 };
 
 /* The examples, and the status line's text: an example's name, " -> "
- * and the reason, well inside one SET_TEXT. */
+ * and the reason. */
 enum {
     ITEM_COUNT = 11,
-    MESSAGE_CHARS = 96
+    /* the longest a label carries (126 bytes, Thai is 3 bytes a
+     * letter) and its NUL */
+    MESSAGE_CHARS = 127
 };
 
 typedef struct {
