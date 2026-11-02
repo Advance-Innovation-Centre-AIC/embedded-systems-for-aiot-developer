@@ -12,7 +12,7 @@
  * สี่การ์ดคือค่าที่วัดได้: ความเร่ง BMI270 เป็นกราฟสามเส้น เข็มทิศ BMM350 แถบสัมผัส
  * CapSense และลูกบิด พร้อมเกณฑ์เตือนที่ตั้งเองด้วย Spinbox แถบหัวมีชื่อทีม ไฟ "ค่าค้าง"
  * ปุ่ม "เดินหน้า" กับ "หยุดภาพ" และเลขรอบที่บอกว่าลูปยังเดิน ค่าที่อ่านไม่ได้ไม่ถูกแทน
- * ด้วยศูนย์ แต่คงค่าล่าสุดไว้แล้วจุดไฟค่าค้าง แก้ชื่อทีมที่ TEAM แล้วปล่อยรันยาว 10 นาที
+ * ด้วยศูนย์ แต่คงค่าล่าสุดไว้แล้วจุดไฟค่าค้าง แก้ชื่อทีมที่ team ใน add_head แล้วปล่อยรันยาว 10 นาที
  *
  * Four cards show what is measured: BMI270 acceleration as a
  * three-line chart, the BMM350 compass, the CapSense touch strip and
@@ -20,7 +20,7 @@
  * bar holds the team name, a "stale" lamp, run and hold buttons and a
  * round counter that proves the loop is alive. A value that cannot be
  * read is never replaced by zero: the last one stays and the stale lamp
- * lights. Set the team name in TEAM and let it run for 10 minutes; Stop
+ * lights. Set the team name in team (add_head) and let it run for 10 minutes; Stop
  * clears the screen and prints the number of rounds.
  *
  * Twin of s08_dashboard.py
@@ -44,9 +44,6 @@
 #include "bento_runtime.h"
 #include "bento_sensors.h"
 #include "bento_time.h"
-
-/* the team's name: change it to yours before you run */
-static const char TEAM[] = "BentoBuilders";
 
 /* colours, 0xRRGGBB, the firmware dashboard's palette: one colour per
  * sensor, and warning colours kept for warnings only */
@@ -80,13 +77,14 @@ enum {
     CARD_RADIUS = 12,
     CARD_EDGE_PX = 2,
     DIRECTION_COUNT = 8,
+    AXIS_COUNT = 3,  /* X, Y and Z: one chart line each */
+    VOLT_DIGITS = 3, /* "{:.3f} V" */
     HEADING_PAD = 3, /* "{:03.0f}" */
     TITLE_X = 24,
     TITLE_Y = 8,
     FONT_HEAD = 24,
     FONT_BIG = 28,
     FONT_BODY = 20,
-    FONT_SMALL = 16,
     NUMBER_BYTES = 40,
     TEXT_BYTES = 96
 };
@@ -145,7 +143,7 @@ typedef struct {
 
 /* The last values really read: never a zero that pretends to be one. */
 typedef struct {
-    bento_real_t accel[3];
+    bento_real_t accel[AXIS_COUNT];
     bento_real_t heading;
     bento_real_t percent;
     bento_real_t volts;
@@ -157,7 +155,8 @@ typedef struct {
 typedef struct {
     bento_ui_t *ui;
     bento_ui_id_t widgets[W_COUNT];
-    uint8_t series[3]; /* series 0 comes with the chart itself */
+    uint8_t
+        series[AXIS_COUNT]; /* series 0 comes with the chart itself */
     readings_t readings;
     int32_t rounds;
     int32_t threshold; /* the spinbox changes it, nothing else */
@@ -194,42 +193,58 @@ static void set_value(const dashboard_t *board, widget_index_t widget,
     (void)bento_ui_set_value(board->ui, board->widgets[widget], value);
 }
 
-/* Creates specs[0..count) into widgets[first..]; the chart gets its Y
- * and Z lines right after it is made, as in the original. */
+/* The chart's Y and Z lines, right after the chart is made, as in the
+ * original. */
+static bento_status_t add_chart_lines(dashboard_t *board,
+                                      bento_ui_id_t chart)
+{
+    bento_status_t status = bento_ui_chart_add_series(
+        board->ui, chart, COLOR_NORMAL, &board->series[1]);
+
+    if (status == BENTO_OK) {
+        status = bento_ui_chart_add_series(
+            board->ui, chart, COLOR_LINE_Z, &board->series[2]);
+    }
+    return status;
+}
+
+/* One widget as ui.<Factory>(...) makes it. */
+static bento_status_t add_widget(dashboard_t *board,
+                                 const widget_spec_t *spec,
+                                 bento_ui_id_t *widget)
+{
+    bento_ui_widget_args_t args;
+
+    bento_ui_widget_args_init(&args);
+    args.text = spec->text;
+    args.text_len =
+        (spec->text != NULL) ? (uint32_t)strlen(spec->text) : 0U;
+    args.x = spec->x;
+    args.y = spec->y;
+    args.w = spec->w;
+    args.h = spec->h;
+    args.color = spec->color;
+    args.font_px = spec->value;
+    args.min_val = spec->min;
+    args.max_val = spec->max;
+    return bento_ui_create(board->ui, spec->type, &args, widget);
+}
+
+/* Creates specs[0..count) into widgets[first..]. */
 static bento_status_t add_widgets(dashboard_t *board,
                                   const widget_spec_t *specs,
                                   int32_t first, int32_t count)
 {
-    bento_ui_widget_args_t args;
     bento_status_t status = BENTO_OK;
     int32_t i;
 
     for (i = 0; (i < count) && (status == BENTO_OK); i++) {
-        const widget_spec_t *spec = &specs[i];
         bento_ui_id_t *widget = &board->widgets[first + i];
 
-        bento_ui_widget_args_init(&args);
-        args.text = spec->text;
-        args.text_len =
-            (spec->text != NULL) ? (uint32_t)strlen(spec->text) : 0U;
-        args.x = spec->x;
-        args.y = spec->y;
-        args.w = spec->w;
-        args.h = spec->h;
-        args.color = spec->color;
-        args.font_px = spec->value;
-        args.min_val = spec->min;
-        args.max_val = spec->max;
-        status = bento_ui_create(board->ui, spec->type, &args, widget);
+        status = add_widget(board, &specs[i], widget);
         if ((status == BENTO_OK) &&
-            (spec->type == (uint8_t)UI_WIDGET_CHART)) {
-            status = bento_ui_chart_add_series(
-                board->ui, *widget, COLOR_NORMAL, &board->series[1]);
-            if (status == BENTO_OK) {
-                status = bento_ui_chart_add_series(board->ui, *widget,
-                                                   COLOR_LINE_Z,
-                                                   &board->series[2]);
-            }
+            (specs[i].type == (uint8_t)UI_WIDGET_CHART)) {
+            status = add_chart_lines(board, *widget);
         }
     }
     return status;
@@ -239,21 +254,23 @@ static bento_status_t add_widgets(dashboard_t *board,
  * the round line, the dashboard's heartbeat. */
 static bento_status_t add_head(dashboard_t *board)
 {
+    static const char team[] =
+        "BentoBuilders"; /* change it to your team before you run */
     static const widget_spec_t specs[W_IMU_CARD - W_STALE_LAMP] = {
         {UI_WIDGET_LED, NULL, 400, 12, 48, 48, COLOR_WARN, 0, 0, 0},
         {UI_WIDGET_LABEL, "ค่าค้าง", 400, 64, -1, -1, COLOR_GRAY,
-         FONT_SMALL, 0, 0},
+         FONT_BODY, 0, 0},
         {UI_WIDGET_BUTTON, "เดินหน้า", 480, 4, 120, 88, COLOR_NORMAL,
          FONT_BODY, 0, 0},
         {UI_WIDGET_BUTTON, "หยุดภาพ", 632, 4, 120, 88, COLOR_HOLD,
          FONT_BODY, 0, 0},
         {UI_WIDGET_LABEL, "รอบที่ 0 | loop 0 ms", 24, 52, -1, -1,
-         COLOR_GRAY, FONT_SMALL, 0, 0}};
+         COLOR_GRAY, FONT_BODY, 0, 0}};
     bento_ui_widget_args_t args;
     char text[TEXT_BYTES];
     bento_status_t status;
 
-    (void)snprintf(text, sizeof(text), "แดชบอร์ดทีม %s", TEAM);
+    (void)snprintf(text, sizeof(text), "แดชบอร์ดทีม %s", team);
     bento_ui_widget_args_init(&args);
     args.text = text;
     args.text_len = (uint32_t)strlen(text);
@@ -282,7 +299,7 @@ static bento_status_t add_top_cards(dashboard_t *board)
 {
     static const widget_spec_t specs[W_TOUCH_CARD - W_IMU_TITLE] = {
         {UI_WIDGET_LABEL, "ความเร่ง BMI270 (m/s2)", 40, 108, -1, -1,
-         COLOR_IMU, FONT_SMALL, 0, 0},
+         COLOR_IMU, FONT_BODY, 0, 0},
         {UI_WIDGET_CHART, NULL, 40, 136, 336, 56, COLOR_IMU, 0,
          -CHART_LIMIT, CHART_LIMIT},
         {UI_WIDGET_LABEL, "X+0.0 Y+0.0 Z+9.8", 40, 200, -1, -1,
@@ -290,7 +307,7 @@ static bento_status_t add_top_cards(dashboard_t *board)
         {UI_WIDGET_PANEL, NULL, 408, 100, 360, 136, COLOR_CARD,
          CARD_EDGE_PX, COLOR_COMPASS, CARD_RADIUS},
         {UI_WIDGET_LABEL, "เข็มทิศ BMM350", 424, 108, -1, -1,
-         COLOR_COMPASS, FONT_SMALL, 0, 0},
+         COLOR_COMPASS, FONT_BODY, 0, 0},
         {UI_WIDGET_COMPASS, NULL, 424, 132, 96, 96, COLOR_COMPASS, 0, 0,
          0},
         {UI_WIDGET_LABEL, "000 deg", 544, 140, -1, -1, COLOR_WHITE,
@@ -311,13 +328,13 @@ static bento_status_t add_bottom_cards(dashboard_t *board)
         {UI_WIDGET_PANEL, NULL, 24, 252, 320, 136, COLOR_CARD,
          CARD_EDGE_PX, COLOR_TOUCH, CARD_RADIUS},
         {UI_WIDGET_LABEL, "แถบสัมผัส CapSense", 40, 260, -1, -1,
-         COLOR_TOUCH, FONT_SMALL, 0, 0},
+         COLOR_TOUCH, FONT_BODY, 0, 0},
         {UI_WIDGET_LED, NULL, 40, 288, 48, 48, COLOR_TOUCH, 0, 0, 0},
         {UI_WIDGET_LABEL, "ปุ่ม 0", 96, 300, -1, -1, COLOR_GRAY,
-         FONT_SMALL, 0, 0},
+         FONT_BODY, 0, 0},
         {UI_WIDGET_LED, NULL, 160, 288, 48, 48, COLOR_TOUCH, 0, 0, 0},
         {UI_WIDGET_LABEL, "ปุ่ม 1", 216, 300, -1, -1, COLOR_GRAY,
-         FONT_SMALL, 0, 0},
+         FONT_BODY, 0, 0},
         {UI_WIDGET_LABEL, "0 %", 272, 256, -1, -1, COLOR_WHITE,
          FONT_BODY, 0, 0},
         {UI_WIDGET_BAR, NULL, 40, 348, 288, 16, COLOR_TOUCH, 0, 0,
@@ -325,18 +342,18 @@ static bento_status_t add_bottom_cards(dashboard_t *board)
         {UI_WIDGET_PANEL, NULL, 360, 252, 408, 136, COLOR_CARD,
          CARD_EDGE_PX, COLOR_POT, CARD_RADIUS},
         {UI_WIDGET_LABEL, "ลูกบิด Potentiometer", 376, 260, -1, -1,
-         COLOR_POT, FONT_SMALL, 0, 0},
+         COLOR_POT, FONT_BODY, 0, 0},
         {UI_WIDGET_ARC, NULL, 376, 288, 88, 88, 0U, 0, 0, PERCENT_MAX},
         {UI_WIDGET_SEG7, NULL, 480, 288, 112, 44, COLOR_POT, 0, 0,
          PERCENT_MAX},
         {UI_WIDGET_LABEL, "0.000 V", 480, 340, -1, -1, COLOR_WHITE,
          FONT_BODY, 0, 0},
         {UI_WIDGET_LABEL, "เกณฑ์ (%)", 600, 260, -1, -1, COLOR_GRAY,
-         FONT_SMALL, 0, 0},
+         FONT_BODY, 0, 0},
         {UI_WIDGET_SPINBOX, NULL, 600, 288, 88, 88, COLOR_WHITE,
          THRESHOLD_START, 0, PERCENT_MAX},
         {UI_WIDGET_LABEL, "เกิน", 704, 260, -1, -1, COLOR_GRAY,
-         FONT_SMALL, 0, 0},
+         FONT_BODY, 0, 0},
         {UI_WIDGET_LED, NULL, 704, 288, 48, 48, COLOR_ALERT, 0, 0, 0}};
 
     return add_widgets(board, specs, W_TOUCH_CARD,
@@ -393,9 +410,7 @@ static bool read_motion(dashboard_t *board)
         readings->accel[1] = (bento_real_t)imu.ay;
         readings->accel[2] = (bento_real_t)imu.az;
     }
-    for (axis = 0; axis < (int32_t)(sizeof(board->series) /
-                                    sizeof(board->series[0]));
-         axis++) {
+    for (axis = 0; axis < AXIS_COUNT; axis++) {
         const bento_real_t scaled =
             readings->accel[axis] * (bento_real_t)CHART_SCALE;
 
@@ -508,6 +523,7 @@ static void show_heading(const dashboard_t *board)
     const bento_real_t sector = (bento_real_t)45.0;
     const bento_real_t heading = board->readings.heading;
     const bento_real_t shifted = heading + half_sector;
+    const bento_real_t sectors = shifted / sector;
     static const char zeros[] = "000";
     char digits[BENTO_FMT_BUF_SIZE];
     char text[TEXT_BYTES];
@@ -520,8 +536,7 @@ static void show_heading(const dashboard_t *board)
                    digits);
     set_text(board, W_COMPASS_DEGREES, text);
     set_text(board, W_COMPASS_DIRECTION,
-             directions[(int32_t)(shifted / sector) %
-                        (int32_t)DIRECTION_COUNT]);
+             directions[(int32_t)sectors % (int32_t)DIRECTION_COUNT]);
 }
 
 /* The numbers a person reads, once a second. A Seg7 takes text, not a
@@ -547,7 +562,7 @@ static void show_numbers(dashboard_t *board)
     set_text(board, W_TOUCH_PERCENT, text);
     /* เติม: เขียน readings->percent ทศนิยมหนึ่งตำแหน่งลง W_POT_SEG7 ด้วย real_text แล้ว set_text
      * กับดักนี้เงียบสนิท ไม่มี error ให้จับ ถ้าเผลอใช้ bento_ui_set_value ตัวเลขจะค้างที่เดิมตลอดกาล */
-    real_text(readings->volts, 3, x_text, sizeof(x_text));
+    real_text(readings->volts, VOLT_DIGITS, x_text, sizeof(x_text));
     (void)snprintf(text, sizeof(text), "%s V", x_text);
     set_text(board, W_POT_VOLTS, text);
     (void)snprintf(text, sizeof(text), "รอบที่ %d | loop %d ms",

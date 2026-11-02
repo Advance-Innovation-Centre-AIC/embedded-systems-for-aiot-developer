@@ -75,7 +75,7 @@ except OSError:
 ui.Label("แดชบอร์ดทีม " + TEAM, x=24, y=8, color=COL_WHITE, value=24)
 # ไฟดวงนี้คือคำตอบของคำถาม "เลขที่เห็นอยู่ตอนนี้ ใช่ค่าปัจจุบันไหม"
 led_stale = ui.Led(x=400, y=12, w=48, h=48, color=COL_WARN, value=0)
-ui.Label("ค่าค้าง", x=400, y=64, color=COL_GRAY, value=16)
+ui.Label("ค่าค้าง", x=400, y=64, color=COL_GRAY, value=20)
 # แดชบอร์ดที่ผู้ใช้แตะอะไรไม่ได้เลย คือโปสเตอร์ที่ตัวเลขขยับได้ ไม่ใช่แผงควบคุม
 # ปุ่มเดินหน้ากับหยุดภาพแยกกันคนละปุ่ม เพราะปุ่มสลับปุ่มเดียวบอกไม่ได้ว่าตอนนี้อยู่โหมดไหน
 btn_run = ui.Button("เดินหน้า", x=480, y=4, w=120, h=88, color=0x30A46C, value=20)
@@ -83,14 +83,14 @@ btn_hold = ui.Button("หยุดภาพ", x=632, y=4, w=120, h=88, color=0x3
 # เลขรอบที่หยุดนิ่ง = ลูปตาย ส่วนเลข loop ms ที่ค่อย ๆ โตขึ้น = เริ่มมีอะไรสะสม
 # แถบนี้ทำหน้าที่เดียวกับไฟหัวใจเต้นของอุปกรณ์จริง - แดชบอร์ดที่ค้างภาพสวย ๆ ไว้
 # แยกไม่ออกจากแดชบอร์ดที่ยังทำงาน ถ้าไม่มีอะไรบนจอที่ขยับตามรอบลูป
-head = ui.Label("รอบที่ 0 | loop 0 ms", x=24, y=52, color=COL_GRAY, value=16)
+head = ui.Label("รอบที่ 0 | loop 0 ms", x=24, y=52, color=COL_GRAY, value=20)
 # ---------- ท่าที่ 1: การ์ด IMU (ซ้ายบน) ----------
 # Panel คือ "การ์ด": color=สีพื้น  min=สีขอบ  max=รัศมีมุม  value=ความหนาขอบ
 # สร้าง Panel ก่อน Label เสมอ ของที่สร้างทีหลังจะอยู่ทับด้านบน
 # เติม: imu_panel = ui.Panel(x=24, y=100, w=368, h=136, color=BG_CARD, min=COL_IMU, max=12, value=2)
 # การ์ดสามใบที่เหลือเขียนไว้ให้แล้ว ลอกรูปทรงจากใบนั้นได้เลย
 pass
-imu_title = ui.Label("ความเร่ง BMI270 (m/s2)", x=40, y=108, color=COL_IMU, value=16)
+imu_title = ui.Label("ความเร่ง BMI270 (m/s2)", x=40, y=108, color=COL_IMU, value=20)
 # Chart เก็บ 50 จุด รับเฉพาะจำนวนเต็ม เราจึงคูณ 10 ก่อนป้อน (-150..150 = -15.0..+15.0)
 # ถ้าป้อน int(ax) ตรง ๆ ความละเอียดจะเหลือ 1 m/s2 ต่อขั้น กราฟจะดูเป็นขั้นบันได
 imu_chart = ui.Chart(x=40, y=136, w=336, h=56, min=-150, max=150, color=COL_IMU)
@@ -100,7 +100,7 @@ imu_val = ui.Label("X+0.0 Y+0.0 Z+9.8", x=40, y=200, color=COL_WHITE, value=20)
 # ---------- ท่าที่ 2: การ์ดเข็มทิศ (ขวาบน) ----------
 comp_panel = ui.Panel(x=408, y=100, w=360, h=136,
                       color=BG_CARD, min=COL_COMP, max=12, value=2)
-comp_title = ui.Label("เข็มทิศ BMM350", x=424, y=108, color=COL_COMP, value=16)
+comp_title = ui.Label("เข็มทิศ BMM350", x=424, y=108, color=COL_COMP, value=20)
 # Compass ใช้ w เป็นเส้นผ่านศูนย์กลาง - ระบุ h เท่ากันไว้ด้วย เพื่อให้ด่านตรวจ
 # พิกัดอ่านขนาดของมันได้ ตัวไหนที่ด่านอ่านไม่ได้ คือตัวที่ยังไม่มีใครตรวจ
 compass = ui.Compass(x=424, y=132, w=96, h=96, color=COL_COMP)
@@ -110,13 +110,13 @@ comp_dir = ui.Label("N", x=544, y=188, color=COL_COMP, value=24)
 # ---------- ท่าที่ 3: การ์ดสัมผัส (ซ้ายล่าง) ----------
 cap_panel = ui.Panel(x=24, y=252, w=320, h=136,
                      color=BG_CARD, min=COL_TOUCH, max=12, value=2)
-cap_title = ui.Label("แถบสัมผัส CapSense", x=40, y=260, color=COL_TOUCH, value=16)
+cap_title = ui.Label("แถบสัมผัส CapSense", x=40, y=260, color=COL_TOUCH, value=20)
 # ไฟสองดวงแทนข้อความที่เปลี่ยนสี - ถ่ายจอเป็นขาวดำแล้วยังแยกออกว่าดวงไหนติด
 # ส่วนคำว่า ON สีเขียวกับ --- สีเทา พอเป็นขาวดำแล้วอ่านไม่ออกว่าอันไหนคืออันไหน
 cap_led0 = ui.Led(x=40, y=288, w=48, h=48, color=COL_TOUCH, value=0)
-ui.Label("ปุ่ม 0", x=96, y=300, color=COL_GRAY, value=16)
+ui.Label("ปุ่ม 0", x=96, y=300, color=COL_GRAY, value=20)
 cap_led1 = ui.Led(x=160, y=288, w=48, h=48, color=COL_TOUCH, value=0)
-ui.Label("ปุ่ม 1", x=216, y=300, color=COL_GRAY, value=16)
+ui.Label("ปุ่ม 1", x=216, y=300, color=COL_GRAY, value=20)
 cap_pct = ui.Label("0 %", x=272, y=256, color=COL_WHITE, value=20)
 # เดิมแถบค่าตัวนี้อยู่ที่ y=332 ซึ่งต่ำกว่าขอบล่างของการ์ดตัวเอง แล้วยื่นไปถึง x=560
 # คือข้ามไปอยู่ในการ์ดลูกบิดใบข้าง ๆ - ทั้งที่ประตูตรวจไม่เคยฟ้อง เพราะมันไม่ทับใคร
@@ -124,7 +124,7 @@ cap_bar = ui.Bar(x=40, y=348, w=288, h=16, min=0, max=100, value=0, color=COL_TO
 # ---------- ท่าที่ 4: การ์ดลูกบิด (ขวาล่าง) ----------
 pot_panel = ui.Panel(x=360, y=252, w=408, h=136,
                      color=BG_CARD, min=COL_POT, max=12, value=2)
-pot_title = ui.Label("ลูกบิด Potentiometer", x=376, y=260, color=COL_POT, value=16)
+pot_title = ui.Label("ลูกบิด Potentiometer", x=376, y=260, color=COL_POT, value=20)
 # Arc ให้ความรู้สึก "อยู่ตรงไหนของช่วง" ส่วน Seg7 ให้ตัวเลขที่จดลงใบงานได้ ใช้คู่กัน
 pot_arc = ui.Arc(x=376, y=288, w=88, h=88, min=0, max=100, value=0)
 # ไม่มี value= - Seg7 โยนทิ้ง (ui_widget_mgr.c:1452 ฝังฟอนต์ 28 ไว้ตายตัว
@@ -137,11 +137,11 @@ pot_volt = ui.Label("0.000 V", x=480, y=340, color=COL_WHITE, value=20)
 #
 # ทั้งกลุ่มนี้เคยอยู่ที่ y=404 ถึง y=612 บนจอที่สูง 398 - คือนอกจอทั้งแถบ
 # กดไม่ได้สักปุ่ม และไม่มีใครเห็นว่าหายไป เพราะจอที่เหลือยังดูปกติดี
-ui.Label("เกณฑ์ (%)", x=600, y=260, color=COL_GRAY, value=16)
+ui.Label("เกณฑ์ (%)", x=600, y=260, color=COL_GRAY, value=20)
 spin_thr = ui.Spinbox(x=600, y=288, w=88, h=88, color=COL_WHITE,
                       min=0, max=100, value=80)
 # ป้ายอยู่เหนือไฟ ไม่ใช่ใต้ไฟ เพราะใต้ไฟคือมุมที่ปุ่ม Console จองไว้ (x>690 และ y>340)
-ui.Label("เกิน", x=704, y=260, color=COL_GRAY, value=16)
+ui.Label("เกิน", x=704, y=260, color=COL_GRAY, value=20)
 led_alarm = ui.Led(x=704, y=288, w=48, h=48, color=COL_ALERT, value=0)
 
 DIRS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
