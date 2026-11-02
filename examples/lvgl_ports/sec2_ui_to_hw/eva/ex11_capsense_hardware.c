@@ -168,6 +168,14 @@ typedef struct {
     int32_t font_px;
 } place_t;
 
+/* A panel's place on the screen. */
+typedef struct {
+    int16_t x;
+    int16_t y;
+    int16_t w;
+    int16_t h;
+} rect_t;
+
 /* How one pad looks. */
 typedef struct {
     int32_t center_dx;
@@ -253,17 +261,17 @@ static bento_status_t add_led(bento_ui_t *ui, const place_t *place,
 
 /* A panel: min= is its border colour (the plain panels repeat their
  * own colour, as the original does), max= its radius. */
-static bento_status_t add_panel(bento_ui_t *ui, const int16_t place[4],
+static bento_status_t add_panel(bento_ui_t *ui, const rect_t *place,
                                 uint32_t color, bool is_pad)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t panel;
 
     bento_ui_widget_args_init(&args);
-    args.x = place[0];
-    args.y = place[1];
-    args.w = place[2];
-    args.h = place[3];
+    args.x = place->x;
+    args.y = place->y;
+    args.w = place->w;
+    args.h = place->h;
     args.color = color;
     args.min_val = is_pad ? (int32_t)COLOR_PAD_EDGE : (int32_t)color;
     args.max_val = is_pad ? PAD_RADIUS_PX : 0;
@@ -274,9 +282,8 @@ static bento_status_t add_panel(bento_ui_t *ui, const int16_t place[4],
 /* The background, the title and the connection line. */
 static bento_status_t add_header(const capsense_screen_t *screen)
 {
-    const int16_t screen_place[4] = {0, 0,
-                                     BENTO_RUNTIME_SCREEN_WIDTH_PX,
-                                     BENTO_RUNTIME_SCREEN_HEIGHT_PX};
+    const rect_t screen_place = {0, 0, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                                 BENTO_RUNTIME_SCREEN_HEIGHT_PX};
     const char *title = "Part 1 Ex11: CAPSENSE Hardware";
     const char *connection = screen->has_capsense
                                  ? "I2C: Connected (addr 0x08)"
@@ -290,7 +297,7 @@ static bento_status_t add_header(const capsense_screen_t *screen)
         FONT_PX};
     bento_ui_id_t unused;
     bento_status_t status =
-        add_panel(screen->ui, screen_place, COLOR_BACKGROUND, false);
+        add_panel(screen->ui, &screen_place, COLOR_BACKGROUND, false);
 
     if (status == BENTO_OK) {
         status = add_label(screen->ui, title, &title_place, &unused);
@@ -306,8 +313,8 @@ static bento_status_t add_header(const capsense_screen_t *screen)
  * and the small blue LED. */
 static bento_status_t add_slider_box(capsense_screen_t *screen)
 {
-    const int16_t box_place[4] = {SLIDER_BOX_X, SLIDER_BOX_Y,
-                                  SLIDER_BOX_W, SLIDER_BOX_H};
+    const rect_t box_place = {SLIDER_BOX_X, SLIDER_BOX_Y, SLIDER_BOX_W,
+                              SLIDER_BOX_H};
     const place_t name_place = {SLIDER_BOX_X + SLIDER_NAME_DX,
                                 SLIDER_BOX_Y + SLIDER_NAME_DY,
                                 COLOR_TEXT, FONT_PX};
@@ -320,7 +327,7 @@ static bento_status_t add_slider_box(capsense_screen_t *screen)
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
     bento_status_t status =
-        add_panel(screen->ui, box_place, COLOR_SLIDER_BOX, false);
+        add_panel(screen->ui, &box_place, COLOR_SLIDER_BOX, false);
 
     if (status == BENTO_OK) {
         status = add_label(screen->ui, "SLIDER (CSS1)", &name_place,
@@ -359,7 +366,7 @@ static bento_status_t add_pad(capsense_screen_t *screen, int32_t pad)
     const pad_look_t *look = &looks[pad];
     const int32_t x = (SCREEN_CENTER_X + look->center_dx) - (PAD_W / 2);
     const int32_t middle_x = x + (PAD_W / 2);
-    const int16_t pad_place[4] = {px(x), PAD_Y, PAD_W, PAD_H};
+    const rect_t pad_place = {px(x), PAD_Y, PAD_W, PAD_H};
     const place_t name_place = {middle_x - PAD_NAME_HALF_W,
                                 PAD_Y + PAD_NAME_DY, COLOR_TEXT,
                                 BIG_FONT_PX};
@@ -373,7 +380,7 @@ static bento_status_t add_pad(capsense_screen_t *screen, int32_t pad)
     pad_t *widgets = &screen->pads[pad];
     bento_ui_id_t unused;
     bento_status_t status =
-        add_panel(screen->ui, pad_place, COLOR_PAD, true);
+        add_panel(screen->ui, &pad_place, COLOR_PAD, true);
 
     if (status == BENTO_OK) {
         status =

@@ -180,6 +180,13 @@ static bento_status_t build_menu(menu_t *menu)
     return status;
 }
 
+/* True when the event is of this kind: the comparison has one type
+ * on both sides. */
+static bool is_kind(const bento_ui_event_t *event, uint8_t kind)
+{
+    return event->type == kind;
+}
+
 /* The section whose button this click came from, else the pick so
  * far: like the original, a later click in the same poll replaces an
  * earlier one. */
@@ -191,7 +198,7 @@ static int32_t item_of_click(const menu_t *menu,
     int32_t item;
 
     for (item = ITEM_COUNT - 1;
-         (item >= 0) && (event->type == BENTO_UI_EVENT_CLICKED);
+         (item >= 0) && is_kind(event, BENTO_UI_EVENT_CLICKED);
          item--) {
         if (menu->buttons[item] == event->id) {
             found = item;

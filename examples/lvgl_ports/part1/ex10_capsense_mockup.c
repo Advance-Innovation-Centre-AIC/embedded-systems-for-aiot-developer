@@ -152,6 +152,14 @@ typedef struct {
     int32_t font_px;
 } label_place_t;
 
+/* A panel's place on the screen. */
+typedef struct {
+    int16_t x;
+    int16_t y;
+    int16_t w;
+    int16_t h;
+} rect_t;
+
 /* A position or size on the screen: the widget arguments are 16-bit. */
 static int16_t px(int32_t value)
 {
@@ -280,16 +288,16 @@ static bento_status_t add_led(bento_ui_t *ui,
 
 /* A plain panel: min= repeats the colour, as the original does. */
 static bento_status_t
-add_plain_panel(bento_ui_t *ui, const int16_t place[4], uint32_t color)
+add_plain_panel(bento_ui_t *ui, const rect_t *place, uint32_t color)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t panel;
 
     bento_ui_widget_args_init(&args);
-    args.x = place[0];
-    args.y = place[1];
-    args.w = place[2];
-    args.h = place[3];
+    args.x = place->x;
+    args.y = place->y;
+    args.w = place->w;
+    args.h = place->h;
     args.color = color;
     args.min_val = (int32_t)color;
     args.max_val = 0;
@@ -300,9 +308,8 @@ add_plain_panel(bento_ui_t *ui, const int16_t place[4], uint32_t color)
 /* The background, the title and the mode line. */
 static bento_status_t add_header(mockup_t *mockup)
 {
-    const int16_t screen_place[4] = {0, 0,
-                                     BENTO_RUNTIME_SCREEN_WIDTH_PX,
-                                     BENTO_RUNTIME_SCREEN_HEIGHT_PX};
+    const rect_t screen_place = {0, 0, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                                 BENTO_RUNTIME_SCREEN_HEIGHT_PX};
     const char *title = "Part 1 Ex10: CAPSENSE UI Mockup";
     const char *mode = "Mode: Auto Demo";
     const label_place_t title_place = {centered_x(title), TITLE_Y,
@@ -311,7 +318,7 @@ static bento_status_t add_header(mockup_t *mockup)
                                       COLOR_MODE, FONT_PX};
     bento_ui_id_t unused;
     bento_status_t status =
-        add_plain_panel(mockup->ui, screen_place, COLOR_BACKGROUND);
+        add_plain_panel(mockup->ui, &screen_place, COLOR_BACKGROUND);
 
     if (status == BENTO_OK) {
         status = add_label(mockup->ui, title, &title_place, &unused);
@@ -327,8 +334,8 @@ static bento_status_t add_header(mockup_t *mockup)
  * small blue LED. */
 static bento_status_t add_slider_box(mockup_t *mockup)
 {
-    const int16_t box_place[4] = {SLIDER_BOX_X, SLIDER_BOX_Y,
-                                  SLIDER_BOX_W, SLIDER_BOX_H};
+    const rect_t box_place = {SLIDER_BOX_X, SLIDER_BOX_Y, SLIDER_BOX_W,
+                              SLIDER_BOX_H};
     const label_place_t name_place = {SLIDER_BOX_X + SLIDER_NAME_DX,
                                       SLIDER_BOX_Y + SLIDER_NAME_DY,
                                       COLOR_TEXT, FONT_PX};
@@ -341,7 +348,7 @@ static bento_status_t add_slider_box(mockup_t *mockup)
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
     bento_status_t status =
-        add_plain_panel(mockup->ui, box_place, COLOR_SLIDER_BOX);
+        add_plain_panel(mockup->ui, &box_place, COLOR_SLIDER_BOX);
 
     if (status == BENTO_OK) {
         status = add_label(mockup->ui, "SLIDER (CSS1)", &name_place,
@@ -580,19 +587,26 @@ static int32_t pad_of_panel(const mockup_t *mockup,
     return found;
 }
 
+/* True when the event is of this kind: the comparison has one type
+ * on both sides. */
+static bool is_kind(const bento_ui_event_t *event, uint8_t kind)
+{
+    return event->type == kind;
+}
+
 static bento_status_t handle_event(mockup_t *mockup,
                                    const bento_ui_event_t *event)
 {
     const int32_t pad = pad_of_panel(mockup, event->id);
-    const bool touched = (event->type == BENTO_UI_EVENT_PRESSED);
+    const bool touched = is_kind(event, BENTO_UI_EVENT_PRESSED);
     bento_status_t status = BENTO_OK;
 
     if ((pad < PAD_COUNT) &&
-        (touched || (event->type == BENTO_UI_EVENT_RELEASED))) {
+        (touched || is_kind(event, BENTO_UI_EVENT_RELEASED))) {
         go_manual(mockup);
         status = press(mockup, pad, touched);
     } else if ((event->id == mockup->slider) &&
-               (event->type == BENTO_UI_EVENT_VALUE_CHANGED)) {
+               is_kind(event, BENTO_UI_EVENT_VALUE_CHANGED)) {
         go_manual(mockup);
         status = slide(mockup, event->value);
     } else {

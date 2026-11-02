@@ -203,6 +203,29 @@ static bento_status_t add_switch(switch_screen_t *screen)
     return bento_ui_switch_create(screen->ui, &args, &screen->toggle);
 }
 
+/* The two hint lines and the footer at the bottom of the screen. */
+static bento_status_t add_bottom_texts(bento_ui_t *ui)
+{
+    bento_ui_id_t unused;
+    bento_status_t status =
+        add_label(ui, "Learning: lv_switch_create, LV_STATE_CHECKED",
+                  HINT_Y, COLOR_HINT, &unused);
+
+    if (status == BENTO_OK) {
+        status = add_label(
+            ui,
+            "This switch would control a real GPIO in actual hardware",
+            HINT2_Y, COLOR_HINT, &unused);
+    }
+    if (status == BENTO_OK) {
+        status = add_label(ui,
+                           "(C) 2023-2026 AIC-EEC.com and BiiL Centre, "
+                           "Burapha University",
+                           FOOTER_Y, COLOR_FOOTER, &unused);
+    }
+    return status;
+}
+
 /* Draws the whole screen in the original's order (the widgets'
  * handles follow it). */
 static bento_status_t build_screen(switch_screen_t *screen)
@@ -241,21 +264,7 @@ static bento_status_t build_screen(switch_screen_t *screen)
                            &screen->status);
     }
     if (status == BENTO_OK) {
-        status = add_label(
-            ui, "Learning: lv_switch_create, LV_STATE_CHECKED", HINT_Y,
-            COLOR_HINT, &unused);
-    }
-    if (status == BENTO_OK) {
-        status = add_label(
-            ui,
-            "This switch would control a real GPIO in actual hardware",
-            HINT2_Y, COLOR_HINT, &unused);
-    }
-    if (status == BENTO_OK) {
-        status = add_label(ui,
-                           "(C) 2023-2026 AIC-EEC.com and BiiL Centre, "
-                           "Burapha University",
-                           FOOTER_Y, COLOR_FOOTER, &unused);
+        status = add_bottom_texts(ui);
     }
     return status;
 }

@@ -346,9 +346,10 @@ static void print_event(const bento_ui_event_t *event)
         "ready",      "cancel",       "focused",
         "defocused",  "scroll_begin", "scroll_end",
         "gesture"};
+    const uint8_t last_kind = BENTO_UI_EVENT_GESTURE;
     const char *name = names[0];
 
-    if (event->type <= BENTO_UI_EVENT_GESTURE) {
+    if (event->type <= last_kind) {
         name = names[event->type];
     }
     (void)printf("EV: {'type': '%s', 'value': %" PRId32

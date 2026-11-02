@@ -469,19 +469,26 @@ static bento_status_t set_all(dashboard_t *board, bool on)
     return status;
 }
 
+/* True when the event is of this kind: the comparison has one type
+ * on both sides. */
+static bool is_kind(const bento_ui_event_t *event, uint8_t kind)
+{
+    return event->type == kind;
+}
+
 static bento_status_t handle_event(dashboard_t *board,
                                    const bento_ui_event_t *event)
 {
     const int32_t channel = channel_of_switch(board, event->id);
     bento_status_t status = BENTO_OK;
 
-    if ((event->type == BENTO_UI_EVENT_TOGGLED) &&
+    if (is_kind(event, BENTO_UI_EVENT_TOGGLED) &&
         (channel < CHANNEL_COUNT)) {
         status = set_channel(board, channel, event->value != 0);
-    } else if ((event->type == BENTO_UI_EVENT_CLICKED) &&
+    } else if (is_kind(event, BENTO_UI_EVENT_CLICKED) &&
                (event->id == board->all_on)) {
         status = set_all(board, true);
-    } else if ((event->type == BENTO_UI_EVENT_CLICKED) &&
+    } else if (is_kind(event, BENTO_UI_EVENT_CLICKED) &&
                (event->id == board->all_off)) {
         status = set_all(board, false);
     } else {

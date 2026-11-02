@@ -376,7 +376,8 @@ static bento_status_t add_channel(dashboard_t *board, int32_t channel)
 /* The third row: the blue LED the potentiometer dims. */
 static bento_status_t add_blue_row(dashboard_t *board)
 {
-    const int32_t y = ROW_Y + (CHANNEL_COUNT * ROW_H);
+    const int32_t rows_above = CHANNEL_COUNT;
+    const int32_t y = ROW_Y + (rows_above * ROW_H);
     bento_ui_id_t unused;
     bento_status_t status = add_led(board->ui, LED_X, y, LED_SIZE,
                                     COLOR_BLUE, &board->led_blue);
@@ -400,9 +401,10 @@ static bento_status_t add_button_cell(dashboard_t *board,
                                       int32_t button)
 {
     const char *name = BUTTONS[button].name;
+    const int32_t button_count = BUTTON_COUNT;
     const int32_t center_x =
         BOX_LEFT_X +
-        ((BOX_W / (BUTTON_COUNT * 2)) * ((button * 2) + 1));
+        ((BOX_W / (button_count * 2)) * ((button * 2) + 1));
     bento_status_t status = add_led(
         board->ui, center_x - (BUTTON_LED_SIZE / 2), BUTTON_LED_Y,
         BUTTON_LED_SIZE, COLOR_ORANGE, &board->button_leds[button]);
@@ -600,19 +602,26 @@ static int32_t channel_of_switch(const dashboard_t *board,
     return found;
 }
 
+/* True when the event is of this kind: the comparison has one type
+ * on both sides. */
+static bool is_kind(const bento_ui_event_t *event, uint8_t kind)
+{
+    return event->type == kind;
+}
+
 static bento_status_t handle_event(const dashboard_t *board,
                                    const bento_ui_event_t *event)
 {
     const int32_t channel = channel_of_switch(board, event->id);
     bento_status_t status = BENTO_OK;
 
-    if ((event->type == BENTO_UI_EVENT_TOGGLED) &&
+    if (is_kind(event, BENTO_UI_EVENT_TOGGLED) &&
         (channel < CHANNEL_COUNT)) {
         status = set_channel(board, channel, event->value != 0);
-    } else if ((event->type == BENTO_UI_EVENT_CLICKED) &&
+    } else if (is_kind(event, BENTO_UI_EVENT_CLICKED) &&
                (event->id == board->all_on)) {
         status = set_all(board, true);
-    } else if ((event->type == BENTO_UI_EVENT_CLICKED) &&
+    } else if (is_kind(event, BENTO_UI_EVENT_CLICKED) &&
                (event->id == board->all_off)) {
         status = set_all(board, false);
     } else {
