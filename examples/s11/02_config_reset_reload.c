@@ -38,6 +38,12 @@
 #include "bento_tesaiot.h"
 #include "bento_time.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char DEVICE_ID[] = "team03";
+static const char API_KEY[] = "<api key ของทีม>";
+static const char BROKER[] = "mqtt.tesaiot.dev";
+/* ---- end of settings ---- */
+
 enum { /* sizes and times */
     TEXT_BYTES = 256,
     VALUE_BYTES = BENTO_TESAIOT_CONFIG_VALUE_MAX + 1U,
@@ -320,21 +326,17 @@ static bento_status_t set_config(const char *key, const char *value,
 
 static bento_status_t set_identity(bool saved[IDENTITY_KEYS])
 {
-    /* the team's identity: change these three to your own before running */
-    static const char device_id[] = "team03";
-    static const char api_key[] = "<api key ของทีม>";
-    static const char broker[] = "mqtt.tesaiot.dev";
     bento_status_t status =
-        set_config("device_id", device_id, &saved[SAVED_DEVICE_ID]);
+        set_config("device_id", DEVICE_ID, &saved[SAVED_DEVICE_ID]);
 
     if (status == BENTO_OK) {
-        status = set_config("api_key", api_key, &saved[SAVED_API_KEY]);
+        status = set_config("api_key", API_KEY, &saved[SAVED_API_KEY]);
     }
     if (status == BENTO_OK) {
-        status = set_config("broker", broker, &saved[SAVED_BROKER]);
+        status = set_config("broker", BROKER, &saved[SAVED_BROKER]);
     }
     if (status == BENTO_OK) {
-        status = set_config("sni_hostname", broker, &saved[SAVED_SNI]);
+        status = set_config("sni_hostname", BROKER, &saved[SAVED_SNI]);
     }
     return status;
 }
