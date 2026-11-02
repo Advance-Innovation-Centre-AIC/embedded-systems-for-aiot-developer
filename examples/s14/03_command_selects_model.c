@@ -103,6 +103,7 @@ enum {
     TEAM_LEN = 6,
     FIELD_CHARS = 16,
     TOPIC_CHARS = 64,
+    COMMAND_TOPIC_CHARS = 68, /* the topic, "/cmd" and the NUL */
     ID_CHARS = 24,
     TEXT_CHARS = 160,
     LINE_CHARS = 256
@@ -239,7 +240,7 @@ typedef struct {
     uint32_t drawn_ms;
     char client_id[ID_CHARS];
     char topic[TOPIC_CHARS];
-    char topic_command[TOPIC_CHARS];
+    char topic_command[COMMAND_TOPIC_CHARS];
     uint8_t payload[BENTO_MQTT_PAYLOAD_MAX];
 } commander_t;
 
