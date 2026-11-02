@@ -77,7 +77,8 @@ enum {
     OP_POLL_MS = 100,
     MODEL_KEY_COUNT = 2,
     ROWS_CHARS = 160, /* six "n/m" pairs, each any two int32_t */
-    TEXT_CHARS = 200
+    TEXT_CHARS = 200,
+    SEQUENCE_CHARS = 12 /* "-" or any uint32_t, with its NUL */
 };
 
 /* Colours, 0xRRGGBB. */
@@ -383,7 +384,7 @@ static bool polled_new(const compare_t *compare, bool *has_sequence,
 static void draw_counts(const compare_t *compare, uint32_t polled)
 {
     char text[TEXT_CHARS];
-    char sequence[TEXT_CHARS];
+    char sequence[SEQUENCE_CHARS];
     const report_t *last = &compare->last;
 
     (void)snprintf(text, sizeof(text), "%" PRIu32, compare->calls);
