@@ -677,15 +677,14 @@ static bento_status_t send_and_count(const echo_screen_t *screen,
 static void tell_emulator(const echo_screen_t *screen)
 {
     static const char note[] =
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator\nให้รันบน Dev Kit หรือ Eva Kit";
 
     (void)bento_ui_set_color(screen->ui, screen->note, COLOR_WARN);
     set_text(screen->ui, screen->note, note);
     drain_events(screen->ui);
-    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
-                 "run it on a Dev Kit or Eva "
-                 "Kit.\n",
-                 note);
+    (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ "
+                 "Eva Kit / MQTT from C is not in the BENTO Emulator "
+                 "yet: run it on a Dev Kit or Eva Kit.\n");
 }
 
 /* From the broker connect to the end of sending. Whatever ends it,
