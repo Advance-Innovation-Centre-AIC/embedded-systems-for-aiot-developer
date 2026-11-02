@@ -51,13 +51,16 @@
 #include "bento_runtime.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
 /* Change these to what the teacher hands out. A phone hotspot: the
  * faculty Wi-Fi needs a login the board cannot do. */
 static const char WIFI_SSID[] = "bento-teamXX";
-/* the hotspot's password (8 or more) is set in join_wifi() */
+static const char WIFI_PASS[] = "<รหัส Hotspot ของทีม>"; /* 8 or more */
 static const char BROKER[] =
     "broker.hivemq.com";             /* or test.mosquitto.org */
 static const char TEAM[] = "teamXX"; /* team01 to team19 */
+/* ---- end of settings ---- */
+
 static const char ROOT[] = "bento-aiot";
 
 /* Timing, in milliseconds. */
@@ -79,6 +82,8 @@ enum {
     VALUE_MAX = 100,
     VALUE_START = 50,
     SAY_LIMIT = 24, /* characters of a web text shown */
+    /* the shown text: 24 letters of 3 bytes (Thai), and the NUL */
+    SAY_BYTES = (SAY_LIMIT * 3) + 1,
     BEEP_NOTE = 69, /* a MIDI note, not hertz: A4 */
     BEEP_VELOCITY = 90,
     BEEP_MS = 150
@@ -187,7 +192,6 @@ static const uint32_t UTF8_LEAD_THREE = 0xE0U;
 static const uint32_t UTF8_FOLLOW_BITS = 0x3FU;
 static const uint32_t UTF8_FOLLOW_SHIFT = 6U;
 static const uint32_t UTF8_LEAD_THREE_SHIFT = 12U;
-static const uint32_t UTF8_WIDTH_FOUR = 4U;
 /* Up to BENTO_WIFI_SCAN_MAX networks: too big for the 8 KB program
  * stack, so file scope, cleared at the start of main() (C9). */
 extern bento_wifi_ap_t g_networks[BENTO_WIFI_SCAN_MAX];
@@ -699,6 +703,7 @@ static bool text_is_unicode(void)
 static uint32_t character_at(const char *text, uint32_t at,
                              uint32_t length, uint32_t *code)
 {
+    static const uint32_t utf8_width_four = 4U;
     static const uint32_t utf8_width_three = 3U;
     static const uint32_t utf8_lead_three_bits = 0x0FU;
     static const uint32_t utf8_lead_four = 0xF0U;
@@ -707,7 +712,7 @@ static uint32_t character_at(const char *text, uint32_t at,
 
     *code = lead;
     if (lead >= utf8_lead_four) {
-        width = UTF8_WIDTH_FOUR;
+        width = utf8_width_four;
     } else if (lead >= UTF8_LEAD_THREE) {
         width = utf8_width_three;
     } else if (lead >= UTF8_LEAD_TWO) {
@@ -741,13 +746,15 @@ static void screen_safe(const char *text, uint32_t length, char *out,
     static const uint32_t thai_block = 0x0E00U; /* U+0E00 to U+0E7F */
     static const uint32_t ascii_last = 0x7EU;
     static const uint32_t ascii_first = 0x20U;
+    /* the most one character writes: a Thai letter's 3 bytes */
+    const uint32_t widest = 3U;
     const bool unicode = text_is_unicode();
     uint32_t at = 0U;
     uint32_t used = 0U;
     uint32_t count = 0U;
 
     while ((at < length) && (count < (uint32_t)SAY_LIMIT) &&
-           ((used + UTF8_WIDTH_FOUR) < out_bytes)) {
+           ((used + widest) < out_bytes)) {
         uint32_t code = (uint32_t)(uint8_t)text[at];
         const uint32_t width =
             unicode ? character_at(text, at, length, &code) : 1U;
@@ -932,8 +939,6 @@ static void read_ip(char *text, uint32_t text_bytes)
  * *joined is wifi.connect()'s True or False. */
 static bento_status_t join_wifi(bool *joined)
 {
-    static const char wifi_pass[] =
-        "<รหัส Hotspot ของทีม>"; /* 8 or more */
     bento_wifi_connect_params_t params;
     char ip[BENTO_WIFI_IPV4_TEXT_MAX];
     bento_status_t join = BENTO_E_IN_PROGRESS;
@@ -942,8 +947,8 @@ static bento_status_t join_wifi(bool *joined)
     bento_wifi_connect_params_init(&params);
     params.ssid = WIFI_SSID;
     params.ssid_len = (uint32_t)strlen(WIFI_SSID);
-    params.pass = wifi_pass;
-    params.pass_len = (uint32_t)strlen(wifi_pass);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* the binding saves too */
     (void)printf("[WiFi] Connecting...\r\n");
     status = bento_wifi_connect_start(&params);
@@ -1277,7 +1282,7 @@ static void act_on_set(panel_t *panel, const json_value_t *v)
 
 static void act_on_say(const panel_t *panel, const json_value_t *said)
 {
-    char safe[TEXT_BYTES];
+    char safe[SAY_BYTES];
     char text[TEXT_BYTES];
 
     screen_safe(said->text, said->text_len, safe, sizeof(safe));
