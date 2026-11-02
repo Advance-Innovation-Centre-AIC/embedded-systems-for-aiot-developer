@@ -75,7 +75,9 @@ enum {
     HALF_TURN = 180,
     COLUMN_COUNT = 15,
     CARD_COUNT = 4,
-    TEXT_BYTES = 128 /* a label or console text, at most 126 bytes */
+    TEXT_BYTES = 128, /* a label or console text, at most 126 bytes */
+    /* "q ", four numbers of up to 36 bytes, three spaces, the NUL */
+    QUATERNION_BYTES = 150
 };
 
 /* Screen layout on the 792 x 398 canvas: three bands, 24 px margins;
@@ -189,7 +191,8 @@ static void show_angle(const motion_screen_t *screen, int32_t slot,
                        const char *name, float degrees)
 {
     const number_format_t angle = {1, true, 7};
-    char number[TEXT_BYTES];
+    char number[BENTO_FMT_BUF_SIZE +
+                1U]; /* format_number(): a real and its sign */
     char text[TEXT_BYTES];
 
     format_number(number, sizeof(number), (bento_real_t)degrees,
@@ -426,7 +429,7 @@ static bento_status_t show_quaternion(const motion_screen_t *screen,
         char x_text[BENTO_FMT_BUF_SIZE + 1U];
         char y_text[BENTO_FMT_BUF_SIZE + 1U];
         char z_text[BENTO_FMT_BUF_SIZE + 1U];
-        char text[TEXT_BYTES];
+        char text[QUATERNION_BYTES];
 
         format_number(w_text, sizeof(w_text), quaternion.w, &part);
         format_number(x_text, sizeof(x_text), quaternion.x, &part);
@@ -493,7 +496,8 @@ static void show_steps(const motion_screen_t *screen,
     const bento_real_t ay = (bento_real_t)motion->ay;
     const bento_real_t az = (bento_real_t)motion->az;
     const bento_real_t squares = (ax * ax) + (ay * ay) + (az * az);
-    char number[TEXT_BYTES];
+    char number[BENTO_FMT_BUF_SIZE +
+                1U]; /* format_number(): a real and its sign */
     char text[TEXT_BYTES];
 
     (void)snprintf(text, sizeof(text), "g    %5u ก้าว",
