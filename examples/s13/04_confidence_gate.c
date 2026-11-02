@@ -46,6 +46,17 @@
 #include "bento_edgeai.h"
 #include "bento_runtime.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+enum {
+    CONF_MIN = 60, /* a result less sure than this does not count */
+    CONFIRM_N = 3, /* wins needed ... */
+    WINDOW_N =
+        5, /* ... among this many latest results (>= CONFIRM_N) */
+    RUN_S = 120,
+    DRAW_MS = 500
+};
+/* ---- end of settings ---- */
+
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
@@ -58,13 +69,9 @@ enum {
     EMULATOR_NOTE_COLOR = 0xF5A623
 };
 
-/* The rule and the timing. */
+/* The timing. */
 enum {
-    CONF_MIN = 60, /* a result less sure than this does not count */
-    CONFIRM_N = 3, /* wins needed ... */
-    WINDOW_N = 5,  /* ... among this many latest results */
-    RUN_MS = 120000,
-    DRAW_MS = 500,
+    MS_PER_S = 1000,
     LOOP_MS = 100,
     SETTLE_MS = 150, /* let the cleared screen settle */
     OP_POLL_MS = 100,
@@ -469,7 +476,7 @@ static void draw(gate_t *gate)
                             (uint32_t)strlen(text));
 }
 
-/* RUN_MS from before the select, a pass every LOOP_MS. */
+/* RUN_S from before the select, a pass every LOOP_MS. */
 static bento_status_t run_gate(gate_t *gate, uint32_t start_ms)
 {
     uint32_t drawn_ms = start_ms;
@@ -477,7 +484,7 @@ static bento_status_t run_gate(gate_t *gate, uint32_t start_ms)
 
     while ((status == BENTO_OK) &&
            (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
-            RUN_MS)) {
+            ((int32_t)RUN_S * (int32_t)MS_PER_S))) {
         uint32_t now_ms;
 
         take_result(gate);
