@@ -58,7 +58,7 @@ enum {
         20, /* gravity is 9.81: room to rock it as much again */
     AXIS_COUNT = 3,
     TABLE_COLUMNS = 4,
-    TABLE_FONT_PX = 16,
+    TABLE_FONT_PX = 20, /* Thai text on the board is 20 px or larger */
     COLUMN_LOW = 1,
     COLUMN_HIGH = 2,
     COLUMN_LATEST = 3,
@@ -216,9 +216,22 @@ static bento_status_t add_table(recorder_t *recorder)
         TABLE_FONT_PX,   TABLE_COLUMNS, 0};
     static const int32_t widths_px[TABLE_COLUMNS] = {100, 108, 108,
                                                      108};
-    static const char header[] = "แกน\0ต่ำสุด\0สูงสุด\0ล่าสุด";
-    static const char *const rows[AXIS_COUNT] = {
-        "X\0-\0-\0-", "Y\0-\0-\0-", "Z\0-\0-\0-"};
+    static const char header[] = "แกน\0"
+                                 "ต่ำสุด\0"
+                                 "สูงสุด\0"
+                                 "ล่าสุด";
+    static const char *const rows[AXIS_COUNT] = {"X\0"
+                                                 "-\0"
+                                                 "-\0"
+                                                 "-",
+                                                 "Y\0"
+                                                 "-\0"
+                                                 "-\0"
+                                                 "-",
+                                                 "Z\0"
+                                                 "-\0"
+                                                 "-\0"
+                                                 "-"};
     const uint32_t row_bytes =
         7U; /* one letter and three "-" cells, NUL between them */
     bento_status_t status = add_widgets(recorder, &spec, W_TABLE, 1);
@@ -233,9 +246,10 @@ static bento_status_t add_table(recorder_t *recorder)
         (void)bento_ui_add_row(recorder->ui, table, 0U, header,
                                (uint32_t)sizeof(header) - 1U);
         for (i = 0; i < AXIS_COUNT; i++) {
-            (void)bento_ui_add_row(recorder->ui, table,
-                                   (uint8_t)(i + 1), rows[i],
-                                   row_bytes);
+            const int32_t row = i + 1; /* row 0 is the header */
+
+            (void)bento_ui_add_row(recorder->ui, table, (uint8_t)row,
+                                   rows[i], row_bytes);
         }
     }
     return status;
@@ -372,31 +386,40 @@ static void handle_events(recorder_t *recorder)
     }
 }
 
+/* One axis's row: lowest and highest ("-" before the first reading)
+ * and the latest value. Row 0 is the header, so axis 0 is row 1. */
+static void show_axis_row(const recorder_t *recorder, int32_t axis)
+{
+    const int32_t row = axis + 1;
+    char text[TEXT_BYTES];
+
+    if (recorder->has_range[axis]) {
+        signed_text(recorder->low[axis], text, sizeof(text));
+        set_cell(recorder, row, COLUMN_LOW, text);
+        signed_text(recorder->high[axis], text, sizeof(text));
+        set_cell(recorder, row, COLUMN_HIGH, text);
+    } else {
+        set_cell(recorder, row, COLUMN_LOW, "-");
+        set_cell(recorder, row, COLUMN_HIGH, "-");
+    }
+    signed_text(recorder->accel[axis], text, sizeof(text));
+    set_cell(recorder, row, COLUMN_LATEST, text);
+}
+
 /* The numbers a person reads change at most once a second; row 0 is the
  * header, so X, Y and Z are rows 1, 2 and 3. */
 static void show_numbers(recorder_t *recorder)
 {
-    const int32_t second =
-        (int32_t)(bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND);
+    const uint32_t elapsed_seconds =
+        bento_time_ticks_ms() / (uint32_t)MS_PER_SECOND;
+    const int32_t second = (int32_t)elapsed_seconds;
     char text[TEXT_BYTES];
     int32_t axis;
 
     if (second != recorder->last_second) {
         recorder->last_second = second;
         for (axis = 0; axis < AXIS_COUNT; axis++) {
-            const int32_t row = axis + 1;
-
-            if (recorder->has_range[axis]) {
-                signed_text(recorder->low[axis], text, sizeof(text));
-                set_cell(recorder, row, COLUMN_LOW, text);
-                signed_text(recorder->high[axis], text, sizeof(text));
-                set_cell(recorder, row, COLUMN_HIGH, text);
-            } else {
-                set_cell(recorder, row, COLUMN_LOW, "-");
-                set_cell(recorder, row, COLUMN_HIGH, "-");
-            }
-            signed_text(recorder->accel[axis], text, sizeof(text));
-            set_cell(recorder, row, COLUMN_LATEST, text);
+            show_axis_row(recorder, axis);
         }
         (void)snprintf(text, sizeof(text), "คาบลูป %d ms",
                        (int)recorder->period_ms);
