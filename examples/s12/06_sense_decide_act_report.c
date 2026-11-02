@@ -35,6 +35,8 @@
  *    fan, device, temp_c with a 2-byte hash (the other targets);
  *  - like the original, nothing switches the fan off when Stop arrives:
  *    the .py has no finally, so the LED keeps its last state.
+ * In the BENTO Emulator, whose C runtime has no sensors.snapshot(), the
+ * snapshot counts as one with no usable key (the SHT40 path still reads).
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -417,6 +419,23 @@ static void light(const report_screen_t *screen, int32_t step)
     }
 }
 
+/* sensors.snapshot(). The BENTO Emulator's C runtime has no snapshot path
+ * (BENTO_E_UNSUPPORTED): there it counts as a snapshot with no usable key,
+ * so read_temp() takes its own no-knob path. */
+static bento_status_t take_snapshot(bento_sensors_snapshot_t *snap)
+{
+    bento_status_t status;
+
+    bento_sensors_snapshot_init(snap);
+    status =
+        bento_sensors_snapshot(BENTO_SENSORS_SNAPSHOT_DEFAULT_MS, snap);
+    if (status == BENTO_E_UNSUPPORTED) {
+        bento_sensors_snapshot_init(snap);
+        status = BENTO_OK;
+    }
+    return status;
+}
+
 /* The SHT40 when the board has one, else the knob (0-100 % = 15-45 C, so
  * a class can turn it across the threshold); false when neither answered. */
 static bool read_temp(const bento_sensors_snapshot_t *snap,
@@ -571,9 +590,7 @@ static bento_status_t run_round(const report_screen_t *screen,
     bento_status_t status;
 
     light(screen, STEP_SENSE);
-    bento_sensors_snapshot_init(&snap);
-    status = bento_sensors_snapshot(BENTO_SENSORS_SNAPSHOT_DEFAULT_MS,
-                                    &snap);
+    status = take_snapshot(&snap);
     if ((status == BENTO_OK) &&
         !read_temp(&snap, &state->source, &temp_c)) {
         (void)bento_lcd_print("<span class=warn>ไม่มีค่าอุณหภูมิรอบนี้</span>");
