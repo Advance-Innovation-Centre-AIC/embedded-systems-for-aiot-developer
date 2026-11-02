@@ -55,24 +55,42 @@
 #include "bento_runtime.h"
 #include "bento_time.h"
 
-enum { /* times, ms */
-    REFRACT_MS = 1500,
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+/* The exact name, looked up every run. */
+static const char MODEL[] = "DrillMaterialMic";
+/* false = deployed from the Store */
+static const bool BUILTIN = false;
+enum {
+    K = 2, /* breakthrough = K of the last N results at Confirm at */
+    N = 3,
+    REFRACT_MS = 1500 /* no new breakthrough sooner than this */
+};
+/* Hearing at, Confirm at, clear below (fallback), % */
+static const uint8_t DEF_THRESHOLDS[3] = {40U, 65U, 30U};
+enum {
     POLL_MS = 100,
-    DRAW_MS = 500,
-    DWELL_MS = 500,
+    DRAW_MS = 500
+};
+/* [0] without board buttons (Eva Kit), [1] with them */
+static const char *const HELP[2] = {
+    "Listening", "Listening - SW6 = ACK, SW5 = pause"};
+/* ms on top before a material counts */
+static const int32_t DWELLS[1] = {500};
+/* wood_out counts as wood */
+static const char *const CHIPS[3] = {"air", "plastic", "wood"};
+/* the classes this example needs */
+static const char *const NEED[5] = {"air", "plastic", "wood",
+                                    "plastic_out", "wood_out"};
+/* Notify only (clears itself when the sound ends), Cut power
+ * (latched until ACK) */
+static const char *const WORDS[2] = {"THROUGH", "POWER CUT"};
+/* ---- end of settings ---- */
+
+enum { /* times, ms */
     LOOP_MS = 20,
     LOAD_MS = 150,
     OP_POLL_MS = 20,
     FAIL_MS = 3000
-};
-enum { /* breakthrough = VOTE_HITS of the last VOTE_WINDOW results */
-    VOTE_HITS = 2,
-    VOTE_WINDOW = 3
-};
-enum { /* fallback thresholds, %: Hearing at, Confirm at, clear below */
-    DEFAULT_ENTER = 40,
-    DEFAULT_CONFIRM = 65,
-    DEFAULT_EXIT = 30
 };
 enum { /* sizes */
     MAX_CLASSES = BENTO_EDGEAI_MAX_CLASSES,
@@ -112,15 +130,11 @@ enum { /* font sizes, px */
     HUGE_PX = 28
 };
 
-/* The exact name, looked up every run. */
 /* What the BENTO Emulator says: 119 bytes, within the 126 one
  * label takes; the label gets a width so it wraps. */
 static const char EMULATOR_TEXT[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
-static const char MODEL_NAME[] = "DrillMaterialMic";
 static const char NOT_SURE[] = "Not sure";
-static const char *const CHIP_NAMES[CHIP_COUNT] = {
-    "air", "plastic", "wood"}; /* wood_out = wood */
 
 /* A rectangle on the screen; -1 = the widget's own size. */
 typedef struct {
@@ -179,7 +193,7 @@ typedef struct {
 
 /* The last N scores; K of them at or above a level = confirmed. */
 typedef struct {
-    uint8_t scores[VOTE_WINDOW];
+    uint8_t scores[N];
     uint32_t count;
 } vote_t;
 
@@ -191,7 +205,7 @@ typedef struct {
     uint32_t time_ms;
 } episode_t;
 
-/* A class counts after DWELL_MS on top at Confirm at; -1 = Not sure. */
+/* A class counts after DWELLS[0] on top at Confirm at; -1 = Not sure. */
 typedef struct {
     int32_t accepted;
     int32_t candidate;
@@ -451,13 +465,10 @@ static int32_t compiled_count(void)
 /* BUILTIN true takes True or None; BUILTIN false takes only False. */
 static bool source_matches(int32_t index, int32_t compiled)
 {
-    const bool want_builtin =
-        false; /* false = deployed from the Store */
-    bool matches = want_builtin;
+    bool matches = BUILTIN;
 
     if (compiled >= 0) {
-        matches =
-            want_builtin ? (index < compiled) : (index >= compiled);
+        matches = BUILTIN ? (index < compiled) : (index >= compiled);
     }
     return matches;
 }
@@ -482,13 +493,13 @@ static void keep_model(model_t *model, uint32_t index,
     }
 }
 
-/* One row: counted, and kept when it is MODEL_NAME from the right
+/* One row: counted, and kept when it is MODEL from the right
  * source and nothing was found before. */
 static void consider_row(model_t *model, bool *found,
                          const bento_edgeai_model_info_t *info,
                          int32_t index, int32_t compiled)
 {
-    if (!*found && (strcmp(info->name, MODEL_NAME) == 0) &&
+    if (!*found && (strcmp(info->name, MODEL) == 0) &&
         source_matches(index, compiled)) {
         *found = true;
         keep_model(model, (uint32_t)index, info);
@@ -588,7 +599,7 @@ static bento_status_t missing_model(bento_ui_t *ui)
     (void)snprintf(text, sizeof(text),
                    "Deploy %s\nfrom edgeai-store.tesaiot.dev\n(sign in "
                    "with GitHub) on a Dev Kit.",
-                   MODEL_NAME);
+                   MODEL);
     return missing(ui, "Model not on this board", text);
 }
 
@@ -656,9 +667,8 @@ static bento_status_t add_chips(drill_t *drill)
         status =
             add_widget(drill->ui, &panel, &screen->chip_panel[i].id);
         if (status == BENTO_OK) {
-            status =
-                add_label(drill->ui, CHIP_NAMES[i], text_at, COLOR_DIM,
-                          MEDIUM_PX, &screen->chip_text[i].id);
+            status = add_label(drill->ui, CHIPS[i], text_at, COLOR_DIM,
+                               MEDIUM_PX, &screen->chip_text[i].id);
         }
     }
     return status;
@@ -761,8 +771,6 @@ static bool has_label(const model_t *model, const char *name)
  * gets a card, never a guess. */
 static bento_status_t check_classes(drill_t *drill, bool *odd)
 {
-    static const char *const need[NEED_COUNT] = {
-        "air", "plastic", "wood", "plastic_out", "wood_out"};
     char absent[TEXT_BYTES];
     char text[TEXT_BYTES];
     size_t used = 0U;
@@ -772,16 +780,16 @@ static bento_status_t check_classes(drill_t *drill, bool *odd)
     *odd = false;
     absent[0] = '\0';
     for (i = 0; i < NEED_COUNT; i++) {
-        if (!has_label(&drill->model, need[i])) {
+        if (!has_label(&drill->model, NEED[i])) {
             (void)snprintf(&absent[used], sizeof(absent) - used, "%s%s",
-                           *odd ? ", " : "", need[i]);
+                           *odd ? ", " : "", NEED[i]);
             used = strlen(absent);
             *odd = true;
         }
     }
     if (*odd) {
-        (void)snprintf(text, sizeof(text), "%s has no class\n%s",
-                       MODEL_NAME, absent);
+        (void)snprintf(text, sizeof(text), "%s has no class\n%s", MODEL,
+                       absent);
         status = missing(
             drill->ui, "Model classes differ from this example", text);
     }
@@ -798,14 +806,14 @@ static void read_thresholds(drill_t *drill)
     if (bento_edgeai_thresholds(drill->model.index, thresholds) !=
         BENTO_OK) {
         for (i = 0U; i < (uint32_t)MAX_CLASSES; i++) {
-            thresholds->enter[i] = (uint8_t)DEFAULT_ENTER;
-            thresholds->confirm[i] = (uint8_t)DEFAULT_CONFIRM;
-            thresholds->exit[i] = (uint8_t)DEFAULT_EXIT;
+            thresholds->enter[i] = DEF_THRESHOLDS[0];
+            thresholds->confirm[i] = DEF_THRESHOLDS[1];
+            thresholds->exit[i] = DEF_THRESHOLDS[2];
         }
     }
 }
 
-/* The chip a class lights: its name before "_" among CHIP_NAMES. */
+/* The chip a class lights: its name before "_" among CHIPS. */
 static int32_t chip_of_label(const char *label)
 {
     size_t length = 0U;
@@ -817,8 +825,8 @@ static int32_t chip_of_label(const char *label)
     }
 
     for (i = 0; i < CHIP_COUNT; i++) {
-        if ((strlen(CHIP_NAMES[i]) == length) &&
-            (strncmp(CHIP_NAMES[i], label, length) == 0)) {
+        if ((strlen(CHIPS[i]) == length) &&
+            (strncmp(CHIPS[i], label, length) == 0)) {
             chip = i;
         }
     }
@@ -899,14 +907,11 @@ static bento_status_t select_model(const drill_t *drill,
 /* start(): on resume, Stop if a model was added or removed meanwhile. */
 static bento_status_t start_model(drill_t *drill, bool check_count)
 {
-    static const char help_buttons[] =
-        "Listening - SW6 = ACK, SW5 = pause";
-    static const char help_touch[] = "Listening";
     char text[TEXT_BYTES];
     bento_status_t status = BENTO_OK;
     bento_status_t link = BENTO_OK;
 
-    (void)snprintf(text, sizeof(text), "Loading %s ...", MODEL_NAME);
+    (void)snprintf(text, sizeof(text), "Loading %s ...", MODEL);
     put_text(drill->ui, &drill->screen.status, text);
     put_color(drill->ui, &drill->screen.status, COLOR_WARN);
     drain_events(drill->ui);
@@ -918,13 +923,12 @@ static bento_status_t start_model(drill_t *drill, bool check_count)
         status = select_model(drill, &link);
     }
     if ((status == BENTO_OK) && !drill->stopped && (link != BENTO_OK)) {
-        (void)snprintf(text, sizeof(text), "Cannot start %s",
-                       MODEL_NAME);
+        (void)snprintf(text, sizeof(text), "Cannot start %s", MODEL);
         raise_stop(drill, text);
     }
     if ((status == BENTO_OK) && !drill->stopped) {
         put_text(drill->ui, &drill->screen.status,
-                 drill->has_buttons ? help_buttons : help_touch);
+                 HELP[drill->has_buttons ? 1 : 0]);
         put_color(drill->ui, &drill->screen.status, COLOR_TEXT);
     }
     return status;
@@ -934,14 +938,14 @@ static void vote_add(vote_t *vote, uint8_t score)
 {
     uint32_t i;
 
-    if (vote->count < (uint32_t)VOTE_WINDOW) {
+    if (vote->count < (uint32_t)N) {
         vote->scores[vote->count] = score;
         vote->count++;
     } else {
-        for (i = 1U; i < (uint32_t)VOTE_WINDOW; i++) {
+        for (i = 1U; i < (uint32_t)N; i++) {
             vote->scores[i - 1U] = vote->scores[i];
         }
-        vote->scores[VOTE_WINDOW - 1] = score;
+        vote->scores[N - 1] = score;
     }
 }
 
@@ -955,7 +959,7 @@ static bool vote_hits(const vote_t *vote, uint8_t level)
             hits++;
         }
     }
-    return hits >= VOTE_HITS;
+    return hits >= K;
 }
 
 static uint8_t vote_max(const vote_t *vote)
@@ -973,8 +977,7 @@ static uint8_t vote_max(const vote_t *vote)
 
 static bool vote_clear(const vote_t *vote, uint8_t level)
 {
-    return (vote->count == (uint32_t)VOTE_WINDOW) &&
-           (vote_max(vote) < level);
+    return (vote->count == (uint32_t)N) && (vote_max(vote) < level);
 }
 
 /* No confirm, or one inside the refractory time: the state follows
@@ -1044,7 +1047,7 @@ static void dwell_step(drill_t *drill, int32_t klass, uint8_t percent,
         dwell->since_ms = now_ms;
     }
     if ((klass != dwell->accepted) &&
-        (bento_time_ticks_diff(now_ms, dwell->since_ms) >= DWELL_MS)) {
+        (bento_time_ticks_diff(now_ms, dwell->since_ms) >= DWELLS[0])) {
         dwell->accepted = klass;
         clock_text(clock, sizeof(clock));
         (void)printf("%s %s %u%%", clock, class_name(drill, klass),
@@ -1122,9 +1125,6 @@ static uint32_t strongest_out(const drill_t *drill,
 /* A breakthrough: one console line, the count and the time. */
 static void report_through(drill_t *drill, uint32_t out)
 {
-    /* Notify only (clears itself when the sound ends), Cut power
-     * (latched until ACK) */
-    static const char *const cut_words[2] = {"THROUGH", "POWER CUT"};
     char clock[CLOCK_BYTES];
     char text[TEXT_BYTES];
 
@@ -1132,7 +1132,7 @@ static void report_through(drill_t *drill, uint32_t out)
     (void)printf("%s %s %u%% %s #%" PRId32 "\n", clock,
                  drill->model.labels[out],
                  (unsigned int)vote_max(&drill->vote),
-                 cut_words[drill->cut], drill->episode.count);
+                 WORDS[drill->cut], drill->episode.count);
     (void)snprintf(text, sizeof(text), "%" PRId32,
                    drill->episode.count);
     put_text(drill->ui, &drill->screen.count, text);
