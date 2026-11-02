@@ -17,16 +17,17 @@
  * (embedded-systems-for-aiot-developer/examples/s01/03_byte_limit.py).
  * Style: CLEAN_C.md.
  * Where C differs: len(str) counts the UTF-8 lead bytes (code points)
- * and len(str.encode()) is strlen(); the ITEMS list that the original
+ * and len(str.encode()) is strlen(); the items list that the original
  * grows with append() is the fixed table plus the pieces cut in a
  * loop, in the same order.
  *
- * ตาคุณ: เพิ่มชื่อสมาชิกในทีมเป็นภาษาไทยลงใน ITEMS แล้วทำนายก่อนรันว่า
+ * ตาคุณ: เพิ่มชื่อสมาชิกในทีมเป็นภาษาไทยลงใน items แล้วทำนายก่อนรันว่า
  * ตัวเลขไบต์จะเป็นเท่าไร และเป็นสีเขียวหรือแดง
- * Your turn: add a team member's Thai name to ITEMS, predict its byte
+ * Your turn: add a team member's Thai name to items, predict its byte
  * count and colour before you run, then compare (hint: Thai = 3 bytes,
  * a space or a digit = 1).
  */
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -39,7 +40,7 @@
 enum {
     LIMIT_BYTES = 127, /* the most one call carries */
     CHUNK_CHARS = 40,  /* pieces cut by hand (40 Thai = 120 bytes) */
-    FIXED_COUNT = 4,   /* the rows of ITEMS before the pieces */
+    FIXED_COUNT = 4,   /* the rows of items before the pieces */
     UTF8_MAX_BYTES = 4 /* the longest UTF-8 character */
 };
 
@@ -320,7 +321,7 @@ static bento_status_t measure(const byte_screen_t *screen,
 
 static bento_status_t measure_fixed(const byte_screen_t *screen)
 {
-    static const item_t ITEMS[FIXED_COUNT] = {
+    static const item_t items[FIXED_COUNT] = {
         {"hello - อังกฤษ 5 ตัว", "hello"},
         {"สวัสดี - ไทย 6 ตัว", "สวัสดี"},
         {"แท็ก span เปล่า ๆ", TAG},
@@ -331,7 +332,7 @@ static bento_status_t measure_fixed(const byte_screen_t *screen)
 
     for (i = 0U; (i < (uint32_t)FIXED_COUNT) && (status == BENTO_OK);
          i++) {
-        status = measure(screen, &ITEMS[i]);
+        status = measure(screen, &items[i]);
     }
     return status;
 }
@@ -354,8 +355,8 @@ static bento_status_t measure_pieces(const byte_screen_t *screen)
 
         (void)memcpy(piece, &LONG_LINE[from], to - from);
         piece[to - from] = '\0';
-        (void)snprintf(name, sizeof(name), "แบ่งเอง ก้อนที่ %d",
-                       (int)((start / CHUNK_CHARS) + 1));
+        (void)snprintf(name, sizeof(name), "แบ่งเอง ก้อนที่ %" PRId32,
+                       (start / CHUNK_CHARS) + 1);
         status = measure(screen, &item);
     }
     return status;

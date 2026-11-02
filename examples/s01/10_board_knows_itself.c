@@ -78,10 +78,10 @@ enum {
 
 /* Where the program keeps the ids of the widgets it changes later. */
 enum {
-    SLOT_LED_ROW,
-    SLOT_BUTTON_ROW,
-    SLOT_NOTE,
-    SLOT_CELL, /* ASK_COUNT cells from here */
+    SLOT_LED_ROW = 0,
+    SLOT_BUTTON_ROW = 1,
+    SLOT_NOTE = 2,
+    SLOT_CELL = 3, /* ASK_COUNT cells from here */
     SLOT_COUNT = SLOT_CELL + ASK_COUNT,
     SLOT_NONE = SLOT_COUNT /* a widget nobody changes again */
 };
@@ -324,7 +324,7 @@ static bento_status_t add_widget(board_screen_t *screen,
  * NULL takes the next of the board's own answers. */
 static bento_status_t add_card(board_screen_t *screen)
 {
-    static const widget_spec_t CARD[] = {
+    static const widget_spec_t card_widgets[] = {
         {UI_WIDGET_LABEL, SLOT_NONE, "บอร์ดตอบเองว่ามีอะไร", 20, 12, AUTO,
          AUTO, COL_TEXT, 0, 0, 24},
         {UI_WIDGET_PANEL, SLOT_NONE, NULL, 20, 52, 652, 104, COL_CARD,
@@ -353,42 +353,25 @@ static bento_status_t add_card(board_screen_t *screen)
     (void)snprintf(buttons, sizeof(buttons), "%lu",
                    (unsigned long)screen->info.buttons);
     for (i = 0U;
-         (i < (sizeof(CARD) / sizeof(CARD[0]))) && (status == BENTO_OK);
+         (i < (sizeof(card_widgets) / sizeof(card_widgets[0]))) &&
+         (status == BENTO_OK);
          i++) {
-        const char *text = CARD[i].text;
+        const char *text = card_widgets[i].text;
 
         if (text == NULL) {
             text = answers[next];
             next++;
         }
-        status = add_widget(screen, &CARD[i], text);
+        status = add_widget(screen, &card_widgets[i], text);
     }
     return status;
 }
 
-/* The two name rows, the eight empty cells and the note. A cell is
- * never created empty: LVGL would write "Label" into it. */
-static bento_status_t add_table(board_screen_t *screen)
+/* The eight cells, two columns of four. A cell is never created
+ * empty: LVGL would write "Label" into it. */
+static bento_status_t add_cells(board_screen_t *screen)
 {
-    static const widget_spec_t ROWS[] = {
-        {UI_WIDGET_LABEL, SLOT_LED_ROW, "กำลังอ่านรายชื่อหลอด", 20, 168,
-         AUTO, AUTO, COL_TEXT, 0, 0, FONT_PX},
-        {UI_WIDGET_LABEL, SLOT_BUTTON_ROW, "กำลังอ่านรายชื่อปุ่ม", 20, 196,
-         AUTO, AUTO, COL_TEXT, 0, 0, FONT_PX},
-        {UI_WIDGET_LABEL, SLOT_NONE, "ถาม machine ว่ามีคำสั่งไหนจริง", 20,
-         228, AUTO, AUTO, COL_TEXT, 0, 0, FONT_PX}};
-    static const widget_spec_t NOTE = {UI_WIDGET_LABEL,
-                                       SLOT_NOTE,
-                                       "ยังไม่ได้ถามอะไรเลย",
-                                       20,
-                                       366,
-                                       AUTO,
-                                       AUTO,
-                                       COL_DIM,
-                                       0,
-                                       0,
-                                       FONT_PX};
-    static const widget_spec_t FIRST_CELL = {UI_WIDGET_LABEL,
+    static const widget_spec_t first_cell = {UI_WIDGET_LABEL,
                                              SLOT_CELL,
                                              "รอถาม",
                                              CELL_LEFT_X,
@@ -399,15 +382,10 @@ static bento_status_t add_table(board_screen_t *screen)
                                              0,
                                              0,
                                              FONT_PX};
-    widget_spec_t cell = FIRST_CELL;
+    widget_spec_t cell = first_cell;
     uint32_t i;
     bento_status_t status = BENTO_OK;
 
-    for (i = 0U;
-         (i < (sizeof(ROWS) / sizeof(ROWS[0]))) && (status == BENTO_OK);
-         i++) {
-        status = add_widget(screen, &ROWS[i], ROWS[i].text);
-    }
     for (i = 0U; (i < ASK_COUNT) && (status == BENTO_OK); i++) {
         const int32_t row = (int32_t)(i % (uint32_t)CELL_ROWS);
 
@@ -416,8 +394,45 @@ static bento_status_t add_table(board_screen_t *screen)
         cell.y = (int16_t)(CELL_TOP_Y + (row * CELL_STEP_Y));
         status = add_widget(screen, &cell, cell.text);
     }
+    return status;
+}
+
+/* The two name rows, the eight empty cells and the note. A cell is
+ * never created empty: LVGL would write "Label" into it. */
+static bento_status_t add_table(board_screen_t *screen)
+{
+    static const widget_spec_t row_widgets[] = {
+        {UI_WIDGET_LABEL, SLOT_LED_ROW, "กำลังอ่านรายชื่อหลอด", 20, 168,
+         AUTO, AUTO, COL_TEXT, 0, 0, FONT_PX},
+        {UI_WIDGET_LABEL, SLOT_BUTTON_ROW, "กำลังอ่านรายชื่อปุ่ม", 20, 196,
+         AUTO, AUTO, COL_TEXT, 0, 0, FONT_PX},
+        {UI_WIDGET_LABEL, SLOT_NONE, "ถาม machine ว่ามีคำสั่งไหนจริง", 20,
+         228, AUTO, AUTO, COL_TEXT, 0, 0, FONT_PX}};
+    static const widget_spec_t note_widget = {UI_WIDGET_LABEL,
+                                              SLOT_NOTE,
+                                              "ยังไม่ได้ถามอะไรเลย",
+                                              20,
+                                              366,
+                                              AUTO,
+                                              AUTO,
+                                              COL_DIM,
+                                              0,
+                                              0,
+                                              FONT_PX};
+    uint32_t i;
+    bento_status_t status = BENTO_OK;
+
+    for (i = 0U; (i < (sizeof(row_widgets) / sizeof(row_widgets[0]))) &&
+                 (status == BENTO_OK);
+         i++) {
+        status =
+            add_widget(screen, &row_widgets[i], row_widgets[i].text);
+    }
     if (status == BENTO_OK) {
-        status = add_widget(screen, &NOTE, NOTE.text);
+        status = add_cells(screen);
+    }
+    if (status == BENTO_OK) {
+        status = add_widget(screen, &note_widget, note_widget.text);
     }
     return status;
 }

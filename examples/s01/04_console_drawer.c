@@ -181,8 +181,7 @@ static bento_status_t add_score(report_screen_t *screen)
     char score_text[TEXT_BYTES];
     bento_ui_widget_args_t args;
 
-    (void)snprintf(score_text, sizeof(score_text), "0/%d",
-                   (int)CHECK_COUNT);
+    (void)snprintf(score_text, sizeof(score_text), "0/%d", CHECK_COUNT);
     bento_ui_widget_args_init(&args);
     args.text = score_text;
     args.text_len = (uint32_t)strlen(score_text);
@@ -292,7 +291,7 @@ static bento_status_t report_check(const report_screen_t *screen,
                                  : "<span class=error>ไม่ผ่าน</span>");
         (void)bento_lcd_print(text);
         (void)snprintf(text, sizeof(text), "%d-%d", (int)passed,
-                       (int)CHECK_COUNT);
+                       CHECK_COUNT);
         show_text(screen->ui, screen->score, text);
         (void)bento_ui_set_value(screen->ui, screen->progress, passed);
     }
@@ -304,7 +303,7 @@ static bento_status_t report_check(const report_screen_t *screen,
 static bento_status_t run_checks(const report_screen_t *screen,
                                  int32_t *out_passed)
 {
-    static const check_t CHECKS[CHECK_COUNT] = {
+    static const check_t checks[CHECK_COUNT] = {
         {"จอแสดงผล", true},
         {"ปุ่มบนบอร์ด", true},
         {"หลอด LED", true},
@@ -316,8 +315,8 @@ static bento_status_t run_checks(const report_screen_t *screen,
     bento_status_t status = BENTO_OK;
 
     for (i = 0; (i < CHECK_COUNT) && (status == BENTO_OK); i++) {
-        passed += CHECKS[i].ok ? 1 : 0;
-        status = report_check(screen, &CHECKS[i], passed, row_y);
+        passed += checks[i].ok ? 1 : 0;
+        status = report_check(screen, &checks[i], passed, row_y);
         row_y += ROW_STEP;
         if (status == BENTO_OK) {
             poll_display(screen->ui);
@@ -353,7 +352,7 @@ static void show_summary(const report_screen_t *screen, int32_t passed)
     } else {
         (void)snprintf(text, sizeof(text),
                        "<span class=warn>ผ่าน %d จาก %d </span>",
-                       (int)passed, (int)CHECK_COUNT);
+                       (int)passed, CHECK_COUNT);
     }
     (void)bento_lcd_print(text);
 }

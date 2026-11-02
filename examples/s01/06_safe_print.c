@@ -113,17 +113,27 @@ typedef struct {
     bento_ui_id_t status;
 } print_screen_t;
 
+/* UTF-8: the first byte of a character tells its length. */
+enum {
+    ASCII_END = 0x80,  /* below: a one-byte character */
+    LEAD2_MASK = 0xE0, /* 110xxxxx: two bytes */
+    LEAD2_BITS = 0xC0,
+    LEAD3_MASK = 0xF0, /* 1110xxxx: three bytes (Thai) */
+    LEAD3_BITS = 0xE0,
+    LEAD3_BYTES = 3
+};
+
 /* len(ch.encode()) of the character whose first byte is lead. */
 static uint32_t utf8_char_bytes(uint8_t lead)
 {
     uint32_t bytes = UTF8_MAX_BYTES;
 
-    if (lead < 0x80U) {
+    if (lead < (uint32_t)ASCII_END) {
         bytes = 1U;
-    } else if ((lead & 0xE0U) == 0xC0U) {
+    } else if ((lead & (uint32_t)LEAD2_MASK) == (uint32_t)LEAD2_BITS) {
         bytes = 2U;
-    } else if ((lead & 0xF0U) == 0xE0U) {
-        bytes = 3U;
+    } else if ((lead & (uint32_t)LEAD3_MASK) == (uint32_t)LEAD3_BITS) {
+        bytes = LEAD3_BYTES;
     } else {
         bytes = UTF8_MAX_BYTES;
     }
@@ -320,7 +330,7 @@ static bento_status_t flush(const print_screen_t *screen,
     (void)bento_lcd_print(chunk);
     (void)bento_ui_set_value(screen->ui, screen->bar, (int32_t)length);
     (void)snprintf(text, sizeof(text), "%d / %d ไบต์ - เพดานจริง 127",
-                   (int)length, (int)SAFE_BYTES);
+                   (int)length, SAFE_BYTES);
     set_text(screen->ui, screen->size_label, text);
     cut = utf8_prefix_bytes(chunk, length, PREVIEW_CHARS);
     (void)snprintf(text, sizeof(text), "%.*s...", (int)cut, chunk);
