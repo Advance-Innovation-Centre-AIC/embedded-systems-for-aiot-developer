@@ -28,6 +28,8 @@
  *     prints "[WiFi] Connecting..." and "[WiFi] Connected! IP=..."; the
  *     radio's per-attempt lines are not reported by the C API. The
  *     password is saved on a join with BENTO_WIFI_F_SAVE_CREDS.
+ * In the BENTO Emulator, MQTT from C is not available yet: the program says
+ * so and ends.
  */
 #include <inttypes.h>
 #include <stdbool.h>
@@ -63,6 +65,8 @@ enum {
     GAP_NOTE_X = 252,
     STEP_Y = 288,
     STATUS_Y = 336,
+    /* the Emulator note wraps over the step and status lines */
+    EMU_NOTE_W = 752,
     TITLE_PX = 24,
     TEXT_PX = 20
 };
@@ -600,6 +604,38 @@ static bento_status_t join_wifi(bool *joined)
     return (status == BENTO_E_CANCELLED) ? status : BENTO_OK;
 }
 
+/* The BENTO Emulator's C runtime has no TESAIoT link yet (every
+ * bento_tesaiot_* call answers BENTO_E_UNSUPPORTED there): the step and
+ * status lines make room for the note, the console says it too, and the
+ * program ends quietly. Answers BENTO_E_CANCELLED, the quiet end, once the
+ * note is up. */
+static bento_status_t show_emulator_note(const link_screen_t *screen)
+{
+    static const char note[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+    bento_ui_widget_args_t args;
+    bento_ui_id_t label;
+    bento_status_t status;
+
+    set_text(screen, screen->step, "");
+    set_text(screen, screen->status, "");
+    bento_ui_widget_args_init(&args);
+    args.text = note;
+    args.text_len = (uint32_t)strlen(note);
+    args.x = MARGIN_X;
+    args.y = STEP_Y;
+    args.w = EMU_NOTE_W;
+    args.color = (uint32_t)COLOR_WARN;
+    args.font_px = TEXT_PX;
+    status = bento_ui_label_create(screen->ui, &args, &label);
+    drop_events(screen);
+    (void)printf("%s / MQTT from C is not in the BENTO Emulator yet: "
+                 "run it on a Dev Kit or Eva "
+                 "Kit.\n",
+                 note);
+    return (status == BENTO_OK) ? BENTO_E_CANCELLED : status;
+}
+
 /* Wi-Fi, the platform's settings, the mode check, then the link. */
 static bento_status_t run_lesson(const link_screen_t *screen)
 {
@@ -613,6 +649,9 @@ static bento_status_t run_lesson(const link_screen_t *screen)
     if ((status == BENTO_OK) && joined) {
         show_address(screen);
         status = configure_platform(mode, sizeof(mode));
+        if (status == BENTO_E_UNSUPPORTED) {
+            status = show_emulator_note(screen);
+        }
         if ((status == BENTO_OK) && check_mode(screen, mode)) {
             status = connect_and_time(screen);
         }
