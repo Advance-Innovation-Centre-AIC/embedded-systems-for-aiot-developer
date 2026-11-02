@@ -35,6 +35,9 @@
  *   - bento_mqtt keeps four messages where the binding keeps one; the
  *     newest one waiting is acted on, as the one slot would. A C
  *     program closes its broker client at the end.
+ * In the BENTO Emulator, MQTT from C is not available yet: the program
+ * says so and ends, through the original's "broker does not answer"
+ * path.
  */
 #include <inttypes.h>
 #include <stdbool.h>
@@ -1100,6 +1103,22 @@ static void explain_no_broker(panel_t *panel, bento_status_t answer)
     }
 }
 
+/* The BENTO Emulator's C runtime has no MQTT yet: its connect answers
+ * BENTO_E_UNSUPPORTED. The screen and the console say so; then the
+ * program takes the original's own "broker does not answer" path. */
+static void show_no_mqtt_here(const panel_t *panel)
+{
+    static const char sentence[] =
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+
+    show(panel, W_LAST, COLOR_WARN, sentence);
+    let_screen_draw(panel->ui);
+    (void)printf(
+        "%s / MQTT from C is not in the BENTO Emulator yet: run it "
+        "on a Dev Kit or Eva Kit.\n",
+        sentence);
+}
+
 static void show_linked(const panel_t *panel)
 {
     char text[TEXT_BYTES];
@@ -1127,6 +1146,9 @@ static bento_status_t step_broker(panel_t *panel, const char *ip)
     show_text(panel->ui, panel->ids[W_LINK], text);
     let_screen_draw(panel->ui);
     status = open_broker(panel, &answer);
+    if ((status == BENTO_OK) && (answer == BENTO_E_UNSUPPORTED)) {
+        show_no_mqtt_here(panel);
+    }
     if ((status == BENTO_OK) && (answer != BENTO_OK)) {
         explain_no_broker(panel, answer);
     }
