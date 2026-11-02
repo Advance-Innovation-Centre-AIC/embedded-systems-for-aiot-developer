@@ -62,6 +62,16 @@
 #include "bento_runtime.h"
 #include "bento_wifi.h"
 
+/* ---- แก้ก่อนรัน: settings (MISRA deviation CT02) ---- */
+static const char WIFI_SSID[] = "<Hotspot name>";
+static const char WIFI_PASS[] = "<Hotspot password>";
+static const char TEAM[] = "teamXX"; /* from the teacher, e.g. team05 */
+/* KIT: machine (06) | safety (07) | nursery (08) | voice (09) */
+static const char KIT[] = "machine";
+/* BROKER: test.mosquitto.org is the spare */
+static const char BROKER[] = "broker.hivemq.com";
+/* ---- end of settings ---- */
+
 /* The note for the BENTO Emulator, whose C runtime has no Edge AI yet. */
 static const char EMULATOR_NOTE[] =
     "Edge AI จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
@@ -169,23 +179,6 @@ typedef struct {
     bool manual;
     const char *title;
 } kit_t;
-
-/* The program's settings. */
-typedef struct {
-    const char *wifi_ssid;
-    const char *wifi_pass;
-    const char *team;
-    const char *kit;
-    const char *broker;
-} settings_t;
-
-/* Edit before running: TEAM (the team number the teacher gives, such
- * as team05) and KIT (machine, safety, nursery or voice, as the files
- * of session 11); WIFI_SSID / WIFI_PASS only when the board is not on a
- * saved WiFi. The broker's spare is test.mosquitto.org. */
-static const settings_t SETTINGS = {"<Hotspot name>",
-                                    "<Hotspot password>", "teamXX",
-                                    "machine", "broker.hivemq.com"};
 
 /* The same values as the files 06 07 08 of session 11; voice needs its
  * model deployed from the Store first. */
@@ -543,14 +536,14 @@ static void add_line(hold_text_t *text, const char *line)
 
 /* ---- the kit and the model ---- */
 
-/* The kit named in SETTINGS, as its row in KITS, or NO_KIT. */
+/* The kit named in KIT, as its row in KITS, or NO_KIT. */
 static int32_t find_kit(void)
 {
     int32_t found = NO_KIT;
     int32_t i;
 
     for (i = 0; (i < KIT_COUNT) && (found == NO_KIT); i++) {
-        if (strcmp(KITS[i].kit, SETTINGS.kit) == 0) {
+        if (strcmp(KITS[i].kit, KIT) == 0) {
             found = i;
         }
     }
@@ -562,8 +555,7 @@ static bento_status_t hold_bad_kit(bento_ui_t *ui)
     char first[TEXT_CHARS];
     hold_text_t text;
 
-    (void)snprintf(first, sizeof(first), "KIT ไม่ถูกต้อง: %s",
-                   SETTINGS.kit);
+    (void)snprintf(first, sizeof(first), "KIT ไม่ถูกต้อง: %s", KIT);
     text.count = 0U;
     add_line(&text, first);
     add_line(&text, "machine safety nursery voice");
@@ -609,8 +601,7 @@ static bento_status_t hold_no_model(const hmi_t *hmi, bool in_emulator)
     join_keys(hmi->kit, true, names, (uint32_t)sizeof(names));
     (void)printf("none of these models is on the board: (%s%s)\n",
                  names, (KITS[hmi->kit].key_count == 1U) ? "," : "");
-    (void)snprintf(first, sizeof(first), "ไม่พบโมเดลของ KIT %s",
-                   SETTINGS.kit);
+    (void)snprintf(first, sizeof(first), "ไม่พบโมเดลของ KIT %s", KIT);
     join_keys(hmi->kit, false, names, (uint32_t)sizeof(names));
     text.count = 0U;
     add_line(&text, first);
@@ -775,14 +766,12 @@ static bool team_ok(void)
     bool digits = true;
     uint32_t i;
 
-    for (i = TEAM_PREFIX_LEN; i < (uint32_t)strlen(SETTINGS.team);
-         i++) {
-        digits = digits && (SETTINGS.team[i] >= '0') &&
-                 (SETTINGS.team[i] <= '9');
+    for (i = TEAM_PREFIX_LEN; i < (uint32_t)strlen(TEAM); i++) {
+        digits = digits && (TEAM[i] >= '0') && (TEAM[i] <= '9');
     }
-    return (strlen(SETTINGS.team) == (size_t)TEAM_LEN) &&
-           (strncmp(SETTINGS.team, "team", TEAM_PREFIX_LEN) == 0) &&
-           digits && (strcmp(SETTINGS.team, "team00") != 0);
+    return (strlen(TEAM) == (size_t)TEAM_LEN) &&
+           (strncmp(TEAM, "team", TEAM_PREFIX_LEN) == 0) && digits &&
+           (strcmp(TEAM, "team00") != 0);
 }
 
 /* wifi.connect(WIFI_SSID, WIFI_PASS), waited for. */
@@ -793,10 +782,10 @@ static bento_status_t connect_wifi(bool *joined)
     bento_status_t status;
 
     bento_wifi_connect_params_init(&params);
-    params.ssid = SETTINGS.wifi_ssid;
-    params.ssid_len = (uint32_t)strlen(SETTINGS.wifi_ssid);
-    params.pass = SETTINGS.wifi_pass;
-    params.pass_len = (uint32_t)strlen(SETTINGS.wifi_pass);
+    params.ssid = WIFI_SSID;
+    params.ssid_len = (uint32_t)strlen(WIFI_SSID);
+    params.pass = WIFI_PASS;
+    params.pass_len = (uint32_t)strlen(WIFI_PASS);
     params.flags = BENTO_WIFI_F_SAVE_CREDS; /* as the binding does */
     status = bento_wifi_connect_start(&params);
     while ((status == BENTO_OK) && (answer == BENTO_E_IN_PROGRESS)) {
@@ -830,8 +819,7 @@ static bento_status_t wifi_up(const hmi_t *hmi, bool *joined)
             status = pause_ms(WIFI_POLL_MS);
         }
     }
-    if ((status == BENTO_OK) && !*joined &&
-        (SETTINGS.wifi_ssid[0] == '<')) {
+    if ((status == BENTO_OK) && !*joined && (WIFI_SSID[0] == '<')) {
         say(hmi, "No WiFi - set WIFI_SSID (offline)", COLOR_WARN);
     } else if ((status == BENTO_OK) && !*joined) {
         say(hmi, "Connecting WiFi ...", COLOR_WARN);
@@ -850,8 +838,8 @@ static bento_status_t connect_broker(hmi_t *hmi, bool *connected)
     bento_status_t status;
 
     bento_mqtt_config_init(&config);
-    config.host = SETTINGS.broker;
-    config.host_len = (uint32_t)strlen(SETTINGS.broker);
+    config.host = BROKER;
+    config.host_len = (uint32_t)strlen(BROKER);
     config.port = MQTT_PORT;
     config.keepalive_s = KEEPALIVE_S;
     config.client_id = hmi->client_id;
@@ -979,8 +967,8 @@ static void snapshot(const hmi_t *hmi, char *line, uint32_t capacity)
         "\"label\": \"%s\", \"conf\": %" PRId32
         ", \"state\": \"%s\", \"events\": %" PRId32 ", \"n\": %" PRIu32
         "}",
-        SETTINGS.team, SETTINGS.kit, hmi->model_name, hmi->label,
-        hmi->conf, state_names[hmi->state], hmi->events, hmi->sequence);
+        TEAM, KIT, hmi->model_name, hmi->label, hmi->conf,
+        state_names[hmi->state], hmi->events, hmi->sequence);
 }
 
 /* ---- the loop ---- */
@@ -1228,10 +1216,10 @@ static bento_status_t run_hmi(hmi_t *hmi)
 static void name_topics(hmi_t *hmi)
 {
     (void)snprintf(hmi->client_id, sizeof(hmi->client_id),
-                   "bento-ai-%s-%04" PRIx32, SETTINGS.team,
+                   "bento-ai-%s-%04" PRIx32, TEAM,
                    bento_time_ticks_ms() & (uint32_t)CLOCK_MASK);
     (void)snprintf(hmi->topic, sizeof(hmi->topic), "bento-aiot/%s/ai",
-                   SETTINGS.team);
+                   TEAM);
 }
 
 /* The model found: its danger class, its threshold, and the screen's
