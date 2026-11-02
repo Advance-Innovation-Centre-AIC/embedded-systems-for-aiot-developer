@@ -52,7 +52,10 @@ enum {
     PLAY_MS = 1600,        /* the pace of play-through */
     LOOP_MS = 30,          /* how often the screen is asked */
     RESOLUTION_DIGITS = 3, /* "%.3f" of the Hz per bin */
-    TEXT_BYTES = 160       /* the longest text built here, 120 bytes */
+    TEXT_BYTES = 160,      /* the longest text built here, 120 bytes */
+    /* the speed-up console line: 134 bytes of text, an int32_t (11),
+     * N * N (4), a number (35) and the NUL */
+    SPEEDUP_LINE_BYTES = 185
 };
 
 /* Layout on an 8 px grid, outer margin 24. */
@@ -829,7 +832,7 @@ static int32_t fft_products(const fft_screen_t *screen)
 static void print_numbers(const fft_screen_t *screen)
 {
     const int32_t products = fft_products(screen);
-    char text[TEXT_BYTES];
+    char text[SPEEDUP_LINE_BYTES];
     char number[BENTO_FMT_BUF_SIZE];
 
     format_real(number, SAMPLE_RATE_HZ / (bento_real_t)SAMPLE_COUNT,
