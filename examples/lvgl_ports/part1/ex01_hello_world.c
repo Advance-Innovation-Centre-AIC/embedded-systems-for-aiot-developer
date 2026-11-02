@@ -50,7 +50,8 @@ enum {
 enum {
     SETTLE_MS = 200, /* let the cleared screen settle */
     LOOP_MS = 100,   /* read the touch events this often */
-    RUN_MS = 2000    /* the screen stays this long, then the example ends */
+    RUN_MS =
+        2000 /* the screen stays this long, then the example ends */
 };
 
 /* Python's len(): characters, not bytes, so a Thai text is centred
@@ -77,11 +78,13 @@ static int32_t utf8_length(const char *text)
  * size, floor-divided by 4). */
 static int16_t centered_x(const char *text, int32_t font_px)
 {
-    return (int16_t)(SCREEN_CENTER_X - (((utf8_length(text) * font_px) / 2) / 2));
+    return (int16_t)(SCREEN_CENTER_X -
+                     (((utf8_length(text) * font_px) / 2) / 2));
 }
 
 /* A label centred on the screen. */
-static bento_status_t add_label(bento_ui_t *ui, const char *text, int16_t y, uint32_t color,
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                int16_t y, uint32_t color,
                                 int32_t font_px)
 {
     bento_ui_widget_args_t args;
@@ -120,7 +123,8 @@ static bento_status_t add_background(bento_ui_t *ui)
 static bento_status_t build_screen(bento_ui_t *ui)
 {
     bento_status_t status =
-        bento_ui_screen(ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = bento_time_sleep_ms(SETTLE_MS);
@@ -132,17 +136,21 @@ static bento_status_t build_screen(bento_ui_t *ui)
         status = add_background(ui);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "Part 1 - Example 1", TITLE_Y, COLOR_TEXT, FONT_PX);
+        status = add_label(ui, "Part 1 - Example 1", TITLE_Y,
+                           COLOR_TEXT, FONT_PX);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "Hello BUU!", HELLO_Y, COLOR_TEXT, HELLO_FONT_PX);
+        status = add_label(ui, "Hello BUU!", HELLO_Y, COLOR_TEXT,
+                           HELLO_FONT_PX);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "Basic Label Example", DESCRIPTION_Y, COLOR_HINT, FONT_PX);
-    }
-    if (status == BENTO_OK) {
-        status = add_label(ui, "Learning: lv_label_create, lv_obj_align", DESCRIPTION2_Y,
+        status = add_label(ui, "Basic Label Example", DESCRIPTION_Y,
                            COLOR_HINT, FONT_PX);
+    }
+    if (status == BENTO_OK) {
+        status =
+            add_label(ui, "Learning: lv_label_create, lv_obj_align",
+                      DESCRIPTION2_Y, COLOR_HINT, FONT_PX);
     }
     if (status == BENTO_OK) {
         status = add_label(ui,
@@ -163,11 +171,13 @@ static bento_status_t hold_screen(bento_ui_t *ui)
     bento_status_t status = BENTO_OK;
 
     while ((status == BENTO_OK) &&
-           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) < RUN_MS)) {
+           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
+            RUN_MS)) {
         /* No widget here answers a tap (the "< Menu" button is left
          * out), so the events are not read, and ui.poll() answers no
          * events when it fails. */
-        (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+        (void)bento_ui_poll(ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                            &count, NULL);
         status = bento_time_sleep_ms(LOOP_MS);
         if ((status == BENTO_OK) && !bento_runtime_is_running()) {
             status = BENTO_E_CANCELLED;
@@ -185,7 +195,8 @@ int main(void)
         status = hold_screen(ui);
     }
     if (status == BENTO_OK) {
-        (void)printf("ex01_hello_world: done - widgets stay on screen\n");
+        (void)printf(
+            "ex01_hello_world: done - widgets stay on screen\n");
     }
     return (status == BENTO_E_CANCELLED) ? 0 : (int)status;
 }

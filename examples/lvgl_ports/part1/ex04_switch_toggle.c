@@ -106,7 +106,8 @@ static int32_t utf8_length(const char *text)
  * size, floor-divided by 4). */
 static int16_t centered_x(const char *text)
 {
-    return (int16_t)(SCREEN_CENTER_X - (((utf8_length(text) * FONT_PX) / 2) / 2));
+    return (int16_t)(SCREEN_CENTER_X -
+                     (((utf8_length(text) * FONT_PX) / 2) / 2));
 }
 
 /* Python's `part in text`. strstr is not among the C library
@@ -125,7 +126,8 @@ static bool text_contains(const char *text, const char *part)
 
 /* The first LED whose name holds name_part, else the fallback index,
  * which the board must have (gpio.led() raises ValueError). */
-static bento_status_t find_led(const char *name_part, uint32_t fallback, uint32_t *led)
+static bento_status_t find_led(const char *name_part, uint32_t fallback,
+                               uint32_t *led)
 {
     bento_gpio_board_info_t info;
     bento_status_t status;
@@ -134,7 +136,8 @@ static bento_status_t find_led(const char *name_part, uint32_t fallback, uint32_
 
     bento_gpio_board_info_init(&info);
     status = bento_gpio_board_info(&info);
-    for (i = 0U; (i < info.leds) && (status == BENTO_OK) && !found; i++) {
+    for (i = 0U; (i < info.leds) && (status == BENTO_OK) && !found;
+         i++) {
         const char *name = NULL;
 
         status = bento_gpio_led_name(i, &name);
@@ -154,12 +157,14 @@ static bento_status_t find_led(const char *name_part, uint32_t fallback, uint32_
 }
 
 /* True when the event is of this kind and came from this widget. */
-static bool event_is(const bento_ui_event_t *event, uint8_t kind, bento_ui_id_t widget)
+static bool event_is(const bento_ui_event_t *event, uint8_t kind,
+                     bento_ui_id_t widget)
 {
     return (event->type == kind) && (event->id == widget);
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, int16_t y, uint32_t color,
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                int16_t y, uint32_t color,
                                 bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
@@ -225,7 +230,8 @@ static bento_status_t build_screen(switch_screen_t *screen)
     bento_ui_t *ui = screen->ui;
     bento_ui_id_t unused;
     bento_status_t status =
-        bento_ui_screen(ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = bento_time_sleep_ms(SETTLE_MS);
@@ -237,28 +243,33 @@ static bento_status_t build_screen(switch_screen_t *screen)
         status = add_background(ui);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "Part 1 - Example 4: Switch Control", TITLE_Y, COLOR_TEXT,
-                           &unused);
+        status = add_label(ui, "Part 1 - Example 4: Switch Control",
+                           TITLE_Y, COLOR_TEXT, &unused);
     }
     if (status == BENTO_OK) {
         status = add_led(screen);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "Virtual LED", LED_CAPTION_Y, COLOR_TEXT, &unused);
+        status = add_label(ui, "Virtual LED", LED_CAPTION_Y, COLOR_TEXT,
+                           &unused);
     }
     if (status == BENTO_OK) {
         status = add_switch(screen);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, TEXT_STATUS_OFF, STATUS_Y, COLOR_STATUS, &screen->status);
+        status = add_label(ui, TEXT_STATUS_OFF, STATUS_Y, COLOR_STATUS,
+                           &screen->status);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "Learning: lv_switch_create, LV_STATE_CHECKED", HINT_Y,
-                           COLOR_HINT, &unused);
+        status = add_label(
+            ui, "Learning: lv_switch_create, LV_STATE_CHECKED", HINT_Y,
+            COLOR_HINT, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "This switch would control a real GPIO in actual hardware",
-                           HINT2_Y, COLOR_HINT, &unused);
+        status = add_label(
+            ui,
+            "This switch would control a real GPIO in actual hardware",
+            HINT2_Y, COLOR_HINT, &unused);
     }
     if (status == BENTO_OK) {
         status = add_label(ui,
@@ -272,18 +283,20 @@ static bento_status_t build_screen(switch_screen_t *screen)
 /* Red and green together: yellow on a single RGB LED. */
 static bento_status_t set_leds(const switch_screen_t *screen, bool on)
 {
-    bento_status_t status =
-        on ? bento_gpio_led_on(screen->hw_red) : bento_gpio_led_off(screen->hw_red);
+    bento_status_t status = on ? bento_gpio_led_on(screen->hw_red)
+                               : bento_gpio_led_off(screen->hw_red);
 
     if (status == BENTO_OK) {
-        status = on ? bento_gpio_led_on(screen->hw_green) : bento_gpio_led_off(screen->hw_green);
+        status = on ? bento_gpio_led_on(screen->hw_green)
+                    : bento_gpio_led_off(screen->hw_green);
     }
     return status;
 }
 
 /* The switch moved: the virtual LED, the real red and green LEDs and
  * the status line follow. */
-static bento_status_t show_switch(const switch_screen_t *screen, bool on)
+static bento_status_t show_switch(const switch_screen_t *screen,
+                                  bool on)
 {
     const char *text = on ? "GPIO State: HIGH (ON)" : TEXT_STATUS_OFF;
     bento_status_t status;
@@ -293,8 +306,10 @@ static bento_status_t show_switch(const switch_screen_t *screen, bool on)
     (void)bento_ui_set_value(screen->ui, screen->led, on ? 1 : 0);
     status = set_leds(screen, on);
     if (status == BENTO_OK) {
-        (void)bento_ui_set_text(screen->ui, screen->status, text, (uint32_t)strlen(text));
-        (void)printf("Switch %s - GPIO would be %s\n", on ? "ON" : "OFF", on ? "HIGH" : "LOW");
+        (void)bento_ui_set_text(screen->ui, screen->status, text,
+                                (uint32_t)strlen(text));
+        (void)printf("Switch %s - GPIO would be %s\n",
+                     on ? "ON" : "OFF", on ? "HIGH" : "LOW");
     }
     return status;
 }
@@ -308,11 +323,13 @@ static bento_status_t handle_events(const switch_screen_t *screen)
 
     /* ui.poll() answers no events when it fails, so a failed poll is
      * not an error here. */
-    if (bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+    if (bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
         count = 0U;
     }
     for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
-        if (event_is(&events[i], BENTO_UI_EVENT_TOGGLED, screen->toggle)) {
+        if (event_is(&events[i], BENTO_UI_EVENT_TOGGLED,
+                     screen->toggle)) {
             status = show_switch(screen, events[i].value != 0);
         }
     }
@@ -327,7 +344,8 @@ static bento_status_t run_event_loop(const switch_screen_t *screen)
     bento_status_t status = BENTO_OK;
 
     while ((status == BENTO_OK) &&
-           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) < RUN_MS)) {
+           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
+            RUN_MS)) {
         status = handle_events(screen);
         if (status == BENTO_OK) {
             status = bento_time_sleep_ms(LOOP_MS);
@@ -341,8 +359,10 @@ static bento_status_t run_event_loop(const switch_screen_t *screen)
 
 int main(void)
 {
-    switch_screen_t screen = {bento_runtime_get_ui(), 0U, 0U, 0U, 0U, 0U};
-    bento_status_t status = find_led("RED", FALLBACK_RED, &screen.hw_red);
+    switch_screen_t screen = {
+        bento_runtime_get_ui(), 0U, 0U, 0U, 0U, 0U};
+    bento_status_t status =
+        find_led("RED", FALLBACK_RED, &screen.hw_red);
 
     if (status == BENTO_OK) {
         status = find_led("GREEN", FALLBACK_GREEN, &screen.hw_green);
@@ -352,7 +372,8 @@ int main(void)
     }
     /* lcd.print() ignores a console that is not ready (modlcd.c) */
     if (status == BENTO_OK) {
-        (void)bento_lcd_print("ex04: toggle the switch - virtual LED follows");
+        (void)bento_lcd_print(
+            "ex04: toggle the switch - virtual LED follows");
     }
     if (status == BENTO_OK) {
         status = run_event_loop(&screen);

@@ -40,11 +40,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_buttons.h"
 #include "bento_pots.h"
 #include "bento_rgbmatrix.h"
+#include "bento_runtime.h"
 #include "bento_sensors.h"
 
 /* Screen layout on the 792 x 398 canvas. */
@@ -58,7 +57,7 @@ enum {
     ROW_H = 41,
     LED_X = 274, /* CX - 122 */
     LED_SIZE = 45,
-    NAME_X = 361,    /* CX - 35, less 3 px per character */
+    NAME_X = 361, /* CX - 35, less 3 px per character */
     NAME_CHAR_PX = 3,
     NAME_DY = 12,
     BLUE_NAME_DY = 4,
@@ -86,7 +85,8 @@ enum {
     POT_BAR_H = 21,
     POT_PCT_X = 664,
     POT_PCT_Y = 336,
-    ALL_BUTTON_DX = 60, /* All ON / All OFF, left and right of the centre */
+    ALL_BUTTON_DX =
+        60, /* All ON / All OFF, left and right of the centre */
     ALL_BUTTON_Y = 225,
     ALL_BUTTON_W = 100,
     ALL_BUTTON_H = 40,
@@ -119,18 +119,20 @@ enum {
     FALLBACK_BLUE = 2,
     ADC_MAX = 4095,
     PCT_FULL = 100,
-    LEVEL_MAX = 255,  /* PROP_LED_BRIGHTNESS range */
+    LEVEL_MAX = 255, /* PROP_LED_BRIGHTNESS range */
     PCT_CHANGE_MIN = 1,
-    NO_VALUE = -1,    /* prev_p before the first read */
-    MATRIX_PIXELS = 3, /* each channel lights three columns of the top row */
+    NO_VALUE = -1, /* prev_p before the first read */
+    MATRIX_PIXELS =
+        3, /* each channel lights three columns of the top row */
     MATRIX_STEP = 4
 };
 
 /* Timing, in milliseconds. */
 enum {
     SETTLE_MS = 200, /* let the cleared screen settle */
-    LOOP_MS = 100,   /* read the button and the potentiometer this often */
-    RUN_MS = 120000  /* the example ends after two minutes */
+    LOOP_MS =
+        100, /* read the button and the potentiometer this often */
+    RUN_MS = 120000 /* the example ends after two minutes */
 };
 
 /* Text buffers: the panel's title, and "n%" for any int32_t. */
@@ -212,7 +214,8 @@ static int32_t utf8_length(const char *text)
  * size, floor-divided by 4). */
 static int16_t centered_x(const char *text)
 {
-    return px(SCREEN_CENTER_X - (((utf8_length(text) * FONT_PX) / 2) / 2));
+    return px(SCREEN_CENTER_X -
+              (((utf8_length(text) * FONT_PX) / 2) / 2));
 }
 
 /* Python's `part in text`. strstr is not among the C library
@@ -231,7 +234,8 @@ static bool text_contains(const char *text, const char *part)
 
 /* The first LED whose name holds name_part, else the fallback index,
  * which the board must have (gpio.led() raises ValueError). */
-static bento_status_t find_led(const char *name_part, uint32_t fallback, uint32_t *led)
+static bento_status_t find_led(const char *name_part, uint32_t fallback,
+                               uint32_t *led)
 {
     bento_gpio_board_info_t info;
     bento_status_t status;
@@ -240,7 +244,8 @@ static bento_status_t find_led(const char *name_part, uint32_t fallback, uint32_
 
     bento_gpio_board_info_init(&info);
     status = bento_gpio_board_info(&info);
-    for (i = 0U; (i < info.leds) && (status == BENTO_OK) && !found; i++) {
+    for (i = 0U; (i < info.leds) && (status == BENTO_OK) && !found;
+         i++) {
         const char *name = NULL;
 
         status = bento_gpio_led_name(i, &name);
@@ -270,7 +275,8 @@ static void find_hardware(dashboard_t *board)
     if (bento_buttons_count() > 0U) {
         board->source = BUTTON2_BUTTONS;
         board->button2_name = "SW9";
-    } else if (bento_sensors_capsense_buttons(&button0, &button1) == BENTO_OK) {
+    } else if (bento_sensors_capsense_buttons(&button0, &button1) ==
+               BENTO_OK) {
         board->source = BUTTON2_CAPSENSE;
         board->button2_name = "CapSense BTN0";
     } else {
@@ -285,8 +291,10 @@ static bento_status_t find_leds(dashboard_t *board)
     int32_t channel;
     bento_status_t status = BENTO_OK;
 
-    for (channel = 0; (channel < CHANNEL_COUNT) && (status == BENTO_OK); channel++) {
-        status = find_led(CHANNELS[channel].led_name_part, CHANNELS[channel].fallback_led,
+    for (channel = 0; (channel < CHANNEL_COUNT) && (status == BENTO_OK);
+         channel++) {
+        status = find_led(CHANNELS[channel].led_name_part,
+                          CHANNELS[channel].fallback_led,
                           &board->hw[channel]);
     }
     if (status == BENTO_OK) {
@@ -297,7 +305,8 @@ static bento_status_t find_leds(dashboard_t *board)
 
 /* The potentiometer in percent: pots.read(0) scaled on the Dev Kit,
  * else the sensors module's percentage, truncated as int() does. */
-static bento_status_t read_pot_pct(const dashboard_t *board, int32_t *pct)
+static bento_status_t read_pot_pct(const dashboard_t *board,
+                                   int32_t *pct)
 {
     uint16_t raw = 0U;
     float percent = 0.0F;
@@ -313,7 +322,8 @@ static bento_status_t read_pot_pct(const dashboard_t *board, int32_t *pct)
     return status;
 }
 
-static bento_status_t read_button2(const dashboard_t *board, bool *pressed)
+static bento_status_t read_button2(const dashboard_t *board,
+                                   bool *pressed)
 {
     uint8_t button0 = 0U;
     uint8_t button1 = 0U;
@@ -331,8 +341,9 @@ static bento_status_t read_button2(const dashboard_t *board, bool *pressed)
     return status;
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, int32_t x, int32_t y,
-                                uint32_t color, bento_ui_id_t *out_id)
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                int32_t x, int32_t y, uint32_t color,
+                                bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -346,8 +357,10 @@ static bento_status_t add_label(bento_ui_t *ui, const char *text, int32_t x, int
     return bento_ui_label_create(ui, &args, out_id);
 }
 
-static bento_status_t add_big_label(bento_ui_t *ui, const char *text, const int16_t place[2],
-                                    uint32_t color, int32_t font_px, bento_ui_id_t *out_id)
+static bento_status_t add_big_label(bento_ui_t *ui, const char *text,
+                                    const int16_t place[2],
+                                    uint32_t color, int32_t font_px,
+                                    bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -361,8 +374,9 @@ static bento_status_t add_big_label(bento_ui_t *ui, const char *text, const int1
     return bento_ui_label_create(ui, &args, out_id);
 }
 
-static bento_status_t add_led(bento_ui_t *ui, int32_t x, int32_t y, int32_t size,
-                              uint32_t color, bento_ui_id_t *out_id)
+static bento_status_t add_led(bento_ui_t *ui, int32_t x, int32_t y,
+                              int32_t size, uint32_t color,
+                              bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -377,8 +391,8 @@ static bento_status_t add_led(bento_ui_t *ui, int32_t x, int32_t y, int32_t size
 }
 
 /* A panel; border_px 0 with border = colour is the background. */
-static bento_status_t add_panel(bento_ui_t *ui, int32_t x, int32_t y, int32_t w, int32_t h,
-                                bool boxed)
+static bento_status_t add_panel(bento_ui_t *ui, int32_t x, int32_t y,
+                                int32_t w, int32_t h, bool boxed)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t panel;
@@ -405,10 +419,12 @@ static bento_status_t add_channel(dashboard_t *board, int32_t channel)
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
     bento_status_t status =
-        add_led(board->ui, LED_X, y, LED_SIZE, CHANNELS[channel].color, &board->leds[channel]);
+        add_led(board->ui, LED_X, y, LED_SIZE, CHANNELS[channel].color,
+                &board->leds[channel]);
 
     if (status == BENTO_OK) {
-        status = add_label(board->ui, name, NAME_X - (utf8_length(name) * NAME_CHAR_PX),
+        status = add_label(board->ui, name,
+                           NAME_X - (utf8_length(name) * NAME_CHAR_PX),
                            y + NAME_DY, COLOR_TEXT, &unused);
     }
     if (status == BENTO_OK) {
@@ -417,7 +433,8 @@ static bento_status_t add_channel(dashboard_t *board, int32_t channel)
         args.y = px(y + SWITCH_DY);
         args.w = SWITCH_W;
         args.h = SWITCH_H;
-        status = bento_ui_switch_create(board->ui, &args, &board->switches[channel]);
+        status = bento_ui_switch_create(board->ui, &args,
+                                        &board->switches[channel]);
     }
     return status;
 }
@@ -427,14 +444,18 @@ static bento_status_t add_blue_row(dashboard_t *board)
 {
     const int32_t y = ROW_Y + (CHANNEL_COUNT * ROW_H);
     bento_ui_id_t unused;
-    bento_status_t status = add_led(board->ui, LED_X, y, LED_SIZE, COLOR_BLUE, &board->led_blue);
+    bento_status_t status = add_led(board->ui, LED_X, y, LED_SIZE,
+                                    COLOR_BLUE, &board->led_blue);
 
     if (status == BENTO_OK) {
-        status = add_label(board->ui, "Blue", NAME_X - (utf8_length("Blue") * NAME_CHAR_PX),
-                           y + BLUE_NAME_DY, COLOR_TEXT, &unused);
+        status =
+            add_label(board->ui, "Blue",
+                      NAME_X - (utf8_length("Blue") * NAME_CHAR_PX),
+                      y + BLUE_NAME_DY, COLOR_TEXT, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_label(board->ui, "(POT ctrl)", SWITCH_X, y + NAME_DY, COLOR_CYAN, &unused);
+        status = add_label(board->ui, "(POT ctrl)", SWITCH_X,
+                           y + NAME_DY, COLOR_CYAN, &unused);
     }
     return status;
 }
@@ -445,19 +466,25 @@ static bento_status_t add_button_panel(dashboard_t *board)
     const int16_t state_place[2] = {BUTTON_STATE_X, BUTTON_STATE_Y};
     char title[TITLE_CHARS];
     bento_ui_id_t unused;
-    bento_status_t status = add_panel(board->ui, BOX_LEFT_X, BOX_Y, BOX_W, BOX_H, true);
+    bento_status_t status =
+        add_panel(board->ui, BOX_LEFT_X, BOX_Y, BOX_W, BOX_H, true);
 
-    (void)snprintf(title, sizeof(title), "USER BTN2 (%s)", board->button2_name);
+    (void)snprintf(title, sizeof(title), "USER BTN2 (%s)",
+                   board->button2_name);
     if (status == BENTO_OK) {
-        status = add_label(board->ui, title, BUTTON_TITLE_X - (utf8_length(title) * NAME_CHAR_PX),
+        status = add_label(board->ui, title,
+                           BUTTON_TITLE_X -
+                               (utf8_length(title) * NAME_CHAR_PX),
                            BOX_TITLE_Y, COLOR_TEXT, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_led(board->ui, BUTTON_LED_X, BUTTON_LED_Y, BUTTON_LED_SIZE, COLOR_ORANGE,
-                         &board->button_led);
+        status =
+            add_led(board->ui, BUTTON_LED_X, BUTTON_LED_Y,
+                    BUTTON_LED_SIZE, COLOR_ORANGE, &board->button_led);
     }
     if (status == BENTO_OK) {
-        status = add_big_label(board->ui, "Released", state_place, COLOR_RELEASED, STATE_FONT_PX,
+        status = add_big_label(board->ui, "Released", state_place,
+                               COLOR_RELEASED, STATE_FONT_PX,
                                &board->button_state);
     }
     return status;
@@ -469,11 +496,12 @@ static bento_status_t add_pot_panel(dashboard_t *board)
     const int16_t pct_place[2] = {POT_PCT_X, POT_PCT_Y};
     bento_ui_widget_args_t args;
     bento_ui_id_t unused;
-    bento_status_t status = add_panel(board->ui, BOX_RIGHT_X, BOX_Y, BOX_W, BOX_H, true);
+    bento_status_t status =
+        add_panel(board->ui, BOX_RIGHT_X, BOX_Y, BOX_W, BOX_H, true);
 
     if (status == BENTO_OK) {
-        status =
-            add_label(board->ui, "POT -> Blue LED", POT_TITLE_X, BOX_TITLE_Y, COLOR_CYAN, &unused);
+        status = add_label(board->ui, "POT -> Blue LED", POT_TITLE_X,
+                           BOX_TITLE_Y, COLOR_CYAN, &unused);
     }
     if (status == BENTO_OK) {
         bento_ui_widget_args_init(&args);
@@ -488,14 +516,15 @@ static bento_status_t add_pot_panel(dashboard_t *board)
         status = bento_ui_bar_create(board->ui, &args, &board->pot_bar);
     }
     if (status == BENTO_OK) {
-        status = add_big_label(board->ui, "0%", pct_place, COLOR_CYAN, PCT_FONT_PX,
-                               &board->pot_label);
+        status = add_big_label(board->ui, "0%", pct_place, COLOR_CYAN,
+                               PCT_FONT_PX, &board->pot_label);
     }
     return status;
 }
 
-static bento_status_t add_all_button(bento_ui_t *ui, const char *text, int32_t center_x,
-                                     uint32_t color, bento_ui_id_t *out_id)
+static bento_status_t add_all_button(bento_ui_t *ui, const char *text,
+                                     int32_t center_x, uint32_t color,
+                                     bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -518,7 +547,8 @@ static bento_status_t build_top(dashboard_t *board)
     int32_t channel;
     bento_ui_id_t unused;
     bento_status_t status =
-        bento_ui_screen(board->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(board->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = bento_time_sleep_ms(SETTLE_MS);
@@ -527,13 +557,16 @@ static bento_status_t build_top(dashboard_t *board)
         status = BENTO_E_CANCELLED;
     }
     if (status == BENTO_OK) {
-        status = add_panel(board->ui, 0, 0, BENTO_RUNTIME_SCREEN_WIDTH_PX,
-                           BENTO_RUNTIME_SCREEN_HEIGHT_PX, false);
+        status =
+            add_panel(board->ui, 0, 0, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                      BENTO_RUNTIME_SCREEN_HEIGHT_PX, false);
     }
     if (status == BENTO_OK) {
-        status = add_label(board->ui, title, centered_x(title), TITLE_Y, COLOR_TEXT, &unused);
+        status = add_label(board->ui, title, centered_x(title), TITLE_Y,
+                           COLOR_TEXT, &unused);
     }
-    for (channel = 0; (channel < CHANNEL_COUNT) && (status == BENTO_OK); channel++) {
+    for (channel = 0; (channel < CHANNEL_COUNT) && (status == BENTO_OK);
+         channel++) {
         status = add_channel(board, channel);
     }
     if (status == BENTO_OK) {
@@ -545,7 +578,8 @@ static bento_status_t build_top(dashboard_t *board)
 /* The two panels, the All ON / All OFF buttons and the footer. */
 static bento_status_t build_bottom(dashboard_t *board)
 {
-    const char *footer = "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
+    const char *footer =
+        "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
     bento_ui_id_t unused;
     bento_status_t status = add_button_panel(board);
 
@@ -553,37 +587,47 @@ static bento_status_t build_bottom(dashboard_t *board)
         status = add_pot_panel(board);
     }
     if (status == BENTO_OK) {
-        status = add_all_button(board->ui, "All ON", SCREEN_CENTER_X - ALL_BUTTON_DX,
+        status = add_all_button(board->ui, "All ON",
+                                SCREEN_CENTER_X - ALL_BUTTON_DX,
                                 COLOR_GREEN, &board->all_on);
     }
     if (status == BENTO_OK) {
-        status = add_all_button(board->ui, "All OFF", SCREEN_CENTER_X + ALL_BUTTON_DX,
+        status = add_all_button(board->ui, "All OFF",
+                                SCREEN_CENTER_X + ALL_BUTTON_DX,
                                 COLOR_RED, &board->all_off);
     }
     if (status == BENTO_OK) {
-        status = add_label(board->ui, footer, centered_x(footer), FOOTER_Y, COLOR_FOOTER, &unused);
+        status = add_label(board->ui, footer, centered_x(footer),
+                           FOOTER_Y, COLOR_FOOTER, &unused);
     }
     return status;
 }
 
 /* One switched channel: the widget, the real LED, the matrix and a
  * line. */
-static bento_status_t set_channel(const dashboard_t *board, int32_t channel, bool on)
+static bento_status_t set_channel(const dashboard_t *board,
+                                  int32_t channel, bool on)
 {
-    const int32_t color = on ? CHANNELS[channel].matrix_color : BENTO_RGBMATRIX_OFF;
+    const int32_t color =
+        on ? CHANNELS[channel].matrix_color : BENTO_RGBMATRIX_OFF;
     int32_t column;
     bento_status_t status;
 
     /* MicroPython's widget setters ignore a refusal (modui.c), so the
      * twin does too. */
-    (void)bento_ui_set_value(board->ui, board->leds[channel], on ? 1 : 0);
-    status = on ? bento_gpio_led_on(board->hw[channel]) : bento_gpio_led_off(board->hw[channel]);
-    for (column = 0; board->has_matrix && (column < MATRIX_PIXELS) && (status == BENTO_OK);
+    (void)bento_ui_set_value(board->ui, board->leds[channel],
+                             on ? 1 : 0);
+    status = on ? bento_gpio_led_on(board->hw[channel])
+                : bento_gpio_led_off(board->hw[channel]);
+    for (column = 0; board->has_matrix && (column < MATRIX_PIXELS) &&
+                     (status == BENTO_OK);
          column++) {
-        status = bento_rgbmatrix_pixel((channel * MATRIX_STEP) + column, 0, color);
+        status = bento_rgbmatrix_pixel((channel * MATRIX_STEP) + column,
+                                       0, color);
     }
     if (status == BENTO_OK) {
-        (void)printf("[HW] %s: %s\n", CHANNELS[channel].name, on ? "ON" : "OFF");
+        (void)printf("[HW] %s: %s\n", CHANNELS[channel].name,
+                     on ? "ON" : "OFF");
     }
     return status;
 }
@@ -597,15 +641,18 @@ static bento_status_t set_all(const dashboard_t *board, bool on)
         status = set_channel(board, CHANNEL_GREEN, on);
     }
     if (status == BENTO_OK) {
-        (void)bento_ui_set_value(board->ui, board->led_blue, on ? 1 : 0);
-        status = bento_gpio_led_brightness(board->hw_blue, on ? PCT_FULL : 0);
+        (void)bento_ui_set_value(board->ui, board->led_blue,
+                                 on ? 1 : 0);
+        status = bento_gpio_led_brightness(board->hw_blue,
+                                           on ? PCT_FULL : 0);
     }
     return status;
 }
 
 /* The channel whose switch this is, or CHANNEL_COUNT when it is no
  * switch. */
-static int32_t channel_of_switch(const dashboard_t *board, bento_ui_id_t widget)
+static int32_t channel_of_switch(const dashboard_t *board,
+                                 bento_ui_id_t widget)
 {
     int32_t found = CHANNEL_COUNT;
     int32_t channel;
@@ -618,16 +665,20 @@ static int32_t channel_of_switch(const dashboard_t *board, bento_ui_id_t widget)
     return found;
 }
 
-static bento_status_t handle_event(const dashboard_t *board, const bento_ui_event_t *event)
+static bento_status_t handle_event(const dashboard_t *board,
+                                   const bento_ui_event_t *event)
 {
     const int32_t channel = channel_of_switch(board, event->id);
     bento_status_t status = BENTO_OK;
 
-    if ((event->type == BENTO_UI_EVENT_TOGGLED) && (channel < CHANNEL_COUNT)) {
+    if ((event->type == BENTO_UI_EVENT_TOGGLED) &&
+        (channel < CHANNEL_COUNT)) {
         status = set_channel(board, channel, event->value != 0);
-    } else if ((event->type == BENTO_UI_EVENT_CLICKED) && (event->id == board->all_on)) {
+    } else if ((event->type == BENTO_UI_EVENT_CLICKED) &&
+               (event->id == board->all_on)) {
         status = set_all(board, true);
-    } else if ((event->type == BENTO_UI_EVENT_CLICKED) && (event->id == board->all_off)) {
+    } else if ((event->type == BENTO_UI_EVENT_CLICKED) &&
+               (event->id == board->all_off)) {
         status = set_all(board, false);
     } else {
         /* any other event changes nothing */
@@ -644,7 +695,8 @@ static bento_status_t handle_events(const dashboard_t *board)
 
     /* ui.poll() answers no events when it fails, so a failed poll is
      * not an error here. */
-    if (bento_ui_poll(board->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+    if (bento_ui_poll(board->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
         count = 0U;
     }
     for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
@@ -659,15 +711,19 @@ static bento_status_t watch_button2(dashboard_t *board)
     bool pressed = false;
     bento_status_t status = read_button2(board, &pressed);
 
-    if ((status == BENTO_OK) && (!board->pressed_known || (pressed != board->pressed))) {
+    if ((status == BENTO_OK) &&
+        (!board->pressed_known || (pressed != board->pressed))) {
         const char *text = pressed ? "PRESSED" : "Released";
 
         board->pressed = pressed;
         board->pressed_known = true;
-        (void)bento_ui_set_value(board->ui, board->button_led, pressed ? 1 : 0);
-        (void)bento_ui_set_text(board->ui, board->button_state, text, (uint32_t)strlen(text));
+        (void)bento_ui_set_value(board->ui, board->button_led,
+                                 pressed ? 1 : 0);
+        (void)bento_ui_set_text(board->ui, board->button_state, text,
+                                (uint32_t)strlen(text));
         (void)bento_ui_set_color(board->ui, board->button_state,
-                                 pressed ? COLOR_PRESSED : COLOR_RELEASED);
+                                 pressed ? COLOR_PRESSED
+                                         : COLOR_RELEASED);
     }
     return status;
 }
@@ -682,13 +738,16 @@ static bento_status_t watch_pot(dashboard_t *board)
     bento_status_t status = read_pot_pct(board, &pct);
 
     change = pct - board->prev_pct;
-    if ((status == BENTO_OK) && (((change < 0) ? -change : change) > PCT_CHANGE_MIN)) {
+    if ((status == BENTO_OK) &&
+        (((change < 0) ? -change : change) > PCT_CHANGE_MIN)) {
         board->prev_pct = pct;
         (void)bento_ui_set_value(board->ui, board->pot_bar, pct);
         (void)snprintf(text, sizeof(text), "%" PRId32 "%%", pct);
-        (void)bento_ui_set_text(board->ui, board->pot_label, text, (uint32_t)strlen(text));
+        (void)bento_ui_set_text(board->ui, board->pot_label, text,
+                                (uint32_t)strlen(text));
         (void)bento_ui_set_value(board->ui, board->led_blue, 1);
-        (void)bento_ui_set_prop(board->ui, board->led_blue, BENTO_UI_PROP_LED_BRIGHTNESS,
+        (void)bento_ui_set_prop(board->ui, board->led_blue,
+                                BENTO_UI_PROP_LED_BRIGHTNESS,
                                 (pct * LEVEL_MAX) / PCT_FULL);
         status = bento_gpio_led_brightness(board->hw_blue, pct);
     }
@@ -703,7 +762,8 @@ static bento_status_t run_loop(dashboard_t *board)
     bento_status_t status = BENTO_OK;
 
     while ((status == BENTO_OK) &&
-           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) < RUN_MS)) {
+           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
+            RUN_MS)) {
         status = handle_events(board);
         if (status == BENTO_OK) {
             status = watch_button2(board);
@@ -739,8 +799,8 @@ int main(void)
     }
     /* lcd.print() ignores a console that is not ready (modlcd.c) */
     if (status == BENTO_OK) {
-        (void)bento_lcd_print(
-            "ex09: switches -> real Red/Green, pot -> real Blue PWM, watch BTN2");
+        (void)bento_lcd_print("ex09: switches -> real Red/Green, pot "
+                              "-> real Blue PWM, watch BTN2");
     }
     if (status == BENTO_OK) {
         status = run_loop(&board);

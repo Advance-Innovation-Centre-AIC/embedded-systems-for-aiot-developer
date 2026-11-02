@@ -30,9 +30,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_fs.h"
+#include "bento_runtime.h"
 
 /* Screen layout on the 792 x 398 canvas. */
 enum {
@@ -85,11 +84,16 @@ typedef struct {
 } menu_item_t;
 
 static const menu_item_t ITEMS[ITEM_COUNT] = {
-    {"Ex1 Hello World", "/s2e01.py"},    {"Ex2 Button Counter", "/s2e02.py"},
-    {"Ex3 LED Widget+HW", "/s2e03.py"},  {"Ex4 Switch Control", "/s2e04.py"},
-    {"Ex5 GPIO Dashboard", "/s2e05.py"}, {"Ex6 HW LED Control", "/s2e06.py"},
-    {"Ex7 HW Buttons", "/s2e07.py"},     {"Ex8 HW ADC Display", "/s2e08.py"},
-    {"Ex9 HW GPIO Dash", "/s2e09.py"},   {"Ex10 CAPSENSE Mock", "/s2e10.py"},
+    {"Ex1 Hello World", "/s2e01.py"},
+    {"Ex2 Button Counter", "/s2e02.py"},
+    {"Ex3 LED Widget+HW", "/s2e03.py"},
+    {"Ex4 Switch Control", "/s2e04.py"},
+    {"Ex5 GPIO Dashboard", "/s2e05.py"},
+    {"Ex6 HW LED Control", "/s2e06.py"},
+    {"Ex7 HW Buttons", "/s2e07.py"},
+    {"Ex8 HW ADC Display", "/s2e08.py"},
+    {"Ex9 HW GPIO Dash", "/s2e09.py"},
+    {"Ex10 CAPSENSE Mock", "/s2e10.py"},
     {"Ex11 CAPSENSE HW", "/s2e11.py"}};
 
 /* The buttons of the menu on the screen, and the status line's text. */
@@ -106,8 +110,9 @@ static int16_t px(int32_t value)
     return (int16_t)value;
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, const int16_t place[2],
-                                uint32_t color, int32_t font_px)
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                const int16_t place[2], uint32_t color,
+                                int32_t font_px)
 {
     bento_ui_widget_args_t args;
     bento_ui_id_t label;
@@ -172,7 +177,8 @@ static bento_status_t add_item_button(menu_t *menu, int32_t item)
     args.h = BUTTON_H;
     args.color = COLOR_BUTTON;
     args.font_px = FONT_PX;
-    return bento_ui_button_create(menu->ui, &args, &menu->buttons[item]);
+    return bento_ui_button_create(menu->ui, &args,
+                                  &menu->buttons[item]);
 }
 
 /* Clears the screen and draws the menu with the current message. */
@@ -182,7 +188,8 @@ static bento_status_t build_menu(menu_t *menu)
     const int16_t status_place[2] = {TEXT_X, STATUS_Y};
     int32_t item;
     bento_status_t status =
-        bento_ui_screen(menu->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(menu->ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = bento_time_sleep_ms(SETTLE_MS);
@@ -194,16 +201,18 @@ static bento_status_t build_menu(menu_t *menu)
         status = add_background(menu->ui);
     }
     if (status == BENTO_OK) {
-        status = add_label(menu->ui, "ตอนที่ 2 - UI-to-Hardware", title_place, COLOR_TEXT,
-                           TITLE_FONT_PX);
+        status = add_label(menu->ui, "ตอนที่ 2 - UI-to-Hardware",
+                           title_place, COLOR_TEXT, TITLE_FONT_PX);
     }
     if (status == BENTO_OK) {
-        status = add_label(menu->ui, menu->message, status_place, COLOR_STATUS, FONT_PX);
+        status = add_label(menu->ui, menu->message, status_place,
+                           COLOR_STATUS, FONT_PX);
     }
     if (status == BENTO_OK) {
         status = add_back_button(menu);
     }
-    for (item = 0; (item < ITEM_COUNT) && (status == BENTO_OK); item++) {
+    for (item = 0; (item < ITEM_COUNT) && (status == BENTO_OK);
+         item++) {
         status = add_item_button(menu, item);
     }
     return status;
@@ -212,15 +221,20 @@ static bento_status_t build_menu(menu_t *menu)
 /* What this click picked: "< Sections" (PICKED_BACK), an example, or
  * nothing (ITEM_COUNT). Like the original, a later click in the same
  * poll replaces an earlier pick. */
-static int32_t pick_of_click(const menu_t *menu, const bento_ui_event_t *event, int32_t picked)
+static int32_t pick_of_click(const menu_t *menu,
+                             const bento_ui_event_t *event,
+                             int32_t picked)
 {
     int32_t found = picked;
     int32_t item;
 
-    if ((event->type == BENTO_UI_EVENT_CLICKED) && (event->id == menu->back)) {
+    if ((event->type == BENTO_UI_EVENT_CLICKED) &&
+        (event->id == menu->back)) {
         found = PICKED_BACK;
     }
-    for (item = ITEM_COUNT - 1; (item >= 0) && (event->type == BENTO_UI_EVENT_CLICKED); item--) {
+    for (item = ITEM_COUNT - 1;
+         (item >= 0) && (event->type == BENTO_UI_EVENT_CLICKED);
+         item--) {
         if (menu->buttons[item] == event->id) {
             found = item;
         }
@@ -240,7 +254,8 @@ static bento_status_t wait_for_pick(const menu_t *menu, int32_t *picked)
     while ((status == BENTO_OK) && (*picked == ITEM_COUNT)) {
         /* ui.poll() answers no events when it fails, so a failed poll
          * is not an error here. */
-        if (bento_ui_poll(menu->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+        if (bento_ui_poll(menu->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                          &count, NULL) != BENTO_OK) {
             count = 0U;
         }
         for (i = 0U; i < count; i++) {
@@ -263,14 +278,15 @@ static void run_example(menu_t *menu, int32_t item)
     bool present;
 
     bento_fs_stat_init(&info);
-    present = (bento_fs_stat(path, (uint32_t)strlen(path), &info) == BENTO_OK) &&
+    present = (bento_fs_stat(path, (uint32_t)strlen(path), &info) ==
+               BENTO_OK) &&
               (info.type == BENTO_FS_TYPE_FILE);
     if (present) {
-        (void)snprintf(menu->message, sizeof(menu->message), "%s -> C cannot exec a .py",
-                       ITEMS[item].name);
+        (void)snprintf(menu->message, sizeof(menu->message),
+                       "%s -> C cannot exec a .py", ITEMS[item].name);
     } else {
-        (void)snprintf(menu->message, sizeof(menu->message), "%s -> missing: %s",
-                       ITEMS[item].name, path);
+        (void)snprintf(menu->message, sizeof(menu->message),
+                       "%s -> missing: %s", ITEMS[item].name, path);
     }
 }
 
@@ -282,7 +298,8 @@ int main(void)
 
     (void)memset(&menu, 0, sizeof(menu));
     menu.ui = bento_runtime_get_ui();
-    (void)snprintf(menu.message, sizeof(menu.message), "ตอนที่ 2 - แตะตัวอย่าง (Back = กลับหน้าตอน)");
+    (void)snprintf(menu.message, sizeof(menu.message),
+                   "ตอนที่ 2 - แตะตัวอย่าง (Back = กลับหน้าตอน)");
     while ((status == BENTO_OK) && (picked != PICKED_BACK)) {
         status = build_menu(&menu);
         if (status == BENTO_OK) {

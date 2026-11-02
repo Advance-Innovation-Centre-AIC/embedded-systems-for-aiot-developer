@@ -35,9 +35,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bento_runtime.h"
-
 #include "bento_buttons.h"
+#include "bento_runtime.h"
 #include "bento_sensors.h"
 
 /* Screen layout on the 792 x 398 canvas, top to bottom. */
@@ -132,7 +131,8 @@ static int32_t utf8_length(const char *text)
  * 4); a column's 16 px state is placed the same way. */
 static int16_t centered_at(int32_t center_x, const char *text)
 {
-    return (int16_t)(center_x - (((utf8_length(text) * FONT_PX) / 2) / 2));
+    return (int16_t)(center_x -
+                     (((utf8_length(text) * FONT_PX) / 2) / 2));
 }
 
 static int32_t column_center(int32_t column)
@@ -150,7 +150,8 @@ static void find_button2(buttons_screen_t *screen)
     if (bento_buttons_count() > 0U) {
         screen->source = BUTTON2_BUTTONS;
         screen->button2_name = "(SW9)";
-    } else if (bento_sensors_capsense_buttons(&button0, &button1) == BENTO_OK) {
+    } else if (bento_sensors_capsense_buttons(&button0, &button1) ==
+               BENTO_OK) {
         screen->source = BUTTON2_CAPSENSE;
         screen->button2_name = "(CapSense BTN0)";
     } else {
@@ -159,7 +160,8 @@ static void find_button2(buttons_screen_t *screen)
     }
 }
 
-static bento_status_t read_button2(const buttons_screen_t *screen, bool *pressed)
+static bento_status_t read_button2(const buttons_screen_t *screen,
+                                   bool *pressed)
 {
     uint8_t button0 = 0U;
     uint8_t button1 = 0U;
@@ -177,8 +179,9 @@ static bento_status_t read_button2(const buttons_screen_t *screen, bool *pressed
     return status;
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, int16_t x, int16_t y,
-                                uint32_t color, bento_ui_id_t *out_id)
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                int16_t x, int16_t y, uint32_t color,
+                                bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
 
@@ -210,7 +213,8 @@ static bento_status_t add_background(bento_ui_t *ui)
     return bento_ui_panel_create(ui, &args, &panel);
 }
 
-static bento_status_t add_led(buttons_screen_t *screen, int32_t column, uint32_t color)
+static bento_status_t add_led(buttons_screen_t *screen, int32_t column,
+                              uint32_t color)
 {
     bento_ui_widget_args_t args;
 
@@ -221,20 +225,24 @@ static bento_status_t add_led(buttons_screen_t *screen, int32_t column, uint32_t
     args.h = LED_SIZE;
     args.color = color;
     args.font_px = 0;
-    return bento_ui_led_create(screen->ui, &args, &screen->leds[column]);
+    return bento_ui_led_create(screen->ui, &args,
+                               &screen->leds[column]);
 }
 
 /* A centred caption line of one column. */
-static bento_status_t add_column_label(const buttons_screen_t *screen, int32_t column,
-                                       const char *text, int16_t y)
+static bento_status_t add_column_label(const buttons_screen_t *screen,
+                                       int32_t column, const char *text,
+                                       int16_t y)
 {
     bento_ui_id_t unused;
 
-    return add_label(screen->ui, text, centered_at(column_center(column), text), y, COLOR_TEXT,
-                     &unused);
+    return add_label(screen->ui, text,
+                     centered_at(column_center(column), text), y,
+                     COLOR_TEXT, &unused);
 }
 
-static bento_status_t add_state(buttons_screen_t *screen, int32_t column)
+static bento_status_t add_state(buttons_screen_t *screen,
+                                int32_t column)
 {
     const char *text = "Released";
     bento_ui_widget_args_t args;
@@ -246,21 +254,24 @@ static bento_status_t add_state(buttons_screen_t *screen, int32_t column)
     args.y = STATE_Y;
     args.color = COLOR_RELEASED;
     args.font_px = STATE_FONT_PX;
-    return bento_ui_label_create(screen->ui, &args, &screen->states[column]);
+    return bento_ui_label_create(screen->ui, &args,
+                                 &screen->states[column]);
 }
 
 /* gpio.button(0) must exist, and its name goes in brackets. */
 static bento_status_t name_button1(buttons_screen_t *screen)
 {
     const char *name = "";
-    bento_status_t status =
-        (bento_gpio_num_buttons() > 0U) ? BENTO_OK : BENTO_E_INVALID_ARGUMENT;
+    bento_status_t status = (bento_gpio_num_buttons() > 0U)
+                                ? BENTO_OK
+                                : BENTO_E_INVALID_ARGUMENT;
 
     if (status == BENTO_OK) {
         status = bento_gpio_button_name(0U, &name);
     }
     if (status == BENTO_OK) {
-        (void)snprintf(screen->button1_name, sizeof(screen->button1_name), "(%s)", name);
+        (void)snprintf(screen->button1_name,
+                       sizeof(screen->button1_name), "(%s)", name);
     }
     return status;
 }
@@ -275,16 +286,20 @@ static bento_status_t add_columns(buttons_screen_t *screen)
         status = add_led(screen, COLUMN_BUTTON2, COLOR_ORANGE);
     }
     if (status == BENTO_OK) {
-        status = add_column_label(screen, COLUMN_BUTTON1, "USER Button 1", CAPTION_Y);
+        status = add_column_label(screen, COLUMN_BUTTON1,
+                                  "USER Button 1", CAPTION_Y);
     }
     if (status == BENTO_OK) {
-        status = add_column_label(screen, COLUMN_BUTTON1, screen->button1_name, NAME_Y);
+        status = add_column_label(screen, COLUMN_BUTTON1,
+                                  screen->button1_name, NAME_Y);
     }
     if (status == BENTO_OK) {
-        status = add_column_label(screen, COLUMN_BUTTON2, "USER Button 2", CAPTION_Y);
+        status = add_column_label(screen, COLUMN_BUTTON2,
+                                  "USER Button 2", CAPTION_Y);
     }
     if (status == BENTO_OK) {
-        status = add_column_label(screen, COLUMN_BUTTON2, screen->button2_name, NAME_Y);
+        status = add_column_label(screen, COLUMN_BUTTON2,
+                                  screen->button2_name, NAME_Y);
     }
     if (status == BENTO_OK) {
         status = add_state(screen, COLUMN_BUTTON1);
@@ -301,11 +316,13 @@ static bento_status_t build_screen(buttons_screen_t *screen)
 {
     const char *title = "Part 1 Ex7: Hardware Button Status";
     const char *hint = "[Part II] Press the two buttons on the board";
-    const char *footer = "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
+    const char *footer =
+        "(C) 2023-2026 AIC-EEC.com and BiiL Centre, Burapha University";
     bento_ui_t *ui = screen->ui;
     bento_ui_id_t unused;
     bento_status_t status =
-        bento_ui_screen(ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = bento_time_sleep_ms(SETTLE_MS);
@@ -317,25 +334,28 @@ static bento_status_t build_screen(buttons_screen_t *screen)
         status = add_background(ui);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, title, centered_at(SCREEN_CENTER_X, title), TITLE_Y, COLOR_TEXT,
-                           &unused);
+        status =
+            add_label(ui, title, centered_at(SCREEN_CENTER_X, title),
+                      TITLE_Y, COLOR_TEXT, &unused);
     }
     if (status == BENTO_OK) {
         status = add_columns(screen);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, hint, centered_at(SCREEN_CENTER_X, hint), HINT_Y, COLOR_HINT,
-                           &unused);
+        status = add_label(ui, hint, centered_at(SCREEN_CENTER_X, hint),
+                           HINT_Y, COLOR_HINT, &unused);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, footer, centered_at(SCREEN_CENTER_X, footer), FOOTER_Y,
-                           COLOR_FOOTER, &unused);
+        status =
+            add_label(ui, footer, centered_at(SCREEN_CENTER_X, footer),
+                      FOOTER_Y, COLOR_FOOTER, &unused);
     }
     return status;
 }
 
 /* Writes a column only when its state changed (or was never shown). */
-static void show_button(buttons_screen_t *screen, int32_t column, bool pressed)
+static void show_button(buttons_screen_t *screen, int32_t column,
+                        bool pressed)
 {
     const char *text = pressed ? "PRESSED" : "Released";
 
@@ -344,10 +364,13 @@ static void show_button(buttons_screen_t *screen, int32_t column, bool pressed)
         screen->known[column] = true;
         /* MicroPython's widget setters ignore a refusal (modui.c), so
          * the twin does too. */
-        (void)bento_ui_set_value(screen->ui, screen->leds[column], pressed ? 1 : 0);
-        (void)bento_ui_set_text(screen->ui, screen->states[column], text, (uint32_t)strlen(text));
+        (void)bento_ui_set_value(screen->ui, screen->leds[column],
+                                 pressed ? 1 : 0);
+        (void)bento_ui_set_text(screen->ui, screen->states[column],
+                                text, (uint32_t)strlen(text));
         (void)bento_ui_set_color(screen->ui, screen->states[column],
-                                 pressed ? COLOR_PRESSED : COLOR_RELEASED);
+                                 pressed ? COLOR_PRESSED
+                                         : COLOR_RELEASED);
     }
 }
 
@@ -362,7 +385,8 @@ static bento_status_t read_buttons(buttons_screen_t *screen)
     /* No widget here answers a tap (the "< Menu" button is left out),
      * so the events are not read, and ui.poll() answers no events
      * when it fails. */
-    (void)bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL);
+    (void)bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                        &count, NULL);
     status = bento_gpio_button_is_pressed(0U, &pressed1);
     if (status == BENTO_OK) {
         status = read_button2(screen, &pressed2);
@@ -382,7 +406,8 @@ static bento_status_t run_loop(buttons_screen_t *screen)
     bento_status_t status = BENTO_OK;
 
     while ((status == BENTO_OK) &&
-           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) < RUN_MS)) {
+           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
+            RUN_MS)) {
         status = read_buttons(screen);
         if (status == BENTO_OK) {
             status = bento_time_sleep_ms(LOOP_MS);
@@ -409,7 +434,8 @@ int main(void)
     }
     /* lcd.print() ignores a console that is not ready (modlcd.c) */
     if (status == BENTO_OK) {
-        (void)snprintf(line, sizeof(line), "ex07: watching button 1 %s and button 2 %s",
+        (void)snprintf(line, sizeof(line),
+                       "ex07: watching button 1 %s and button 2 %s",
                        screen.button1_name, screen.button2_name);
         (void)bento_lcd_print(line);
     }

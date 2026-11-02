@@ -119,7 +119,8 @@ static int32_t utf8_length(const char *text)
  * size, floor-divided by 4). */
 static int16_t centered_x(const char *text)
 {
-    return (int16_t)(SCREEN_CENTER_X - (((utf8_length(text) * FONT_PX) / 2) / 2));
+    return (int16_t)(SCREEN_CENTER_X -
+                     (((utf8_length(text) * FONT_PX) / 2) / 2));
 }
 
 /* Python's `part in text`. strstr is not among the C library
@@ -138,7 +139,8 @@ static bool text_contains(const char *text, const char *part)
 
 /* The first LED whose name holds name_part, else the fallback index,
  * which the board must have (gpio.led() raises ValueError). */
-static bento_status_t find_led(const char *name_part, uint32_t fallback, uint32_t *led)
+static bento_status_t find_led(const char *name_part, uint32_t fallback,
+                               uint32_t *led)
 {
     bento_gpio_board_info_t info;
     bento_status_t status;
@@ -147,7 +149,8 @@ static bento_status_t find_led(const char *name_part, uint32_t fallback, uint32_
 
     bento_gpio_board_info_init(&info);
     status = bento_gpio_board_info(&info);
-    for (i = 0U; (i < info.leds) && (status == BENTO_OK) && !found; i++) {
+    for (i = 0U; (i < info.leds) && (status == BENTO_OK) && !found;
+         i++) {
         const char *name = NULL;
 
         status = bento_gpio_led_name(i, &name);
@@ -167,25 +170,30 @@ static bento_status_t find_led(const char *name_part, uint32_t fallback, uint32_
 }
 
 /* True when the event is of this kind and came from this widget. */
-static bool event_is(const bento_ui_event_t *event, uint8_t kind, bento_ui_id_t widget)
+static bool event_is(const bento_ui_event_t *event, uint8_t kind,
+                     bento_ui_id_t widget)
 {
     return (event->type == kind) && (event->id == widget);
 }
 
-static void set_text(const led_screen_t *screen, bento_ui_id_t widget, const char *text)
+static void set_text(const led_screen_t *screen, bento_ui_id_t widget,
+                     const char *text)
 {
     /* MicroPython's widget setters ignore a refusal (modui.c), so the
      * twin does too. */
-    (void)bento_ui_set_text(screen->ui, widget, text, (uint32_t)strlen(text));
+    (void)bento_ui_set_text(screen->ui, widget, text,
+                            (uint32_t)strlen(text));
 }
 
 static void set_brightness(const led_screen_t *screen, int32_t level)
 {
     /* a setter's refusal was ignored before too */
-    (void)bento_ui_set_prop(screen->ui, screen->led, BENTO_UI_PROP_LED_BRIGHTNESS, level);
+    (void)bento_ui_set_prop(screen->ui, screen->led,
+                            BENTO_UI_PROP_LED_BRIGHTNESS, level);
 }
 
-static bento_status_t add_label(bento_ui_t *ui, const char *text, int16_t y, uint32_t color,
+static bento_status_t add_label(bento_ui_t *ui, const char *text,
+                                int16_t y, uint32_t color,
                                 bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
@@ -237,7 +245,8 @@ static bento_status_t add_led(led_screen_t *screen)
     return status;
 }
 
-static bento_status_t add_button(bento_ui_t *ui, const char *text, int16_t x, uint32_t color,
+static bento_status_t add_button(bento_ui_t *ui, const char *text,
+                                 int16_t x, uint32_t color,
                                  bento_ui_id_t *out_id)
 {
     bento_ui_widget_args_t args;
@@ -275,7 +284,8 @@ static bento_status_t build_top(led_screen_t *screen)
     bento_ui_t *ui = screen->ui;
     bento_ui_id_t unused;
     bento_status_t status =
-        bento_ui_screen(ui, BENTO_RUNTIME_SCREEN_WIDTH_PX, BENTO_RUNTIME_SCREEN_HEIGHT_PX);
+        bento_ui_screen(ui, BENTO_RUNTIME_SCREEN_WIDTH_PX,
+                        BENTO_RUNTIME_SCREEN_HEIGHT_PX);
 
     if (status == BENTO_OK) {
         status = bento_time_sleep_ms(SETTLE_MS);
@@ -287,14 +297,16 @@ static bento_status_t build_top(led_screen_t *screen)
         status = add_background(ui);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "Part 1 Ex6: HW LED Control (Based on Ex3)", TITLE_Y, COLOR_TEXT,
-                           &unused);
+        status =
+            add_label(ui, "Part 1 Ex6: HW LED Control (Based on Ex3)",
+                      TITLE_Y, COLOR_TEXT, &unused);
     }
     if (status == BENTO_OK) {
         status = add_led(screen);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "Brightness: 150", BRIGHT_Y, COLOR_TEXT, &screen->bright);
+        status = add_label(ui, "Brightness: 150", BRIGHT_Y, COLOR_TEXT,
+                           &screen->bright);
     }
     return status;
 }
@@ -304,12 +316,14 @@ static bento_status_t build_controls(led_screen_t *screen)
 {
     bento_ui_t *ui = screen->ui;
     bento_ui_id_t unused;
-    bento_status_t status = add_button(ui, "ON", SCREEN_CENTER_X - BUTTON_DX - (BUTTON_W / 2),
-                                       COLOR_GREEN, &screen->on_button);
+    bento_status_t status = add_button(
+        ui, "ON", SCREEN_CENTER_X - BUTTON_DX - (BUTTON_W / 2),
+        COLOR_GREEN, &screen->on_button);
 
     if (status == BENTO_OK) {
-        status = add_button(ui, "OFF", SCREEN_CENTER_X + BUTTON_DX - (BUTTON_W / 2), COLOR_RED,
-                            &screen->off_button);
+        status = add_button(
+            ui, "OFF", SCREEN_CENTER_X + BUTTON_DX - (BUTTON_W / 2),
+            COLOR_RED, &screen->off_button);
     }
     if (status == BENTO_OK) {
         status = add_slider(screen);
@@ -318,8 +332,9 @@ static bento_status_t build_controls(led_screen_t *screen)
         status = add_label(ui, "59%", PCT_Y, COLOR_TEXT, &screen->pct);
     }
     if (status == BENTO_OK) {
-        status = add_label(ui, "[Part II] gpio.led().on/off + gpio.led().brightness()", HINT_Y,
-                           COLOR_HINT, &unused);
+        status = add_label(
+            ui, "[Part II] gpio.led().on/off + gpio.led().brightness()",
+            HINT_Y, COLOR_HINT, &unused);
     }
     if (status == BENTO_OK) {
         status = add_label(ui,
@@ -335,14 +350,17 @@ static bento_status_t build_controls(led_screen_t *screen)
 static bento_status_t switch_led(const led_screen_t *screen, bool on)
 {
     set_brightness(screen, on ? LEVEL_MAX : 0);
-    set_text(screen, screen->bright, on ? "Brightness: 255 (ON)" : "Brightness: 0 (OFF)");
-    return on ? bento_gpio_led_on(screen->hw_green) : bento_gpio_led_off(screen->hw_green);
+    set_text(screen, screen->bright,
+             on ? "Brightness: 255 (ON)" : "Brightness: 0 (OFF)");
+    return on ? bento_gpio_led_on(screen->hw_green)
+              : bento_gpio_led_off(screen->hw_green);
 }
 
 /* The slider moved: the widget, both labels and the real blue LED's
  * brightness. Levels are never negative, so C's division is the floor
  * division. */
-static bento_status_t move_slider(const led_screen_t *screen, int32_t level)
+static bento_status_t move_slider(const led_screen_t *screen,
+                                  int32_t level)
 {
     char text[TEXT_CHARS];
     const int32_t pct = (level * PCT_FULL) / LEVEL_MAX;
@@ -355,15 +373,18 @@ static bento_status_t move_slider(const led_screen_t *screen, int32_t level)
     return bento_gpio_led_brightness(screen->hw_blue, pct);
 }
 
-static bento_status_t handle_event(const led_screen_t *screen, const bento_ui_event_t *event)
+static bento_status_t handle_event(const led_screen_t *screen,
+                                   const bento_ui_event_t *event)
 {
     bento_status_t status = BENTO_OK;
 
     if (event_is(event, BENTO_UI_EVENT_CLICKED, screen->on_button)) {
         status = switch_led(screen, true);
-    } else if (event_is(event, BENTO_UI_EVENT_CLICKED, screen->off_button)) {
+    } else if (event_is(event, BENTO_UI_EVENT_CLICKED,
+                        screen->off_button)) {
         status = switch_led(screen, false);
-    } else if (event_is(event, BENTO_UI_EVENT_VALUE_CHANGED, screen->slider)) {
+    } else if (event_is(event, BENTO_UI_EVENT_VALUE_CHANGED,
+                        screen->slider)) {
         status = move_slider(screen, event->value);
     } else {
         /* any other event changes nothing */
@@ -380,7 +401,8 @@ static bento_status_t handle_events(const led_screen_t *screen)
 
     /* ui.poll() answers no events when it fails, so a failed poll is
      * not an error here. */
-    if (bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX, &count, NULL) != BENTO_OK) {
+    if (bento_ui_poll(screen->ui, events, BENTO_UI_POLL_EVENTS_MAX,
+                      &count, NULL) != BENTO_OK) {
         count = 0U;
     }
     for (i = 0U; (i < count) && (status == BENTO_OK); i++) {
@@ -397,7 +419,8 @@ static bento_status_t run_event_loop(const led_screen_t *screen)
     bento_status_t status = BENTO_OK;
 
     while ((status == BENTO_OK) &&
-           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) < RUN_MS)) {
+           (bento_time_ticks_diff(bento_time_ticks_ms(), start_ms) <
+            RUN_MS)) {
         status = handle_events(screen);
         if (status == BENTO_OK) {
             status = bento_time_sleep_ms(LOOP_MS);
@@ -428,7 +451,8 @@ int main(void)
     }
     /* lcd.print() ignores a console that is not ready (modlcd.c) */
     if (status == BENTO_OK) {
-        (void)bento_lcd_print("ex06: ON/OFF -> real green LED, slider -> real blue LED PWM");
+        (void)bento_lcd_print("ex06: ON/OFF -> real green LED, slider "
+                              "-> real blue LED PWM");
     }
     if (status == BENTO_OK) {
         status = run_event_loop(&screen);
