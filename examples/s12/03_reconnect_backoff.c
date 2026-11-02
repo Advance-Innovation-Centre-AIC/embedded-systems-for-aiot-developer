@@ -442,17 +442,16 @@ static bento_status_t join_wifi(bool *joined)
 static void show_emulator_note(backoff_screen_t *screen)
 {
     static const char note[] =
-        "MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit หรือ Eva Kit";
+        "MQTT จาก C ยังไม่มีใน BENTO Emulator\nให้รันบน Dev Kit หรือ Eva Kit";
 
     if (!screen->emulator_told) {
         screen->emulator_told = true;
         show_text(screen, ROLE_FOOT_RIGHT, "");
         show_color(screen, ROLE_FOOT_LEFT, (uint32_t)COLOR_WARN);
         show_text(screen, ROLE_FOOT_LEFT, note);
-        (void)printf("%s / MQTT from C is not in the BENTO Emulator "
-                     "yet: run it on a Dev Kit or "
-                     "Eva Kit.\n",
-                     note);
+        (void)printf("MQTT จาก C ยังไม่มีใน BENTO Emulator ให้รันบน Dev Kit "
+                     "หรือ Eva Kit / MQTT from C is not in the BENTO "
+                     "Emulator yet: run it on a Dev Kit or Eva Kit.\n");
     }
 }
 
